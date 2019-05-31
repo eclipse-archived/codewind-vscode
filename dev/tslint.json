@@ -1,0 +1,57 @@
+{
+	"extends": "tslint:recommended",
+	"rules": {
+		// Disable some recommended rules.
+		"member-ordering": false,
+		"no-consecutive-blank-lines": false,
+		"no-namespace": false,
+		"object-literal-sort-keys": false,
+		"object-literal-shorthand": false,
+		"one-line": false,
+		"ordered-imports": false,
+		"trailing-comma": false,
+		"typedef-whitespace": false,
+		"variable-name": [ true, "allow-leading-underscore", "allow-trailing-underscore" ],
+
+		// Below are my rules.
+		"await-promise": [
+			true,
+			"Thenable",
+			"RequestPromise",
+			"requestPromise.RequestPromise"
+		],
+		"ban": [ true,
+			[ "For test use only", "Log",  "t" ]
+		],
+		"deprecation": true,
+		"max-line-length": [
+			true,
+			150
+		],
+		"no-boolean-literal-compare": true,
+		"no-duplicate-variable": true,
+		"no-invalid-template-strings": true,
+		"no-invalid-this": true,
+		"no-require-imports": true,
+		"no-unused-expression": true,
+		"no-unused-variable": true,
+		"no-use-before-declare": true,
+		"no-var-keyword": true,
+		"object-literal-key-quotes": [ true, "as-needed" ],
+		"prefer-const": true,
+		"prefer-readonly": true,
+		"switch-default": true,
+		"typedef": [
+			true,
+			"array-destructuring",
+			"call-signature",
+			"member-variable-declaration",
+			"object-destructuring",
+			"parameter",
+			"property-declaration"
+		]
+	},
+	"defaultSeverity": "warning",
+
+	"rulesDirectory": [ "src/test/" ]
+}

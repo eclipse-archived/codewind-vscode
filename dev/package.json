@@ -1,0 +1,406 @@
+{
+    "name": "codewind",
+    "displayName": "%displayName%",
+    "description": "%description%",
+    "version": "0.1.0",
+    "publisher": "IBM",
+    "engines": {
+        "vscode": "^1.27.0"
+    },
+    "license": "EPL-2.0",
+    "bugs": {
+        "url": "https://github.com/microclimate-dev2ops/codewind-vscode/issues"
+    },
+    "homepage": "https://microclimate.dev/codewindtechpreview",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/microclimate-dev2ops/codewind-vscode"
+    },
+    "preview": true,
+    "icon": "res/img/microclimate.png",
+    "categories": [
+        "Other"
+    ],
+    "keywords": [
+        "IBM",
+        "docker",
+        "cicd",
+        "cloud"
+    ],
+    "activationEvents": [
+        "onView:ext.cw.explorer",
+        "onCommand:ext.cw.activateConn",
+        "onCommand:ext.cw.createProject",
+        "workspaceContains:.idc",
+        "workspaceContains:.projects",
+        "workspaceContains:.extensions",
+        "workspaceContains:.mc-settings",
+        "workspaceContains:.cw-settings",
+        "workspaceContains:**/.mc-settings",
+        "workspaceContains:**/.cw-settings"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "views": {
+            "explorer": [
+                {
+                    "id": "%viewID%",
+                    "name": "%viewName%"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "%cmdID_activateConn%",
+                "title": "%cmdTitle_activateConn%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/connect.svg",
+                    "dark": "res/img/dark/connect.svg"
+                }
+            },
+            {
+                "command": "%cmdID_deactivateConn%",
+                "title": "%cmdTitle_deactivateConn%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_refreshConnection%",
+                "title": "%cmdTitle_refreshConnection%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/refresh.svg",
+                    "dark": "res/img/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "%cmdID_newProject%",
+                "title": "%cmdTitle_newProject%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/new.svg",
+                    "dark": "res/img/dark/new.svg"
+                }
+            },
+            {
+                "command": "%cmdID_bindProject%",
+                "title": "%cmdTitle_bindProject%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/link.svg",
+                    "dark": "res/img/dark/link.svg"
+                }
+            },
+            {
+                "command": "%cmdID_openFolder%",
+                "title": "%cmdTitle_openFolder%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_openInBrowser%",
+                "title": "%cmdTitle_openInBrowser%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/launch.svg",
+                    "dark": "res/img/dark/launch.svg"
+                }
+            },
+            {
+                "command": "%cmdID_attachDebugger%",
+                "title": "%cmdTitle_attachDebugger%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/debug.svg",
+                    "dark": "res/img/dark/debug.svg"
+                }
+            },
+            {
+                "command": "%cmdID_restartRun%",
+                "title": "%cmdTitle_restartRun%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_restartDebug%",
+                "title": "%cmdTitle_restartDebug%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_requestBuild%",
+                "title": "%cmdTitle_requestBuild%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_manageLogs%",
+                "title": "%cmdTitle_manageLogs%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_showAllLogs%",
+                "title": "%cmdTitle_showAllLogs%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_hideAllLogs%",
+                "title": "%cmdTitle_hideAllLogs%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_enable%",
+                "title": "%cmdTitle_enable%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/play.svg",
+                    "dark": "res/img/dark/play.svg"
+                }
+            },
+            {
+                "command": "%cmdID_disable%",
+                "title": "%cmdTitle_disable%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_containerShell%",
+                "title": "%cmdTitle_containerShell%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_projectOverview%",
+                "title": "%cmdTitle_projectOverview%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/info.svg",
+                    "dark": "res/img/dark/info.svg"
+                }
+            },
+            {
+                "command": "%cmdID_toggleAutoBuild%",
+                "title": "%cmdTitle_toggleAutoBuild%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_enableAutoBuild%",
+                "title": "%cmdTitle_enableAutoBuild%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_disableAutoBuild%",
+                "title": "%cmdTitle_disableAutoBuild%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_openAppMonitor%",
+                "title": "%cmdTitle_openAppMonitor%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_openPerfDashboard%",
+                "title": "%cmdTitle_openPerfDashboard%",
+                "category": "%commandCategory%"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "%cmdID_enableAutoBuild%",
+                    "when": "never"
+                },
+                {
+                    "command": "%cmdID_disableAutoBuild%",
+                    "when": "never"
+                }
+            ],
+            "view/title": [],
+            "view/item/context": [
+                {
+                    "command": "%cmdID_activateConn%",
+                    "when": "%isInactiveConnection%"
+                },
+                {
+                    "command": "%cmdID_activateConn%",
+                    "when": "%isConnectingConnection%"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.a@1"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "inline"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.a@2"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "inline"
+                },
+                {
+                    "command": "%cmdID_openFolder%",
+                    "when": "%isConnection%",
+                    "group": "ext.cw.conn.b"
+                },
+                {
+                    "command": "%cmdID_refreshConnection%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.c@0"
+                },
+                {
+                    "command": "%cmdID_deactivateConn%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.c@1"
+                },
+                {
+                    "command": "%cmdID_openInBrowser%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.a@0"
+                },
+                {
+                    "command": "%cmdID_openInBrowser%",
+                    "when": "%isStartedProject%",
+                    "group": "inline"
+                },
+                {
+                    "command": "%cmdID_projectOverview%",
+                    "when": "%isProject%",
+                    "group": "ext.cw.a@1"
+                },
+                {
+                    "command": "%cmdID_projectOverview%",
+                    "when": "%isProject%",
+                    "group": "inline"
+                },
+                {
+                    "command": "%cmdID_containerShell%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.a@2"
+                },
+                {
+                    "command": "%cmdID_openAppMonitor%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.a@3"
+                },
+                {
+                    "command": "%cmdID_openPerfDashboard%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.a@4"
+                },
+                {
+                    "command": "%cmdID_openFolder%",
+                    "when": "%isProject%",
+                    "group": "ext.cw.b"
+                },
+                {
+                    "command": "%cmdID_showAllLogs%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.c@1"
+                },
+                {
+                    "command": "%cmdID_hideAllLogs%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.c@2"
+                },
+                {
+                    "command": "%cmdID_manageLogs%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.c@3"
+                },
+                {
+                    "command": "%cmdID_restartRun%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.d@0"
+                },
+                {
+                    "command": "%cmdID_restartDebug%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.d@1"
+                },
+                {
+                    "command": "%cmdID_attachDebugger%",
+                    "when": "%isDebuggableProject%",
+                    "group": "ext.cw.d@2"
+                },
+                {
+                    "command": "%cmdID_attachDebugger%",
+                    "when": "%isDebuggableProject%",
+                    "group": "inline"
+                },
+                {
+                    "command": "%cmdID_requestBuild%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.e@0"
+                },
+                {
+                    "command": "%cmdID_enableAutoBuild%",
+                    "when": "%isEnabledAutoBuildOff%",
+                    "group": "ext.cw.e@2"
+                },
+                {
+                    "command": "%cmdID_disableAutoBuild%",
+                    "when": "%isEnabledAutoBuildOn%",
+                    "group": "ext.cw.e@2"
+                },
+                {
+                    "command": "%cmdID_disable%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.z"
+                },
+                {
+                    "command": "%cmdID_enable%",
+                    "when": "%isDisabledProject%",
+                    "group": "ext.cw.z"
+                },
+                {
+                    "command": "%cmdID_enable%",
+                    "when": "%isDisabledProject%",
+                    "group": "inline"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm i && npm run compile && npm run copy-strings && npm run copy-license",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "export NODE_ENV='test' && node ./node_modules/vscode/bin/test",
+        "lint": "tslint -p ./tsconfig.json -t verbose",
+        "lint-f": "tslint -p ./tsconfig.json -t verbose --force",
+        "copy-strings": "mkdir -p ./out/constants/strings/; cp -v ./src/constants/strings/strings-*.json ./out/constants/strings/",
+        "copy-license": "cp -v ../LICENSE ../README.md ."
+    },
+    "devDependencies": {
+        "@types/chai": "^4.1.7",
+        "@types/circular-json": "^0.4.0",
+        "@types/i18next": "^11.9.3",
+        "@types/i18next-node-fs-backend": "0.0.30",
+        "@types/mocha": "^2.2.42",
+        "@types/node": "^10.12.1",
+        "@types/request": "^2.47.1",
+        "@types/request-promise-native": "^1.0.15",
+        "@types/rimraf": "^2.0.2",
+        "@types/socket.io-client": "^1.4.32",
+        "@types/socketio-wildcard": "^2.0.1",
+        "@types/stack-trace": "0.0.29",
+        "chai": "^4.2.0",
+        "socketio-wildcard": "^2.0.0",
+        "ts-node": "^7.0.1",
+        "tslint": "^5.16.0",
+        "typescript": "^3.4.5",
+        "vscode": "^1.1.34"
+    },
+    "dependencies": {
+        "circular-json": "^0.5.9",
+        "i18next": "^8.3.0",
+        "i18next-node-fs-backend": "^2.1.3",
+        "request": "^2.88.0",
+        "request-promise-native": "^1.0.5",
+        "rimraf": "^2.6.3",
+        "socket.io-client": "^2.1.1",
+        "stack-trace": "0.0.10"
+    }
+}

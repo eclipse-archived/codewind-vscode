@@ -1,0 +1,103 @@
+{
+    "displayName": "Codewind",
+    "description": "Create and develop cloud-native, containerized web applications.",
+
+    "// Items starting with cmdID or viewID are not exposed to user": "",
+
+    "viewName": "Codewind",
+    "viewID": "ext.cw.explorer",
+
+    "commandCategory": "Codewind",
+
+    "cmdID_activateConn": "ext.cw.activateConn",
+    "cmdTitle_activateConn": "Activate Connection",
+
+    "cmdID_deactivateConn": "ext.cw.deactivateConn",
+    "cmdTitle_deactivateConn": "Deactivate Connection",
+
+    "cmdID_refreshConnection": "ext.cw.refreshConnection",
+    "cmdTitle_refreshConnection": "Refresh Connection",
+
+    "cmdID_newProject": "ext.cw.createProject",
+    "cmdTitle_newProject": "Create New Project",
+
+    "cmdID_bindProject": "ext.cw.bindProject",
+    "cmdTitle_bindProject": "Bind Existing Project",
+
+    "cmdID_openFolder": "ext.cw.openWorkspaceFolder",
+    "cmdTitle_openFolder": "Open Folder as Workspace",
+
+    "cmdID_openInBrowser": "ext.cw.openInBrowser",
+    "cmdTitle_openInBrowser": "Open App",
+
+    "cmdID_attachDebugger": "ext.cw.attachDebugger",
+    "cmdTitle_attachDebugger": "Attach Debugger",
+
+    "cmdID_restartRun": "ext.cw.restartProjectRun",
+    "cmdTitle_restartRun": "Restart in Run Mode",
+
+    "cmdID_restartDebug": "ext.cw.restartProjectDebug",
+    "cmdTitle_restartDebug": "Restart in Debug Mode",
+
+    "cmdID_requestBuild": "ext.cw.requestBuild",
+    "cmdTitle_requestBuild": "Build",
+
+    "cmdID_manageLogs": "ext.cw.manageLogs",
+    "cmdTitle_manageLogs": "Manage logs",
+
+    "cmdID_showAllLogs": "ext.cw.showAllLogs",
+    "cmdTitle_showAllLogs": "Show all logs",
+
+    "cmdID_hideAllLogs": "ext.cw.hideAllLogs",
+    "cmdTitle_hideAllLogs": "Hide all logs",
+
+    "cmdID_projectOverview": "ext.cw.projectOverview",
+    "cmdTitle_projectOverview": "Open Project Overview",
+
+    "cmdID_enable": "ext.cw.enable",
+    "cmdTitle_enable": "Enable Project",
+
+    "cmdID_disable": "ext.cw.disable",
+    "cmdTitle_disable": "Disable Project",
+
+    "cmdID_containerShell": "ext.cw.containerShell",
+    "cmdTitle_containerShell": "Open Container Shell",
+
+    "cmdID_toggleAutoBuild": "ext.cw.toggleAutoBuild",
+    "cmdTitle_toggleAutoBuild": "Toggle Auto Build",
+
+    "cmdID_enableAutoBuild": "ext.cw.enableAutoBuild",
+    "cmdTitle_enableAutoBuild": "Enable Auto Build",
+
+    "cmdID_disableAutoBuild": "ext.cw.disableAutoBuild",
+    "cmdTitle_disableAutoBuild": "Disable Auto Build",
+
+    "cmdID_openAppMonitor": "ext.cw.openAppMonitor",
+    "cmdTitle_openAppMonitor": "Open Application Monitor",
+
+    "cmdID_openPerfDashboard": "ext.cw.openPerfDashboard",
+    "cmdTitle_openPerfDashboard": "Open Performance Dashboard",
+
+    "cmdID_validate": "ext.cw.validate",
+    "cmdTitle_validate": "Validate",
+
+    "// None of items below are exposed to user": [
+        "These regexes match Context IDs for Projects and Connections to determine command enablement",
+        "See TreeItemFactory for how the Context IDs are set"
+    ],
+
+    "isInViewWithNothingSelected": "view == ext.cw.explorer && !viewItem",
+    "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected)/",
+    "isActiveConnection": "viewItem == ext.cw.connection.connected",
+    "isInactiveConnection": "viewItem == ext.cw.connection.disconnected",
+    "isConnectingConnection": "viewItem == ext.cw.connection.connecting",
+    "isNoProjects": "viewItem == ext.cw.noProjects",
+
+    "isProject":                "viewItem =~ /ext\\.cw\\.project.*/",
+    "isEnabledProject":         "viewItem =~ /ext\\.cw\\.project\\.enabled.*/",
+    "isDisabledProject":        "viewItem =~ /ext\\.cw\\.project\\.disabled.*/",
+    "isStartedProject":         "viewItem =~ /ext\\.cw\\.project\\.enabled\\.started.*/",
+    "isDebuggableProject":      "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.debuggable.*/",
+    "isEnabledAutoBuildOn":     "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOn/",
+    "isEnabledAutoBuildOff":    "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOff/"
+}

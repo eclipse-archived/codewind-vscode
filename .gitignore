@@ -1,0 +1,13 @@
+out/
+node_modules/
+.vscode-test/
+*.vsix
+
+.DS_Store
+.nyc_output
+
+todo.txt
+unused.txt
+last_build.txt
+dev/LICENSE
+dev/README.md

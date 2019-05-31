@@ -1,0 +1,47 @@
+// A launch configuration that compiles the extension and then opens it inside a new window
+// Use IntelliSense to learn about possible attributes.
+// Hover to view descriptions of existing attributes.
+// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+{
+	"version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Extension",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/dev/out/**/*.js"
+            ],
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Extension Tests",
+            "type": "extensionHost",
+            "request": "launch",
+            "runtimeExecutable": "${execPath}",
+            "args": [
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "--extensionTestsPath=${workspaceFolder}/out/test",
+                // Replace below with your local microclimate-workspace
+                "/Users/tim/programs/tempest/microclimate-workspace"
+                // "/Users/tim/microclimate-workspace/"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/dev/out/test/**/*.js"
+            ],
+            "env": {
+                "NODE_ENV": "test",
+                // See ProjectType.ts Types for valid values (case insensitive)
+                "test_project_types": "node.js, spring, go, python",
+                // "test_project_types": "spring, microprofile",
+                // Base tests are always run. 'extended' and 'restart' are optional.
+                "test_scope": "extended, restart"
+            },
+            "preLaunchTask": "build"
+        }
+    ]
+}

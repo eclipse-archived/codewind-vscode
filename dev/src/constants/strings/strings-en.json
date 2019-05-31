@@ -1,0 +1,124 @@
+{
+    "productName": "Codewind",
+    "activeMsg": "Codewind Tools for VSCode are active!",
+    "connectionAlreadyExists": "Connection already exists at {{- uri }}.",
+    "failedToReconnect": "Couldn't reconnect to Codewind at {{- uri }}. Try re-creating the connection.",
+    "versionChanged": "Codewind at {{- uri }} was previously version {{ oldVersion }}, but is now {{ newVersion }}.",
+    "errorSavingConnections": "Error saving connections: {{- err }}.",
+
+    "statesSeparator": " or ",
+
+    "focusOnProblems": "Go to Problems",
+
+    "invalidPortNumber": "Invalid port \"{{ port }}\". Port must be a positive integer less than 65536.",
+    "connectFailed": "Connecting to Codewind at {{- uri }} failed.",
+
+    "command": {
+        "noContainerForShell": "{{ projectName }} does not have an application container running. Wait until the project is Running.",
+        "alreadyInSelectedFolder": "The selected folder is already your workspace root.",
+        "confirmDeleteProjectMsg": "Are you sure you want to unbind {{ projectName }} from Codewind?",
+        "confirmDeleteBtn": "Unbind Project",
+        "alsoDeleteDirMsg": "Would you like to also delete the project directory at {{- dirPath }} ?",
+        "alsoDeleteDirBtn": "Delete Directory",
+        "dontDeleteDirBtn": "Don't Delete",
+        "alwaysDeleteDirBtn": "Always",
+        "neverDeleteDirBtn": "Never",
+        "refreshingConnection": "Refreshed Codewind at {{- uri }}.",
+        "projectAlreadyBuilding": "{{ projectName }} is already building. Build request cancelled.",
+        "explicitBuildNotNecessary": "{{ projectName }} has auto-build enabled. There is no need to request a build.",
+        "seeProblemsView": "See the Problems view for details.",
+        "generateFilesBtn": "Generate",
+        "validate": "Validate",
+        "removedConnection": "Removed Codewind connection at {{- uri }}."
+    },
+
+    "cmdResourcePrompt": {
+        "noProjToRunOn":
+            "There is no Codewind project to run this command on.",
+        "noProjToRunOnWithStates":
+            "There is no {{ states }} Codewind project to run this command on.",
+        "noConnToRunOn":
+            "There is no Codewind connection to run this command on.",
+        "noConnOrProjToRunOn":
+            "There is no Codewind connection or project to run this command on.",
+        "noConnOrProjToRunOnWithStates":
+            "There is no Codewind connection, or {{ states }} project, to run this command on."
+    },
+
+    "debug": {
+        "didNotConnectInTime": "Debugger did not attach within {{ timeoutS }}s.",
+        "connectingToProject": "Attaching debugger to {{ projectName }}",
+        "failedToAttach": "Failed to attach debugger to {{ projectName }}.",
+        "failedToAttachWithUrl": "Failed to attach debugger to {{ projectName }} at {{- debugUrl }}.",
+        "noDebugTypeKnown": "No debug type available for project of type {{ type }}.",
+        "noDebugPort": "No debug port set for project {{ projectName }}.",
+        "errDetailSeparator": " ",
+        "maybeAlreadyDebugging": "Are you already debugging this project?",
+        "debuggerAttachSuccess": "Debugger attached to {{ projectName }} at {{- debugUrl }}.",
+        "debugLaunchName": "Debug {{ projectName }}",
+        "waitingBeforeDebugAttachStatusMsg": "Waiting before attaching debugger to {{ projectName }}"
+    },
+
+    "logs": {
+        "waitingForLogs": "Waiting for Codewind to send logs...",
+        "noLongerUpdating": "This log is no longer updating: {{ reason }}.",
+        "notUpdatingReasonDisconnect": "Codewind disconnected",
+        "notUpdatingReasonDisabled": "the project has been disabled. The log will be recreated when there is new output"
+    },
+
+    "project": {
+        "quickPickLabel": "{{ projectName }} ({{ projectType }} project)",
+        "quickPickNotRunning": "[Not running]",
+        "onDeletion": "{{ projectName }} was deleted in Codewind.",
+
+        "alreadyRestarting": "Restart cancelled: {{ projectName }} is already restarting.",
+        "restartingStatusMsg": "Restarting {{ projectName }} into {{ startMode }} mode",
+
+        "restartSuccess": "Finished restarting {{ projectName }} in {{ startMode }} mode.",
+        "genericErrorProjectRestart": "{{ projectName }} failed to restart.",
+        "restartFailure": "Failed to restart {{ projectName }} in {{ startMode }} mode.",
+        "restartFailureWithReason": "Failed to restart {{ projectName }} in {{ startMode }} mode: {{ reason }}.",
+        "restartFailedReasonDebugFailure": "attaching the debugger failed. Try attaching the debugger again",
+        "restartFailedReasonTimeout": "failed to restart within {{ timeoutS }} seconds",
+        "restartFailedReasonDisconnect": "Codewind disconnected",
+        "restartFailedReasonDisabled": "The project was disabled"
+    },
+
+    "openInBrowserCmd": {
+        "canOnlyOpenStartedProjects": "You can only open projects that are Started in the browser.",
+        "failedDetermineAppUrl": "Could not determine application URL for {{ projectName }}.",
+        "cantOpenDisconnected": "This connection is Disconnected. You cannot open Codewind if it is not running."
+    },
+
+    "openLogCmd": {
+        "noLogsForDisabled": "Application Logs are not available for Disabled projects.",
+        "projectIsNotStarted": "{{ projectName }} is {{ projectState }}; it might not have any application log output until it starts.",
+        "noBuildLogsForType": "Build logs are not available for {{ projectType }} projects."
+    },
+
+    "requests": {
+        "restartIntoMode": "Restarting into {{ startMode }} mode",
+        "build": "Building",
+        "autoBuildEnable": "Enabling auto build",
+        "autoBuildDisable": "Disabling auto build",
+        "projectEnable": "Enabling",
+        "projectDisable": "Disabling",
+        "generateMissingFiles": "Generating Dockerfile",
+        "unbind": "Unbinding",
+        "updatingSetting": "Updating {{ settingName }} for",
+        "checkingAvailableLogs": "checking available logs",
+        "togglingLogs": "toggling logs {{ onOrOff }}",
+        "checkingMetrics": "checking metrics status",
+
+        "requestSuccess":   "{{ projectName }}: {{ operationName }}",
+        "requestFail":      "{{ projectName }}: {{ operationName }} failed: {{- err }}"
+    },
+
+    "treeView": {
+        "connectionLabel": "Codewind ({{ type }})",
+        "connectionTypeLocal": "Local",
+        "noProjectsLabel": "No projects (Click here to create a project)",
+        "disconnectedConnectionLabel": "Deactivated (Click here to activate)",
+        "projectLabel": "{{ projectName }} {{- state }}"
+    }
+}
