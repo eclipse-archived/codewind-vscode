@@ -17,74 +17,28 @@ import Log from "../Logger";
 import Commands from "../constants/Commands";
 import Connection from "../microclimate/connection/Connection";
 import MCEnvironment from "../microclimate/connection/MCEnvironment";
-import InstallerWrapper, { InstallerCommands } from "../microclimate/connection/InstallerWrapper";
+import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
+import * as StartCodewindCmd from "./StartCodewindCmd";
 
-export default async function activateConnectionCmd(): Promise<Connection | undefined> {
+export default async function activateConnection(): Promise<void> {
     try {
-        const url = vscode.Uri.parse("http://localhost:9090");
-        const envData = await activate(url);
+        await StartCodewindCmd.startCodewind();
+
+        const url = StartCodewindCmd.CW_URL;
+        const envData = await MCEnvironment.getEnvData(url);
+        Log.i("ENV data:", envData);
+
         const connection = await connect(url, envData);
         onConnectSuccess(connection);
-        return connection;
+        // return connection;
     }
     catch (err) {
         if (!InstallerWrapper.isCancellation(err)) {
             Log.e("Failed to start/connect to codewind:", err);
             vscode.window.showErrorMessage(MCUtil.errToString(err));
         }
-        return undefined;
+        // return undefined;
     }
-}
-
-async function activate(url: vscode.Uri): Promise<MCEnvironment.IMCEnvData> {
-    let envData: MCEnvironment.IMCEnvData;
-    try {
-        envData = await MCEnvironment.getEnvData(url);
-        Log.i("Initial connect succeeded, no need to start Codewind");
-    }
-    catch (err) {
-        Log.i("Initial Codewind ping failed");
-        if (InstallerWrapper.isInstallerRunning()) {
-            throw new Error("Please wait for the current operation to finish.");
-        }
-
-        if (await InstallerWrapper.isInstallRequired()) {
-            Log.i("Codewind is not installed");
-            const installAffirmBtn = "Install";
-            const moreInfoBtn = "More Info";
-
-            let response;
-            if (process.env.CW_ENV === "test") {
-                response = installAffirmBtn;
-            }
-            else {
-                Log.d("Prompting for install confirm");
-                response = await vscode.window.showInformationMessage(
-                    `The Codewind backend needs to be installed before the extension can be used. ` +
-                    `This downloads the Codewind Docker images, which are about 1GB in size.`,
-                    { modal: true }, installAffirmBtn, moreInfoBtn,
-                );
-            }
-
-            if (response === installAffirmBtn) {
-                await InstallerWrapper.installerExec(InstallerCommands.INSTALL);
-            }
-            else {
-                if (response === moreInfoBtn) {
-                    vscode.window.showInformationMessage("More info not implemented");
-                }
-                throw new Error("Codewind cannot be used until the backend is installed.");
-            }
-        }
-        await InstallerWrapper.installerExec(InstallerCommands.START);
-
-        Log.i("Codewind should have started, getting ENV data now");
-        envData = await MCEnvironment.getEnvData(url);
-        // vscode.window.showInformationMessage("Codewind started successfully");
-    }
-
-    Log.i("ENV data:", envData);
-    return envData;
 }
 
 async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Promise<Connection> {

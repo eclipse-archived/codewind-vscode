@@ -11,13 +11,13 @@
 
 import * as vscode from "vscode";
 
-import { ProjectState } from "../microclimate/project/ProjectState";
-import { promptForProject } from "./CommandUtil";
-import Project from "../microclimate/project/Project";
-import { Log } from "../Logger";
-import { ProjectType } from "../microclimate/project/ProjectType";
-import Translator from "../constants/strings/translator";
-import StringNamespaces from "../constants/strings/StringNamespaces";
+import { ProjectState } from "../../microclimate/project/ProjectState";
+import { promptForProject } from "../CommandUtil";
+import Project from "../../microclimate/project/Project";
+import { Log } from "../../Logger";
+import { ProjectType } from "../../microclimate/project/ProjectType";
+import Translator from "../../constants/strings/translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function containerShellCmd(project: Project): Promise<void> {
     Log.d("containerBashCmd invoked");

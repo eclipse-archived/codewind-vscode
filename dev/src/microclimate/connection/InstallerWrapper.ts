@@ -43,8 +43,8 @@ const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: str
     install: { action: "install", userActionName: "Installing Codewind" },
     "install-dev": { action: "install-dev", userActionName: "Installing Codewind (DEVELOPMENT IMAGES)" },
     start: { action: "start", userActionName: "Starting Codewind" },
-    stop: { action: "stop", userActionName: "Deactivating Codewind" },
-    "stop-all": { action: "stop-all", userActionName: "Deactivating Codewind" },
+    stop: { action: "stop", userActionName: "Stopping Codewind" },
+    "stop-all": { action: "stop-all", userActionName: "Stopping Codewind and applications" },
     // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
 

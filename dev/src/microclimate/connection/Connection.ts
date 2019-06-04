@@ -191,7 +191,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public async forceUpdateProjectList(wipeProjects: boolean = false): Promise<void> {
-        Log.d("forceUpdateProjectList");
+        // Log.d("forceUpdateProjectList");
         if (wipeProjects) {
             Log.d(`Connection ${this} wiping ${this._projects.length} projects`);
             this._projects.forEach((p) => p.dispose());

@@ -11,15 +11,15 @@
 
 import * as vscode from "vscode";
 
-import Project from "../microclimate/project/Project";
-import { promptForProject } from "../command/CommandUtil";
-import ProjectState from "../microclimate/project/ProjectState";
-import Log from "../Logger";
-import StartModes from "../constants/StartModes";
-import Requester from "../microclimate/project/Requester";
-import * as MCUtil from "../MCUtil";
-import Translator from "../constants/strings/translator";
-import StringNamespaces from "../constants/strings/StringNamespaces";
+import Project from "../../microclimate/project/Project";
+import { promptForProject } from "../CommandUtil";
+import ProjectState from "../../microclimate/project/ProjectState";
+import Log from "../../Logger";
+import StartModes from "../../constants/StartModes";
+import Requester from "../../microclimate/project/Requester";
+import * as MCUtil from "../../MCUtil";
+import Translator from "../../constants/strings/translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
     if (project == null) {

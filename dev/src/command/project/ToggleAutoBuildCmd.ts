@@ -9,11 +9,11 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import Project from "../microclimate/project/Project";
-import { promptForProject } from "./CommandUtil";
-import Log from "../Logger";
-import ProjectState from "../microclimate/project/ProjectState";
-import Requester from "../microclimate/project/Requester";
+import Project from "../../microclimate/project/Project";
+import { promptForProject } from "../CommandUtil";
+import Log from "../../Logger";
+import ProjectState from "../../microclimate/project/ProjectState";
+import Requester from "../../microclimate/project/Requester";
 
 export default async function toggleAutoBuildCmd(project: Project): Promise<void> {
     Log.d("ToggleAutoBuildCmd invoked");

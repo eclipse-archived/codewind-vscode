@@ -13,8 +13,11 @@
 
 enum Commands {
     // all of these must match package.nls.json command IDs
-    ACTIVATE_CONNECTION = "ext.cw.activateConn",
-    DEACTIVATE_CONNECTION = "ext.cw.deactivateConn",
+    // ACTIVATE_CONNECTION = "ext.cw.activateConn",
+    // DEACTIVATE_CONNECTION = "ext.cw.deactivateConn",
+    START_CODEWIND = "ext.cw.startCodewind",
+    STOP_CODEWIND = "ext.cw.stopCodewind",
+
     REFRESH_CONNECTION = "ext.cw.refreshConnection",
 
     CREATE_PROJECT = "ext.cw.createProject",

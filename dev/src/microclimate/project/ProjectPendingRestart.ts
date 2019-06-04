@@ -17,7 +17,7 @@ import Project from "./Project";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import StartModes from "../../constants/StartModes";
-import attachDebuggerCmd from "../../command/AttachDebuggerCmd";
+import attachDebuggerCmd from "../../command/project/AttachDebuggerCmd";
 import Resources from "../../constants/Resources";
 
 const STRING_NS = StringNamespaces.PROJECT;

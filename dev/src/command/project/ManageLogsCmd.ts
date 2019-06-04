@@ -11,13 +11,11 @@
 
 import * as vscode from "vscode";
 
-// import Translator from "../constants/strings/translator";
-// import StringNamespaces from "../constants/strings/StringNamespaces";
-import Log from "../Logger";
-import Project from "../microclimate/project/Project";
-import ProjectState from "../microclimate/project/ProjectState";
-import { promptForProject } from "./CommandUtil";
-import MCLog from "../microclimate/project/logs/MCLog";
+import Log from "../../Logger";
+import Project from "../../microclimate/project/Project";
+import ProjectState from "../../microclimate/project/ProjectState";
+import { promptForProject } from "../CommandUtil";
+import MCLog from "../../microclimate/project/logs/MCLog";
 
 // const STRING_NS = StringNamespaces.LOGS;
 

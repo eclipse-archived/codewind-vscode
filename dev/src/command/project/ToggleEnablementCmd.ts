@@ -11,11 +11,11 @@
 
 // import * as vscode from "vscode";
 
-import Project from "../microclimate/project/Project";
-import { promptForProject } from "./CommandUtil";
-import ProjectState from "../microclimate/project/ProjectState";
-import Log from "../Logger";
-import Requester from "../microclimate/project/Requester";
+import Project from "../../microclimate/project/Project";
+import { promptForProject } from "../CommandUtil";
+import ProjectState from "../../microclimate/project/ProjectState";
+import Log from "../../Logger";
+import Requester from "../../microclimate/project/Requester";
 
 /**
  * @param enable - Whether the given project is to be enabled, or disabled.

@@ -11,16 +11,16 @@
 
 import * as vscode from "vscode";
 
-import Project from "../microclimate/project/Project";
-import { promptForProject } from "./CommandUtil";
-import * as ProjectOverview from "../microclimate/project/ProjectOverviewPage";
-import Log from "../Logger";
-import Commands from "../constants/Commands";
+import Project from "../../microclimate/project/Project";
+import { promptForProject } from "../CommandUtil";
+import * as ProjectOverview from "../../microclimate/project/ProjectOverviewPage";
+import Log from "../../Logger";
+import Commands from "../../constants/Commands";
 import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
 import requestBuildCmd from "./RequestBuildCmd";
-import Resources from "../constants/Resources";
-import MiscProjectActions from "../microclimate/project/MiscProjectActions";
+import Resources from "../../constants/Resources";
+import MiscProjectActions from "../../microclimate/project/MiscProjectActions";
 
 export default async function projectOverviewCmd(project: Project): Promise<void> {
     // Log.d("projectOverviewCmd invoked");

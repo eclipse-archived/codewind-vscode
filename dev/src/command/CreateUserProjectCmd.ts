@@ -56,7 +56,6 @@ export default async function createProject(connection: Connection): Promise<voi
     }
 }
 
-
 async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
     const templatesUrl = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATES);
     const templates: IMCTemplateData[] = await request.get(templatesUrl, { json: true });

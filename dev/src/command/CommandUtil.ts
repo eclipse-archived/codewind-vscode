@@ -19,25 +19,25 @@ import ProjectState from "../microclimate/project/ProjectState";
 
 import Commands from "../constants/Commands";
 
-import activateConnectionCmd from "./ActivateConnectionCmd";
 import openWorkspaceFolderCmd from "./OpenWorkspaceFolderCmd";
-import restartProjectCmd from "./RestartProjectCmd";
-import openInBrowserCmd from "./OpenInBrowserCmd";
-import requestBuildCmd from "./RequestBuildCmd";
-import toggleEnablementCmd from "./ToggleEnablementCmd";
-import deactivateConnectionCmd from "./DeactivateConnectionCmd";
-import containerBashCmd from "./ContainerShellCmd";
-import projectOverviewCmd from "./ProjectOverviewCmd";
-import attachDebuggerCmd from "./AttachDebuggerCmd";
-import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
-import openAppMonitorCmd from "./OpenAppMonitor";
+import restartProjectCmd from "./project/RestartProjectCmd";
+import openAppCmd from "./project/OpenInBrowserCmd";
+import requestBuildCmd from "./project/RequestBuildCmd";
+import toggleEnablementCmd from "./project/ToggleEnablementCmd";
+import containerBashCmd from "./project/ContainerShellCmd";
+import projectOverviewCmd from "./project/ProjectOverviewCmd";
+import attachDebuggerCmd from "./project/AttachDebuggerCmd";
+import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
+import openAppMonitorCmd from "./project/OpenAppMonitor";
 import refreshConnectionCmd from "./RefreshConnectionCmd";
 import Translator from "../constants/strings/translator";
 import StringNamespaces from "../constants/strings/StringNamespaces";
-import { manageLogs, showAllLogs, hideAllLogs } from "./ManageLogsCmd";
+import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
 import createProject from "./CreateUserProjectCmd";
 import bindProject from "./BindProjectCmd";
-import openPerformanceDashboard from "./OpenPerfDashboard";
+import openPerformanceDashboard from "./project/OpenPerfDashboard";
+import startCodewindCmd from "./StartCodewindCmd";
+import stopCodewindCmd from "./StopCodewindCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -47,8 +47,11 @@ export function createCommands(): vscode.Disposable[] {
     // - undefined (if run from command palette)
     // - or the user's selected TreeView object (if run from the context menu) -> IE either a Project or Connection
     return [
-        vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
-        vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
+        // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
+        // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
+        vscode.commands.registerCommand(Commands.START_CODEWIND,    () => startCodewindCmd()),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND,     () => stopCodewindCmd()),
+
         vscode.commands.registerCommand(Commands.REFRESH_CONNECTION,    (selection) => refreshConnectionCmd(selection)),
 
         vscode.commands.registerCommand(Commands.CREATE_PROJECT,    (selection) => createProject(selection)),
@@ -60,7 +63,7 @@ export function createCommands(): vscode.Disposable[] {
         vscode.commands.registerCommand(Commands.RESTART_RUN,       (selection) => restartProjectCmd(selection, false)),
         vscode.commands.registerCommand(Commands.RESTART_DEBUG,     (selection) => restartProjectCmd(selection, true)),
 
-        vscode.commands.registerCommand(Commands.OPEN_IN_BROWSER,   (selection) => openInBrowserCmd(selection)),
+        vscode.commands.registerCommand(Commands.OPEN_IN_BROWSER,   (selection) => openAppCmd(selection)),
 
         vscode.commands.registerCommand(Commands.REQUEST_BUILD,     (selection) => requestBuildCmd(selection)),
         vscode.commands.registerCommand(Commands.TOGGLE_AUTOBUILD,  (selection) => toggleAutoBuildCmd(selection)),
