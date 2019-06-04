@@ -1,31 +1,25 @@
-<!--a href="https://microclimate-dev2ops.github.io/">
-    <img src="mc-banner.png" alt="Microclimate Banner" height="75px" />
-</a-->
-
 # Codewind for VS Code
+Create and develop cloud-native, containerized web applications from VS Code.
 
 [![Marketplace](https://img.shields.io/vscode-marketplace/v/IBM.codewind.svg?label=marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=IBM.codewind)
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 [![Slack](https://img.shields.io/badge/ibm--cloud--tech-blue.svg?logo=slack&label=slack)](https://slack-invite-ibm-cloud-tech.mybluemix.net/)
 
-- **[Documentation](https://microclimate.dev/codewindtechpreview)**
-- **[Changelog](https://github.com/microclimate-dev2ops/codewind-vscode/blob/master/CHANGELOG.md)**
+## Installing Codewind
+Prerequisites
+- Install [VS Code](https://code.visualstudio.com/download).
 
-Create and develop cloud-native, containerized web applications from VS Code.
+Complete all parts of the Codewind installation:
+1. Find Codewind for VS Code in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind) or by searching for `Codewind` in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions). Then, click the **Install** button.
+2. Go to the **Explorer** view group and open the **Codewind** view.
+3. To complete the installation, open the Codewind view in the **Explorer** view group or type `Focus on Codewind` into the Command Palette. A notification appears and asks if you would like to finish installing Codewind. 
+4. Click **Install** to complete the Codewind installation. The file is <size of download>. For more information, see <more info link> (same link as in pop up). When the installation completes, the server automatically starts.
 
-## Getting started
+## Using Codewind for VS Code
+To see the actions available, open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type `Codewind`.</br>
 
-1. Install [VS Code version 1.27 or later](https://code.visualstudio.com/download).
-2. Install Codewind for VS Code from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind-tools) or by searching for "Codewind" in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions).
-
-If you want to host or build the extension yourself, see [Contributing](#contributing).
-
-## How to use
-- Navigate to the **Explorer** view group and open the **Codewind** view.
-- Open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type "Codewind" to see the actions available.
-
-## Features
-- Create new projects from application templates, or import existing docker-ready projects.
+Features:</br>
+- Create new projects from application templates or import existing Docker-ready projects.
 - View Codewind projects, including application and build statuses.
 - Debug Microprofile, Spring, and Node.js projects in their Docker containers.
 - View application and build logs in the VS Code **Output** view.
@@ -35,10 +29,8 @@ If you want to host or build the extension yourself, see [Contributing](#contrib
 - Disable, enable, and delete projects.
 
 ## Contributing
-We welcome [issues](https://github.com/microclimate-dev2ops/codewind-vscode/issues) and contributions. For more information, see [CONTRIBUTING.md](https://github.com/microclimate-dev2ops/codewind-vscode/tree/master/CONTRIBUTING.md).
-
-Development builds are available [here](https://public.dhe.ibm.com/ibmdl/export/pub/software/microclimate/vscode-tools/nightly/). Follow the [Install from a VSIX](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix) instructions to install a `.vsix`.
-
-To host the extension yourself so you can develop or debug it, clone this repository and run the **Extension** launch in `dev/.vscode/launch.json`. See [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
-
-You can also build the extension `.vsix` yourself by running [`vsce package`](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions) from `dev/`. Refer to the [`ci-scripts`](https://github.com/microclimate-dev2ops/codewind-vscode/blob/master/ci-scripts/) to see the exact steps the build runs.
+Submit issues and contributions:
+- [Submitting issues](https://github.com/eclipse/codewind/issues)
+- [Contributing](CONTRIBUTING.md)
+- To host the extension yourself so you can develop or debug it, clone this repository and run the **Extension** launch in `dev/.vscode/launch.json`. See [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
+- You can also build the extension `.vsix` yourself by running [`vsce package`](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions) from `dev/`. Refer to the [`ci-scripts`](https://github.com/microclimate-dev2ops/codewind-vscode/blob/master/ci-scripts/) to see the exact steps the build runs.
