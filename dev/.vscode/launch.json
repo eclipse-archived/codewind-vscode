@@ -16,7 +16,10 @@
             "outFiles": [
                 "${workspaceFolder}/dev/out/**/*.js"
             ],
-            "preLaunchTask": "build"
+            "preLaunchTask": "build",
+            "env": {
+                "CW_ENV": "dev"
+            }
         },
         {
             "name": "Extension Tests",
@@ -34,7 +37,7 @@
                 "${workspaceFolder}/dev/out/test/**/*.js"
             ],
             "env": {
-                "NODE_ENV": "test",
+                "CW_ENV": "test",
                 // See ProjectType.ts Types for valid values (case insensitive)
                 "test_project_types": "node.js, spring, go, python",
                 // "test_project_types": "spring, microprofile",

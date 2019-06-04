@@ -30,7 +30,7 @@ export default async function activateConnectionCmd(): Promise<Connection | unde
     catch (err) {
         if (!InstallerWrapper.isCancellation(err)) {
             Log.e("Failed to start/connect to codewind:", err);
-            vscode.window.showErrorMessage("Failed to start Codewind: " + MCUtil.errToString(err));
+            vscode.window.showErrorMessage(MCUtil.errToString(err));
         }
         return undefined;
     }
@@ -40,17 +40,21 @@ async function activate(url: vscode.Uri): Promise<MCEnvironment.IMCEnvData> {
     let envData: MCEnvironment.IMCEnvData;
     try {
         envData = await MCEnvironment.getEnvData(url);
-        Log.d("Initial connect succeeded, no need to start Codewind");
+        Log.i("Initial connect succeeded, no need to start Codewind");
     }
     catch (err) {
         Log.i("Initial Codewind ping failed");
+        if (InstallerWrapper.isInstallerRunning()) {
+            throw new Error("Please wait for the current operation to finish.");
+        }
+
         if (await InstallerWrapper.isInstallRequired()) {
             Log.i("Codewind is not installed");
             const installAffirmBtn = "Install";
             const moreInfoBtn = "More Info";
 
             let response;
-            if (process.env.NODE_ENV === "test") {
+            if (process.env.CW_ENV === "test") {
                 response = installAffirmBtn;
             }
             else {

@@ -62,11 +62,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public async dispose(): Promise<void> {
         Log.d("Destroy connection " + this);
-        return Promise.all([
+        await Promise.all([
             this.socket.dispose(),
             this._projects.map((p) => p.dispose()),
-        ])
-        .then(() => Promise.resolve());
+        ]);
     }
 
     public toString(): string {
