@@ -26,8 +26,12 @@ const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
 
+// check error against this to see if it's a real error or just a user cancellation
+const INSTALLCMD_CANCELLED = "Cancelled";
+
 export enum InstallerCommands {
     INSTALL = "install",
+    INSTALL_DEV = "install-dev",
     START = "start",
     STOP = "stop",
     STOP_ALL = "stop-all"
@@ -35,16 +39,14 @@ export enum InstallerCommands {
 }
 
 // const INSTALLER_COMMANDS: { [key in InstallerCommands]: { action: string, userActionName: string } } = {
-const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName?: string } } = {
-    install:    { action: "install",    userActionName: "Installing Codewind" },
-    start:      { action: "start",      userActionName: "Starting Codewind" },
-    stop:       { action: "stop",       /*userActionName: "Deactivating Codewind"*/ },
-    "stop-all": { action: "stop-all",   /*userActionName: "Deactivating Codewind"*/ },
-    // status:     { action: "status",     userActionName: "Checking if Codewind is running" },
+const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: string } } = {
+    install: { action: "install", userActionName: "Installing Codewind" },
+    "install-dev": { action: "install-dev", userActionName: "Installing Codewind (DEVELOPMENT IMAGES)" },
+    start: { action: "start", userActionName: "Starting Codewind" },
+    stop: { action: "stop", userActionName: "Deactivating Codewind" },
+    "stop-all": { action: "stop-all", userActionName: "Deactivating Codewind" },
+    // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
-
-// check error against this to see if it's a real error or just a user cancellation
-const INSTALLCMD_CANCELLED = "Cancelled";
 
 namespace InstallerWrapper {
     enum InstallerStates {
@@ -126,47 +128,63 @@ namespace InstallerWrapper {
         return _executablePath;
     }
 
-    function getUserActionName(cmd: InstallerCommands): string | undefined {
+    function getUserActionName(cmd: InstallerCommands): string {
         return INSTALLER_COMMANDS[cmd].userActionName;
     }
 
     // serves as a lock, only one operation at a time.
     let currentOperation: InstallerCommands | undefined;
 
+    export function isInstallerRunning(): boolean {
+        return currentOperation !== undefined;
+    }
+
     export async function installerExec(cmd: InstallerCommands): Promise<void> {
         const executablePath = await initialize();
-        if (currentOperation != null) {
-            vscode.window.showWarningMessage(`Already ${getUserActionName(cmd)}`);
-            return;
+        if (isInstallerRunning()) {
+            throw new Error(`Already ${getUserActionName(currentOperation!)}`);
         }
 
-        Log.i(`Running installer command: ${cmd}`);
-
-        const userMsg = getUserActionName(cmd);
-        currentOperation = cmd;
-
-        const executableDir = path.dirname(executablePath);
         const isInstallCmd = cmd === InstallerCommands.INSTALL;
         if (isInstallCmd) {
-            if (process.env.AF_USER) {
-                process.env.USER = process.env.AF_USER;
-            }
-            if (process.env.AF_PASS) {
-                process.env.PASS = process.env.AF_PASS;
-            }
-            if (!process.env.USER || !process.env.PASS) {
-                // Remove this in prod, obviously
-                throw new Error("No Artifactory credentials; install will fail");
+            if (process.env.CW_ENV === "dev" || process.env.CW_ENV === "test") {
+                Log.i("Installing in development mode");
+
+                // Use install-dev instead of install
+                cmd = InstallerCommands.INSTALL_DEV;
+
+                // Remap AF_USER and AF_PASS to USER and PASS
+                // since the latter two are often overridden by the shell, we prefix them with "AF_"
+                if (process.env.AF_USER) {
+                    process.env.USER = process.env.AF_USER;
+                }
+                if (process.env.AF_PASS) {
+                    process.env.PASS = process.env.AF_PASS;
+                }
+                if (!process.env.USER || !process.env.PASS) {
+                    throw new Error(`Development mode is enabled, but no Artifactory credentials are present - install will fail. ` +
+                        `Set AF_USER and AF_PASS in the environment.`);
+                }
             }
         }
         // const timeout = isInstallCmd ? undefined : 60000;
 
+        Log.i(`Running installer command: ${cmd}`);
+
+        let progressTitle;
+        // For STOP the installer output looks better by itself, so we don't display any extra title
+        if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
+            progressTitle = getUserActionName(cmd);
+        }
+        const executableDir = path.dirname(executablePath);
+
         await vscode.window.withProgress({
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
-            title: userMsg,
+            title: progressTitle,
         }, (progress, token) => {
             return new Promise<void>((resolve, reject) => {
+                currentOperation = cmd;
                 const child = child_process.spawn(executablePath, [ cmd ], {
                     cwd: executableDir
                 });
@@ -241,7 +259,7 @@ namespace InstallerWrapper {
                 return;
             }
 
-            // install output is JSON, see bin/installer/install.log for example
+            // install output is JSON, one object per line
             let lineObj: { status: string; id: string; };
             try {
                 lineObj = JSON.parse(line);
