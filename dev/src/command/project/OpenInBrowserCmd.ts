@@ -11,18 +11,17 @@
 
 import * as vscode from "vscode";
 
-import Project from "../microclimate/project/Project";
-import { promptForProject } from "./CommandUtil";
-import { ProjectState } from "../microclimate/project/ProjectState";
-import { Log } from "../Logger";
-import Commands from "../constants/Commands";
-import Translator from "../constants/strings/translator";
-import StringNamespaces from "../constants/strings/StringNamespaces";
+import Project from "../../microclimate/project/Project";
+import { promptForProject } from "../CommandUtil";
+import { ProjectState } from "../../microclimate/project/ProjectState";
+import { Log } from "../../Logger";
+import Commands from "../../constants/Commands";
+import Translator from "../../constants/strings/translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 const STRING_NS = StringNamespaces.CMD_OPEN_IN_BROWSER;
 
-export default async function openInBrowserCmd(project: Project): Promise<void> {
-    Log.d("OpenInBrowserCmd invoked");
+export default async function openAppCmd(project: Project): Promise<void> {
     if (project == null) {
         const selected = await promptForProject(...ProjectState.getStartedStates());
         if (selected == null) {

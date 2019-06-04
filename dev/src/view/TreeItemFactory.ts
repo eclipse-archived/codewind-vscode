@@ -58,13 +58,14 @@ export type MicroclimateTreeItem = Connection | Project | vscode.TreeItem;
 
 namespace TreeItemFactory {
     export function getRootTreeItems(): MicroclimateTreeItem[] {
-        if (ConnectionManager.instance.connections.length === 0) {
+        // TODO when more than one connection is allowed
+        if (ConnectionManager.instance.connections.length === 0 || !ConnectionManager.instance.connections[0].isConnected) {
             return [{
-                label: "Codewind is not active (Click to activate)",
+                label: Translator.t(STRING_NS, "notStartedConnectionLabel"),
                 iconPath: Resources.getIconPaths(Resources.Icons.Logo),
                 contextValue: buildContextValue([TreeContextValues.CONN_INACTIVE]),
                 command: {
-                    command: Commands.ACTIVATE_CONNECTION,
+                    command: Commands.START_CODEWIND,
                     title: "",
                 },
             }];
@@ -111,11 +112,11 @@ namespace TreeItemFactory {
                 label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
                 iconPath: Resources.getIconPaths(Resources.Icons.Disconnected),
                 contextValue: "nothing",        // anything truthy works
-                command: {
-                    command: Commands.ACTIVATE_CONNECTION,
-                    title: "",
-                    // arguments:
-                }
+                // command: {
+                //     command: Commands.START_CODEWIND,
+                //     title: "",
+                //     // arguments:
+                // }
             }];
         }
     }

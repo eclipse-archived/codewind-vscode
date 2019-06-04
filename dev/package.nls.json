@@ -9,11 +9,17 @@
 
     "commandCategory": "Codewind",
 
-    "cmdID_activateConn": "ext.cw.activateConn",
-    "cmdTitle_activateConn": "Activate Connection",
+    "// cmdID_activateConn": "ext.cw.activateConn",
+    "// cmdTitle_activateConn": "Activate Connection",
 
-    "cmdID_deactivateConn": "ext.cw.deactivateConn",
-    "cmdTitle_deactivateConn": "Deactivate Connection",
+    "// cmdID_deactivateConn": "ext.cw.deactivateConn",
+    "// cmdTitle_deactivateConn": "Deactivate Connection",
+
+    "cmdID_startCodewind": "ext.cw.startCodewind",
+    "cmdTitle_startCodewind": "Start Codewind",
+
+    "cmdID_stopCodewind": "ext.cw.stopCodewind",
+    "cmdTitle_stopCodewind": "Stop Codewind",
 
     "cmdID_refreshConnection": "ext.cw.refreshConnection",
     "cmdTitle_refreshConnection": "Refresh Connection",

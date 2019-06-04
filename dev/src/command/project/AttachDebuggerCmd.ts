@@ -11,16 +11,16 @@
 
 import * as vscode from "vscode";
 
-import * as MCUtil from "../MCUtil";
-import { promptForProject } from "../command/CommandUtil";
-import Resources from "../constants/Resources";
-import Project from "../microclimate/project/Project";
-import ProjectState from "../microclimate/project/ProjectState";
-import Log from "../Logger";
-import ProjectType from "../microclimate/project/ProjectType";
-import DebugUtils from "../microclimate/project/DebugUtils";
-import Translator from "../constants/strings/translator";
-import StringNamespaces from "../constants/strings/StringNamespaces";
+import * as MCUtil from "../../MCUtil";
+import { promptForProject } from "../CommandUtil";
+import Resources from "../../constants/Resources";
+import Project from "../../microclimate/project/Project";
+import ProjectState from "../../microclimate/project/ProjectState";
+import Log from "../../Logger";
+import ProjectType from "../../microclimate/project/ProjectType";
+import DebugUtils from "../../microclimate/project/DebugUtils";
+import Translator from "../../constants/strings/translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 const STRING_NS = StringNamespaces.DEBUG;
 

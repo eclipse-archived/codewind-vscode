@@ -11,12 +11,12 @@
 
 import * as vscode from "vscode";
 
-import Project from "../microclimate/project/Project";
-import { promptForProject } from "./CommandUtil";
-import Log from "../Logger";
-import Commands from "../constants/Commands";
-import * as MCUtil from "../MCUtil";
-import EndpointUtil from "../constants/Endpoints";
+import Project from "../../microclimate/project/Project";
+import { promptForProject } from "../CommandUtil";
+import Log from "../../Logger";
+import Commands from "../../constants/Commands";
+import * as MCUtil from "../../MCUtil";
+import EndpointUtil from "../../constants/Endpoints";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
     if (project == null) {

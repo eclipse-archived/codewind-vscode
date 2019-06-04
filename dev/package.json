@@ -29,7 +29,8 @@
     ],
     "activationEvents": [
         "onView:ext.cw.explorer",
-        "onCommand:ext.cw.activateConn",
+        "onCommand:ext.cw.startCodewind",
+        "onCommand:ext.cw.stopCodewind",
         "onCommand:ext.cw.createProject",
         "workspaceContains:.idc",
         "workspaceContains:.projects",
@@ -51,18 +52,22 @@
         },
         "commands": [
             {
-                "command": "%cmdID_activateConn%",
-                "title": "%cmdTitle_activateConn%",
+                "command": "%cmdID_startCodewind%",
+                "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/connect.svg",
-                    "dark": "res/img/dark/connect.svg"
+                    "light": "res/img/light/microclimate.svg",
+                    "dark": "res/img/dark/microclimate.svg"
                 }
             },
             {
-                "command": "%cmdID_deactivateConn%",
-                "title": "%cmdTitle_deactivateConn%",
-                "category": "%commandCategory%"
+                "command": "%cmdID_stopCodewind%",
+                "title": "%cmdTitle_stopCodewind%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/microclimate.svg",
+                    "dark": "res/img/dark/microclimate.svg"
+                }
             },
             {
                 "command": "%cmdID_refreshConnection%",
@@ -209,16 +214,17 @@
                     "when": "never"
                 }
             ],
-            "view/title": [],
+            "view/title": [
+                {
+                    "command": "%cmdID_startCodewind%",
+                    "group": "navigation"
+                },
+                {
+                    "command": "%cmdID_stopCodewind%",
+                    "group": "navigation"
+                }
+            ],
             "view/item/context": [
-                {
-                    "command": "%cmdID_activateConn%",
-                    "when": "%isInactiveConnection%"
-                },
-                {
-                    "command": "%cmdID_activateConn%",
-                    "when": "%isConnectingConnection%"
-                },
                 {
                     "command": "%cmdID_newProject%",
                     "when": "%isActiveConnection%",
@@ -250,7 +256,7 @@
                     "group": "ext.cw.conn.c@0"
                 },
                 {
-                    "command": "%cmdID_deactivateConn%",
+                    "command": "%cmdID_stopCodewind%",
                     "when": "%isActiveConnection%",
                     "group": "ext.cw.conn.c@1"
                 },

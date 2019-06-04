@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import activateConnectionCmd from "../../command/ActivateConnectionCmd";
+import activateConnection from "../../command/ActivateConnectionCmd";
 import Log from "../../Logger";
 // import Translator from "../../constants/strings/translator";
 // import StringNamespaces from "../../constants/strings/StringNamespaces";
@@ -33,7 +33,7 @@ export default class ConnectionManager implements vscode.Disposable {
     private constructor(
 
     ) {
-        this.initPromise = activateConnectionCmd().then(() => Promise.resolve());
+        this.initPromise = activateConnection().then(() => Promise.resolve());
     }
 
     public static get instance(): ConnectionManager {
