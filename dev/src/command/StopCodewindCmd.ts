@@ -11,16 +11,15 @@
 
 import * as vscode from "vscode";
 
-import InstallerWrapper, { InstallerCommands } from "../microclimate/connection/InstallerWrapper";
+import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
 import Log from "../Logger";
 import * as MCUtil from "../MCUtil";
-import CodewindManager, { CodewindStates } from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 
 export default async function stopCodewindCmd(): Promise<void> {
     try {
         Log.i("Stopping Codewind");
-        await InstallerWrapper.installerExec(InstallerCommands.STOP_ALL);
-        CodewindManager.instance.state = CodewindStates.STOPPED;
+        await CodewindManager.instance.stopCodewind();
     }
     catch (err) {
         if (!InstallerWrapper.isCancellation(err)) {

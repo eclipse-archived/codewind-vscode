@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 
 import Log from "../Logger";
-import CodewindManager, { CodewindStates } from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 
 import SocketTestUtil from "./SocketTestUtil";
 import ProjectObserver from "./ProjectObserver";
@@ -86,7 +86,7 @@ describe("Microclimate Tools for VSCode basic test", async function() {
         // await CodewindManager.instance.initPromise;
         await new Promise<void>((resolve) => {
             const interval = setInterval(() => {
-                if (CodewindManager.instance.state === CodewindStates.STARTED) {
+                if (CodewindManager.instance.isStarted()) {
                     clearInterval(interval);
                     resolve();
                 }
