@@ -21,6 +21,9 @@
     "cmdID_stopCodewind": "ext.cw.stopCodewind",
     "cmdTitle_stopCodewind": "Stop Codewind",
 
+    "cmdID_removeImages": "ext.cw.removeImages",
+    "cmdTitle_removeImages": "Remove Codewind Images",
+
     "cmdID_refreshConnection": "ext.cw.refreshConnection",
     "cmdTitle_refreshConnection": "Refresh Connection",
 

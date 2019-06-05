@@ -34,17 +34,25 @@ export enum InstallerCommands {
     INSTALL_DEV = "install-dev",
     START = "start",
     STOP = "stop",
-    STOP_ALL = "stop-all"
+    STOP_ALL = "stop-all",
+    REMOVE = "remove",
     // "status" is treated differently, see getInstallerState()
 }
 
-// const INSTALLER_COMMANDS: { [key in InstallerCommands]: { action: string, userActionName: string } } = {
-const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: string } } = {
-    install: { action: "install", userActionName: "Installing Codewind" },
-    "install-dev": { action: "install-dev", userActionName: "Installing Codewind (DEVELOPMENT IMAGES)" },
-    start: { action: "start", userActionName: "Starting Codewind" },
-    stop: { action: "stop", userActionName: "Stopping Codewind" },
-    "stop-all": { action: "stop-all", userActionName: "Stopping Codewind and applications" },
+// const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: string, cancellable: boolean } } = {
+const INSTALLER_COMMANDS: { [key in InstallerCommands]: { action: string, userActionName: string, cancellable: boolean } } = {
+    install:
+        { action: "install", userActionName: "Installing Codewind", cancellable: true },
+    "install-dev":
+        { action: "install-dev", userActionName: "Installing Codewind (DEVELOPMENT IMAGES)", cancellable: true },
+    start:
+        { action: "start", userActionName: "Starting Codewind", cancellable: true },
+    stop:
+        { action: "stop", userActionName: "Stopping Codewind", cancellable: true },
+    "stop-all":
+        { action: "stop-all", userActionName: "Stopping Codewind and applications", cancellable: true },
+    remove:
+        { action: "remove", userActionName: "Removing Codewind and project images", cancellable: true },
     // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
 
@@ -179,7 +187,7 @@ namespace InstallerWrapper {
         const executableDir = path.dirname(executablePath);
 
         await vscode.window.withProgress({
-            cancellable: true,
+            cancellable: INSTALLER_COMMANDS[cmd].cancellable,
             location: vscode.ProgressLocation.Notification,
             title: progressTitle,
         }, (progress, token) => {

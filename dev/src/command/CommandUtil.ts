@@ -38,6 +38,7 @@ import bindProject from "./BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
 import startCodewindCmd from "./StartCodewindCmd";
 import stopCodewindCmd from "./StopCodewindCmd";
+import removeImagesCmd from "./RemoveImagesCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -51,6 +52,7 @@ export function createCommands(): vscode.Disposable[] {
         // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
         vscode.commands.registerCommand(Commands.START_CODEWIND,    () => startCodewindCmd()),
         vscode.commands.registerCommand(Commands.STOP_CODEWIND,     () => stopCodewindCmd()),
+        vscode.commands.registerCommand(Commands.REMOVE_IMAGES,     () => removeImagesCmd()),
 
         vscode.commands.registerCommand(Commands.REFRESH_CONNECTION,    (selection) => refreshConnectionCmd(selection)),
 
