@@ -1,19 +1,21 @@
-# Codewind for VS Code
-Create and develop cloud-native, containerized web applications from VS Code.
-
 [![Marketplace](https://img.shields.io/vscode-marketplace/v/IBM.codewind.svg?label=marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=IBM.codewind)
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 [![Slack](https://img.shields.io/badge/ibm--cloud--tech-blue.svg?logo=slack&label=slack)](https://slack-invite-ibm-cloud-tech.mybluemix.net/)
 
+# Codewind for VS Code
+Create and develop cloud-native, containerized web applications from VS Code.
+
 ## Installing Codewind
 Prerequisites
 - Install [VS Code](https://code.visualstudio.com/download).
+- Install Docker.
+- If you use Windows, you also need to install Docker Compose.
 
 Complete all parts of the Codewind installation:
 1. Find Codewind for VS Code in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind) or by searching for `Codewind` in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions). Then, click the **Install** button.
 2. Go to the **Explorer** view group and open the **Codewind** view.
 3. To complete the installation, open the Codewind view in the **Explorer** view group or type `Focus on Codewind` into the Command Palette. A notification appears and asks if you would like to finish installing Codewind. 
-4. Click **Install** to complete the Codewind installation. The file is <size of download>. For more information, see <more info link> (same link as in pop up). When the installation completes, the server automatically starts.
+4. Click **Install** to complete the Codewind installation. The file is approximately 1 GB. When the installation completes, the server automatically starts.
 
 ## Using Codewind for VS Code
 To see the actions available, open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type `Codewind`.</br>
