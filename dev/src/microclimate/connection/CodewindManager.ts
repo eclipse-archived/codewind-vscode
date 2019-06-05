@@ -12,56 +12,52 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import activateConnection from "../../command/ActivateConnectionCmd";
 import Log from "../../Logger";
-// import Translator from "../../constants/strings/translator";
-// import StringNamespaces from "../../constants/strings/StringNamespaces";
-// import MCEnvironment from "./MCEnvironment";
 import Project from "../project/Project";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
-export default class ConnectionManager implements vscode.Disposable {
+export enum CodewindStates {
+    STOPPED, STARTED,
+    // STARTING, STOPPING,
+}
 
-    public readonly initPromise: Promise<void>;
+/**
+ * Manages the lifecycle of Codewind and its Connections.
+ * Also responsible for refreshing the Codewind Tree.
+ */
+export default class CodewindManager implements vscode.Disposable {
 
-    private static _instance: ConnectionManager;
+    public readonly CW_URL: vscode.Uri = vscode.Uri.parse("http://localhost:9090");
+
+    // public readonly initPromise: Promise<void>;
+
+    private static _instance: CodewindManager;
 
     private readonly _connections: Connection[] = [];
     private readonly listeners: Array<( (changed: OnChangeCallbackArgs) => void )> = [];
 
-    private constructor(
+    private _state: CodewindStates = CodewindStates.STOPPED;
 
-    ) {
-        this.initPromise = activateConnection().then(() => Promise.resolve());
-    }
-
-    public static get instance(): ConnectionManager {
-        return ConnectionManager._instance || (ConnectionManager._instance = new this());
+    public static get instance(): CodewindManager {
+        return CodewindManager._instance || (CodewindManager._instance = new this());
     }
 
     public async dispose(): Promise<void> {
-        return Promise.all([
+        await Promise.all([
             // InstallerWrapper.stopAll(),
             this.connections.map((conn) => conn.dispose()),
-        ])
-        .then(() => Promise.resolve());
+        ]);
     }
 
     public get connections(): Connection[] {
         return this._connections;
     }
 
-    // public get allProjects(): Promise<Project[]> {
-    //     return this.connections.reduce(async (allProjects: Promise<Project[]>, connection: Connection): Promise<Project[]> => {
-    //         const projects = await connection.getProjects();
-    //         return (await allProjects).concat(projects);
-    //     }, Promise.resolve([]));
-    // }
-
     public async addConnection(uri: vscode.Uri, mcVersion: number, socketNS: string, workspace: string): Promise<Connection> {
         const existing = this.getExisting(uri);
         if (existing != null) {
+            Log.e("Connection already exists at " + uri.toString());
             // const alreadyExists = Translator.t(StringNamespaces.DEFAULT, "connectionAlreadyExists", { uri });
             // Log.i(alreadyExists);
             return existing;
@@ -77,6 +73,43 @@ export default class ConnectionManager implements vscode.Disposable {
         // pass undefined here to refresh the tree from its root
         this.onChange(undefined);
         return newConnection;
+    }
+
+    private getExisting(uri: vscode.Uri): Connection | undefined {
+        return this._connections.find((conn) => {
+            return conn.url.toString() === uri.toString();
+        });
+    }
+
+    /**
+     * Pass this a function to call whenever a connection is added, removed, or changed,
+     * eg to trigger a tree update in the UI.
+     * Test-friendly.
+     */
+    public addOnChangeListener(callback: (changed: OnChangeCallbackArgs) => void): void {
+        Log.i("Adding onChangeListener " + callback.name);
+        this.listeners.push(callback);
+    }
+
+    /**
+     * Call this whenever a connection is added, removed, or changed.
+     * Pass the item that changed (Connection or Project) or undefined for the tree's root.
+     */
+    public onChange = (changed: OnChangeCallbackArgs): void => {
+        // Log.d(`There was a change, notifying ${this.listeners.length} listeners`);
+        this.listeners.forEach((cb) => cb(changed));
+    }
+
+    /**
+     * To be called by the functions that start or stop codewind, to indicate the installer has successfully changed codewind's state.
+     */
+    public set state(newState: CodewindStates) {
+        this._state = newState;
+        this.onChange(undefined);
+    }
+
+    public get state(): CodewindStates {
+        return this._state;
     }
 
     // public async removeConnection(connection: Connection): Promise<boolean> {
@@ -152,12 +185,6 @@ export default class ConnectionManager implements vscode.Disposable {
     //     }
     // }
 
-    private getExisting(uri: vscode.Uri): Connection | undefined {
-        return this._connections.find((conn) => {
-            return conn.url.toString() === uri.toString();
-        });
-    }
-
     // private static loadConnections(): MCUtil.IConnectionInfo[] {
     //     const globalState = global.extGlobalState as vscode.Memento;
     //     const loaded = globalState.get<MCUtil.IConnectionInfo[]>(Settings.CONNECTIONS_KEY) || [];
@@ -183,22 +210,11 @@ export default class ConnectionManager implements vscode.Disposable {
     //     }
     // }
 
-    /**
-     * Pass this a function to call whenever a connection is added, removed, or changed,
-     * eg to trigger a tree update in the UI.
-     * Test-friendly.
-     */
-    public addOnChangeListener(callback: (changed: OnChangeCallbackArgs) => void): void {
-        Log.i("Adding onChangeListener " + callback.name);
-        this.listeners.push(callback);
-    }
 
-    /**
-     * Call this whenever a connection is added, removed, or changed.
-     * Pass the item that changed (Connection or Project) or undefined for the tree's root.
-     */
-    public onChange = (changed: OnChangeCallbackArgs): void => {
-        // Log.d(`There was a change, notifying ${this.listeners.length} listeners`);
-        this.listeners.forEach((cb) => cb(changed));
-    }
+    // public get allProjects(): Promise<Project[]> {
+    //     return this.connections.reduce(async (allProjects: Promise<Project[]>, connection: Connection): Promise<Project[]> => {
+    //         const projects = await connection.getProjects();
+    //         return (await allProjects).concat(projects);
+    //     }, Promise.resolve([]));
+    // }
 }

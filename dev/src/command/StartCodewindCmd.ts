@@ -15,15 +15,13 @@ import * as request from "request-promise-native";
 import InstallerWrapper, { InstallerCommands } from "../microclimate/connection/InstallerWrapper";
 import Log from "../Logger";
 import * as MCUtil from "../MCUtil";
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
-
-export const CW_URL = vscode.Uri.parse("http://localhost:9090");
+import CodewindManager, { CodewindStates } from "../microclimate/connection/CodewindManager";
 
 export default async function startCodewindCmd(): Promise<void> {
+    Log.i("Starting Codewind");
     try {
         await startCodewind();
-        // force tree refresh
-        setTimeout(() => ConnectionManager.instance.onChange(undefined), 1000);
+        CodewindManager.instance.state = CodewindStates.STARTED;
     }
     catch (err) {
         if (!InstallerWrapper.isCancellation(err)) {
@@ -87,7 +85,7 @@ export async function startCodewind(): Promise<void> {
 async function isCodewindActive(): Promise<boolean> {
     // TODO use proper health endpoint
     try {
-        await request.get(CW_URL.with({ path: "api/v1/projects" }).toString(), {
+        await request.get(CodewindManager.instance.CW_URL.with({ path: "api/v1/environment" }).toString(), {
             timeout: 1000,
         });
         Log.i("Good response from healthcheck");

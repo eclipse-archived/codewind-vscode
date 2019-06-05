@@ -92,6 +92,9 @@
         "See TreeItemFactory for how the Context IDs are set"
     ],
 
+    "isStoppedCodewind": "viewItem == ext.cw.cwstatus.stopped",
+    "isStartedCodewind": "viewItem == ext.cw.cwstatus.started",
+
     "isInViewWithNothingSelected": "view == ext.cw.explorer && !viewItem",
     "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected)/",
     "isActiveConnection": "viewItem == ext.cw.connection.connected",

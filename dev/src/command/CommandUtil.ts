@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import Log from "../Logger";
 import Project from "../microclimate/project/Project";
 import Connection from "../microclimate/connection/Connection";
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 import ProjectState from "../microclimate/project/ProjectState";
 
 import Commands from "../constants/Commands";
@@ -110,8 +110,8 @@ export async function promptForProject(...acceptableStates: ProjectState.AppStat
 }
 
 export async function promptForConnection(activeOnly: boolean): Promise<Connection | undefined> {
-    if (ConnectionManager.instance.connections.length === 1) {
-        const onlyConnection = ConnectionManager.instance.connections[0];
+    if (CodewindManager.instance.connections.length === 1) {
+        const onlyConnection = CodewindManager.instance.connections[0];
         if (onlyConnection.isConnected || !activeOnly) {
             return onlyConnection;
         }
@@ -162,7 +162,7 @@ async function promptForResourceInner(includeConnections: boolean, includeProjec
 
     const choices: vscode.QuickPickItem[] = [];
 
-    const connections = ConnectionManager.instance.connections;
+    const connections = CodewindManager.instance.connections;
     if (includeConnections) {
         if (activeConnectionsOnly) {
             choices.push(...(connections.filter( (conn) => conn.isConnected)));

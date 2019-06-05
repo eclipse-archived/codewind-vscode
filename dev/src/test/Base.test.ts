@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 
 import Log from "../Logger";
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
+import CodewindManager, { CodewindStates } from "../microclimate/connection/CodewindManager";
 
 import SocketTestUtil from "./SocketTestUtil";
 import ProjectObserver from "./ProjectObserver";
@@ -83,12 +83,20 @@ describe("Microclimate Tools for VSCode basic test", async function() {
         this.timeout(TestUtil.getMinutes(10));
         this.slow(TestUtil.getMinutes(5));
         Log.t("Waiting for Codewind to start and/or install...");
-        await ConnectionManager.instance.initPromise;
+        // await CodewindManager.instance.initPromise;
+        await new Promise<void>((resolve) => {
+            const interval = setInterval(() => {
+                if (CodewindManager.instance.state === CodewindStates.STARTED) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, 1000);
+        });
     });
 
     it("should connect to the backend", async function() {
         this.timeout(10 * 1000);
-        const connMan = ConnectionManager.instance;
+        const connMan = CodewindManager.instance;
 
         expect(connMan.connections.length).to.eq(1, "No connection exists");
 
