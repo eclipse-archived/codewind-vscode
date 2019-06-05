@@ -14,10 +14,12 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
+import InstallerWrapper, { InstallerCommands } from "./InstallerWrapper";
+import MCEnvironment from "./MCEnvironment";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
-export enum CodewindStates {
+enum CodewindStates {
     STOPPED, STARTED,
     // STARTING, STOPPING,
 }
@@ -100,16 +102,87 @@ export default class CodewindManager implements vscode.Disposable {
         this.listeners.forEach((cb) => cb(changed));
     }
 
+    ///// Start/Stop Codewind /////
+
     /**
-     * To be called by the functions that start or stop codewind, to indicate the installer has successfully changed codewind's state.
+     * Installs and starts Codewind, if required. Will exit immediately if already started.
+     * Throws errors so we wrap this in the the command handler
      */
-    public set state(newState: CodewindStates) {
+    public async startCodewind(): Promise<void> {
+        if (await this.isCodewindActive()) {
+            // nothing to do
+            Log.i("Codewind is already started");
+            this.changeState(CodewindStates.STARTED);
+            return;
+        }
+
+        Log.i("Initial Codewind ping failed");
+
+        if (InstallerWrapper.isInstallerRunning()) {
+            throw new Error("Please wait for the current operation to finish.");
+        }
+
+        if (await InstallerWrapper.isInstallRequired()) {
+            Log.i("Codewind is not installed");
+            const installAffirmBtn = "Install";
+            const moreInfoBtn = "More Info";
+
+            let response;
+            if (process.env.CW_ENV === "test") {
+                response = installAffirmBtn;
+            }
+            else {
+                Log.d("Prompting for install confirm");
+                response = await vscode.window.showInformationMessage(
+                    `The Codewind backend needs to be installed before the extension can be used. ` +
+                    `This downloads the Codewind Docker images, which are about 1GB in size.`,
+                    { modal: true }, installAffirmBtn, moreInfoBtn,
+                );
+            }
+
+            if (response === installAffirmBtn) {
+                await InstallerWrapper.installerExec(InstallerCommands.INSTALL);
+            }
+            else {
+                if (response === moreInfoBtn) {
+                    vscode.window.showInformationMessage("More info not implemented");
+                }
+                throw new Error("Codewind cannot be used until the backend is installed.");
+            }
+        }
+        await InstallerWrapper.installerExec(InstallerCommands.START);
+
+        Log.i("Codewind should have started, getting ENV data now");
+        // vscode.window.showInformationMessage("Codewind was started successfully");
+
+        this.changeState(CodewindStates.STARTED);
+    }
+
+    private async isCodewindActive(): Promise<boolean> {
+        // TODO use proper health endpoint
+        try {
+            await MCEnvironment.getEnvData(CodewindManager.instance.CW_URL);
+            Log.i("Good response from healthcheck");
+            return true;
+        }
+        catch (err) {
+            Log.i("Health error response", err);
+            return false;
+        }
+    }
+
+    public async stopCodewind(): Promise<void> {
+        await InstallerWrapper.installerExec(InstallerCommands.STOP_ALL);
+        this.changeState(CodewindStates.STOPPED);
+    }
+
+    private changeState(newState: CodewindStates): void {
         this._state = newState;
         this.onChange(undefined);
     }
 
-    public get state(): CodewindStates {
-        return this._state;
+    public isStarted(): boolean {
+        return this._state === CodewindStates.STARTED;
     }
 
     // public async removeConnection(connection: Connection): Promise<boolean> {

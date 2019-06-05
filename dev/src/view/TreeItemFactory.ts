@@ -19,7 +19,7 @@ import Resources from "../constants/Resources";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
-import CodewindManager, { CodewindStates } from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -62,7 +62,7 @@ namespace TreeItemFactory {
     export const ROOT_NODE_ID = "root";
 
     export function getRootTreeItems(): CodewindTreeItem[] {
-        const cwStarted = CodewindManager.instance.state === CodewindStates.STARTED;
+        const cwStarted = CodewindManager.instance.isStarted();
         const label = "Codewind " + (cwStarted ? "(Started)" : "(Stopped)");
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
 
