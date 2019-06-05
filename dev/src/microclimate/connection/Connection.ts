@@ -15,7 +15,7 @@ import * as request from "request-promise-native";
 import Project from "../project/Project";
 import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
 import MCSocket from "./MCSocket";
-import ConnectionManager, { OnChangeCallbackArgs } from "./ConnectionManager";
+import CodewindManager, { OnChangeCallbackArgs } from "./CodewindManager";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
@@ -80,7 +80,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             changed = this;
         }
         // Log.d(`Connection ${this.mcUri} changed`);
-        ConnectionManager.instance.onChange(changed);
+        CodewindManager.instance.onChange(changed);
     }
 
     public get isConnected(): boolean {

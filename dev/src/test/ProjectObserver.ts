@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 import Log from "../Logger";
 import ProjectState from "../microclimate/project/ProjectState";
 import Connection from "../microclimate/connection/Connection";
@@ -45,7 +45,7 @@ export default class ProjectObserver {
     ) {
         Log.t("Initializing ProjectObserver");
         ProjectObserver._instance = this;
-        ConnectionManager.instance.addOnChangeListener(this.onChange);
+        CodewindManager.instance.addOnChangeListener(this.onChange);
 
         setInterval(() => {
             if (this.projectPendingState != null) {

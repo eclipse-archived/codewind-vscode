@@ -11,27 +11,27 @@
 
 import * as vscode from "vscode";
 
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 // import Commands from "../constants/Commands";
 import Log from "../Logger";
 import Project from "../microclimate/project/Project";
 import Connection from "../microclimate/connection/Connection";
-import TreeItemFactory, { MicroclimateTreeItem } from "./TreeItemFactory";
+import TreeItemFactory, { CodewindTreeItem } from "./TreeItemFactory";
 
 // const STRING_NS = StringNamespaces.TREEVIEW;
 
-export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<MicroclimateTreeItem> {
+export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<CodewindTreeItem> {
 
     private readonly VIEW_ID: string = "ext.cw.explorer";                  // must match package.nls.json
-    public readonly treeView: vscode.TreeView<MicroclimateTreeItem>;
+    public readonly treeView: vscode.TreeView<CodewindTreeItem>;
 
-    private readonly onTreeDataChangeEmitter: vscode.EventEmitter<MicroclimateTreeItem> = new vscode.EventEmitter<MicroclimateTreeItem>();
-    public readonly onDidChangeTreeData: vscode.Event<MicroclimateTreeItem> = this.onTreeDataChangeEmitter.event;
+    private readonly onTreeDataChangeEmitter: vscode.EventEmitter<CodewindTreeItem> = new vscode.EventEmitter<CodewindTreeItem>();
+    public readonly onDidChangeTreeData: vscode.Event<CodewindTreeItem> = this.onTreeDataChangeEmitter.event;
 
     constructor() {
         this.treeView = vscode.window.createTreeView(this.VIEW_ID, { treeDataProvider: this });
 
-        ConnectionManager.instance.addOnChangeListener(this.refresh);
+        CodewindManager.instance.addOnChangeListener(this.refresh);
         Log.d("Finished constructing ProjectTree");
 
         // this.treeView.onDidChangeSelection((e) => {
@@ -43,33 +43,41 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
      * Notifies VSCode that this tree has to be refreshed.
      * Used as a call-back for ConnectionManager OnChange.
      */
-    public refresh = (treeItem: MicroclimateTreeItem | undefined): void => {
+    public refresh = (treeItem: CodewindTreeItem | undefined): void => {
         // Log.d("refresh tree");
 
         this.onTreeDataChangeEmitter.fire(treeItem);
     }
 
-    public getTreeItem(node: MicroclimateTreeItem): vscode.TreeItem | Promise<vscode.TreeItem> {
+    public getTreeItem(node: CodewindTreeItem): vscode.TreeItem | Promise<vscode.TreeItem> {
         if (node instanceof Project || node instanceof Connection) {
             return TreeItemFactory.toTreeItem(node);
         }
         return node;
     }
 
-    public getChildren(node?: MicroclimateTreeItem): MicroclimateTreeItem[] | Promise<MicroclimateTreeItem[]> {
+    public getChildren(node?: CodewindTreeItem): CodewindTreeItem[] | Promise<CodewindTreeItem[]> {
         if (node == null) {
             // root
-            // connections are the top-level tree items
             return TreeItemFactory.getRootTreeItems();
         }
         else if (node instanceof Connection) {
             return TreeItemFactory.getConnectionChildren(node);
         }
-        // projects have no children
-        return [];
+        else if (node instanceof Project) {
+            // projects have no children
+            return [];
+        }
+        else if (node.id === TreeItemFactory.ROOT_NODE_ID) {
+            return CodewindManager.instance.connections;
+        }
+        else {
+            Log.e("Cannot get children for unexpected item", node);
+            return [];
+        }
     }
 
-    public getParent(node: MicroclimateTreeItem): MicroclimateTreeItem | Promise<MicroclimateTreeItem> | undefined {
+    public getParent(node: CodewindTreeItem): CodewindTreeItem | Promise<CodewindTreeItem> | undefined {
         if (node instanceof Project) {
             return node.connection;
         }

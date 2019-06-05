@@ -19,7 +19,7 @@ import Resources from "../constants/Resources";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
+import CodewindManager, { CodewindStates } from "../microclimate/connection/CodewindManager";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -31,10 +31,12 @@ enum TreeContextValues {
     BASE = "ext.cw",
     NO_PROJECTS = "noProjects",
 
+    // Codewind status
+    CW_STOPPED = "cwstatus.stopped",
+    // CW_STARTING = "cwstatus.starting",
+    CW_STARTED = "cwstatus.started",
+
     // Connection
-    // connection can only be one of these 3
-    // NO_CONNECTIONS = "noConnections",
-    CONN_INACTIVE = "connection.connecting",
     CONN_CONNECTED = "connection.connected",
     CONN_DISCONNECTED = "connection.disconnected",
 
@@ -54,23 +56,28 @@ enum TreeContextValues {
     PROJ_AUTOBUILD_OFF = "autoBuildOff"
 }
 
-export type MicroclimateTreeItem = Connection | Project | vscode.TreeItem;
+export type CodewindTreeItem = Connection | Project | vscode.TreeItem;
 
 namespace TreeItemFactory {
-    export function getRootTreeItems(): MicroclimateTreeItem[] {
-        // TODO when more than one connection is allowed
-        if (ConnectionManager.instance.connections.length === 0 || !ConnectionManager.instance.connections[0].isConnected) {
-            return [{
-                label: Translator.t(STRING_NS, "notStartedConnectionLabel"),
-                iconPath: Resources.getIconPaths(Resources.Icons.Logo),
-                contextValue: buildContextValue([TreeContextValues.CONN_INACTIVE]),
-                command: {
-                    command: Commands.START_CODEWIND,
-                    title: "",
-                },
-            }];
-        }
-        return ConnectionManager.instance.connections;
+    export const ROOT_NODE_ID = "root";
+
+    export function getRootTreeItems(): CodewindTreeItem[] {
+        const cwStarted = CodewindManager.instance.state === CodewindStates.STARTED;
+        const label = "Codewind " + (cwStarted ? "(Started)" : "(Stopped)");
+        const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
+
+        const cwStatusItem: vscode.TreeItem = {
+            id: ROOT_NODE_ID,
+            label,
+            tooltip: label,
+            iconPath: Resources.getIconPaths(Resources.Icons.Logo),
+            contextValue: buildContextValue([contextValue]),
+            collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+        };
+
+        return [
+            cwStatusItem,
+        ];
     }
 
     export function toTreeItem(resource: Project | Connection): vscode.TreeItem {
@@ -88,7 +95,7 @@ namespace TreeItemFactory {
         }
     }
 
-    export function getConnectionChildren(connection: Connection): MicroclimateTreeItem[] {
+    export function getConnectionChildren(connection: Connection): CodewindTreeItem[] {
        if (connection.isConnected) {
             if (connection.projects.length > 0) {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));
@@ -137,10 +144,13 @@ function getConnectionTI(connection: Connection): vscode.TreeItem {
 }
 
 function getProjectTI(project: Project): vscode.TreeItem {
+    const label = Translator.t(STRING_NS, "projectLabel", { projectName: project.name, state: project.state.toString() });
+
     return {
-        label: Translator.t(STRING_NS, "projectLabel", { projectName: project.name, state: project.state.toString() }),
+        id: project.id,
+        label,
         collapsibleState: vscode.TreeItemCollapsibleState.None,
-        tooltip: project.state.toString(),
+        tooltip: label,
         contextValue: getProjectContext(project),
         iconPath: project.type.icon,
         // command run on single-click (or double click - depends on a user setting - https://github.com/Microsoft/vscode/issues/39601)

@@ -56,8 +56,8 @@
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/microclimate.svg",
-                    "dark": "res/img/dark/microclimate.svg"
+                    "light": "res/img/light/connect.svg",
+                    "dark": "res/img/dark/connect.svg"
                 }
             },
             {
@@ -65,8 +65,8 @@
                 "title": "%cmdTitle_stopCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/microclimate.svg",
-                    "dark": "res/img/dark/microclimate.svg"
+                    "light": "res/img/light/error.svg",
+                    "dark": "res/img/dark/error.svg"
                 }
             },
             {
@@ -214,17 +214,28 @@
                     "when": "never"
                 }
             ],
-            "view/title": [
+            "view/title": [],
+            "view/item/context": [
                 {
                     "command": "%cmdID_startCodewind%",
-                    "group": "navigation"
+                    "when": "%isStoppedCodewind%",
+                    "group": "ext.cw.cwstatus.a@0"
+                },
+                {
+                    "command": "%cmdID_startCodewind%",
+                    "when": "%isStoppedCodewind%",
+                    "group": "inline"
                 },
                 {
                     "command": "%cmdID_stopCodewind%",
-                    "group": "navigation"
-                }
-            ],
-            "view/item/context": [
+                    "when": "%isStartedCodewind%",
+                    "group": "ext.cw.cwstatus.a@0"
+                },
+                {
+                    "command": "%cmdID_stopCodewind%",
+                    "when": "%isStartedCodewind%",
+                    "group": "inline"
+                },
                 {
                     "command": "%cmdID_newProject%",
                     "when": "%isActiveConnection%",

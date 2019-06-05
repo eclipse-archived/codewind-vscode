@@ -12,19 +12,17 @@
 import * as vscode from "vscode";
 
 import * as MCUtil from "../MCUtil";
-import ConnectionManager from "../microclimate/connection/ConnectionManager";
+import CodewindManager from "../microclimate/connection/CodewindManager";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
 import Connection from "../microclimate/connection/Connection";
 import MCEnvironment from "../microclimate/connection/MCEnvironment";
 import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
-import * as StartCodewindCmd from "./StartCodewindCmd";
 
 export default async function activateConnection(): Promise<void> {
     try {
-        await StartCodewindCmd.startCodewind();
-
-        const url = StartCodewindCmd.CW_URL;
+        const url = CodewindManager.instance.CW_URL;
+        Log.i("Activating connection to " + url);
         const envData = await MCEnvironment.getEnvData(url);
         Log.i("ENV data:", envData);
 
@@ -67,7 +65,7 @@ async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Prom
     // normalize namespace so it doesn't start with '/'
     const socketNS = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
 
-    return await ConnectionManager.instance.addConnection(url, versionNum, socketNS, workspace);
+    return await CodewindManager.instance.addConnection(url, versionNum, socketNS, workspace);
 }
 
 /**
