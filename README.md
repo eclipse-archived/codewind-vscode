@@ -11,11 +11,10 @@ Prerequisites
 - Install Docker.
 - If you use Linux, you also need to install Docker Compose.
 
-Complete all parts of the Codewind installation:
-1. Find Codewind for VS Code in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind) or by searching for `Codewind` in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions). Then, click the **Install** button.
+Complete the installation:
+1. Find Codewind for VS Code in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind) or by searching for `Codewind` in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions).
 2. Go to the **Explorer** view group and open the **Codewind** view.
-3. To complete the installation, more needs to be installed. Open the Codewind view in the **Explorer** view group or type `Focus on Codewind` into the Command Palette.
-4. Click **Install** whem prompted to complete the Codewind installation. The download is approximately 1 GB.
+3. Click **Install** whem prompted. The download is approximately 1 GB.
 
 ## Using Codewind for VS Code
 To see the actions available, open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type `Codewind`.</br>
