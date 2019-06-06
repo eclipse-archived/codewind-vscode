@@ -31,7 +31,7 @@
     "cmdTitle_newProject": "Create New Project",
 
     "cmdID_bindProject": "ext.cw.bindProject",
-    "cmdTitle_bindProject": "Bind Existing Project",
+    "cmdTitle_bindProject": "Import Existing Project",
 
     "cmdID_openFolder": "ext.cw.openWorkspaceFolder",
     "cmdTitle_openFolder": "Open Folder as Workspace",

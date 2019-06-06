@@ -32,24 +32,24 @@ export default async function bindProject(connection: Connection): Promise<void>
     }
 
     try {
-        const dirToBindUri = await UserProjectCreator.promptForDir("Bind", connection.workspacePath);
+        const dirToBindUri = await UserProjectCreator.promptForDir("Import", connection.workspacePath);
         if (dirToBindUri == null) {
             return;
         }
         if (!dirToBindUri.fsPath.startsWith(connection.workspacePath.fsPath)) {
             Log.d(`${dirToBindUri.fsPath} is not under workspace ${connection.workspacePath.fsPath}`);
             vscode.window.showErrorMessage(
-                `Currently, The project to be bound must be located under the workspace at ${connection.workspacePath.fsPath}`);
+                `Currently, projects to be imported must be located under the workspace at ${connection.workspacePath.fsPath}`);
             return;
         }
         const response = await UserProjectCreator.validateAndBind(connection, dirToBindUri);
         if (response == null) {
             return;
         }
-        vscode.window.showInformationMessage(`Binding ${response.projectPath} as ${response.projectName}`);
+        vscode.window.showInformationMessage(`Importing ${response.projectPath} as ${response.projectName}`);
     }
     catch (err) {
-        const errMsg = "Error binding project: ";
+        const errMsg = "Error importing project: ";
         Log.e(errMsg, err);
         vscode.window.showErrorMessage(errMsg + MCUtil.errToString(err));
     }

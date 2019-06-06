@@ -132,7 +132,7 @@ export function generateHtml(project: Project): string {
             </table>
 
             <div id="bottom-section">
-                <input id="delete-btn" type="button" onclick="sendMsg('${Messages.UNBIND}')" class="btn" value="Unbind project"/>
+                <input id="delete-btn" type="button" onclick="sendMsg('${Messages.UNBIND}')" class="btn" value="Remove project"/>
                 <input id="enablement-btn" type="button" onclick="sendMsg('${Messages.TOGGLE_ENABLEMENT}')" class="btn"
                     value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"/>
             </div>

@@ -19,6 +19,10 @@ import * as MCUtil from "../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
 import EndpointUtil, { MCEndpoints } from "../constants/Endpoints";
 
+const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
+const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
+const BACK_BTN_MSG = "Back button";
+
 /**
  * @param create true for Create page, false for Import page
  */
@@ -34,14 +38,28 @@ export default async function createProject(connection: Connection): Promise<voi
     }
 
     try {
-        const template = await promptForTemplate(connection);
-        if (template == null) {
-            return;
+        let template: IMCTemplateData | undefined;
+        let projectName: string | undefined;
+        while (!template || !projectName) {
+            template = await promptForTemplate(connection);
+            if (template == null) {
+                return;
+            }
+            try {
+                projectName = await promptForProjectName(template);
+                if (projectName == null) {
+                    return;
+                }
+            }
+            catch (err) {
+                if (err !== BACK_BTN_MSG) {
+                    // unexpected error
+                    throw err;
+                }
+                // else user clicked back, return to top of loop
+            }
         }
-        const projectName = await promptForProjectName(template);
-        if (projectName == null) {
-            return;
-        }
+
         const response = await UserProjectCreator.createProject(connection, template, projectName);
         if (!response) {
             // user cancelled
@@ -50,7 +68,7 @@ export default async function createProject(connection: Connection): Promise<voi
         vscode.window.showInformationMessage(`Created project ${response.projectName} at ${response.projectPath}`);
     }
     catch (err) {
-        const errMsg = "Error creating project from template: ";
+        const errMsg = "Error creating new project: ";
         Log.e(errMsg, err);
         vscode.window.showErrorMessage(errMsg + MCUtil.errToString(err));
     }
@@ -60,7 +78,7 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
     const templatesUrl = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATES);
     const templates: IMCTemplateData[] = await request.get(templatesUrl, { json: true });
 
-    const projectTypeQpis: Array<(vscode.QuickPickItem & IMCTemplateData)> = templates.map((type) => {
+    const templateQpis: Array<vscode.QuickPickItem & IMCTemplateData> = templates.map((type) => {
         return {
             ...type,
             detail: type.language,
@@ -68,18 +86,65 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
         };
     });
 
-    return vscode.window.showQuickPick(projectTypeQpis, {
-        placeHolder: "Select the project type to create",
-        // matchOnDescription: true,
-        matchOnDetail: true,
-    });
+    const qp = vscode.window.createQuickPick();
+    qp.placeholder = "Select the project type to create";
+    qp.matchOnDetail = true;
+    qp.canSelectMany = false;
+    qp.items = templateQpis;
+    qp.step = 1;
+    qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
+    qp.title = CREATE_PROJECT_WIZARD_TITLE;
+
+    const selected = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
+        qp.show();
+        qp.onDidHide((_e) => {
+            resolve(undefined);
+        });
+        qp.onDidAccept((_e) => {
+            resolve(qp.selectedItems);
+        });
+    })
+    .finally(() => qp.dispose());
+
+    // there are either 1 or 0 items selected because canSelectMany is false
+    if (selected == null || selected.length === 0) {
+        return undefined;
+    }
+
+    // map the selected QPI back to the template it represents
+    const selectedProjectType = templateQpis.find((type) => selected[0].label === type.label);
+    if (selectedProjectType == null) {
+        throw new Error(`Could not find template ${selected[0].label}`);
+    }
+    return selectedProjectType;
 }
 
 async function promptForProjectName(template: IMCTemplateData): Promise<OptionalString> {
-    return await vscode.window.showInputBox({
-        placeHolder: `Enter a name for your new ${template.language} project`,
-        validateInput: validateProjectName,
+    const ib = vscode.window.createInputBox();
+    ib.placeholder = `Enter a name for your new ${template.language} project`;
+    ib.title = CREATE_PROJECT_WIZARD_TITLE;
+    ib.step = 2;
+    ib.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
+    ib.buttons = [ vscode.QuickInputButtons.Back ];
+
+    ib.onDidChangeValue((projName) => {
+        ib.validationMessage = validateProjectName(projName);
     });
+
+    return new Promise<string | undefined>((resolve, reject) => {
+        ib.show();
+        ib.onDidHide((_e) => {
+            resolve(undefined);
+        });
+        ib.onDidAccept((_e) => {
+            resolve(ib.value);
+        });
+        ib.onDidTriggerButton((_btn) => {
+            // back button is the only button
+            reject(BACK_BTN_MSG);
+        });
+    })
+    .finally(() => ib.dispose());
 }
 
 const ILLEGAL_CHARS = [
