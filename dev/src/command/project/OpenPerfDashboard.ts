@@ -17,6 +17,7 @@ import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import * as MCUtil from "../../MCUtil";
 import EndpointUtil from "../../constants/Endpoints";
+import Requester from "../../microclimate/project/Requester";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
     if (project == null) {
@@ -27,6 +28,13 @@ export default async function openPerformanceDashboard(project: Project): Promis
             return;
         }
         project = selected;
+    }
+
+    const supportsMetrics = await Requester.areMetricsAvailable(project);
+    Log.d(`${project.name} supports perfmonitor ? ${supportsMetrics}`);
+    if (!supportsMetrics) {
+        vscode.window.showWarningMessage(`${project.name} does not support the performance dashboard.`);
+        return;
     }
 
     try {
