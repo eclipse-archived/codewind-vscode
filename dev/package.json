@@ -70,6 +70,11 @@
                 }
             },
             {
+                "command": "%cmdID_removeImages%",
+                "title": "%cmdTitle_removeImages%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_refreshConnection%",
                 "title": "%cmdTitle_refreshConnection%",
                 "category": "%commandCategory%",
@@ -225,6 +230,11 @@
                     "command": "%cmdID_startCodewind%",
                     "when": "%isStoppedCodewind%",
                     "group": "inline"
+                },
+                {
+                    "command": "%cmdID_removeImages%",
+                    "when": "%isStoppedCodewind%",
+                    "group": "ext.cw.cwstatus.b@0"
                 },
                 {
                     "command": "%cmdID_stopCodewind%",
