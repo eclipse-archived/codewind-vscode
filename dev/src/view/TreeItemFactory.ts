@@ -63,7 +63,7 @@ namespace TreeItemFactory {
 
     export function getRootTreeItems(): CodewindTreeItem[] {
         const cwStarted = CodewindManager.instance.isStarted();
-        const label = "Codewind " + (cwStarted ? "(Started)" : "(Stopped)");
+        const label = "Codewind";
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
 
         const cwStatusItem: vscode.TreeItem = {
