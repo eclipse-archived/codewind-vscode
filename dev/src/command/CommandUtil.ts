@@ -50,9 +50,12 @@ export function createCommands(): vscode.Disposable[] {
     return [
         // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
         // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
-        vscode.commands.registerCommand(Commands.START_CODEWIND,    () => startCodewindCmd()),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND,     () => stopCodewindCmd()),
-        vscode.commands.registerCommand(Commands.REMOVE_IMAGES,     () => removeImagesCmd()),
+        vscode.commands.registerCommand(Commands.START_CODEWIND,    startCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND_2,  startCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND,     stopCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,   stopCodewindCmd),
+
+        vscode.commands.registerCommand(Commands.REMOVE_IMAGES,     removeImagesCmd),
 
         vscode.commands.registerCommand(Commands.REFRESH_CONNECTION,    (selection) => refreshConnectionCmd(selection)),
 

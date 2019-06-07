@@ -16,9 +16,12 @@
     "// cmdTitle_deactivateConn": "Deactivate Connection",
 
     "cmdID_startCodewind": "ext.cw.startCodewind",
+    "// See Commands.ts for explanation of the duplicated start/stop": "",
+    "cmdID_startCodewind2": "ext.cw.startCodewind2",
     "cmdTitle_startCodewind": "Start Codewind",
 
     "cmdID_stopCodewind": "ext.cw.stopCodewind",
+    "cmdID_stopCodewind2": "ext.cw.stopCodewind2",
     "cmdTitle_stopCodewind": "Stop Codewind",
 
     "cmdID_removeImages": "ext.cw.removeImages",

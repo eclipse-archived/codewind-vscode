@@ -74,10 +74,11 @@ namespace Resources {
     }
 
     export enum Icons {
-        Logo = "microclimate.svg",
+        Logo = "codewind.svg",
         Disconnected = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",
+        LocalProjects = "local_projects.svg",
         // project types
         Microprofile = "lang_java.svg",
         Spring       = "lang_java.svg",

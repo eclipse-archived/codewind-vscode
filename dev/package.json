@@ -56,8 +56,17 @@
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/connect.svg",
-                    "dark": "res/img/dark/connect.svg"
+                    "light": "res/img/light/toggle_off.svg",
+                    "dark": "res/img/dark/toggle_off.svg"
+                }
+            },
+            {
+                "command": "%cmdID_startCodewind2%",
+                "title": "%cmdTitle_startCodewind%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/toggle_off_txt.svg",
+                    "dark": "res/img/dark/toggle_off_txt.svg"
                 }
             },
             {
@@ -65,8 +74,17 @@
                 "title": "%cmdTitle_stopCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/error.svg",
-                    "dark": "res/img/dark/error.svg"
+                    "light": "res/img/light/toggle_on.svg",
+                    "dark": "res/img/dark/toggle_on.svg"
+                }
+            },
+            {
+                "command": "%cmdID_stopCodewind2%",
+                "title": "%cmdTitle_stopCodewind%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/toggle_on_txt.svg",
+                    "dark": "res/img/dark/toggle_on_txt.svg"
                 }
             },
             {
@@ -232,6 +250,11 @@
                     "group": "inline"
                 },
                 {
+                    "command": "%cmdID_startCodewind2%",
+                    "when": "%isStoppedCodewind%",
+                    "group": "inline"
+                },
+                {
                     "command": "%cmdID_removeImages%",
                     "when": "%isStoppedCodewind%",
                     "group": "ext.cw.cwstatus.b@0"
@@ -243,6 +266,11 @@
                 },
                 {
                     "command": "%cmdID_stopCodewind%",
+                    "when": "%isStartedCodewind%",
+                    "group": "inline"
+                },
+                {
+                    "command": "%cmdID_stopCodewind2%",
                     "when": "%isStartedCodewind%",
                     "group": "inline"
                 },

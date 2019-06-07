@@ -132,13 +132,14 @@ namespace TreeItemFactory {
 function getConnectionTI(connection: Connection): vscode.TreeItem {
     // always local for now
     const connectionType: string =  Translator.t(STRING_NS, "connectionTypeLocal");
+    const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 
     return {
         label: Translator.t(STRING_NS, "connectionLabel", { type: connectionType }),
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         tooltip: `${connection.versionStr} • ${connection.workspacePath.fsPath}`,
         contextValue: getConnectionContext(connection),
-        iconPath: Resources.getIconPaths(Resources.Icons.Logo),
+        iconPath,
         // command:Logo
     };
 }
