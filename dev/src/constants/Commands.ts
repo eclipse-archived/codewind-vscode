@@ -20,6 +20,11 @@ enum Commands {
     STOP_CODEWIND = "ext.cw.stopCodewind",
     REMOVE_IMAGES = "ext.cw.removeImages",
 
+    // These "commands" are the same as START and STOP_CODEWIND,
+    // but are registered separately with the "On/Off" icons so we can have the two inline buttons (which do the same thing)
+    START_CODEWIND_2 = "ext.cw.startCodewind2",
+    STOP_CODEWIND_2 = "ext.cw.stopCodewind2",
+
     REFRESH_CONNECTION = "ext.cw.refreshConnection",
 
     CREATE_PROJECT = "ext.cw.createProject",

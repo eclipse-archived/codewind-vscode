@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.84 141.84">
+    <defs>
+        <style>
+            .cls-1 {
+                fill: #0083ca;
+            }
+        </style>
+    </defs>
+    <title>Codewind</title>
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+            <path class="cls-1"
+                d="M82.77,80.16l19.88,30-18.2,18.2Zm-5.65,55.48-6.2,6.2L0,70.92,70.92,0l27,27L78,54.57l6.13,12.21,18.46-35.16,39.3,39.3-34.4,34.4L93.83,76.75l-11.2-.39-.21-6.11h-2ZM72.35,69.15l-49.12,1.5L18.6,75.28l46.13,5.2Z" />
+        </g>
+    </g>
+</svg>
