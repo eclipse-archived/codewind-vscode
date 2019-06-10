@@ -2,7 +2,7 @@
     "name": "codewind",
     "displayName": "%displayName%",
     "description": "%description%",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "publisher": "IBM",
     "engines": {
         "vscode": "^1.27.0"
@@ -235,6 +235,14 @@
                 {
                     "command": "%cmdID_disableAutoBuild%",
                     "when": "never"
+                },
+                {
+                    "command": "%cmdID_startCodewind2%",
+                    "when": "never"
+                },
+                {
+                    "command": "%cmdID_stopCodewind2%",
+                    "when": "never"
                 }
             ],
             "view/title": [],
@@ -247,12 +255,12 @@
                 {
                     "command": "%cmdID_startCodewind%",
                     "when": "%isStoppedCodewind%",
-                    "group": "inline"
+                    "group": "inline@0"
                 },
                 {
                     "command": "%cmdID_startCodewind2%",
                     "when": "%isStoppedCodewind%",
-                    "group": "inline"
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_removeImages%",
@@ -267,12 +275,12 @@
                 {
                     "command": "%cmdID_stopCodewind%",
                     "when": "%isStartedCodewind%",
-                    "group": "inline"
+                    "group": "inline@0"
                 },
                 {
                     "command": "%cmdID_stopCodewind2%",
                     "when": "%isStartedCodewind%",
-                    "group": "inline"
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_newProject%",
@@ -303,11 +311,6 @@
                     "command": "%cmdID_refreshConnection%",
                     "when": "%isActiveConnection%",
                     "group": "ext.cw.conn.c@0"
-                },
-                {
-                    "command": "%cmdID_stopCodewind%",
-                    "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.c@1"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",
