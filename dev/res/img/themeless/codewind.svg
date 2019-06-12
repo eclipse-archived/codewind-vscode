@@ -1,16 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 141.84 141.84">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.84 141.84">
     <defs>
         <style>
             .cls-1 {
-                fill: url(#linear-gradient);
+                fill: #0083ca;
             }
         </style>
-        <linearGradient id="linear-gradient" y1="70.92" x2="141.84" y2="70.92" gradientUnits="userSpaceOnUse">
-            <stop offset="0.05" stop-color="#0083ca" />
-            <stop offset="0.93" stop-color="#65c8d0" />
-        </linearGradient>
     </defs>
-    <title>Asset 2</title>
+    <title>Codewind_blue</title>
     <g id="Layer_2" data-name="Layer 2">
         <g id="Layer_1-2" data-name="Layer 1">
             <path class="cls-1"

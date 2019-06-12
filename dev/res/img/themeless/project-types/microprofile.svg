@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50.52 51.44">
     <defs>
         <style>
             .cls-1 {
@@ -6,26 +6,28 @@
             }
 
             .cls-2 {
-                font-size: 25.94px;
-                fill: #231f20;
-                font-family: IBMPlexSans-BoldItalic, IBM Plex Sans;
+                font-size: 29px;
+                font-family: IBMPlexMono-Bold, IBM Plex Mono;
                 font-weight: 700;
-                font-style: italic;
+            }
+
+            .cls-3 {
+                fill: none;
             }
         </style>
-        <!-- ORANGE -->
         <linearGradient id="linear-gradient" y1="25" x2="50" y2="25" gradientUnits="userSpaceOnUse">
             <stop offset="0.03" stop-color="#e4873d" />
-            <stop offset="0.28" stop-color="#e68b41" />
-            <stop offset="0.54" stop-color="#ec964e" />
-            <stop offset="0.8" stop-color="#f5a862" />
-            <stop offset="1" stop-color="#fb7" />
-        </linearGradient>>
+            <stop offset="0.35" stop-color="#e7833e" />
+            <stop offset="0.69" stop-color="#f17641" />
+            <stop offset="1" stop-color="#ff6445" />
+        </linearGradient>
     </defs>
-    <title>template_white</title>
+    <title>Project_Icon</title>
     <g id="Layer_2" data-name="Layer 2">
-        <g id="Layer_1-2" data-name="Layer 1">
-            <circle class="cls-1" cx="25" cy="25" r="25" /><text class="cls-2"
-                transform="translate(8.19 34.29)">MP</text></g>
+        <g id="Objects">
+            <path class="cls-1" d="M50,26.44a25,25,0,1,1-25-25,25,25,0,0,1,25,25" /><text class="cls-2"
+                transform="translate(7.6 36.85)">MP</text>
+            <rect class="cls-3" x="0.52" width="50" height="50" />
+        </g>
     </g>
 </svg>

@@ -96,11 +96,11 @@ namespace Resources {
         Edit = "edit.svg",
         LocalProjects = "local_projects.svg",
 
-        Generic      = "project-types/generic_old.svg",
+        Generic      = "project-types/cloud.svg",
         Go           = "project-types/go.svg",
         Java         = "project-types/java.svg",
         Microprofile = "project-types/microprofile.svg",
-        JavaScript   = "project-types/js.svg",
+        NodeJS       = "project-types/nodejs.svg",
         Python       = "project-types/python.svg",
         Spring       = "project-types/spring.svg",
         Swift        = "project-types/swift.svg",
