@@ -11,12 +11,12 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as request from "request-promise-native";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
+import Requester from "../project/Requester";
 
 export interface IMCTemplateData {
     label: string;
@@ -86,12 +86,12 @@ namespace UserProjectCreator {
     }
 
     async function preBindValidate(connection: Connection, pathToBind: string): Promise<IInitializationResponse> {
-        const validateResponse = await request.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PREBIND_VALIDATE), {
+        const validateResponse = (await Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PREBIND_VALIDATE), {
             json: true,
             body: {
                 projectPath: pathToBind,
             }
-        });
+        })).body;
         Log.d("validate response", validateResponse);
         return validateResponse;
     }
@@ -127,10 +127,10 @@ namespace UserProjectCreator {
 
         Log.d("Creation request", payload);
 
-        const creationRes = await request.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PROJECTS), {
+        const creationRes = (await Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PROJECTS), {
             json: true,
             body: payload,
-        });
+        })).body;
 
         Log.d("Creation response", creationRes);
         return creationRes;
@@ -149,10 +149,10 @@ namespace UserProjectCreator {
         Log.d("Bind request", bindReq);
 
         const bindEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.BIND);
-        const bindRes = await request.post(bindEndpoint, {
+        const bindRes = (await Requester.post(bindEndpoint, {
             json: true,
             body: bindReq,
-        });
+        })).body;
         Log.d("Bind response", bindRes);
 
         // return bindRes;
