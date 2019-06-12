@@ -21,6 +21,9 @@ const STYLE_FOLDER_NAME = "css";
 const IMG_FOLDER_NAME = "img";
 const LIGHT_FOLDER_NAME = "light";
 const DARK_FOLDER_NAME = "dark";
+// for icons that are the same on all themes
+const BOTH_FOLDER_NAME = "themeless";
+// const PROJECT_TYPES_FOLDER = "project-types";
 
 namespace Resources {
 
@@ -45,6 +48,18 @@ namespace Resources {
      *
      */
     export function getIconPaths(icon: Icons): IconPaths {
+        const bothPath = getResourcePath(IMG_FOLDER_NAME, BOTH_FOLDER_NAME, icon);
+        try {
+            fs.accessSync(bothPath, fs.constants.R_OK);
+            return {
+                dark: bothPath,
+                light: bothPath,
+            };
+        }
+        catch (err) {
+            // if it doesn't exist in the both folder, it must exist in both dark and light folders
+        }
+
         const darkPath = getResourcePath(IMG_FOLDER_NAME, DARK_FOLDER_NAME, icon);
         // make sure the file exists and is readable
         fs.access(darkPath, fs.constants.R_OK, (err) => {
@@ -68,6 +83,7 @@ namespace Resources {
 
     // VSC allows providing a separate icon for dark or light themes.
     // This is the format the API expects when icons are set.
+    // tslint:disable-next-line: interface-name
     export interface IconPaths {
         readonly light: string;
         readonly dark: string;
@@ -79,15 +95,15 @@ namespace Resources {
         Error = "error.svg",
         Edit = "edit.svg",
         LocalProjects = "local_projects.svg",
-        // project types
-        Microprofile = "lang_java.svg",
-        Spring       = "lang_java.svg",
-        Node         = "lang_node.svg",
-        Swift        = "lang_swift.svg",
-        Python       = "lang_python.svg",
-        Go           = "lang_go.svg",
-        Docker       = "lang_generic.svg",
-        Generic      = "lang_generic.svg"
+
+        Generic      = "project-types/generic_old.svg",
+        Go           = "project-types/go.svg",
+        Java         = "project-types/java.svg",
+        Microprofile = "project-types/microprofile.svg",
+        JavaScript   = "project-types/js.svg",
+        Python       = "project-types/python.svg",
+        Spring       = "project-types/spring.svg",
+        Swift        = "project-types/swift.svg",
     }
 
     // https://octicons.github.com/

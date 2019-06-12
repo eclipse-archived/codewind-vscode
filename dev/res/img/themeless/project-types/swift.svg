@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50">
+    <defs>
+        <style>
+            .cls-1 {
+                fill: url(#linear-gradient);
+            }
+
+            .cls-2 {
+                font-size: 25.94px;
+                fill: #231f20;
+                font-family: IBMPlexSans-BoldItalic, IBM Plex Sans;
+                font-weight: 700;
+                font-style: italic;
+            }
+        </style>
+        <!-- ORANGE -->
+        <linearGradient id="linear-gradient" y1="25" x2="50" y2="25" gradientUnits="userSpaceOnUse">
+            <stop offset="0.03" stop-color="#e4873d" />
+            <stop offset="0.28" stop-color="#e68b41" />
+            <stop offset="0.54" stop-color="#ec964e" />
+            <stop offset="0.8" stop-color="#f5a862" />
+            <stop offset="1" stop-color="#fb7" />
+        </linearGradient>>
+    </defs>
+    <title>template_white</title>
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+            <circle class="cls-1" cx="25" cy="25" r="25" /><text class="cls-2"
+                transform="translate(8.19 34.29)">SW</text></g>
+    </g>
+</svg>

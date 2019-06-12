@@ -17,7 +17,7 @@
         "url": "https://github.com/microclimate-dev2ops/codewind-vscode"
     },
     "preview": true,
-    "icon": "res/img/microclimate.png",
+    "icon": "res/img/codewind.png",
     "categories": [
         "Other"
     ],
@@ -56,8 +56,8 @@
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/toggle_off.svg",
-                    "dark": "res/img/dark/toggle_off.svg"
+                    "light": "res/img/themeless/toggle_off.svg",
+                    "dark": "res/img/themeless/toggle_off.svg"
                 }
             },
             {
@@ -74,8 +74,8 @@
                 "title": "%cmdTitle_stopCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/toggle_on.svg",
-                    "dark": "res/img/dark/toggle_on.svg"
+                    "light": "res/img/themeless/toggle_on.svg",
+                    "dark": "res/img/themeless/toggle_on.svg"
                 }
             },
             {

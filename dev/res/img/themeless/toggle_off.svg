@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.1 (78136) - https://sketchapp.com -->
+    <title>toggle_on copy 2</title>
+    <desc>Created with Sketch.</desc>
+    <g id="toggle_on-copy-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="pill" fill="#BEBEBE" x="0" y="3" width="16" height="11" rx="5.5"></rect>
+        <path
+            d="M4.56330699,12 C6.46134013,12 8,10.4329966 8,8.5 C8,6.56700338 6.46134013,5 4.56330699,5 C2.66527385,5 1,6.56700338 1,8.5 C1,10.4329966 2.66527385,12 4.56330699,12 Z"
+            id="handle" fill="#FFFFFF"></path>
+    </g>
+</svg>

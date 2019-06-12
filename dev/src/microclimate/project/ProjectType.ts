@@ -27,7 +27,7 @@ export class ProjectType {
         this.type = ProjectType.getType(internalType, language);
         // this.userFriendlyType = ProjectType.getUserFriendlyType(this.type);
         this.debugType = ProjectType.getDebugType(this.type);
-        this.icon = ProjectType.getProjectIcon(this.type);
+        this.icon = ProjectType.getProjectIcon(this.type, language);
     }
 
     public toString(): string {
@@ -84,24 +84,28 @@ export class ProjectType {
         }
     }
 
-    private static getProjectIcon(type: ProjectType.Types): Resources.IconPaths {
-        switch (type) {
-            case ProjectType.Types.MICROPROFILE:
-                return Resources.getIconPaths(Resources.Icons.Microprofile);
-            case ProjectType.Types.SPRING:
-                return Resources.getIconPaths(Resources.Icons.Spring);
-            case ProjectType.Types.NODE:
-                return Resources.getIconPaths(Resources.Icons.Node);
-            case ProjectType.Types.SWIFT:
+    private static getProjectIcon(type: ProjectType.Types, language: string): Resources.IconPaths {
+        switch (language.toLowerCase()) {
+            case this.Languages.JAVA:
+                if (type === ProjectType.Types.MICROPROFILE) {
+                    return Resources.getIconPaths(Resources.Icons.Microprofile);
+                }
+                else if (type === ProjectType.Types.SPRING) {
+                    return Resources.getIconPaths(Resources.Icons.Spring);
+                }
+                else {
+                    return Resources.getIconPaths(Resources.Icons.Java);
+                }
+            case this.Languages.NODE:
+            case "javascript":
+            case "js":
+                return Resources.getIconPaths(Resources.Icons.JavaScript);
+            case this.Languages.SWIFT:
                 return Resources.getIconPaths(Resources.Icons.Swift);
-            case ProjectType.Types.PYTHON:
+            case this.Languages.PYTHON:
                 return Resources.getIconPaths(Resources.Icons.Python);
-            case ProjectType.Types.GO:
+            case this.Languages.GO:
                 return Resources.getIconPaths(Resources.Icons.Go);
-            case ProjectType.Types.GENERIC_DOCKER:
-                // Could return the Java icon for Lagom
-                // This is our fall-back, we could possibly use a more generic icon.
-                return Resources.getIconPaths(Resources.Icons.Docker);
             default:
                 return Resources.getIconPaths(Resources.Icons.Generic);
         }
