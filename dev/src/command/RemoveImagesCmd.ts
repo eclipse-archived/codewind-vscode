@@ -15,19 +15,23 @@ import InstallerWrapper, { InstallerCommands } from "../microclimate/connection/
 import Log from "../Logger";
 import * as MCUtil from "../MCUtil";
 import CodewindManager from "../microclimate/connection/CodewindManager";
+import StringNamespaces from "../constants/strings/StringNamespaces";
+import Translator from "../constants/strings/translator";
+
+const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function removeImagesCmd(): Promise<void> {
     try {
         Log.i("Removing Codewind images");
         if (CodewindManager.instance.isStarted()) {
-            vscode.window.showWarningMessage("You cannot remove images if Codewind is still running");
+            vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesBlockedStillRunning"));
             return;
         }
 
         const positiveResponse = "Remove Images";
-        const response = await vscode.window.showWarningMessage(
-            "Are you sure you want to remove all Codewind Docker images? They must be downloaded before you can start Codewind again.",
-            { modal: true }, positiveResponse);
+        const response = await vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesModalWarning"),
+            { modal: true }, positiveResponse
+        );
 
         if (response !== positiveResponse) {
             return;

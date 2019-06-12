@@ -68,7 +68,7 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
             // projects have no children
             return [];
         }
-        else if (node.id === TreeItemFactory.ROOT_NODE_ID) {
+        else if (node.id === TreeItemFactory.CW_STARTED_NODE_ID) {
             return CodewindManager.instance.connections;
         }
         else {

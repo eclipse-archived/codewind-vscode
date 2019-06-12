@@ -28,13 +28,13 @@
     "cmdTitle_removeImages": "Remove Codewind Images",
 
     "cmdID_refreshConnection": "ext.cw.refreshConnection",
-    "cmdTitle_refreshConnection": "Refresh Connection",
+    "cmdTitle_refreshConnection": "Refresh",
 
     "cmdID_newProject": "ext.cw.createProject",
     "cmdTitle_newProject": "Create New Project",
 
     "cmdID_bindProject": "ext.cw.bindProject",
-    "cmdTitle_bindProject": "Import Existing Project",
+    "cmdTitle_bindProject": "Add Existing Project",
 
     "cmdID_openFolder": "ext.cw.openWorkspaceFolder",
     "cmdTitle_openFolder": "Open Folder as Workspace",

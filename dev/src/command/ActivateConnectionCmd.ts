@@ -18,6 +18,10 @@ import Commands from "../constants/Commands";
 import Connection from "../microclimate/connection/Connection";
 import MCEnvironment from "../microclimate/connection/MCEnvironment";
 import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
+import Translator from "../constants/strings/translator";
+import StringNamespaces from "../constants/strings/StringNamespaces";
+
+const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function activateConnection(): Promise<void> {
     try {
@@ -84,7 +88,7 @@ async function onConnectSuccess(connection: Connection): Promise<void> {
         const openWsBtn = "Open Workspace";
 
         // Provide a button to change their workspace to the microclimate-workspace if they wish
-        vscode.window.showInformationMessage(`Open your Codewind workspace at ${connection.workspacePath.fsPath}`, openWsBtn)
+        vscode.window.showInformationMessage(Translator.t(STRING_NS, "openWorkspacePrompt"), openWsBtn)
         .then((response) => {
             if (response === openWsBtn) {
                 vscode.commands.executeCommand(Commands.VSC_OPEN_FOLDER, connection.workspacePath);

@@ -10,12 +10,13 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as request from "request-promise-native";
 
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
 import InstallerWrapper, { InstallerCommands } from "./InstallerWrapper";
-import MCEnvironment from "./MCEnvironment";
+import { MCEndpoints } from "../../constants/Endpoints";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
@@ -118,38 +119,7 @@ export default class CodewindManager implements vscode.Disposable {
 
         Log.i("Initial Codewind ping failed");
 
-        if (InstallerWrapper.isInstallerRunning()) {
-            throw new Error("Please wait for the current operation to finish.");
-        }
-
-        if (await InstallerWrapper.isInstallRequired()) {
-            Log.i("Codewind is not installed");
-            const installAffirmBtn = "Install";
-            const moreInfoBtn = "More Info";
-
-            let response;
-            if (process.env.CW_ENV === "test") {
-                response = installAffirmBtn;
-            }
-            else {
-                Log.d("Prompting for install confirm");
-                response = await vscode.window.showInformationMessage(
-                    `The Codewind backend needs to be installed before the extension can be used. ` +
-                    `This downloads the Codewind Docker images, which are about 1GB in size.`,
-                    { modal: true }, installAffirmBtn, moreInfoBtn,
-                );
-            }
-
-            if (response === installAffirmBtn) {
-                await InstallerWrapper.installerExec(InstallerCommands.INSTALL);
-            }
-            else {
-                if (response === moreInfoBtn) {
-                    vscode.window.showInformationMessage("More info not implemented");
-                }
-                throw new Error("Codewind cannot be used until the backend is installed.");
-            }
-        }
+        await InstallerWrapper.install();
         await InstallerWrapper.installerExec(InstallerCommands.START);
 
         Log.i("Codewind should have started, getting ENV data now");
@@ -159,9 +129,9 @@ export default class CodewindManager implements vscode.Disposable {
     }
 
     private async isCodewindActive(): Promise<boolean> {
-        // TODO use proper health endpoint
         try {
-            await MCEnvironment.getEnvData(CodewindManager.instance.CW_URL);
+            // const healthRes = await request.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }).toString());
+            await request.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }).toString());
             Log.i("Good response from healthcheck");
             return true;
         }

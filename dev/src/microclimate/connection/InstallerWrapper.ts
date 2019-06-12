@@ -20,14 +20,15 @@ import * as MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import { Readable } from "stream";
+import Translator from "../../constants/strings/translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
+
+const STRING_NS = StringNamespaces.STARTUP;
 
 const BIN_DIR = "bin";
 const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
-
-// check error against this to see if it's a real error or just a user cancellation
-const INSTALLCMD_CANCELLED = "Cancelled";
 
 export enum InstallerCommands {
     INSTALL = "install",
@@ -42,9 +43,9 @@ export enum InstallerCommands {
 // const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: string, cancellable: boolean } } = {
 const INSTALLER_COMMANDS: { [key in InstallerCommands]: { action: string, userActionName: string, cancellable: boolean } } = {
     install:
-        { action: "install", userActionName: "Installing Codewind", cancellable: true },
+        { action: "install", userActionName: "Downloading Codewind Docker images", cancellable: true },
     "install-dev":
-        { action: "install-dev", userActionName: "Installing Codewind (DEVELOPMENT IMAGES)", cancellable: true },
+        { action: "install-dev", userActionName: "Downloading Codewind Docker images (DEV BUILD)", cancellable: true },
     start:
         { action: "start", userActionName: "Starting Codewind", cancellable: true },
     stop:
@@ -57,6 +58,9 @@ const INSTALLER_COMMANDS: { [key in InstallerCommands]: { action: string, userAc
 };
 
 namespace InstallerWrapper {
+    // check error against this to see if it's a real error or just a user cancellation
+    export const INSTALLCMD_CANCELLED = "Cancelled";
+
     enum InstallerStates {
         NOT_INSTALLED,
         STOPPED,
@@ -170,8 +174,7 @@ namespace InstallerWrapper {
                     process.env.PASS = process.env.AF_PASS;
                 }
                 if (!process.env.USER || !process.env.PASS) {
-                    throw new Error(`Development mode is enabled, but no Artifactory credentials are present - install will fail. ` +
-                        `Set AF_USER and AF_PASS in the environment.`);
+                    throw new Error(Translator.t(STRING_NS, "devModeNoCreds"));
                 }
             }
         }
@@ -216,7 +219,7 @@ namespace InstallerWrapper {
                 child.on("close", (code: number | null) => {
                     if (code == null) {
                         // this happens in SIGTERM case, not sure what else may cause it
-                        Log.d(`Installer command ${cmd} did not exit normally`);
+                        Log.d(`Installer command ${cmd} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
                         Log.e("Error running with installer", errStr);
@@ -229,8 +232,7 @@ namespace InstallerWrapper {
                             Log.e("Error installing, wrote output to " + executableDir);
                             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
                             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
-                            reject(`Installing Codewind failed. ` +
-                                `The installer logs have been opened; please examine them for the potential cause.`);
+                            reject(Translator.t(STRING_NS, "unexpectedFailure"));
                         }
                         else {
                             Log.e("Stdout:", outStr || "<no output>");
@@ -249,7 +251,94 @@ namespace InstallerWrapper {
     }
 
     export function isCancellation(err: any): boolean {
-        return err.toString() === INSTALLCMD_CANCELLED;
+        return MCUtil.errToString(err) === INSTALLCMD_CANCELLED;
+    }
+
+    /**
+     * Confirm install with user, then download the CW backend docker images.
+     * Does nothing if already installed.
+     */
+    export async function install(): Promise<void> {
+        if (!(await InstallerWrapper.isInstallRequired())) {
+            Log.i("Codewind is already installed");
+            return;
+        }
+
+        if (InstallerWrapper.isInstallerRunning()) {
+            throw new Error("Please wait for the current operation to finish.");
+        }
+
+        Log.i("Codewind is not installed");
+
+        const installAffirmBtn = Translator.t(STRING_NS, "installAffirmBtn");
+        const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
+
+        let response;
+        if (process.env.CW_ENV === "test") {
+            response = installAffirmBtn;
+        }
+        else {
+            Log.d("Prompting for install confirm");
+            response = await vscode.window.showInformationMessage(Translator.t(STRING_NS, "installPrompt"),
+                { modal: true }, installAffirmBtn, moreInfoBtn,
+            );
+        }
+
+        if (response === installAffirmBtn) {
+            try {
+                await InstallerWrapper.installerExec(InstallerCommands.INSTALL);
+                // success
+                vscode.window.showInformationMessage(
+                    Translator.t(StringNamespaces.STARTUP, "installCompleted"),
+                    Translator.t(StringNamespaces.STARTUP, "okBtn")
+                );
+                Log.i("Codewind installed successfully");
+            }
+            catch (err) {
+                if (isCancellation(err)) {
+                    throw err;
+                }
+                Log.e("Install failed", err);
+                return onInstallFailOrReject(false);
+            }
+        }
+        else if (response === moreInfoBtn) {
+            onMoreInfo();
+            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+        }
+        else {
+            Log.i("User rejected installation");
+            // they pressed Cancel
+            return onInstallFailOrReject(true);
+        }
+    }
+
+    async function onInstallFailOrReject(rejected: boolean): Promise<void> {
+        let msg: string;
+        if (rejected) {
+            msg = Translator.t(STRING_NS, "installRejected");
+        }
+        else {
+            msg = Translator.t(STRING_NS, "installFailed");
+        }
+        const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
+        const tryAgainBtn = Translator.t(StringNamespaces.STARTUP, "tryAgainBtn");
+
+        return vscode.window.showWarningMessage(msg, moreInfoBtn, tryAgainBtn, Translator.t(STRING_NS, "okBtn"))
+        .then((res): Promise<void> => {
+            if (res === tryAgainBtn) {
+                return install();
+            }
+            else if (res === moreInfoBtn) {
+                onMoreInfo();
+            }
+            return Promise.reject(InstallerWrapper.INSTALLCMD_CANCELLED);
+        });
+    }
+
+    function onMoreInfo(): void {
+        // replace this with vscode.commands.executeCommand(Commands.VSC_OPEN, <more info url>);
+        vscode.window.showInformationMessage("More info not implemented");
     }
 
     function updateProgress(isInstall: boolean, stdout: Readable, progress: vscode.Progress<{ message?: string, increment?: number }>): void {
