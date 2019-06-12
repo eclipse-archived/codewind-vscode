@@ -59,20 +59,25 @@ enum TreeContextValues {
 export type CodewindTreeItem = Connection | Project | vscode.TreeItem;
 
 namespace TreeItemFactory {
-    export const ROOT_NODE_ID = "root";
+    export const CW_STARTED_NODE_ID = "ext.cw.treeroot";
 
     export function getRootTreeItems(): CodewindTreeItem[] {
-        const cwStarted = CodewindManager.instance.isStarted();
         const label = "Codewind";
+        const cwStarted = CodewindManager.instance.isStarted();
+        // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand
+        const id = cwStarted ?  CW_STARTED_NODE_ID : undefined;
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
+        const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+        const command: vscode.Command | undefined = cwStarted ? undefined : { command: Commands.START_CODEWIND, title: "" };
 
         const cwStatusItem: vscode.TreeItem = {
-            id: ROOT_NODE_ID,
+            id,
             label,
             tooltip: label,
+            collapsibleState,
+            command,
             iconPath: Resources.getIconPaths(Resources.Icons.Logo),
             contextValue: buildContextValue([contextValue]),
-            collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         };
 
         return [

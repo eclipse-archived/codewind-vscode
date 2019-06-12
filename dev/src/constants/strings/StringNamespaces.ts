@@ -21,6 +21,7 @@ enum StringNamespaces {
     CMD_RES_PROMPT = "cmdResourcePrompt",
 
     DEBUG = "debug",
+    STARTUP = "startup",
     LOGS = "logs",
     PROJECT = "project",
     REQUESTS = "requests",

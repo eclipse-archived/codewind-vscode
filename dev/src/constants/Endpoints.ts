@@ -21,6 +21,7 @@ export type Endpoint = MCEndpoints | ProjectEndpoints;
  *  "Regular" endpoints, eg "localhost:9090/api/v1/environment"
  */
 export enum MCEndpoints {
+    HEALTH = "/health",
     ENVIRONMENT = "api/v1/environment",
     TEMPLATES = "api/v1/templates",
     PROJECTS = "api/v1/projects",

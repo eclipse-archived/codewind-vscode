@@ -15,11 +15,13 @@ import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
 import Log from "../Logger";
 import * as MCUtil from "../MCUtil";
 import CodewindManager from "../microclimate/connection/CodewindManager";
+import activateConnection from "./ActivateConnectionCmd";
 
 export default async function startCodewindCmd(): Promise<void> {
     Log.i("Starting Codewind");
     try {
         await CodewindManager.instance.startCodewind();
+        await activateConnection();
     }
     catch (err) {
         if (!InstallerWrapper.isCancellation(err)) {

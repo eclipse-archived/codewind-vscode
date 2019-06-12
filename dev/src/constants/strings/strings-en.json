@@ -59,6 +59,22 @@
         "waitingBeforeDebugAttachStatusMsg": "Waiting before attaching debugger to {{ projectName }}"
     },
 
+    "startup": {
+        "unexpectedFailure": "Installing Codewind failed. The installer logs have been opened; please examine them for the potential cause.",
+        "devModeNoCreds": "Development mode is enabled, but no Artifactory credentials are present - install will fail. Set AF_USER and AF_PASS in the environment.",
+        "openWorkspacePrompt": "Do you want to open your Codewind workspace folder now? Tip: Open any folder in the Codewind view by right-clicking and selecting \"Open Folder as Workspace\"",
+        "installPrompt": "Codewind requires the installation of Docker containers to run, which might take a few minutes to download. Do you want to complete the installation now?",
+        "installRejected": "Codewind will remain unavailable until the Docker containers are installed. To initiate installation again, select Try Again or click the \"on/off\" toggle in the Codewind view.",
+        "installFailed": "Codewind failed to install. To initiate installation again, select Try Again or click the \"on/off\" toggle in the Codewind view.",
+        "installCompleted": "Codewind installation is complete",
+        "installAffirmBtn": "Install",
+        "okBtn": "OK",
+        "tryAgainBtn": "Try Again",
+        "moreInfoBtn": "More Info",
+        "removeImagesBlockedStillRunning": "You cannot remove images if Codewind is still running",
+        "removeImagesModalWarning": "Are you sure you want to remove all Codewind Docker images? You will have to download them again before you can start Codewind again."
+    },
+
     "logs": {
         "waitingForLogs": "Waiting for Codewind to send logs...",
         "noLongerUpdating": "This log is no longer updating: {{ reason }}.",
@@ -115,7 +131,7 @@
     },
 
     "treeView": {
-        "connectionLabel": "{{ type }} Projects",
+        "connectionLabel": "Projects ({{ type }})",
         "connectionTypeLocal": "Local",
         "noProjectsLabel": "No projects (Click here to create a project)",
         "notStartedConnectionLabel": "Codewind is stopped (Click to start)",

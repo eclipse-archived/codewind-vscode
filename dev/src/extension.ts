@@ -20,7 +20,6 @@ import Translator from "./constants/strings/translator";
 import StringNamespaces from "./constants/strings/StringNamespaces";
 import CodewindManager from "./microclimate/connection/CodewindManager";
 import startCodewindCmd from "./command/StartCodewindCmd";
-import activateConnection from "./command/ActivateConnectionCmd";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -58,8 +57,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     subscriptions.push(CodewindManager.instance);
 
-    startCodewindCmd()
-    .then(() => activateConnection());
+    // start codewind (async)
+    // we use the command because it handles error
+    startCodewindCmd();
 
     subscriptions.forEach((e) => {
         context.subscriptions.push(e);

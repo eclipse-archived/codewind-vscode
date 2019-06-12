@@ -121,11 +121,12 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
 
 async function promptForProjectName(template: IMCTemplateData): Promise<OptionalString> {
     const ib = vscode.window.createInputBox();
-    ib.placeholder = `Enter a name for your new ${template.language} project`;
     ib.title = CREATE_PROJECT_WIZARD_TITLE;
     ib.step = 2;
     ib.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
     ib.buttons = [ vscode.QuickInputButtons.Back ];
+    ib.placeholder = `my-${template.language}-project`;
+    ib.prompt = `Enter a name for your new ${template.language} project`;
 
     ib.onDidChangeValue((projName) => {
         ib.validationMessage = validateProjectName(projName);
