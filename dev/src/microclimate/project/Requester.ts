@@ -21,9 +21,32 @@ import * as MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
 import { ILogResponse } from "../connection/SocketEvents";
 
+type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any>;
+
 const STRING_NS = StringNamespaces.REQUESTS;
 
 namespace Requester {
+
+    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<request.FullResponse> {
+        return req(request.get, url, options);
+    }
+
+    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<request.FullResponse> {
+        return req(request.post, url, options);
+    }
+
+    async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<request.FullResponse> {
+        if (url instanceof vscode.Uri) {
+            url = url.toString();
+        }
+        if (!options) {
+            options = {};
+        }
+        options.resolveWithFullResponse = true;
+        // TODO :)
+        options.rejectUnauthorized = false;
+        return method(url, options);
+    }
 
     export async function requestProjectRestart(project: Project, startMode: StartModes.Modes): Promise<request.FullResponse> {
         const body = {
@@ -177,8 +200,7 @@ namespace Requester {
      */
     async function doProjectRequest(
             project: Project, endpoint: Endpoint, body: {},
-            requestFunc: (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any>,
-            userOperationName: string, silent: boolean = false): Promise<request.FullResponse> {
+            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false): Promise<request.FullResponse> {
 
         let url: string;
         if (EndpointUtil.isProjectEndpoint(endpoint)) {
@@ -190,10 +212,12 @@ namespace Requester {
 
         Log.i(`Doing ${userOperationName} request to ${url}`);
 
-        const options = {
+        const options: request.RequestPromiseOptions = {
             json: true,
             body,
             resolveWithFullResponse: true,
+            // TODO :)
+            rejectUnauthorized: false,
         };
 
         try {

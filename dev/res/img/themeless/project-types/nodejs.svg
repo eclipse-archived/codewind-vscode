@@ -16,19 +16,18 @@
             }
         </style>
         <linearGradient id="linear-gradient" y1="25" x2="50" y2="25" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#40f0df" />
-            <stop offset="0.24" stop-color="#40ece1" />
-            <stop offset="0.47" stop-color="#3fe1e6" />
-            <stop offset="0.7" stop-color="#3fcdef" />
-            <stop offset="0.93" stop-color="#3db2fb" />
-            <stop offset="1" stop-color="#3da8ff" />
+            <stop offset="0.03" stop-color="#108b14" />
+            <stop offset="0.3" stop-color="#0f8718" />
+            <stop offset="0.58" stop-color="#0b7b25" />
+            <stop offset="0.87" stop-color="#046739" />
+            <stop offset="1" stop-color="#005b45" />
         </linearGradient>
     </defs>
     <title>Project_Icon</title>
     <g id="Layer_2" data-name="Layer 2">
         <g id="Objects">
             <path class="cls-1" d="M50,26.44a25,25,0,1,1-25-25,25,25,0,0,1,25,25" /><text class="cls-2"
-                transform="translate(7.6 36.85)">GO</text>
+                transform="translate(7.6 36.85)">JS</text>
             <rect class="cls-3" x="0.52" width="50" height="50" />
         </g>
     </g>

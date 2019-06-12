@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import { Uri } from "vscode";
-import * as request from "request-promise-native";
 import * as reqErrors from "request-promise-native/errors";
 
 import Log from "../../Logger";
@@ -18,6 +17,7 @@ import { MCEndpoints } from "../../constants/Endpoints";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Connection from "./Connection";
+import Requester from "../project/Requester";
 
 namespace MCEnvironment {
 
@@ -38,8 +38,8 @@ namespace MCEnvironment {
         const connectTimeout = 2500;
 
         try {
-            const result = await request.get(envUri.toString(), { json: true, timeout: connectTimeout });
-            return result;
+            const result = await Requester.get(envUri.toString(), { json: true, timeout: connectTimeout });
+            return result.body;
         }
         catch (err) {
             Log.i(`Connection ENV Request fail - ${err}`);

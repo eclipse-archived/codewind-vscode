@@ -99,7 +99,7 @@ export class ProjectType {
             case this.Languages.NODE:
             case "javascript":
             case "js":
-                return Resources.getIconPaths(Resources.Icons.JavaScript);
+                return Resources.getIconPaths(Resources.Icons.NodeJS);
             case this.Languages.SWIFT:
                 return Resources.getIconPaths(Resources.Icons.Swift);
             case this.Languages.PYTHON:
