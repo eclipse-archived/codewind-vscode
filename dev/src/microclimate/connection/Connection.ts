@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as request from "request-promise-native";
 
 import Project from "../project/Project";
 import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
@@ -21,6 +20,7 @@ import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import MCEnvironment from "./MCEnvironment";
 import * as MCUtil from "../../MCUtil";
+import Requester from "../project/Requester";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
@@ -145,12 +145,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         Log.d(`Updating projects list from ${this}`);
 
         const projectsUrl = EndpointUtil.resolveMCEndpoint(this, MCEndpoints.PROJECTS);
-        const result = await request.get(projectsUrl, { json : true });
+        const result = await Requester.get(projectsUrl, { json : true });
 
         const oldProjects = this._projects;
         this._projects = [];
 
-        for (const projectInfo of result) {
+        for (const projectInfo of result.body) {
             // This is a hard-coded exception for a backend bug where projects get stuck in the Deleting or Validating state
             // and don't go away until they're deleted from the workspace and MC is restarted.
             if (projectInfo.action === "deleting" || projectInfo.action === "validating") {     // non-nls

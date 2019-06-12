@@ -10,13 +10,14 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as request from "request-promise-native";
 
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
 import InstallerWrapper, { InstallerCommands } from "./InstallerWrapper";
 import { MCEndpoints } from "../../constants/Endpoints";
+import Requester from "../project/Requester";
+import * as MCUtil from "../../MCUtil";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
@@ -129,16 +130,17 @@ export default class CodewindManager implements vscode.Disposable {
     }
 
     private async isCodewindActive(): Promise<boolean> {
+        let success: boolean;
         try {
-            // const healthRes = await request.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }).toString());
-            await request.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }).toString());
-            Log.i("Good response from healthcheck");
-            return true;
+            const healthRes = await Requester.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }));
+            // await Requester.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }));
+            success = MCUtil.isGoodStatusCode(healthRes.statusCode);
         }
         catch (err) {
-            Log.i("Health error response", err);
-            return false;
+            success = false;
         }
+        success ? Log.i("Good response from healthcheck") : Log.i("Healthcheck failed");
+        return success;
     }
 
     public async stopCodewind(): Promise<void> {
