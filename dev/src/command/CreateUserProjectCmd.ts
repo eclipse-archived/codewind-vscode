@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as request from "request-promise-native";
 
 import { promptForConnection } from "./CommandUtil";
 import Log from "../Logger";
@@ -18,6 +17,7 @@ import Connection from "../microclimate/connection/Connection";
 import * as MCUtil from "../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
 import EndpointUtil, { MCEndpoints } from "../constants/Endpoints";
+import Requester from "../microclimate/project/Requester";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -76,7 +76,7 @@ export default async function createProject(connection: Connection): Promise<voi
 
 async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
     const templatesUrl = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATES);
-    const templates: IMCTemplateData[] = await request.get(templatesUrl, { json: true });
+    const templates: IMCTemplateData[] = (await Requester.get(templatesUrl, { json: true })).body;
 
     const templateQpis: Array<vscode.QuickPickItem & IMCTemplateData> = templates.map((type) => {
         return {
