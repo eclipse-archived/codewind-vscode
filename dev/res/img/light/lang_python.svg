@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 88 88">
-    <g fill="none" fill-rule="evenodd" transform="translate(3 3)">
-        <circle cx="41.1" cy="41.1" r="41.1" stroke="#4A90E2" stroke-width="4.8"></circle>
-        <text fill="#4A4A4A" font-family="Helvetica" font-size="30" font-weight="bold" text-anchor="middle">
-            <tspan x="42" y="52">PY</tspan>
-        </text>
-    </g>
-</svg>

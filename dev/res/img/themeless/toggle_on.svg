@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.1 (78136) - https://sketchapp.com -->
+    <title>toggle_on copy</title>
+    <desc>Created with Sketch.</desc>
+    <g id="toggle_on-copy" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="pill" fill="#24A148" x="0" y="3" width="16" height="11" rx="5.5"></rect>
+        <path d="M10.5841774,13 C13.1079358,13 15.1538462,10.9852814 15.1538462,8.5 C15.1538462,6.01471863 13.1079358,4 10.5841774,4 C8.06041908,4 5.84615385,6.01471863 5.84615385,8.5 C5.84615385,10.9852814 8.06041908,13 10.5841774,13 Z" id="handle" fill="#FFFFFF"></path>
+        <polygon id="toggle-checkmark-copy" fill="#24A148" points="9.75000853 8.72985917 12.3998298 6 13.4615385 7.11170839 9.74812497 11 7.53846154 8.68627549 8.58601082 7.51104459"></polygon>
+    </g>
+</svg>

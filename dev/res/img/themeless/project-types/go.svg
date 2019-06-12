@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50">
+    <defs>
+        <style>
+            .cls-1 {
+                fill: url(#linear-gradient);
+            }
+
+            .cls-2 {
+                font-size: 25.94px;
+                fill: #231f20;
+                font-family: IBMPlexSans-BoldItalic, IBM Plex Sans;
+                font-weight: 700;
+                font-style: italic;
+            }
+        </style>
+        <!-- BLUE -->
+        <linearGradient id="linear-gradient" y1="25" x2="50" y2="25" gradientUnits="userSpaceOnUse">
+            <stop offset="0.01" stop-color="#388ccb" />
+            <stop offset="0.2" stop-color="#3c8ecc" />
+            <stop offset="0.4" stop-color="#4994cf" />
+            <stop offset="0.6" stop-color="#5d9ed4" />
+            <stop offset="0.8" stop-color="#7aaddc" />
+            <stop offset="1" stop-color="#9fbfe5" />
+        </linearGradient>
+    </defs>
+    <title>template_white</title>
+    <g id="Layer_2" data-name="Layer 2">
+        <g id="Layer_1-2" data-name="Layer 1">
+            <circle class="cls-1" cx="25" cy="25" r="25" /><text class="cls-2"
+                transform="translate(8.19 34.29)">GO</text></g>
+    </g>
+</svg>
