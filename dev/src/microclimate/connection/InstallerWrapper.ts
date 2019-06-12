@@ -299,6 +299,7 @@ namespace InstallerWrapper {
                     throw err;
                 }
                 Log.e("Install failed", err);
+                vscode.window.showErrorMessage(MCUtil.errToString(err));
                 return onInstallFailOrReject(false);
             }
         }

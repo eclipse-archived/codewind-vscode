@@ -60,12 +60,12 @@
     },
 
     "startup": {
-        "unexpectedFailure": "Installing Codewind failed. The installer logs have been opened; please examine them for the potential cause.",
         "devModeNoCreds": "Development mode is enabled, but no Artifactory credentials are present - install will fail. Set AF_USER and AF_PASS in the environment.",
         "openWorkspacePrompt": "Do you want to open your Codewind workspace folder now? Tip: Open any folder in the Codewind view by right-clicking and selecting \"Open Folder as Workspace\"",
         "installPrompt": "Codewind requires the installation of Docker containers to run, which might take a few minutes to download. Do you want to complete the installation now?",
         "installRejected": "Codewind will remain unavailable until the Docker containers are installed. To initiate installation again, select Try Again or click the \"on/off\" toggle in the Codewind view.",
         "installFailed": "Codewind failed to install. To initiate installation again, select Try Again or click the \"on/off\" toggle in the Codewind view.",
+        "unexpectedFailure": "Installing Codewind failed. The installer logs have been opened; please examine them for the potential cause.",
         "installCompleted": "Codewind installation is complete",
         "installAffirmBtn": "Install",
         "okBtn": "OK",
