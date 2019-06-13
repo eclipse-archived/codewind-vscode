@@ -23,6 +23,7 @@ export interface IMCTemplateData {
     description: string;
     url: string;
     language: string;
+    projectType: string;
 }
 
 interface IProjectInitializeInfo {
@@ -61,11 +62,10 @@ namespace UserProjectCreator {
             throw new Error(failedResult.error);
         }
 
-        const result = creationRes.result as IProjectInitializeInfo;
+        // const result = creationRes.result as IProjectInitializeInfo;
 
         // create succeeded, now we bind
-        // const bindRes = await requestBind(connection, projectName, creationRes.projectPath, result.language, result.buildType);
-        await requestBind(connection, projectName, creationRes.projectPath, template.language, result.projectType);
+        await requestBind(connection, projectName, creationRes.projectPath, template.language, template.projectType);
         return { projectName, projectPath: creationRes.projectPath };
     }
 
