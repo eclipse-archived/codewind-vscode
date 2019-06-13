@@ -39,6 +39,7 @@ namespace TestUtil {
             const typeForCreation: IMCTemplateData = {
                 url: TestConfig.getUrl(type),
                 language: type.language,
+                projectType: type.internalType,
                 // label and description are displayed to user but not used by the test.
                 description: "",
                 label: ""
