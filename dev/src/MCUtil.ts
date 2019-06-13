@@ -17,8 +17,8 @@ import Log from "./Logger";
 /**
  * Append toAppend to start, removing the last segment of start if the first segment of toAppend matches it.
  *
- * appendPathWithoutDupe("/home/tim/microclimate-workspace/", "/microclimate-workspace/myproject")
- *      -> "/home/tim/microclimate-workspace/myproject"
+ * appendPathWithoutDupe("/home/tim/codewind-workspace/", "/codewind-workspace/myproject")
+ *      -> "/home/tim/codewind-workspace/myproject"
  */
 export function appendPathWithoutDupe(start: string, toAppend: string): string {
     // Remove end of start / if present
