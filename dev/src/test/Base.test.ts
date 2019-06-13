@@ -32,7 +32,7 @@ export let initializeSucceeded: boolean = false;
 
 describe("Microclimate Tools for VSCode basic test", async function() {
 
-    // The test needs to be launched with the microclimate-workspace open, so that the extension is activated.
+    // The test needs to be launched with the codewind-workspace open, so that the extension is activated.
 
     before("Activate the extension", async function() {
         this.timeout(TestUtil.getMinutes(5));
@@ -40,7 +40,7 @@ describe("Microclimate Tools for VSCode basic test", async function() {
         Log.t("Workspace folders:", wsFolders);
         expect(wsFolders).to.have.length.greaterThan(0);
 
-        const workspaceDirName = "microclimate-workspace";
+        const workspaceDirName = "codewind-workspace";
         const badWsMsg = `Active workspace is not valid. Point the test launch configuration to your ${workspaceDirName}.`;
         expect(wsFolders![0].uri.fsPath.endsWith(workspaceDirName), badWsMsg).to.be.true;
 

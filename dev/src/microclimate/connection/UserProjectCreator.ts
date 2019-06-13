@@ -23,6 +23,7 @@ export interface IMCTemplateData {
     description: string;
     url: string;
     language: string;
+    projectType: string;
 }
 
 interface IProjectInitializeInfo {
@@ -48,7 +49,7 @@ namespace UserProjectCreator {
 
     export async function createProject(connection: Connection, template: IMCTemplateData, projectName: string): Promise<INewProjectInfo> {
 
-        // right now projects must be created under the microclimate-workspace so users can't cohoose the parentDir
+        // right now projects must be created under the codewind workspace so users can't cohoose the parentDir
         const parentDirUri = connection.workspacePath;
         // abs path on user system under which the project will be created
         const userParentDir = parentDirUri.fsPath;
@@ -61,11 +62,10 @@ namespace UserProjectCreator {
             throw new Error(failedResult.error);
         }
 
-        const result = creationRes.result as IProjectInitializeInfo;
+        // const result = creationRes.result as IProjectInitializeInfo;
 
         // create succeeded, now we bind
-        // const bindRes = await requestBind(connection, projectName, creationRes.projectPath, result.language, result.buildType);
-        await requestBind(connection, projectName, creationRes.projectPath, result.language, result.projectType);
+        await requestBind(connection, projectName, creationRes.projectPath, template.language, template.projectType);
         return { projectName, projectPath: creationRes.projectPath };
     }
 

@@ -15,8 +15,6 @@ import Log from "../Logger";
 namespace TestConfig {
     interface ITestableProjectType {
         projectType: ProjectType;
-        // The name of this project type's extension in Microclimate.
-        // Undefined for node
         url: string;
         // We want to tests projects that can't be restarted too,
         // so tell the test whether or not the restart should succeed here.

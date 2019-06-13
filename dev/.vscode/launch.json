@@ -29,9 +29,9 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 "--extensionTestsPath=${workspaceFolder}/out/test",
-                // Replace below with your local microclimate-workspace
-                "/Users/tim/programs/tempest/microclimate-workspace"
-                // "/Users/tim/microclimate-workspace/"
+                // Replace below with your local codewind-workspace
+                "/Users/tim/programs/tempest/codewind-workspace"
+                // "/Users/tim/codewind-workspace/"
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/test/**/*.js"

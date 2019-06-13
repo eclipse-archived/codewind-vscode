@@ -87,7 +87,7 @@ async function onConnectSuccess(connection: Connection): Promise<void> {
     if (!inMcWorkspace) {
         const openWsBtn = "Open Workspace";
 
-        // Provide a button to change their workspace to the microclimate-workspace if they wish
+        // Provide a button to change their workspace to the codewind-workspace if they wish
         vscode.window.showInformationMessage(Translator.t(STRING_NS, "openWorkspacePrompt"), openWsBtn)
         .then((response) => {
             if (response === openWsBtn) {
