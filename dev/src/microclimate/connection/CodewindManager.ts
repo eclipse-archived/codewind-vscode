@@ -32,7 +32,8 @@ enum CodewindStates {
  */
 export default class CodewindManager implements vscode.Disposable {
 
-    public readonly CW_URL: vscode.Uri = vscode.Uri.parse("http://localhost:9090");
+    public readonly codewindUrl: vscode.Uri;
+    public readonly runningInChe: boolean;
 
     // public readonly initPromise: Promise<void>;
 
@@ -42,6 +43,13 @@ export default class CodewindManager implements vscode.Disposable {
     private readonly listeners: Array<( (changed: OnChangeCallbackArgs) => void )> = [];
 
     private _state: CodewindStates = CodewindStates.STOPPED;
+
+    constructor() {
+        this.runningInChe = !!process.env.CHE_WORKSPACE_NAME;
+        const protocol = this.runningInChe ? "https" : "http";
+        this.codewindUrl = vscode.Uri.parse(protocol + "://localhost:9090");
+        Log.i("Codewind URL is " + this.codewindUrl);
+    }
 
     public static get instance(): CodewindManager {
         return CodewindManager._instance || (CodewindManager._instance = new this());
@@ -132,7 +140,7 @@ export default class CodewindManager implements vscode.Disposable {
     private async isCodewindActive(): Promise<boolean> {
         let success: boolean;
         try {
-            const healthRes = await Requester.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }));
+            const healthRes = await Requester.get(this.codewindUrl.with({ path: MCEndpoints.HEALTH }));
             // await Requester.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }));
             success = MCUtil.isGoodStatusCode(healthRes.statusCode);
         }
