@@ -65,7 +65,7 @@ namespace UserProjectCreator {
 
         // create succeeded, now we bind
         // const bindRes = await requestBind(connection, projectName, creationRes.projectPath, result.language, result.buildType);
-        await requestBind(connection, projectName, creationRes.projectPath, result.language, result.projectType);
+        await requestBind(connection, projectName, creationRes.projectPath, template.language, result.projectType);
         return { projectName, projectPath: creationRes.projectPath };
     }
 
