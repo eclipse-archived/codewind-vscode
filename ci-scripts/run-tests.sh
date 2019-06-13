@@ -8,7 +8,7 @@ if [[ "$skip_tests" != "true" ]]; then
     cd "$(dirname $0)/../dev"
 
     if [[ -z "$CODE_TESTS_WORKSPACE" ]]; then
-        export CODE_TESTS_WORKSPACE="${HOME}/microclimate-workspace/"
+        export CODE_TESTS_WORKSPACE="${HOME}/codewind-workspace/"
     fi
 
     mkdir -p $CODE_TESTS_WORKSPACE
