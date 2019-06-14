@@ -46,8 +46,11 @@ export default class MCSocket implements vscode.Disposable {
         }
         Log.i("Creating MCSocket for URI", this.uri);
 
+        const usingHttps = connection.url.scheme === "https";
         const options: SocketIOClient.ConnectOpts = {
-            // rejectUnauthorized:
+            rejectUnauthorized: !usingHttps,                    // TODO because of our self-signed certs
+            secure: usingHttps,
+            timeout: 5000,
         };
 
         this.socket = io(this.uri, options);

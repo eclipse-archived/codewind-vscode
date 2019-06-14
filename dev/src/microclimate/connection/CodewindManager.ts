@@ -18,6 +18,7 @@ import InstallerWrapper, { InstallerCommands } from "./InstallerWrapper";
 import { MCEndpoints } from "../../constants/Endpoints";
 import Requester from "../project/Requester";
 import * as MCUtil from "../../MCUtil";
+import Resources from "../../constants/Resources";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
@@ -48,7 +49,7 @@ export default class CodewindManager implements vscode.Disposable {
         this.runningInChe = !!process.env.CHE_WORKSPACE_NAME;
         const protocol = this.runningInChe ? "https" : "http";
         this.codewindUrl = vscode.Uri.parse(protocol + "://localhost:9090");
-        Log.i("Codewind URL is " + this.codewindUrl);
+        Log.i(`Codewind is ${this.runningInChe ? "" : " NOT"} running in Che; URL is ${this.codewindUrl}`);
     }
 
     public static get instance(): CodewindManager {
@@ -128,8 +129,14 @@ export default class CodewindManager implements vscode.Disposable {
 
         Log.i("Initial Codewind ping failed");
 
-        await InstallerWrapper.install();
-        await InstallerWrapper.installerExec(InstallerCommands.START);
+        if (this.runningInChe) {
+            // In the che case, we do not start codewind. we just wait for it to come up
+            await this.waitForCodewindToStart();
+        }
+        else {
+            await InstallerWrapper.install();
+            await InstallerWrapper.installerExec(InstallerCommands.START);
+        }
 
         Log.i("Codewind should have started, getting ENV data now");
         // vscode.window.showInformationMessage("Codewind was started successfully");
@@ -137,18 +144,46 @@ export default class CodewindManager implements vscode.Disposable {
         this.changeState(CodewindStates.STARTED);
     }
 
-    private async isCodewindActive(): Promise<boolean> {
-        let success: boolean;
+    private async isCodewindActive(logFailure: boolean = false): Promise<boolean> {
         try {
-            const healthRes = await Requester.get(this.codewindUrl.with({ path: MCEndpoints.HEALTH }));
-            // await Requester.get(this.CW_URL.with({ path: MCEndpoints.HEALTH }));
-            success = MCUtil.isGoodStatusCode(healthRes.statusCode);
+            const healthRes = await Requester.get(this.codewindUrl.with({ path: MCEndpoints.ENVIRONMENT }));
+            const success = MCUtil.isGoodStatusCode(healthRes.statusCode);
+            if (!success) {
+                throw new Error("Bad status code from healthcheck " + healthRes.statusCode);
+            }
+            Log.i("Good response from healthcheck");
+            return true;
         }
         catch (err) {
-            success = false;
+            if (logFailure) {
+                Log.i("Healthcheck failed", err.message);
+            }
+            return false;
         }
-        success ? Log.i("Good response from healthcheck") : Log.i("Healthcheck failed");
-        return success;
+    }
+
+    /**
+     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
+     */
+    private async waitForCodewindToStart(): Promise<void> {
+        const waitingToStartProm = new Promise<void>((resolve) => {
+            const delay = 500;
+            let counter = 0;
+            const interval = setInterval(async () => {
+                counter++;
+                const logHealth = counter % 8 === 0;
+                if (logHealth) {
+                    Log.d(`Waiting for Codewind to start, ${counter * delay / 1000}s have elapsed`);
+                }
+                if (await this.isCodewindActive(logHealth)) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, delay);
+        });
+        vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
+            `Waiting for Codewind to start...`, waitingToStartProm);
+        return waitingToStartProm;
     }
 
     public async stopCodewind(): Promise<void> {
