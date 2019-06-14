@@ -25,6 +25,7 @@ import ProjectPendingRestart from "./ProjectPendingRestart";
 import Connection from "../connection/Connection";
 import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
+import MiscProjectActions from "./MiscProjectActions";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -73,6 +74,8 @@ export default class Project implements vscode.QuickPickItem {
     private activeProjectInfo: vscode.WebviewPanel | undefined;
 
     public readonly logManager: MCLogManager;
+
+    private deleteFilesOnUnbind: boolean = false;
 
     constructor(
         projectInfo: any,
@@ -346,14 +349,16 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public async dispose(): Promise<void> {
-        return Promise.all([
+        await Promise.all([
             this.clearValidationErrors(),
             this.logManager.destroyAllLogs(),
             this.activeProjectInfo != null ? this.activeProjectInfo.dispose() : Promise.resolve(),
-        ])
-        .then(() => {
-            this.connection.onChange(this);
-        });
+        ]);
+        this.connection.onChange(this);
+    }
+
+    public set doDeleteOnUnbind(deleteOnUnbind: boolean) {
+        this.deleteFilesOnUnbind = deleteOnUnbind;
     }
 
     /**
@@ -363,7 +368,11 @@ export default class Project implements vscode.QuickPickItem {
         Log.i(`${this.name} was deleted`);
         // vscode.window.showInformationMessage(Translator.t(STRING_NS, "onDeletion", { projectName: this.name }));
         DebugUtils.removeDebugLaunchConfigFor(this);
-        await this.dispose();
+        const deleteFilesProm = this.deleteFilesOnUnbind ? MiscProjectActions.deleteProjectDir(this) : Promise.resolve();
+        await Promise.all([
+            deleteFilesProm,
+            this.dispose(),
+        ]);
     }
 
     /**

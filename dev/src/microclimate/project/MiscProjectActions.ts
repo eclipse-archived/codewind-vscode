@@ -59,13 +59,18 @@ namespace MiscProjectActions {
             doDeleteProjectDir = true;
         }
 
+        if (doDeleteProjectDir) {
+            project.doDeleteOnUnbind = true;
+        }
+
         await Promise.all([
             Requester.requestUnbind(project),
-            doDeleteProjectDir ? deleteProjectDir(project) : Promise.resolve(),
+            // doDeleteProjectDir ? deleteProjectDir(project) : Promise.resolve(),
         ]);
     }
 
-    async function deleteProjectDir(project: Project): Promise<void> {
+    export async function deleteProjectDir(project: Project): Promise<void> {
+        Log.i("Deleting project directory: " + project.localPath);
         const projectDirPath = project.localPath.fsPath;
         return vscode.window.withProgress({
             cancellable: false,
