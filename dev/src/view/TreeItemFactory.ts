@@ -111,11 +111,12 @@ namespace TreeItemFactory {
                     iconPath: Resources.getIconPaths(Resources.Icons.Error),
                     tooltip: "Click here to create a new project",
                     contextValue: buildContextValue([TreeContextValues.NO_PROJECTS]),
+                    collapsibleState: vscode.TreeItemCollapsibleState.None,
                     command: {
                         command: Commands.CREATE_PROJECT,
                         title: "",
                         arguments: [connection]
-                    }
+                    },
                 }];
             }
         }
@@ -124,6 +125,7 @@ namespace TreeItemFactory {
                 label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
                 iconPath: Resources.getIconPaths(Resources.Icons.Disconnected),
                 contextValue: "nothing",        // anything truthy works
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
                 // command: {
                 //     command: Commands.START_CODEWIND,
                 //     title: "",

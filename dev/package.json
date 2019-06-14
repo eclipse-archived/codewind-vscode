@@ -43,7 +43,7 @@
     "main": "./out/extension",
     "contributes": {
         "viewsContainers": {
-            "activitybar": [
+            "right": [
                 {
                     "icon": "res/img/themeless/codewind.svg",
                     "id": "cw-viewcontainer",
