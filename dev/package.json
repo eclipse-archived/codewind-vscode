@@ -9,12 +9,12 @@
     },
     "license": "EPL-2.0",
     "bugs": {
-        "url": "https://github.com/microclimate-dev2ops/codewind-vscode/issues"
+        "url": "https://github.com/eclipse/codewind-vscode/issues"
     },
-    "homepage": "https://microclimate.dev/codewindtechpreview",
+    "homepage": "https://www.eclipse.org/codewind/",
     "repository": {
         "type": "git",
-        "url": "https://github.com/microclimate-dev2ops/codewind-vscode"
+        "url": "https://github.com/eclipse/codewind-vscode"
     },
     "preview": true,
     "icon": "res/img/codewind.png",
@@ -22,9 +22,10 @@
         "Other"
     ],
     "keywords": [
-        "IBM",
+        "eclipse",
         "docker",
-        "cicd",
+        "kubernetes",
+        "container",
         "cloud"
     ],
     "activationEvents": [
