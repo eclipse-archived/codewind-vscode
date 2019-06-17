@@ -150,7 +150,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         const oldProjects = this._projects;
         this._projects = [];
 
-        for (const projectInfo of result.body) {
+        for (const projectInfo of result) {
             // This is a hard-coded exception for a backend bug where projects get stuck in the Deleting or Validating state
             // and don't go away until they're deleted from the workspace and MC is restarted.
             if (projectInfo.action === "deleting" || projectInfo.action === "validating") {     // non-nls

@@ -32,11 +32,16 @@ export default async function bindProject(connection: Connection): Promise<void>
     }
 
     try {
-        const dirToBindUri = await UserProjectCreator.promptForDir("Import", connection.workspacePath);
+        const dirToBindUri = await UserProjectCreator.promptForDir("Add to Codewind", connection.workspacePath);
         if (dirToBindUri == null) {
             return;
         }
-        if (!dirToBindUri.fsPath.startsWith(connection.workspacePath.fsPath)) {
+        if (dirToBindUri.fsPath === connection.workspacePath.fsPath) {
+            Log.d("User tried to bind entire workspace");
+            vscode.window.showErrorMessage(`You must select a project under the workspace; not the entire workspace.`);
+            return;
+        }
+        else if (!dirToBindUri.fsPath.startsWith(connection.workspacePath.fsPath)) {
             Log.d(`${dirToBindUri.fsPath} is not under workspace ${connection.workspacePath.fsPath}`);
             vscode.window.showErrorMessage(
                 `Currently, projects to be imported must be located under the workspace at ${connection.workspacePath.fsPath}`);
