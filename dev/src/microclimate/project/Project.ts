@@ -45,6 +45,7 @@ export default class Project implements vscode.QuickPickItem {
     public readonly name: string;
     public readonly id: string;
     public readonly type: ProjectType;
+    public readonly language: string;
     public readonly localPath: vscode.Uri;
 
     // Mutable project data, will change with calls to update() and similar functions. Prefixed with _ because these all have getters.
@@ -86,6 +87,7 @@ export default class Project implements vscode.QuickPickItem {
         this.id = projectInfo.projectID;
 
         this.type = new ProjectType(projectInfo.projectType, projectInfo.language);
+        this.language = projectInfo.language || "Unknown";
 
         this.localPath = vscode.Uri.file(
             MCUtil.appendPathWithoutDupe(connection.workspacePath.fsPath, vscode.Uri.file(projectInfo.locOnDisk).fsPath)

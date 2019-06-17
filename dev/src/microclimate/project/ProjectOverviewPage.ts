@@ -87,6 +87,7 @@ export function generateHtml(project: Project): string {
             <table>
                 <!--${buildRow("Name", project.name)}-->
                 ${buildRow("Type", project.type.toString())}
+                ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 <!--${buildRow("Microclimate URL", project.connection.toString())}-->
                 ${buildRow("Project ID", project.id)}
                 ${buildRow("Container ID", normalize(project.containerID, notAvailable, 32))}
