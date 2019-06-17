@@ -10,6 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as path from "path";
 
 import Project from "../../microclimate/project/Project";
 import { promptForProject } from "../CommandUtil";
@@ -21,6 +22,7 @@ import toggleEnablementCmd from "./ToggleEnablementCmd";
 import requestBuildCmd from "./RequestBuildCmd";
 import Resources from "../../constants/Resources";
 import MiscProjectActions from "../../microclimate/project/MiscProjectActions";
+import Constants from "../../constants/Constants";
 
 export default async function projectOverviewCmd(project: Project): Promise<void> {
     // Log.d("projectOverviewCmd invoked");
@@ -101,7 +103,8 @@ function handleWebviewMessage(this: Project, msg: IWebViewMsg): void {
                 break;
             }
             case ProjectOverview.Messages.EDIT: {
-                MiscProjectActions.editSetting(msg.data.type as ProjectOverview.Editable, project);
+                const settingsFilePath = vscode.Uri.file(path.join(project.localPath.fsPath, Constants.SETTINGS_FILE_NAME));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, settingsFilePath);
                 break;
             }
             default: {

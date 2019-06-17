@@ -36,7 +36,6 @@ export enum MCEndpoints {
 export enum ProjectEndpoints {
     RESTART_ACTION = "restart",
     BUILD_ACTION = "build",
-    PROPERTES = "properties",
     LOGS = "logs",
     METRICS_STATUS = "metrics/status",
 
