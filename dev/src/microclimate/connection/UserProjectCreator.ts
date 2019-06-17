@@ -84,25 +84,38 @@ namespace UserProjectCreator {
         }
         let projectTypeInfo = validateRes.result as IProjectTypeInfo;
 
-        const yesBtn = "Yes";
-        const noBtn = "No";
-
-        const confirmRes = await vscode.window.showInformationMessage(
-            `${projectName} looks like a ${projectTypeInfo.projectType} project. Is that correct?`,
-            { modal: true }, yesBtn, noBtn,
-        );
-
-        if (confirmRes == null) {
-            return;
+        // if the detection returned the fallback type, or if the user says the detection is wrong
+        let detectionFailed: boolean = false;
+        if (projectTypeInfo.projectType === ProjectType.InternalTypes.DOCKER) {
+            detectionFailed = true;
         }
-        else if (confirmRes === noBtn) {
+        else {
+            const yesBtn = "Yes";
+            const noBtn = "No";
+
+            const confirmRes = await vscode.window.showInformationMessage(
+                `Please confirm the project type for ${projectName}:\n` +
+                `Type: ${projectTypeInfo.projectType}\n` +
+                `Language: ${projectTypeInfo.language}`,
+                { modal: true }, yesBtn, noBtn,
+            );
+
+            if (confirmRes == null) {
+                return;
+            }
+            else if (confirmRes === noBtn) {
+                detectionFailed = true;
+            }
+            // else they picked 'yes'
+        }
+
+        if (detectionFailed) {
             const userProjectType = await promptForProjectType(connection);
             if (userProjectType == null) {
                 return;
             }
             projectTypeInfo = userProjectType;
         }
-        // else they picked 'yes' so just continue
 
         await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         return { projectName, projectPath: pathToBind };
