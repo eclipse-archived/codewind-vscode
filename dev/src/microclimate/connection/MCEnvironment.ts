@@ -39,7 +39,7 @@ namespace MCEnvironment {
 
         try {
             const result = await Requester.get(envUri.toString(), { json: true, timeout: connectTimeout });
-            return result.body;
+            return result;
         }
         catch (err) {
             Log.i(`Connection ENV Request fail - ${err}`);

@@ -20,6 +20,8 @@ import Translator from "../../constants/strings/translator";
 import * as MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
 import { ILogResponse } from "../connection/SocketEvents";
+import { IMCTemplateData } from "../connection/UserProjectCreator";
+import Connection from "../connection/Connection";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any>;
 
@@ -27,25 +29,31 @@ const STRING_NS = StringNamespaces.REQUESTS;
 
 namespace Requester {
 
-    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<request.FullResponse> {
+    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         return req(request.get, url, options);
     }
 
-    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<request.FullResponse> {
+    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         return req(request.post, url, options);
     }
 
-    async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<request.FullResponse> {
+    async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
         if (!options) {
             options = {};
         }
-        options.resolveWithFullResponse = true;
+        // options.resolveWithFullResponse = true;
+        options.json = true;
         // TODO :)
         options.rejectUnauthorized = false;
         return method(url, options);
+    }
+
+    export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
+        const templatesUrl = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATES);
+        return Requester.get(templatesUrl);
     }
 
     export async function requestProjectRestart(project: Project, startMode: StartModes.Modes): Promise<request.FullResponse> {
