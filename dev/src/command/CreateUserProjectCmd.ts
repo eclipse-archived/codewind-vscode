@@ -125,6 +125,7 @@ async function promptForProjectName(template: IMCTemplateData): Promise<Optional
     ib.buttons = [ vscode.QuickInputButtons.Back ];
     ib.placeholder = `my-${template.language}-project`;
     ib.prompt = `Enter a name for your new ${template.language} project`;
+    ib.ignoreFocusOut = true;
 
     ib.onDidChangeValue((projName) => {
         ib.validationMessage = validateProjectName(projName);
