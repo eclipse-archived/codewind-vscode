@@ -22,12 +22,12 @@ import CodewindManager from "./microclimate/connection/CodewindManager";
 import startCodewindCmd from "./command/StartCodewindCmd";
 
 // configures json as the language of the codewind settings file.
-function setSettingsFileLanguage(doc: vscode.TextDocument) {
+function setSettingsFileLanguage(doc: vscode.TextDocument): void {
     // sometimes the path has .git appended, see https://github.com/Microsoft/vscode/issues/22561
     // since we are using the uri, the path separator will always be a forward slash.
-    if ((doc.uri.scheme === 'file' && doc.uri.path.endsWith('/.cw-settings')) ||
-        doc.uri.scheme === 'git' && doc.uri.path.endsWith('/.cw-settings.git')) {
-        vscode.languages.setTextDocumentLanguage(doc, 'json');
+    if ((doc.uri.scheme === "file" && doc.uri.path.endsWith("/.cw-settings")) ||
+        doc.uri.scheme === "git" && doc.uri.path.endsWith("/.cw-settings.git")) {
+        vscode.languages.setTextDocumentLanguage(doc, "json");
     }
 }
 
@@ -69,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // configure json as the language of the codewind settings file.  ensure that this is applied
     // to any settings file active in the editor at the time this extension activates.
-    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(doc => setSettingsFileLanguage(doc)));
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((doc) => setSettingsFileLanguage(doc)));
     setImmediate(() => {
         if (vscode.window.activeTextEditor) {
             setSettingsFileLanguage(vscode.window.activeTextEditor.document);
