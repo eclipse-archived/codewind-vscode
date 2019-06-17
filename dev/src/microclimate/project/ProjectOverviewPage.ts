@@ -37,12 +37,6 @@ export enum Openable {
     FOLDER = "folder",
 }
 
-export enum Editable {
-    CONTEXT_ROOT = "context-root",
-    APP_PORT = "app-port",
-    DEBUG_PORT = "debug-port",
-    DISABLED = "disabled",
-}
 
 export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): void {
     webviewPanel.webview.html = generateHtml(project);
@@ -117,18 +111,15 @@ export function generateHtml(project: Project): string {
                 ${buildRow("Exposed App Port", normalize(project.ports.appPort, notRunning))}
                 ${buildRow("Internal App Port",
                     normalize(project.ports.internalPort, notAvailable),
-                    undefined,
-                    Editable.APP_PORT)}
+                    undefined, true)}
                 ${buildRow("Application Endpoint",
                     normalize(project.appBaseUrl, notRunning),
-                    (project.appBaseUrl != null ? Openable.WEB : undefined),
-                    Editable.CONTEXT_ROOT)}
+                    (project.appBaseUrl != null ? Openable.WEB : undefined), true)}
                 ${emptyRow}
                 ${buildRow("Exposed Debug Port", normalize(project.ports.debugPort, notDebugging))}
                 ${buildRow("Internal Debug Port",
                     normalize(project.ports.internalDebugPort, notAvailable),
-                    undefined,
-                    Editable.DEBUG_PORT)}
+                    undefined, true)}
                 ${buildRow("Debug URL", normalize(project.debugUrl, notDebugging))}
             </table>
 
@@ -169,7 +160,7 @@ function getIcon(icon: Resources.Icons): string {
     return RESOURCE_SCHEME + iconPaths.dark;
 }
 
-function buildRow(label: string, data: string, openable?: Openable, editable?: Editable): string {
+function buildRow(label: string, data: string, openable?: Openable, editable: boolean = false): string {
     let secondColTdContents: string = "";
     let thirdColTdContents: string = "";
     if (openable) {
@@ -180,12 +171,11 @@ function buildRow(label: string, data: string, openable?: Openable, editable?: E
     }
 
     if (editable) {
-        const tooltip = `title=` + (editable === Editable.DISABLED ? `"Upgrade your Microclimate version to use this feature"` : "Edit");
-        const cursor = editable ===  Editable.DISABLED ? `style="cursor: not-allowed;"` : "";
-        const onClick = editable === Editable.DISABLED ? "" : `onclick="sendMsg('${Messages.EDIT}', { type: '${editable}' })"`;
+        const tooltip = `title="Edit"`;
+        const onClick = `onclick="sendMsg('${Messages.EDIT}', { type: '${editable}' })"`;
 
         thirdColTdContents = `
-            <img id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${cursor} ${onClick}` +
+            <img id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick}` +
                 `src="${getIcon(Resources.Icons.Edit)}"/>
         `;
     }

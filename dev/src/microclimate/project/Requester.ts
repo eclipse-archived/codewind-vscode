@@ -154,24 +154,6 @@ namespace Requester {
         await doProjectRequest(project, ProjectEndpoints.UNBIND, {}, request.post, msg, true);
     }
 
-    export async function requestSettingChange(
-        project: Project, settingName: string, settingKey: string, newValue: string | number, isNumber: boolean): Promise<void> {
-
-        const updateMsg = Translator.t(STRING_NS, "updatingSetting", { settingName });
-
-        if (isNumber) {
-            newValue = Number(newValue);
-            if (isNaN(newValue)) {
-                throw new Error(`Failed to convert ${newValue} to number; ${settingName} must be a number.`);
-            }
-        }
-
-        const body = {
-            [settingKey]: newValue,
-        };
-        await doProjectRequest(project, ProjectEndpoints.PROPERTES, body, request.post, updateMsg);
-    }
-
     export async function requestAvailableLogs(project: Project): Promise<ILogResponse> {
         if (!project.state.isEnabled) {
             // there are no logs available for disabled projects

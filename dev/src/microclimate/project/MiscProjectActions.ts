@@ -19,8 +19,6 @@ import Requester from "./Requester";
 import Log from "../../Logger";
 import * as MCUtil from "../../MCUtil";
 
-import { Editable } from "../project/ProjectOverviewPage";
-
 /**
  * Actions which execute on projects and do not map directly to a Command.
  */
@@ -86,70 +84,6 @@ namespace MiscProjectActions {
                 });
             });
         });
-    }
-
-    export async function editSetting(type: Editable, project: Project): Promise<void> {
-        // https://github.ibm.com/dev-ex/iterative-dev/wiki/File-watcher-External-APIs#post-apiv1projectsprojectidsettings
-        let userFriendlySetting: string;
-        let settingKey: string;
-        let currentValue: OptionalString;
-        switch (type) {
-            case Editable.CONTEXT_ROOT: {
-                userFriendlySetting = "application endpoint path";
-                settingKey = "contextRoot";
-                currentValue = project.contextRoot;
-                if (currentValue.startsWith("/")) {
-                    currentValue = currentValue.substring(1, currentValue.length);
-                }
-                break;
-            }
-            case Editable.APP_PORT: {
-                userFriendlySetting = "application port";
-                settingKey = "internalAppPort";
-                currentValue = project.ports.internalPort ? project.ports.internalPort.toString() : undefined;
-                break;
-            }
-            case Editable.DEBUG_PORT: {
-                userFriendlySetting = "debug port";
-                settingKey = "internalDebugPort";
-                currentValue = project.ports.internalDebugPort ? project.ports.internalDebugPort.toString() : undefined;
-                break;
-            }
-            default: {
-                Log.e("Unrecognized editable type: ", type);
-                return;
-            }
-        }
-
-        const options: vscode.InputBoxOptions = {
-            prompt: `Enter a new ${userFriendlySetting} for ${project.name}`,
-            value: currentValue,
-            valueSelection: undefined,
-        };
-
-        const isPort: boolean = type === Editable.APP_PORT || type === Editable.DEBUG_PORT;
-
-        if (isPort) {
-            options.validateInput = (inputToValidate: string): OptionalString => {
-                if (!MCUtil.isGoodPort(Number(inputToValidate))) {
-                    return Translator.t(StringNamespaces.DEFAULT, "invalidPortNumber", { port: inputToValidate });
-                }
-                return undefined;
-            };
-        }
-
-        const input = await vscode.window.showInputBox(options);
-        if (input == null) {
-            return;
-        }
-        Log.i(`Requesting to change ${type} for ${project.name} to ${input}`);
-
-        try {
-            await Requester.requestSettingChange(project, userFriendlySetting, settingKey, input, isPort);
-        }
-        catch (err) {
-            // requester will show the error
-        }
     }
 }
 
