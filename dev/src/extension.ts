@@ -20,13 +20,14 @@ import Translator from "./constants/strings/translator";
 import StringNamespaces from "./constants/strings/StringNamespaces";
 import CodewindManager from "./microclimate/connection/CodewindManager";
 import startCodewindCmd from "./command/StartCodewindCmd";
+import Constants from "./constants/Constants";
 
 // configures json as the language of the codewind settings file.
 function setSettingsFileLanguage(doc: vscode.TextDocument): void {
     // sometimes the path has .git appended, see https://github.com/Microsoft/vscode/issues/22561
     // since we are using the uri, the path separator will always be a forward slash.
-    if ((doc.uri.scheme === "file" && doc.uri.path.endsWith("/.cw-settings")) ||
-        doc.uri.scheme === "git" && doc.uri.path.endsWith("/.cw-settings.git")) {
+    if ((doc.uri.scheme === "file" && doc.uri.path.endsWith(`/${Constants.SETTINGS_FILE_NAME}`)) ||
+        doc.uri.scheme === "git" && doc.uri.path.endsWith(`/${Constants.SETTINGS_FILE_NAME}.git`)) {
         vscode.languages.setTextDocumentLanguage(doc, "json");
     }
 }
