@@ -31,6 +31,8 @@ export default async function activateConnection(): Promise<void> {
         Log.i("ENV data:", envData);
 
         const connection = await connect(url, envData);
+        await connection.initFileWatcherPromise;
+
         onConnectSuccess(connection);
         // return connection;
     }

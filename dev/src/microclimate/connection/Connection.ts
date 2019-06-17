@@ -21,6 +21,8 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import MCEnvironment from "./MCEnvironment";
 import * as MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
+import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
+import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
@@ -30,6 +32,9 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     public readonly versionStr: string;
 
     public readonly socket: MCSocket;
+
+    private fileWatcher: FileWatcher | undefined;
+    public readonly initFileWatcherPromise: Thenable<FileWatcher>;
 
     private hasConnected: boolean = false;
     // Is this connection CURRENTLY connected
@@ -54,6 +59,23 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.versionStr = MCEnvironment.getVersionAsString(version);
         this.host = MCUtil.getHostnameFrom(url);
 
+        Log.d("Establishing file watcher");
+        // caller must await on this promise before expecting this connection to function correctly
+        // it does happen very quickly (< 1s) but be aware of potential race here
+        this.initFileWatcherPromise = vscode.window.withProgress({
+            title: "Establishing Codewind file watchers",
+            cancellable: false,
+            location: vscode.ProgressLocation.Window,
+        }, (_progress) => {
+            return CreateFileWatcher(url.toString(), Log.getLogDir)
+            .then((fw: FileWatcher) => {
+                this.fileWatcher = fw;
+                FWLogSettings.getInstance().setOutputLogsToScreen(false);
+                Log.i("File watcher is established");
+                return fw;
+            });
+        });
+
         // QuickPickItem
         this.label = Translator.t(StringNamespaces.TREEVIEW, "connectionLabel", { uri: this.url });
         // this.description = this.workspacePath.fsPath.toString();
@@ -62,6 +84,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public async dispose(): Promise<void> {
         Log.d("Destroy connection " + this);
+        if (this.fileWatcher) {
+            this.fileWatcher.dispose();
+            this.fileWatcher = undefined;
+        }
         await Promise.all([
             this.socket.dispose(),
             this._projects.map((p) => p.dispose()),
