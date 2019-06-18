@@ -64,7 +64,7 @@ export default async function createProject(connection: Connection): Promise<voi
             // user cancelled
             return;
         }
-        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${response.projectPath}`);
+        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`);
     }
     catch (err) {
         const errMsg = "Error creating new project: ";
