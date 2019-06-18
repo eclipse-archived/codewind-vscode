@@ -153,3 +153,34 @@ export function getOS(): "windows" | "macos" | "linux" {
     // there are a few other possibilities, but let's just hope they're linux-like
     return "linux";
 }
+
+/**
+ * C:\\Users\\... -> /C/Users/
+ */
+export function fsPathToContainerPath(fsPath: Uri): string {
+    if (getOS() !== "windows") {
+        return fsPath.fsPath;
+    }
+    const pathStr = fsPath.fsPath;
+    const driveLetter = pathStr.charAt(0);
+    // we have to convert C:\<path> to /C/<path>
+    const containerPath = pathStr.substring(2).replace(/\\/g, "/");
+    return `/${driveLetter}${containerPath}`;
+}
+
+/**
+ * /C/Users/... -> C:/Users/
+ */
+export function containerPathToFsPath(containerPath: string): string {
+    if (getOS() !== "windows") {
+        return containerPath;
+    }
+    let deviceLetter: string;
+    if (containerPath.startsWith("/")) {
+        deviceLetter = containerPath.substring(1, 2);
+    }
+    else {
+        deviceLetter = containerPath.charAt(0);
+    }
+    return `${deviceLetter}:${containerPath.substring(2)}`;
+}
