@@ -55,15 +55,7 @@ async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Prom
         throw new Error("No workspace information was provided by Codewind.");
     }
 
-    let workspace = rawWorkspace;
-    // on windows, we have to replace the unix-like workspace path with a windows one. /C/Users/... -> C:/Users/ ...
-    // logic copied from Eclipse plugin
-    // MicroclimateConnection.java#L244
-    if (MCUtil.getOS() === "windows" && workspace.startsWith("/")) {
-        const deviceLetter = workspace.substring(1, 2);
-        workspace = deviceLetter + ":" + workspace.substring(2);
-    }
-
+    const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
     const versionNum = MCEnvironment.getVersionNumber(envData);
 
     // normalize namespace so it doesn't start with '/'

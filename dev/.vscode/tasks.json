@@ -23,9 +23,13 @@
             }
         },
         {
-            "type": "npm",
-            "script": "copy-strings",
+            "type": "shell",
+            "label": "copy-strings",
             "isBackground": false,
+            "command": "npm run copy-strings",
+            "windows": {
+                "command": "mkdir -p ./out/constants/strings/; copy -v ./src/constants/strings/strings-*.json ./out/constants/strings/"
+            },
             "presentation": {
                 "reveal": "silent",
                 "panel": "shared",
@@ -35,7 +39,7 @@
         },
         {
             "label": "build",
-            "dependsOn": [ "npm: compile", "npm: copy-strings" ]
+            "dependsOn": [ "npm: compile", "copy-strings" ]
         }
     ]
 }

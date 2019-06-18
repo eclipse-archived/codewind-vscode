@@ -19,7 +19,7 @@ import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
 import { isRegistrySet, setRegistry } from "./Registry";
-// import * as MCUtil from "../../MCUtil";
+import * as MCUtil from "../../MCUtil";
 
 export interface IMCTemplateData {
     label: string;
@@ -53,9 +53,8 @@ namespace UserProjectCreator {
     export async function createProject(connection: Connection, template: IMCTemplateData, projectName: string): Promise<INewProjectInfo> {
 
         // right now projects must be created under the codewind workspace so users can't choose the parentDir
-        const parentDirUri = connection.workspacePath;
         // abs path on user system under which the project will be created
-        const userParentDir = parentDirUri.fsPath;
+        const userParentDir = connection.workspacePath;
 
         // caller must handle errors
         const creationRes = await requestCreate(connection, template, projectName, userParentDir);
@@ -66,14 +65,15 @@ namespace UserProjectCreator {
         }
 
         // const result = creationRes.result as IProjectInitializeInfo;
+        const targetDir = vscode.Uri.file(creationRes.projectPath);
 
         // create succeeded, now we bind
-        await requestBind(connection, projectName, creationRes.projectPath, template.language, template.projectType);
+        await requestBind(connection, projectName, targetDir, template.language, template.projectType);
         return { projectName, projectPath: creationRes.projectPath };
     }
 
     export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
-        const pathToBind = pathToBindUri.fsPath;
+        const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
         Log.i("Binding to", pathToBind);
 
         const projectName = path.basename(pathToBind);
@@ -118,7 +118,7 @@ namespace UserProjectCreator {
             projectTypeInfo = userProjectType;
         }
 
-        await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
+        await requestBind(connection, projectName, pathToBindUri, projectTypeInfo.language, projectTypeInfo.projectType);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -247,13 +247,15 @@ namespace UserProjectCreator {
     }
 
     async function requestCreate(
-        connection: Connection, projectTypeSelected: IMCTemplateData, projectName: string, projectLocation: string)
+        connection: Connection, projectTypeSelected: IMCTemplateData, projectName: string, parentPath: vscode.Uri)
         : Promise<IInitializationResponse> {
+
+        const containerParentPath = MCUtil.fsPathToContainerPath(parentPath);
 
         const payload = {
             projectName: projectName,
             url: projectTypeSelected.url,
-            parentPath: projectLocation,
+            parentPath: containerParentPath,
         };
 
         Log.d("Creation request", payload);
@@ -267,18 +269,19 @@ namespace UserProjectCreator {
         return creationRes;
     }
 
-    async function requestBind(connection: Connection, projectName: string, dirToBind: string, language: string, projectType: string)
+    async function requestBind(connection: Connection, projectName: string, dirToBind: vscode.Uri, language: string, projectType: string)
         : Promise<void> {
 
         if (!isRegistrySet) {
             await setRegistry(connection);
         }
+        const bindPath = MCUtil.fsPathToContainerPath(dirToBind);
 
         const bindReq = {
             name: projectName,
             language,
             projectType,
-            path: dirToBind,
+            path: bindPath,
         };
 
         Log.d("Bind request", bindReq);

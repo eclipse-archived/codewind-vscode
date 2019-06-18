@@ -64,7 +64,7 @@ export default async function createProject(connection: Connection): Promise<voi
             // user cancelled
             return;
         }
-        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${response.projectPath}`);
+        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`);
     }
     catch (err) {
         const errMsg = "Error creating new project: ";
@@ -162,6 +162,7 @@ async function promptForProjectName(template: IMCTemplateData): Promise<Optional
     ib.buttons = [ vscode.QuickInputButtons.Back ];
     ib.placeholder = projNamePlaceholder;
     ib.prompt = projNamePrompt;
+    ib.ignoreFocusOut = true;
 
     ib.onDidChangeValue((projName) => {
         ib.validationMessage = validateProjectName(projName);
