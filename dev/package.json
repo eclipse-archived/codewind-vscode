@@ -130,6 +130,11 @@
                 }
             },
             {
+                "command": "%cmdID_setRegistry%",
+                "title": "%cmdTitle_setRegistry%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_openFolder%",
                 "title": "%cmdTitle_openFolder%",
                 "category": "%commandCategory%"
@@ -321,6 +326,11 @@
                     "command": "%cmdID_refreshConnection%",
                     "when": "%isActiveConnection%",
                     "group": "ext.cw.conn.c@0"
+                },
+                {
+                    "command": "%cmdID_setRegistry%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.c@1"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",

@@ -22,6 +22,11 @@ declare namespace NodeJS {
         // This is the folder which contains /src and /res, for example.
         __extRoot: string,
 
+        /**
+         * If true, the extension is running in Theia, else it is running in VS Code.
+         */
+        isTheia: boolean,
+
         // For some reason, importing anything at the top of this file causes all the properties declared here to not work anymore.
         // So, we use 'any' for extGlobalState - but it's a vscode.Memento.
         // extGlobalState: vscode.Memento

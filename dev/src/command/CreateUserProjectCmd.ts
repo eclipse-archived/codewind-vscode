@@ -17,7 +17,6 @@ import Connection from "../microclimate/connection/Connection";
 import * as MCUtil from "../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
 import Requester from "../microclimate/project/Requester";
-import CodewindManager from "../microclimate/connection/CodewindManager";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -89,7 +88,7 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
 
     let selected: vscode.QuickPickItem | undefined;
     // https://github.com/theia-ide/theia/issues/5059
-    if (CodewindManager.instance.runningInChe) {
+    if (global.isTheia) {
         selected = await vscode.window.showQuickPick(templateQpis, {
             matchOnDetail: true,
             placeHolder: TEMPLATE_QP_PLACEHOLDER,
@@ -148,7 +147,7 @@ async function promptForProjectName(template: IMCTemplateData): Promise<Optional
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 
     // https://github.com/theia-ide/theia/issues/5109
-    if (CodewindManager.instance.runningInChe) {
+    if (global.isTheia) {
         return vscode.window.showInputBox({
             placeHolder: projNamePlaceholder,
             prompt: projNamePrompt,

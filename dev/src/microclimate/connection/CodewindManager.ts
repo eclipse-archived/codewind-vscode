@@ -17,7 +17,6 @@ import Project from "../project/Project";
 import InstallerWrapper, { InstallerCommands } from "./InstallerWrapper";
 import { MCEndpoints } from "../../constants/Endpoints";
 import Requester from "../project/Requester";
-import * as MCUtil from "../../MCUtil";
 import Resources from "../../constants/Resources";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
@@ -34,7 +33,6 @@ enum CodewindStates {
 export default class CodewindManager implements vscode.Disposable {
 
     public readonly codewindUrl: vscode.Uri;
-    public readonly runningInChe: boolean;
 
     // public readonly initPromise: Promise<void>;
 
@@ -46,10 +44,9 @@ export default class CodewindManager implements vscode.Disposable {
     private _state: CodewindStates = CodewindStates.STOPPED;
 
     constructor() {
-        this.runningInChe = !!process.env.CHE_WORKSPACE_NAME;
-        const protocol = this.runningInChe ? "https" : "http";
+        const protocol = global.isTheia ? "https" : "http";
         this.codewindUrl = vscode.Uri.parse(protocol + "://localhost:9090");
-        Log.i(`Codewind is ${this.runningInChe ? "" : " NOT"} running in Che; URL is ${this.codewindUrl}`);
+        Log.i(`Codewind is ${global.isTheia ? "" : " NOT"} running in Theia; URL is ${this.codewindUrl}`);
     }
 
     public static get instance(): CodewindManager {
@@ -129,7 +126,7 @@ export default class CodewindManager implements vscode.Disposable {
 
         Log.i("Initial Codewind ping failed");
 
-        if (this.runningInChe) {
+        if (global.isTheia) {
             // In the che case, we do not start codewind. we just wait for it to come up
             await this.waitForCodewindToStart();
         }
@@ -146,11 +143,7 @@ export default class CodewindManager implements vscode.Disposable {
 
     private async isCodewindActive(logFailure: boolean = false): Promise<boolean> {
         try {
-            const healthRes = await Requester.get(this.codewindUrl.with({ path: MCEndpoints.ENVIRONMENT }));
-            const success = MCUtil.isGoodStatusCode(healthRes.statusCode);
-            if (!success) {
-                throw new Error("Bad status code from healthcheck " + healthRes.statusCode);
-            }
+            await Requester.get(this.codewindUrl.with({ path: MCEndpoints.ENVIRONMENT }));
             Log.i("Good response from healthcheck");
             return true;
         }

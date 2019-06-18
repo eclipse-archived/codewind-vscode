@@ -18,6 +18,7 @@ import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
+import { isRegistrySet, setRegistry } from "./Registry";
 // import * as MCUtil from "../../MCUtil";
 
 export interface IMCTemplateData {
@@ -268,6 +269,10 @@ namespace UserProjectCreator {
 
     async function requestBind(connection: Connection, projectName: string, dirToBind: string, language: string, projectType: string)
         : Promise<void> {
+
+        if (!isRegistrySet) {
+            await setRegistry(connection);
+        }
 
         const bindReq = {
             name: projectName,

@@ -103,7 +103,7 @@ function handleWebviewMessage(this: Project, msg: IWebViewMsg): void {
                 break;
             }
             case ProjectOverview.Messages.EDIT: {
-                const settingsFilePath = vscode.Uri.file(path.join(project.localPath.fsPath, Constants.SETTINGS_FILE_NAME));
+                const settingsFilePath = vscode.Uri.file(path.join(project.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME));
                 vscode.commands.executeCommand(Commands.VSC_OPEN, settingsFilePath);
                 break;
             }

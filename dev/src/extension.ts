@@ -26,8 +26,8 @@ import Constants from "./constants/Constants";
 function setSettingsFileLanguage(doc: vscode.TextDocument): void {
     // sometimes the path has .git appended, see https://github.com/Microsoft/vscode/issues/22561
     // since we are using the uri, the path separator will always be a forward slash.
-    if ((doc.uri.scheme === "file" && doc.uri.path.endsWith(`/${Constants.SETTINGS_FILE_NAME}`)) ||
-        doc.uri.scheme === "git" && doc.uri.path.endsWith(`/${Constants.SETTINGS_FILE_NAME}.git`)) {
+    if ((doc.uri.scheme === "file" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}`)) ||
+        doc.uri.scheme === "git" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}.git`)) {
         vscode.languages.setTextDocumentLanguage(doc, "json");
     }
 }
@@ -42,6 +42,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     global.__extRoot = context.extensionPath;
     // Declared as 'any' type, but will always be assigned globalState which is a vscode.Memento
     global.extGlobalState = context.globalState;
+
+    // https://github.com/theia-ide/theia/issues/5501
+    // global.isTheia = (process.env.appName || "").toLowerCase().includes("theia");
+    global.isTheia = !!process.env.CHE_WORKSPACE_ID;
 
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");

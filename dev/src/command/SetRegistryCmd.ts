@@ -9,15 +9,19 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import * as path from "path";
+import * as vscode from "vscode";
 
-/**
- * Miscellaneous constants
- */
-namespace Constants {
-    export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
-    export const CW_CONFIG_DIR = ".config";
-    export const CW_CONFIG_FILE = path.join(CW_CONFIG_DIR, "settings.json");
+import Connection from "../microclimate/connection/Connection";
+import { setRegistry } from "../microclimate/connection/Registry";
+import * as MCUtil from "../MCUtil";
+import Log from "../Logger";
+
+export async function setRegistryCmd(connection: Connection): Promise<void> {
+    try {
+        await setRegistry(connection);
+    }
+    catch (err) {
+        Log.e("Error doing setRegistryCmd", err);
+        vscode.window.showErrorMessage(MCUtil.errToString(err));
+    }
 }
-
-export default Constants;
