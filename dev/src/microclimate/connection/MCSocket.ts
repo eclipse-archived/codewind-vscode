@@ -212,6 +212,7 @@ export default class MCSocket implements vscode.Disposable {
                 Log.d("Received deployment registry event when not running in Che; ignoring");
                 return;
             }
+            Log.i("Deployment registry is not correctly configured", payload.msg);
             vscode.window.showErrorMessage(payload.msg);
         }
     }
