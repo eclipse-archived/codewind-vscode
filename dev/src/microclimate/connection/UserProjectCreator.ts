@@ -260,9 +260,16 @@ namespace UserProjectCreator {
 
         Log.d("Creation request", payload);
 
-        const creationRes = await Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PROJECTS), {
-            json: true,
-            body: payload,
+        // This is a slow request because it has to spin up the initialization container
+        const creationRes = await vscode.window.withProgress({
+            title: `Creating ${projectName}...`,
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+        }, () => {
+            return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PROJECTS), {
+                json: true,
+                body: payload,
+            });
         });
 
         Log.d("Creation response", creationRes);
