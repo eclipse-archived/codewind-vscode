@@ -272,7 +272,7 @@ namespace UserProjectCreator {
     async function requestBind(connection: Connection, projectName: string, dirToBind: vscode.Uri, language: string, projectType: string)
         : Promise<void> {
 
-        if (!isRegistrySet) {
+        if (!(await isRegistrySet(connection))) {
             await setRegistry(connection);
         }
         const bindPath = MCUtil.fsPathToContainerPath(dirToBind);

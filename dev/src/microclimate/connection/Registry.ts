@@ -12,45 +12,39 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 import { promisify } from "util";
+import * as path from "path";
 
 import Log from "../../Logger";
 import Requester from "../project/Requester";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import Connection from "./Connection";
-import SocketEvents from "./SocketEvents";
+// import SocketEvents from "./SocketEvents";
 import Constants from "../../constants/Constants";
+import SocketEvents from "./SocketEvents";
 
-let registryIsSet: boolean = global.isTheia;            // no registry required in local case
+// let registryIsSet: boolean = global.isTheia;            // no registry required in local case
+let registryIsSet: boolean = false;
 
-export function isRegistrySet(): boolean {
+export async function isRegistrySet(connection: Connection): Promise<boolean> {
+    if (!global.isTheia || registryIsSet) {
+        // if not in theia, no registry
+        // else it is still set, so we don't have to check
+        return true;
+    }
+
+    const registryStatus: { deploymentRegistry: boolean } = await Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
+    registryIsSet = registryStatus.deploymentRegistry;
+    Log.d("Registry is set is now " + registryIsSet);
     return registryIsSet;
 }
 
-export async function setRegistry(connection: Connection): Promise<void> {
+export async function setRegistry(connection: Connection): Promise<boolean> {
     Log.i(`Setting deployment registry, is currently set? ${registryIsSet}`);
-
-    const registryStatus: {
-        workspaceSettings: {
-            deploymentRegistry: boolean;
-            msg?: string;
-        }
-    } = await Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
-
-    // tslint:disable-next-line: no-boolean-literal-compare
-    if (registryStatus.workspaceSettings.deploymentRegistry === true) {
-        registryIsSet = true;
-    }
-    else {
-        registryIsSet = await setRegistryInner(connection);
-    }
-}
-
-async function setRegistryInner(connection: Connection): Promise<boolean> {
     const registry = await vscode.window.showInputBox({
         ignoreFocusOut: true,
+        // valueSelection doesn't work in theia
         value: `docker-registry.default.svc:5000/eclipse-che`,
-        prompt: `Please enter a deployment registry location. ` +
-            `Examples of a registry hosts include Dockerhub, Quay, Artifactory or your cluster's internal registry.`,
+        prompt: `Enter a deployment registry location such as Dockerhub or your cluster's internal registry.`,
         validateInput: validateRegistry,
     });
 
@@ -67,40 +61,67 @@ async function setRegistryInner(connection: Connection): Promise<boolean> {
         yesBtn, noBtn
     );
 
+    // Log.d("doTestResponse", doTestResponse);
+
     if (doTestResponse == null) {
         return false;
     }
     else if (doTestResponse === yesBtn) {
         const testResult = await testRegistry(connection, registry);
-        // user did not get a successful test
         if (!testResult) {
+            // user did not get a successful test
             return false;
         }
     }
+    // if they selected noBtn just continue and write
 
+    const configFilePath = path.join(connection.workspacePath.fsPath, Constants.CW_CONFIG_FILE);
     try {
-        await writeRegistry(registry);
+        await writeRegistry(configFilePath, registry);
+        vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved to ${configFilePath}`);
     }
     catch (err) {
         vscode.window.showErrorMessage("Error updating registry: " + err.toString());
         return false;
     }
-    vscode.window.showInformationMessage(`The deployment registry has been set to ${registry}`);
 
     return true;
 }
 
-async function writeRegistry(registry: string): Promise<void> {
-    const configFile = Constants.CW_CONFIG_FILE;
-    const toWrite = JSON.stringify({
-        deploymentRegistry: registry
-    });
-    return promisify(fs.writeFile)(configFile, toWrite);
+async function writeRegistry(configFilePath: string, registry: string): Promise<void> {
+    let config: { [key: string]: string };
+    try {
+        const configContents = (await promisify(fs.readFile)(configFilePath)).toString();
+        config = JSON.parse(configContents);
+    }
+    catch (err) {
+        config = {};
+    }
+    config.deploymentRegistry = registry;
+
+    const toWrite = JSON.stringify(config, undefined, 2);
+    Log.i(`Saving registry ${registry} to ${configFilePath}`);
+    return promisify(fs.writeFile)(configFilePath, toWrite);
 }
 
 async function testRegistry(connection: Connection, registry: string): Promise<boolean> {
-    const testResult: SocketEvents.IRegistryStatusEvent
-        = await Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
+    const testResult: SocketEvents.IRegistryStatusEvent = await vscode.window.withProgress({
+        title: `Pushing a test image to ${registry}...`,
+        location: vscode.ProgressLocation.Notification,
+        cancellable: false,
+    }, (_progress) => {
+        try {
+            return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY), {
+                    body: {
+                        deploymentRegistry: registry,
+                    }
+                });
+        }
+        catch (err) {
+            Log.e("Error testing registry", err);
+            return Promise.resolve({ deploymentRegistryTest: false });
+        }
+    });
 
     // tslint:disable-next-line: no-boolean-literal-compare
     if (testResult.deploymentRegistryTest === true) {
@@ -121,7 +142,7 @@ async function testRegistry(connection: Connection, registry: string): Promise<b
         return false;
     }
     else if (pushFailedRes === enterNewBtn) {
-        return setRegistryInner(connection);
+        return setRegistry(connection);
     }
     else if (pushFailedRes === tryAgainBtn) {
         return testRegistry(connection, registry);
@@ -133,7 +154,7 @@ async function testRegistry(connection: Connection, registry: string): Promise<b
 }
 
 function validateRegistry(reg: string): string | undefined {
-    // hostname validation - https://regex101.com/r/2rWkU4/1/tests
+    // list of legal URL characters
     const rx = /^[A-Za-z0-9-._~:/?#\[\]@!\$&'\(\)\*\+;%=,]+$/;
     const match = reg.match(rx);
     if (match == null || match[0] !== reg) {
