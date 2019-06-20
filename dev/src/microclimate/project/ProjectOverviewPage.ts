@@ -65,7 +65,9 @@ export function generateHtml(project: Project): string {
             <!--meta http-equiv="Content-Security-Policy" content="default-src 'self' ;"-->
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            <link rel="stylesheet" href="${getStylesheetPath()}"/>
+            <link rel="stylesheet" href="${getStylesheetPath("project-overview.css")}"/>
+            ${global.isTheia ?
+                `<link rel="stylesheet" href="${getStylesheetPath("theia.css")}"/>` : ""}
         </head>
         <body>
 
@@ -150,8 +152,8 @@ export function generateHtml(project: Project): string {
 
 const RESOURCE_SCHEME = "vscode-resource:";
 
-function getStylesheetPath(): string {
-    return RESOURCE_SCHEME + Resources.getCss("project-overview.css");
+function getStylesheetPath(filename: string): string {
+    return RESOURCE_SCHEME + Resources.getCss(filename);
 }
 
 function getIcon(icon: Resources.Icons): string {

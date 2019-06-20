@@ -18,6 +18,8 @@ namespace Constants {
     export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
     export const CW_CONFIG_DIR = ".config";
     export const CW_CONFIG_FILE = path.join(CW_CONFIG_DIR, "settings.json");
+
+    export const CHE_EXTERNAL_URL_ENVVAR = "CHE_API_EXTERNAL";
 }
 
 export default Constants;
