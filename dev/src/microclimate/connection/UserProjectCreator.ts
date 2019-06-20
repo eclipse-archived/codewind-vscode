@@ -217,11 +217,17 @@ namespace UserProjectCreator {
     }
 
     async function requestValidate(connection: Connection, pathToBind: string): Promise<IInitializationResponse> {
-        const validateResponse = await Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PREBIND_VALIDATE), {
-            json: true,
-            body: {
-                projectPath: pathToBind,
-            }
+        const validateResponse = await vscode.window.withProgress({
+            title: `Processing ${pathToBind}...`,
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+        }, () => {
+            return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PREBIND_VALIDATE), {
+                json: true,
+                body: {
+                    projectPath: pathToBind,
+                }
+            });
         });
         Log.d("validate response", validateResponse);
         return validateResponse;
@@ -298,6 +304,7 @@ namespace UserProjectCreator {
             json: true,
             body: bindReq,
         });
+
         Log.d("Bind response", bindRes);
 
         // return bindRes;

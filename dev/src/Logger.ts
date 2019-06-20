@@ -28,12 +28,17 @@ export class Log {
 
     private static readonly LOG_NAME: string = "codewind-tools.log";
 
+    private static logDir: string;
     private static logFilePath: string;
 
     private static disabledLevels: Log.Levels[] = [];
 
     public static get getLogFilePath(): string {
         return this.logFilePath;
+    }
+
+    public static get getLogDir(): string {
+        return this.logDir;
     }
 
     public static setLogFilePath(context: ExtensionContext): void {
@@ -57,6 +62,7 @@ export class Log {
             }
         }
 
+        this.logDir = context.logPath;
         const fullPath = path.join(context.logPath, this.LOG_NAME);
         this.logFilePath = fullPath;
         console.log("Codewind Tools log file is at " + this.logFilePath);
