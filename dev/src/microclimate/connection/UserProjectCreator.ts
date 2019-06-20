@@ -18,7 +18,6 @@ import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
-import { isRegistrySet, setRegistry } from "./Registry";
 import * as MCUtil from "../../MCUtil";
 
 export interface IMCTemplateData {
@@ -285,9 +284,6 @@ namespace UserProjectCreator {
     async function requestBind(connection: Connection, projectName: string, dirToBind: vscode.Uri, language: string, projectType: string)
         : Promise<void> {
 
-        if (!(await isRegistrySet(connection))) {
-            await setRegistry(connection);
-        }
         const bindPath = MCUtil.fsPathToContainerPath(dirToBind);
 
         const bindReq = {

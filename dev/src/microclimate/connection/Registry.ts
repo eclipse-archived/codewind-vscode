@@ -21,6 +21,7 @@ import Connection from "./Connection";
 // import SocketEvents from "./SocketEvents";
 import Constants from "../../constants/Constants";
 import SocketEvents from "./SocketEvents";
+import { setRegistryCmd } from "../../command/SetRegistryCmd";
 
 // let registryIsSet: boolean = global.isTheia;            // no registry required in local case
 let registryIsSet: boolean = false;
@@ -36,6 +37,17 @@ export async function isRegistrySet(connection: Connection): Promise<boolean> {
     registryIsSet = registryStatus.deploymentRegistry;
     Log.d("Registry is set is now " + registryIsSet);
     return registryIsSet;
+}
+
+export async function onRegistryNotSet(connection: Connection): Promise<void> {
+    const setRegistryBtn = "Set Registry";
+    const res = await vscode.window.showErrorMessage(
+        "You must set a deployment registry before binding a project. Run the Set Deployment Registry command.",
+        setRegistryBtn
+    );
+    if (res === setRegistryBtn) {
+        setRegistryCmd(connection);
+    }
 }
 
 export async function setRegistry(connection: Connection): Promise<boolean> {

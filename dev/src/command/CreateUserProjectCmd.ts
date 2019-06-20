@@ -17,6 +17,7 @@ import Connection from "../microclimate/connection/Connection";
 import * as MCUtil from "../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
 import Requester from "../microclimate/project/Requester";
+import { isRegistrySet, onRegistryNotSet } from "../microclimate/connection/Registry";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -34,6 +35,11 @@ export default async function createProject(connection: Connection): Promise<voi
             return;
         }
         connection = selected;
+    }
+
+    if (!(await isRegistrySet(connection))) {
+        onRegistryNotSet(connection);
+        return;
     }
 
     try {
