@@ -15,6 +15,7 @@ import * as child_process from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as readline from "readline";
+import { promisify } from "util";
 
 import * as MCUtil from "../../MCUtil";
 import Log from "../../Logger";
@@ -222,23 +223,13 @@ namespace InstallerWrapper {
                         Log.d(`Installer command ${cmd} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        Log.e("Error running with installer", errStr);
-                        if (isInstallCmd) {
-                            const stdoutLog = path.join(executableDir, "install-error-stdout.log");
-                            fs.writeFileSync(stdoutLog, outStr);
-                            const stderrLog = path.join(executableDir, "install-error-stderr.log");
-                            Log.e("Stderr", errStr || "<no stderr>");
-                            fs.writeFileSync(stderrLog, errStr);
-                            Log.e("Error installing, wrote output to " + executableDir);
-                            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
-                            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
-                            reject(Translator.t(STRING_NS, "unexpectedFailure"));
-                        }
-                        else {
-                            Log.e("Stdout:", outStr || "<no output>");
-                            Log.e("Stderr:", errStr || "<no error output>");
-                            reject(errStr);
-                        }
+                        Log.e(`Error running installer command ${cmd}`, errStr);
+                        outStr = outStr || "<no std output>";
+                        errStr = errStr || "<no error output>";
+                        writeOutError(cmd, outStr, errStr);
+                        Log.e("Stdout:", outStr);
+                        Log.e("Stderr:", errStr);
+                        reject(errStr);
                     }
                     else {
                         Log.i(`Successfully ran installer command: ${cmd}`);
@@ -248,6 +239,22 @@ namespace InstallerWrapper {
             })
             .finally(() => currentOperation = undefined);
         });
+    }
+
+    async function writeOutError(cmd: InstallerCommands, outStr: string, errStr: string): Promise<void> {
+        const logDir = path.join(Log.getLogDir, `installer-error-${cmd}-${Date.now()}`);
+        await promisify(fs.mkdir)(logDir, { recursive: true });
+
+        const stdoutLog = path.join(logDir, "out.log");
+        const stderrLog = path.join(logDir, "err.log");
+        await promisify(fs.writeFile)(stdoutLog, outStr);
+        await promisify(fs.writeFile)(stderrLog, errStr);
+        if (cmd === InstallerCommands.INSTALL) {
+            // show user the output in this case because they can't recover
+            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
+            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
+        }
+        Log.e("Wrote failed command output to " + logDir);
     }
 
     export function isCancellation(err: any): boolean {
