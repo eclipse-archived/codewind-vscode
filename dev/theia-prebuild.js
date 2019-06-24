@@ -31,10 +31,30 @@ const cmdsToDelete = [
 
 const PACKAGE_JSON_PATH = "./package.json";
 const INSTALLER_DIR = "bin/installer";
+const VIEW_CONTAINER_ID = "cw-viewcontainer";
 
 async function main() {
 
     const pj = JSON.parse(await util.promisify(fs.readFile)(PACKAGE_JSON_PATH));
+
+    // Contribute a viewcontainer instead of to the explorer view
+    pj.contributes.viewsContainers = {
+        right: [
+            {
+                icon: "res/img/themeless/codewind.svg",
+                id: VIEW_CONTAINER_ID,
+                title: "Codewind"
+            }
+        ]
+    }
+    pj.contributes.views = {
+        [VIEW_CONTAINER_ID]: [
+            {
+                id: "%viewID%",                 // resolved by package.nls.jsno
+                name: "Project Explorer"
+            }
+        ]
+    };
 
     // Delete unwanted commands
     pj.contributes.commands = pj.contributes.commands.filter((cmd) => {
@@ -67,6 +87,7 @@ async function main() {
 
     const toWrite = JSON.stringify(pj, undefined, 4) + '\n';
     await util.promisify(fs.writeFile)(PACKAGE_JSON_PATH, toWrite);
+    console.log("Wrote out new " + PACKAGE_JSON_PATH);
 
     // Delete the installer
     await util.promisify(rimraf)(INSTALLER_DIR);

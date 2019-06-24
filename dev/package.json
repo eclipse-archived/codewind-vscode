@@ -43,20 +43,11 @@
     ],
     "main": "./out/extension",
     "contributes": {
-        "viewsContainers": {
-            "right": [
-                {
-                    "icon": "res/img/themeless/codewind.svg",
-                    "id": "cw-viewcontainer",
-                    "title": "Codewind"
-                }
-            ]
-        },
         "views": {
-            "cw-viewcontainer": [
+            "explorer": [
                 {
                     "id": "%viewID%",
-                    "name": "Project Explorer"
+                    "name": "%viewName%"
                 }
             ]
         },
