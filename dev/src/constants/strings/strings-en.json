@@ -38,7 +38,7 @@
         "noProjToRunOnWithStates":
             "There is no {{ states }} Codewind project to run this command on.",
         "noConnToRunOn":
-            "There is no Codewind connection to run this command on.",
+            "The tools have not yet connected to Codewind. Ensure Codewind is started.",
         "noConnOrProjToRunOn":
             "There is no Codewind connection or project to run this command on.",
         "noConnOrProjToRunOnWithStates":
