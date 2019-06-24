@@ -146,16 +146,21 @@ namespace TreeItemFactory {
 
 function getConnectionTI(connection: Connection): vscode.TreeItem {
     // always local for now
-    const connectionType: string =  Translator.t(STRING_NS, "connectionTypeLocal");
+    let label;
+    if (global.isTheia) {
+        label = Translator.t(STRING_NS, "connectionLabel", { type: Translator.t(STRING_NS, "connectionTypeLocal") });
+    }
+    else {
+        label = Translator.t(STRING_NS, "connectionLabel");
+    }
     const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 
     return {
-        label: Translator.t(STRING_NS, "connectionLabel", { type: connectionType }),
+        label,
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         tooltip: `${connection.versionStr} • ${connection.workspacePath.fsPath}`,
         contextValue: getConnectionContext(connection),
         iconPath,
-        // command:Logo
     };
 }
 

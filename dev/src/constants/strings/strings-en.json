@@ -131,6 +131,7 @@
     },
 
     "treeView": {
+        "connectionLabelSimple": "Projects",
         "connectionLabel": "Projects ({{ type }})",
         "connectionTypeLocal": "Local",
         "notStartedConnectionLabel": "Codewind is stopped (Click to start)",
