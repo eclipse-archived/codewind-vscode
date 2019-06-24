@@ -26,6 +26,7 @@ enum Commands {
     STOP_CODEWIND_2 = "ext.cw.stopCodewind2",
 
     REFRESH_CONNECTION = "ext.cw.refreshConnection",
+    SET_REGISTRY = "ext.cw.setRegistry",
 
     CREATE_PROJECT = "ext.cw.createProject",
     BIND_PROJECT = "ext.cw.bindProject",

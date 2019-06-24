@@ -74,6 +74,11 @@ namespace SocketEvents {
 
     export type ILogsListChangedEvent = { projectID: string } & ILogResponse;
 
+    export interface IRegistryStatusEvent {
+        deploymentRegistryTest: boolean;
+        msg: string;
+    }
+
     /**
      * Socket events we listen for from Portal
      * See MCSocket
@@ -90,6 +95,7 @@ namespace SocketEvents {
         PROJECT_VALIDATED = "projectValidated",
         PROJECT_CREATED = "projectCreation",
         PROJECT_BOUND = "projectBind",
+        REGISTRY_STATUS = "deploymentRegistryStatus",
     }
 
     /**

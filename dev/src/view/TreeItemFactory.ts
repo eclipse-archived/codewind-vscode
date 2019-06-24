@@ -106,16 +106,25 @@ namespace TreeItemFactory {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));
             }
             else {
+                const label = global.isTheia ?
+                    "No Projects" :
+                    "No projects (Click here to create a project)";
+
+                const tooltip = global.isTheia ?
+                    "Right click Projects to create a project" :
+                    "Click here to create a project";
+
                 return [{
-                    label: Translator.t(STRING_NS, "noProjectsLabel"),
+                    label,
                     iconPath: Resources.getIconPaths(Resources.Icons.Error),
-                    tooltip: "Click here to create a new project",
+                    tooltip,
                     contextValue: buildContextValue([TreeContextValues.NO_PROJECTS]),
+                    collapsibleState: vscode.TreeItemCollapsibleState.None,
                     command: {
                         command: Commands.CREATE_PROJECT,
                         title: "",
                         arguments: [connection]
-                    }
+                    },
                 }];
             }
         }
@@ -124,6 +133,7 @@ namespace TreeItemFactory {
                 label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
                 iconPath: Resources.getIconPaths(Resources.Icons.Disconnected),
                 contextValue: "nothing",        // anything truthy works
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
                 // command: {
                 //     command: Commands.START_CODEWIND,
                 //     title: "",
@@ -135,17 +145,23 @@ namespace TreeItemFactory {
 }
 
 function getConnectionTI(connection: Connection): vscode.TreeItem {
-    // always local for now
-    const connectionType: string =  Translator.t(STRING_NS, "connectionTypeLocal");
+    let label;
+    if (global.isTheia) {
+        // it's confusing to say "local" in the theia case
+        label = Translator.t(STRING_NS, "connectionLabelSimple");
+    }
+    else {
+        // always local for now
+        label = Translator.t(STRING_NS, "connectionLabel", { type: Translator.t(STRING_NS, "connectionTypeLocal") });
+    }
     const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 
     return {
-        label: Translator.t(STRING_NS, "connectionLabel", { type: connectionType }),
+        label,
         collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
         tooltip: `${connection.versionStr} • ${connection.workspacePath.fsPath}`,
         contextValue: getConnectionContext(connection),
         iconPath,
-        // command:Logo
     };
 }
 

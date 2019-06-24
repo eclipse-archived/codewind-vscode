@@ -16,6 +16,8 @@ import * as util from "util";
 import { ExtensionContext, Uri } from "vscode";
 import * as Stacktrace from "stack-trace";
 import * as CircularJson from "circular-json";
+import * as reqErrors from "request-promise-native/errors";
+
 import Project from "./microclimate/project/Project";
 
 // non-nls-file
@@ -183,7 +185,7 @@ export class Log {
     }
 }
 
-function replacer(name: string, val: any): string | undefined {
+function replacer(name: string, val: any): any {
     // Don't log the Connection fields on the Projects because they recur infinitely
     if (name === "connection" && val instanceof Project) {
         return undefined;
@@ -194,6 +196,11 @@ function replacer(name: string, val: any): string | undefined {
     else if (val.managerName) {
         // MCLogManager
         return val.managerName;
+    }
+    else if (val instanceof reqErrors.StatusCodeError) {
+        (val as any).request = undefined;
+        (val as any).response = undefined;
+        return val;
     }
     return val;
 }

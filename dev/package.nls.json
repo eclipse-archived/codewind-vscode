@@ -30,6 +30,9 @@
     "cmdID_refreshConnection": "ext.cw.refreshConnection",
     "cmdTitle_refreshConnection": "Refresh",
 
+    "cmdID_setRegistry": "ext.cw.setRegistry",
+    "cmdTitle_setRegistry": "Set Deployment Registry",
+
     "cmdID_newProject": "ext.cw.createProject",
     "cmdTitle_newProject": "Create New Project",
 

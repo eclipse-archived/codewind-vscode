@@ -1,0 +1,23 @@
+/* In theia there is a lot of missing CSS so we fill it in here. Sadly we cannot detect whether dark or light theme. */
+
+:root {
+    --vscode-button-background: #0F5891;
+    --vscode-button-foreground: #c9cece;
+    color: #ccc;
+    font-family: sans-serif;
+    line-height: 1.5;
+}
+
+/*
+.vscode-dark {
+    --vscode-button-background: #0083ca;
+    --vscode-button-foreground: #c9cece;
+    color: #ccc;
+}
+
+.vscode-light {
+    --vscode-button-background: #0064b4;
+    --vscode-button-foreground: #c9cece;
+    color: #000000;
+}
+*/

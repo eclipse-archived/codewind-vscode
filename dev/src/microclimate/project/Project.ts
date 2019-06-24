@@ -10,6 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as path from "path";
 
 import * as MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
@@ -88,11 +89,7 @@ export default class Project implements vscode.QuickPickItem {
 
         this.type = new ProjectType(projectInfo.projectType, projectInfo.language);
         this.language = projectInfo.language || "Unknown";
-
-        this.localPath = vscode.Uri.file(
-            MCUtil.appendPathWithoutDupe(connection.workspacePath.fsPath, vscode.Uri.file(projectInfo.locOnDisk).fsPath)
-        );
-
+        this.localPath = vscode.Uri.file(path.join(connection.workspacePath.fsPath, projectInfo.directory));
         this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
 
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
@@ -450,7 +447,8 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         return this.connection.url.with({
-            authority: `${this.connection.host}:${this._ports.appPort}`,      // non-nls
+            scheme: "http",                 // :)                           // non-nls
+            authority: `${this.connection.host}:${this._ports.appPort}`,    // non-nls
             path: this._contextRoot
         });
     }

@@ -17,6 +17,7 @@ import Connection from "../microclimate/connection/Connection";
 import * as MCUtil from "../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
 import Requester from "../microclimate/project/Requester";
+import { isRegistrySet, onRegistryNotSet } from "../microclimate/connection/Registry";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -34,6 +35,11 @@ export default async function createProject(connection: Connection): Promise<voi
             return;
         }
         connection = selected;
+    }
+
+    if (!(await isRegistrySet(connection))) {
+        onRegistryNotSet(connection);
+        return;
     }
 
     try {
@@ -73,6 +79,8 @@ export default async function createProject(connection: Connection): Promise<voi
     }
 }
 
+const TEMPLATE_QP_PLACEHOLDER = "Select the project type to create";
+
 async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
     const templates = await Requester.getTemplates(connection);
 
@@ -84,14 +92,42 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
         };
     });
 
+    let selected: vscode.QuickPickItem | undefined;
+    // https://github.com/theia-ide/theia/issues/5059
+    if (global.isTheia) {
+        selected = await vscode.window.showQuickPick(templateQpis, {
+            matchOnDetail: true,
+            placeHolder: TEMPLATE_QP_PLACEHOLDER,
+            // ignoreFocusOut = true,
+        });
+    }
+    else {
+        // vs code supports a fancier quickpick
+        selected = await displayTemplateQuickpick(templateQpis);
+    }
+
+    if (selected == null) {
+        return undefined;
+    }
+
+    // map the selected QPI back to the template it represents
+    const selectedProjectType = templateQpis.find((type) => selected!.label === type.label);
+    if (selectedProjectType == null) {
+        throw new Error(`Could not find template ${selected.label}`);
+    }
+    return selectedProjectType;
+}
+
+async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): Promise<vscode.QuickPickItem | undefined> {
     const qp = vscode.window.createQuickPick();
-    qp.placeholder = "Select the project type to create";
+    qp.placeholder = TEMPLATE_QP_PLACEHOLDER;
     qp.matchOnDetail = true;
     qp.canSelectMany = false;
     qp.items = templateQpis;
     qp.step = 1;
     qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
     qp.title = CREATE_PROJECT_WIZARD_TITLE;
+    // qp.ignoreFocusOut = true;
 
     const selected = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
         qp.show();
@@ -108,23 +144,30 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
     if (selected == null || selected.length === 0) {
         return undefined;
     }
-
-    // map the selected QPI back to the template it represents
-    const selectedProjectType = templateQpis.find((type) => selected[0].label === type.label);
-    if (selectedProjectType == null) {
-        throw new Error(`Could not find template ${selected[0].label}`);
-    }
-    return selectedProjectType;
+    return selected[0];
 }
 
+
 async function promptForProjectName(template: IMCTemplateData): Promise<OptionalString> {
+    const projNamePlaceholder = `my-${template.language}-project`;
+    const projNamePrompt = `Enter a name for your new ${template.language} project`;
+
+    // https://github.com/theia-ide/theia/issues/5109
+    if (global.isTheia) {
+        return vscode.window.showInputBox({
+            placeHolder: projNamePlaceholder,
+            prompt: projNamePrompt,
+            validateInput: validateProjectName,
+        });
+    }
+
     const ib = vscode.window.createInputBox();
     ib.title = CREATE_PROJECT_WIZARD_TITLE;
     ib.step = 2;
     ib.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
     ib.buttons = [ vscode.QuickInputButtons.Back ];
-    ib.placeholder = `my-${template.language}-project`;
-    ib.prompt = `Enter a name for your new ${template.language} project`;
+    ib.placeholder = projNamePlaceholder;
+    ib.prompt = projNamePrompt;
     ib.ignoreFocusOut = true;
 
     ib.onDidChangeValue((projName) => {

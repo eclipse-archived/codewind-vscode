@@ -15,31 +15,6 @@ import Log from "./Logger";
 // import { Log } from "./Logger";
 
 /**
- * Append toAppend to start, removing the last segment of start if the first segment of toAppend matches it.
- *
- * appendPathWithoutDupe("/home/tim/codewind-workspace/", "/codewind-workspace/myproject")
- *      -> "/home/tim/codewind-workspace/myproject"
- */
-export function appendPathWithoutDupe(start: string, toAppend: string): string {
-    // Remove end of start / if present
-    if (start.endsWith(path.sep)) {
-        start = start.substring(0, start.length);
-    }
-
-    // Remove start of toAppend / if present
-    if (toAppend.startsWith(path.sep)) {
-        toAppend = toAppend.substring(1, toAppend.length + 1);
-    }
-
-    const lastStartSegment = lastPathSegment(start);
-    if (toAppend.startsWith(lastStartSegment)) {
-        start = start.substring(0, start.length - lastStartSegment.length);
-    }
-
-    return path.join(start, toAppend);
-}
-
-/**
  * Returns the last segment of the given path, with no starting slash.
  * Trailing slash is kept if present.
  *

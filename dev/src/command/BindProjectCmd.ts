@@ -16,6 +16,7 @@ import Log from "../Logger";
 import Connection from "../microclimate/connection/Connection";
 import * as MCUtil from "../MCUtil";
 import UserProjectCreator from "../microclimate/connection/UserProjectCreator";
+import { isRegistrySet, onRegistryNotSet } from "../microclimate/connection/Registry";
 
 /**
  * @param create true for Create page, false for Import page
@@ -29,6 +30,11 @@ export default async function bindProject(connection: Connection): Promise<void>
             return;
         }
         connection = selected;
+    }
+
+    if (!(await isRegistrySet(connection))) {
+        onRegistryNotSet(connection);
+        return;
     }
 
     try {
