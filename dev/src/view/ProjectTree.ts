@@ -72,7 +72,7 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
             return CodewindManager.instance.connections;
         }
         else {
-            Log.e("Cannot get children for unexpected item", node);
+            // Log.e("Cannot get children for unexpected item", node);
             return [];
         }
     }

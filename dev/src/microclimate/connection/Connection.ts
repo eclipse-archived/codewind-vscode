@@ -21,6 +21,7 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import MCEnvironment from "./MCEnvironment";
 import * as MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
+import Constants from "../../constants/Constants";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
 
@@ -34,7 +35,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     public readonly socket: MCSocket;
 
     private fileWatcher: FileWatcher | undefined;
-    public readonly initFileWatcherPromise: Thenable<FileWatcher>;
+    public readonly initFileWatcherPromise: Thenable<void>;
 
     private hasConnected: boolean = false;
     // Is this connection CURRENTLY connected
@@ -57,24 +58,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.socket = new MCSocket(this, socketNS);
         this.workspacePath = vscode.Uri.file(workspacePath_);
         this.versionStr = MCEnvironment.getVersionAsString(version);
-        this.host = MCUtil.getHostnameFrom(url);
+        this.host = this.getHost(url);
 
-        Log.d("Establishing file watcher");
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        this.initFileWatcherPromise = vscode.window.withProgress({
-            title: "Establishing Codewind file watchers",
-            cancellable: false,
-            location: vscode.ProgressLocation.Window,
-        }, (_progress) => {
-            return CreateFileWatcher(url.toString(), Log.getLogDir)
-            .then((fw: FileWatcher) => {
-                this.fileWatcher = fw;
-                FWLogSettings.getInstance().setOutputLogsToScreen(false);
-                Log.i("File watcher is established");
-                return fw;
-            });
-        });
+        this.initFileWatcherPromise = this.initFileWatcher();
 
         // QuickPickItem
         this.label = Translator.t(StringNamespaces.TREEVIEW, "connectionLabel", { uri: this.url });
@@ -96,6 +84,47 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public toString(): string {
         return `${this.url} ${this.versionStr}`;
+    }
+
+    private async initFileWatcher(): Promise<void> {
+        if (global.isTheia) {
+            Log.i("In theia; no filewatcher required");
+            return;
+        }
+
+        Log.i("Establishing file watcher");
+        return vscode.window.withProgress({
+            title: "Establishing Codewind file watchers",
+            cancellable: false,
+            location: vscode.ProgressLocation.Window,
+        }, (_progress) => {
+            return CreateFileWatcher(this.url.toString(), Log.getLogDir)
+            .then((fw: FileWatcher) => {
+                this.fileWatcher = fw;
+                FWLogSettings.getInstance().setOutputLogsToScreen(false);
+                Log.i("File watcher is established");
+            });
+        });
+    }
+
+    private getHost(url: vscode.Uri): string {
+        if (global.isTheia) {
+            // On theia we have to use the che ingress
+            // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
+            const cheExternalUrlStr = process.env[Constants.CHE_EXTERNAL_URL_ENVVAR];
+            Log.d(`${Constants.CHE_EXTERNAL_URL_ENVVAR}=${cheExternalUrlStr}`);
+            if (cheExternalUrlStr != null) {
+                // we only want the authority component.
+                const cheExternalUrl = vscode.Uri.parse(cheExternalUrlStr);
+                const authority = cheExternalUrl.authority;
+                if (authority) {
+                    Log.i("Setting connection host in Theia to " + authority);
+                    return authority;
+                }
+            }
+            Log.e(`${Constants.CHE_EXTERNAL_URL_ENVVAR} is not set in the environment or was invalid: falling back to default host`);
+        }
+        return MCUtil.getHostnameFrom(url);
     }
 
     /**

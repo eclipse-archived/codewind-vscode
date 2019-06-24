@@ -29,7 +29,7 @@ spec:
     }
 
     stages {
-        stage('Build') {
+        stage('Build for VS Code') {
             steps {
                 container("node") {
                     dir('dev') {
@@ -46,7 +46,31 @@ spec:
                             mv -v $artifact_name ${artifact_name/.vsix/_$(date +'%F-%H%M').vsix}
                         '''
 
-                        // Note there must be exactly one .vsix
+                        stash includes: '*.vsix', name: 'deployables'
+                    }
+                }
+            }
+        }
+        stage("Build for Theia") {
+            steps {
+                container("node") {
+                    dir('dev') {
+                        sh '''#!/usr/bin/env bash
+
+                            ./theia-prebuild.js
+
+                            # Test compilation to catch any errors
+                            npm run vscode:prepublish
+
+                            # Package for prod
+                            npm i vsce
+                            npx vsce package
+
+                            # rename to have datetime for clarity + prevent collisions
+                            export artifact_name=$(basename *.vsix)
+                            mv -v $artifact_name ${artifact_name/.vsix/-theia_$(date +'%F-%H%M').vsix}
+                        '''
+
                         stash includes: '*.vsix', name: 'deployables'
                     }
                 }

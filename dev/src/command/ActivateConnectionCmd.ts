@@ -25,7 +25,7 @@ const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function activateConnection(): Promise<void> {
     try {
-        const url = CodewindManager.instance.CW_URL;
+        const url = CodewindManager.instance.codewindUrl;
         Log.i("Activating connection to " + url);
         const envData = await MCEnvironment.getEnvData(url);
         Log.i("ENV data:", envData);

@@ -45,6 +45,12 @@
                 "test_scope": "extended, restart"
             },
             "preLaunchTask": "build"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Remove for Theia",
+            "program": "${workspaceFolder}/remove-cmds-for-theia.js"
         }
     ]
 }
