@@ -133,7 +133,6 @@
     "treeView": {
         "connectionLabel": "Projects ({{ type }})",
         "connectionTypeLocal": "Local",
-        "noProjectsLabel": "No projects (Click here to create a project)",
         "notStartedConnectionLabel": "Codewind is stopped (Click to start)",
         "disconnectedConnectionLabel": "Disconnected",
         "projectLabel": "{{ projectName }} {{- state }}"

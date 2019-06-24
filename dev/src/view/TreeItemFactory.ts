@@ -106,10 +106,18 @@ namespace TreeItemFactory {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));
             }
             else {
+                const label = global.isTheia ?
+                    "No Projects" :
+                    "No projects (Click here to create a project)";
+
+                const tooltip = global.isTheia ?
+                    "Right click Projects to create a project" :
+                    "Click here to create a project";
+
                 return [{
-                    label: Translator.t(STRING_NS, "noProjectsLabel"),
+                    label,
                     iconPath: Resources.getIconPaths(Resources.Icons.Error),
-                    tooltip: "Click here to create a new project",
+                    tooltip,
                     contextValue: buildContextValue([TreeContextValues.NO_PROJECTS]),
                     collapsibleState: vscode.TreeItemCollapsibleState.None,
                     command: {
