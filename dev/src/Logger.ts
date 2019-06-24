@@ -26,7 +26,7 @@ import Project from "./microclimate/project/Project";
 
 export class Log {
 
-    private static readonly LOG_NAME: string = "codewind-tools.log";
+    private static readonly LOG_NAME: string = "codewind.log";
 
     private static logDir: string;
     private static logFilePath: string;
