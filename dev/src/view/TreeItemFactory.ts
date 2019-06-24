@@ -145,13 +145,14 @@ namespace TreeItemFactory {
 }
 
 function getConnectionTI(connection: Connection): vscode.TreeItem {
-    // always local for now
     let label;
     if (global.isTheia) {
-        label = Translator.t(STRING_NS, "connectionLabel", { type: Translator.t(STRING_NS, "connectionTypeLocal") });
+        // it's confusing to say "local" in the theia case
+        label = Translator.t(STRING_NS, "connectionLabelSimple");
     }
     else {
-        label = Translator.t(STRING_NS, "connectionLabel");
+        // always local for now
+        label = Translator.t(STRING_NS, "connectionLabel", { type: Translator.t(STRING_NS, "connectionTypeLocal") });
     }
     const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 

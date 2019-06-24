@@ -118,11 +118,12 @@ export function generateHtml(project: Project): string {
                     normalize(project.appBaseUrl, notRunning),
                     (project.appBaseUrl != null ? Openable.WEB : undefined), true)}
                 ${emptyRow}
-                ${buildRow("Exposed Debug Port", normalize(project.ports.debugPort, notDebugging))}
-                ${buildRow("Internal Debug Port",
+                <!-- Hide debug info in theia -->
+                ${global.isTheia ? "" : buildRow("Exposed Debug Port", normalize(project.ports.debugPort, notDebugging))}
+                ${global.isTheia ? "" : buildRow("Internal Debug Port",
                     normalize(project.ports.internalDebugPort, notAvailable),
                     undefined, true)}
-                ${buildRow("Debug URL", normalize(project.debugUrl, notDebugging))}
+                ${global.isTheia ? "" : buildRow("Debug URL", normalize(project.debugUrl, notDebugging))}
             </table>
 
             <div id="bottom-section">
