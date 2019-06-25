@@ -20,9 +20,9 @@ Complete the installation:
 To see the actions available, open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type `Codewind`.</br>
 
 Features:</br>
-- Create new projects from application templates or import existing Docker-ready projects.
+- Create new projects from application templates or import existing container-ready projects.
 - View Codewind projects, including application and build statuses.
-- Debug Microprofile, Spring, and Node.js projects in their Docker containers.
+- Debug Microprofile, Spring, and Node.js projects in their containers.
 - View application and build logs in the VS Code **Output** view.
 - View and edit project deployment information.
 - Open a shell session into a Codewind application container.
