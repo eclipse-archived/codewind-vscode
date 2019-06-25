@@ -36,22 +36,25 @@ export class ProjectType {
 
     /**
      *
-     * @param interalType A Microclimate/Codewind internal project type.
+     * @param internalType A Microclimate/Codewind internal project type.
      */
-    private static getType(interalType: string, language: string): ProjectType.Types {
-        if (interalType === this.InternalTypes.MICROPROFILE) {
+    private static getType(internalType: string, language: string): ProjectType.Types {
+        if (internalType === this.InternalTypes.MICROPROFILE) {
             return ProjectType.Types.MICROPROFILE;
         }
-        else if (interalType === this.InternalTypes.SPRING) {
+        else if (internalType === this.InternalTypes.SPRING) {
             return ProjectType.Types.SPRING;
         }
-        else if (interalType === this.InternalTypes.NODE) {
+        else if (internalType === this.InternalTypes.NODE) {
             return ProjectType.Types.NODE;
         }
-        else if (interalType === this.InternalTypes.SWIFT) {
+        else if (internalType === this.InternalTypes.SWIFT) {
             return ProjectType.Types.SWIFT;
         }
-        else if (interalType === this.InternalTypes.DOCKER) {
+        else if (internalType === this.InternalTypes.APPSODY) {
+            return ProjectType.Types.APPSODY;
+        }
+        else if (internalType === this.InternalTypes.DOCKER) {
             if (language === this.Languages.PYTHON) {
                 return ProjectType.Types.PYTHON;
             }
@@ -63,7 +66,7 @@ export class ProjectType {
             }
         }
         else {
-            Log.e(`Unrecognized project type ${interalType}`);
+            Log.e(`Unrecognized project type ${internalType}`);
             return ProjectType.Types.UNKNOWN;
         }
     }
@@ -140,6 +143,7 @@ export namespace ProjectType {
         PYTHON = "Python",
         GO = "Go",
         GENERIC_DOCKER = "Docker",
+        APPSODY = "Appsody",
         UNKNOWN = "Unknown"
     }
 
@@ -151,7 +155,8 @@ export namespace ProjectType {
         SPRING = "spring",
         NODE = "nodejs",
         SWIFT = "swift",
-        DOCKER = "docker"
+        DOCKER = "docker",
+        APPSODY = "appsodyExtension",
     }
 
     // Possible values of the "language" internal attribute
