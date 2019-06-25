@@ -10,7 +10,8 @@
  *******************************************************************************/
 
 import Resources from "../../constants/Resources";
-import Log from "../../Logger";
+import * as MCUtil from "../../MCUtil";
+// import Log from "../../Logger";
 
 export class ProjectType {
 
@@ -22,7 +23,8 @@ export class ProjectType {
 
     constructor(
         public readonly internalType: string,
-        public readonly language: string
+        public readonly language: string,
+        public readonly extensionName?: string,
     ) {
         this.type = ProjectType.getType(internalType, language);
         // this.userFriendlyType = ProjectType.getUserFriendlyType(this.type);
@@ -31,27 +33,34 @@ export class ProjectType {
     }
 
     public toString(): string {
+        if (this.extensionName) {
+            let ufExtension = this.extensionName.toLowerCase();
+            if (ufExtension.endsWith("extension")) {
+                ufExtension = ufExtension.substring(0, ufExtension.length - "extension".length);
+            }
+            return MCUtil.uppercaseFirstChar(ufExtension);
+        }
         return this.type.toString();
     }
 
     /**
      *
-     * @param interalType A Microclimate/Codewind internal project type.
+     * @param internalType A Microclimate/Codewind internal project type.
      */
-    private static getType(interalType: string, language: string): ProjectType.Types {
-        if (interalType === this.InternalTypes.MICROPROFILE) {
+    private static getType(internalType: string, language: string, extension?: string): ProjectType.Types {
+        if (internalType === this.InternalTypes.MICROPROFILE) {
             return ProjectType.Types.MICROPROFILE;
         }
-        else if (interalType === this.InternalTypes.SPRING) {
+        else if (internalType === this.InternalTypes.SPRING) {
             return ProjectType.Types.SPRING;
         }
-        else if (interalType === this.InternalTypes.NODE) {
+        else if (internalType === this.InternalTypes.NODE) {
             return ProjectType.Types.NODE;
         }
-        else if (interalType === this.InternalTypes.SWIFT) {
+        else if (internalType === this.InternalTypes.SWIFT) {
             return ProjectType.Types.SWIFT;
         }
-        else if (interalType === this.InternalTypes.DOCKER) {
+        else if (internalType === this.InternalTypes.DOCKER) {
             if (language === this.Languages.PYTHON) {
                 return ProjectType.Types.PYTHON;
             }
@@ -62,8 +71,11 @@ export class ProjectType {
                 return ProjectType.Types.GENERIC_DOCKER;
             }
         }
+        else if (extension) {
+            return ProjectType.Types.EXTENSION;
+        }
         else {
-            Log.e(`Unrecognized project type ${interalType}`);
+            // Log.e(`Unrecognized project type ${interalType}`);
             return ProjectType.Types.UNKNOWN;
         }
     }
@@ -140,6 +152,7 @@ export namespace ProjectType {
         PYTHON = "Python",
         GO = "Go",
         GENERIC_DOCKER = "Docker",
+        EXTENSION = "Extension",
         UNKNOWN = "Unknown"
     }
 

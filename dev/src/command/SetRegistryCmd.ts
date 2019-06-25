@@ -18,8 +18,8 @@ import Log from "../Logger";
 
 export async function setRegistryCmd(connection: Connection): Promise<void> {
     if (!global.isTheia) {
-        vscode.window.showErrorMessage("There is no registry when not running in Che");
-        // return;
+        vscode.window.showErrorMessage("This command does not apply to local Codewind.");
+        return;
     }
 
     try {
