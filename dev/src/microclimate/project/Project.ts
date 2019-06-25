@@ -87,7 +87,8 @@ export default class Project implements vscode.QuickPickItem {
         this.name = projectInfo.name;
         this.id = projectInfo.projectID;
 
-        this.type = new ProjectType(projectInfo.projectType, projectInfo.language);
+        const extensionName = (projectInfo.extension) ? projectInfo.extension.name : undefined;
+        this.type = new ProjectType(projectInfo.projectType, projectInfo.language, extensionName);
         this.language = projectInfo.language || "Unknown";
         this.localPath = vscode.Uri.file(path.join(connection.workspacePath.fsPath, projectInfo.directory));
         this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
@@ -114,7 +115,7 @@ export default class Project implements vscode.QuickPickItem {
 
         this.logManager = new MCLogManager(this);
 
-        Log.i(`Created ${this.type} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
+        Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
     }
 
     // description used by QuickPickItem
