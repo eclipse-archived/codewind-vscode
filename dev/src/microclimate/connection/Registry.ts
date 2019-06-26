@@ -119,6 +119,7 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
                         resolve();
                     }
                     else if (count > 10) {
+                        clearInterval(interval);
                         reject(`Failed to update registry within ${count}s; Please try setting the registry again.`);
                     }
                 }, intervalLen);
