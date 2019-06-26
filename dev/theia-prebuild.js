@@ -27,6 +27,7 @@ const cmdsToDelete = [
     "restartDebug",
     "manageLogs",
     "containerShell",
+    "openPerfDashboard",
 ];
 
 const PACKAGE_JSON_PATH = "./package.json";

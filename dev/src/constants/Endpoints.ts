@@ -70,8 +70,12 @@ export namespace EndpointUtil {
     export function getPerformanceDashboard(project: Project): vscode.Uri {
         // return value looks like http://localhost:9090/performance/charts?project=bacd4760-70ce-11e9-af94-d39edf21b705
 
-        const query = `project=${project.id}`;
-        return project.connection.url.with({ path: "/performance/charts", query });
+        const authority = global.isTheia ? project.connection.host : project.connection.url.authority;
+        return project.connection.url.with({
+            authority,
+            path: "/performance/charts",
+            query: `project=${project.id}`,
+        });
     }
 }
 
