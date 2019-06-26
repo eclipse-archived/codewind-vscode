@@ -38,12 +38,16 @@ export async function isRegistrySet(connection: Connection): Promise<boolean> {
         cancellable: false,
         title: "Checking deployment registry status..."
     }, () => {
-        return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
+        return getRegistryStatus(connection);
     });
 
     registryIsSet = registryStatus.deploymentRegistry;
     Log.d("Registry is now set ? " + registryIsSet);
     return registryIsSet;
+}
+
+function getRegistryStatus(connection: Connection): Promise<{ deploymentRegistry: boolean }> {
+    return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
 }
 
 export async function onRegistryNotSet(connection: Connection): Promise<void> {
@@ -97,7 +101,33 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
     const configFilePath = path.join(connection.workspacePath.fsPath, Constants.CW_CONFIG_FILE);
     try {
         await writeRegistry(configFilePath, registry);
+
+        Log.i("Waiting for deployment registry to be set...");
+        await vscode.window.withProgress({
+            cancellable: false,
+            title: `Setting deployment registry to ${registry}...`,
+            location: vscode.ProgressLocation.Notification,
+        }, () => {
+            return new Promise((resolve, reject) => {
+                const intervalLen = 1000;
+                let count = 0;
+                const interval = setInterval(async () => {
+                    count++;
+                    const regStatus = await getRegistryStatus(connection);
+                    if (regStatus.deploymentRegistry) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                    else if (count > 10) {
+                        reject(`Failed to update registry within ${count}s; Please try setting the registry again.`);
+                    }
+                }, intervalLen);
+            });
+        });
+
+        Log.i("Deployment registry set successfully");
         vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved to ${configFilePath}`);
+        registryIsSet = true;
     }
     catch (err) {
         vscode.window.showErrorMessage("Error updating registry: " + err.toString());
