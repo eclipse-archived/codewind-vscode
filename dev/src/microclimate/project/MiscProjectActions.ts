@@ -72,7 +72,7 @@ namespace MiscProjectActions {
         const projectDirPath = project.localPath.fsPath;
         return vscode.window.withProgress({
             cancellable: false,
-            location: vscode.ProgressLocation.Notification,
+            location: vscode.ProgressLocation.Window,
             title: `Deleting ${projectDirPath}...`,
         }, (_progress) => {
             return new Promise<void>((resolve, _reject) => {
