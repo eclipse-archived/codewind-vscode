@@ -68,14 +68,12 @@ namespace TreeItemFactory {
         const id = cwStarted ?  CW_STARTED_NODE_ID : undefined;
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
         const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
-        const command: vscode.Command | undefined = cwStarted ? undefined : { command: Commands.START_CODEWIND, title: "" };
 
         const cwStatusItem: vscode.TreeItem = {
             id,
             label,
             tooltip: label,
             collapsibleState,
-            command,
             iconPath: Resources.getIconPaths(Resources.Icons.Logo),
             contextValue: buildContextValue([contextValue]),
         };
@@ -114,17 +112,21 @@ namespace TreeItemFactory {
                     "Right click Projects to create a project" :
                     "Click here to create a project";
 
+                const command = global.isTheia ?
+                    undefined :
+                    {
+                        command: Commands.CREATE_PROJECT,
+                        title: "",
+                        arguments: [connection]
+                    };
+
                 return [{
                     label,
                     iconPath: Resources.getIconPaths(Resources.Icons.Error),
                     tooltip,
                     contextValue: buildContextValue([TreeContextValues.NO_PROJECTS]),
                     collapsibleState: vscode.TreeItemCollapsibleState.None,
-                    command: {
-                        command: Commands.CREATE_PROJECT,
-                        title: "",
-                        arguments: [connection]
-                    },
+                    command,
                 }];
             }
         }
@@ -134,11 +136,6 @@ namespace TreeItemFactory {
                 iconPath: Resources.getIconPaths(Resources.Icons.Disconnected),
                 contextValue: "nothing",        // anything truthy works
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
-                // command: {
-                //     command: Commands.START_CODEWIND,
-                //     title: "",
-                //     // arguments:
-                // }
             }];
         }
     }
@@ -167,6 +164,13 @@ function getConnectionTI(connection: Connection): vscode.TreeItem {
 
 function getProjectTI(project: Project): vscode.TreeItem {
     const label = Translator.t(STRING_NS, "projectLabel", { projectName: project.name, state: project.state.toString() });
+    const command = global.isTheia ?
+        undefined :
+        {
+            command: Commands.VSC_REVEAL_EXPLORER,
+            title: "",
+            arguments: [project.localPath]
+        };
 
     return {
         id: project.id,
@@ -176,11 +180,7 @@ function getProjectTI(project: Project): vscode.TreeItem {
         contextValue: getProjectContext(project),
         iconPath: project.type.icon,
         // command run on single-click (or double click - depends on a user setting - https://github.com/Microsoft/vscode/issues/39601)
-        command: {
-            command: Commands.VSC_REVEAL_EXPLORER,
-            title: "",
-            arguments: [project.localPath]
-        },
+        command,
     };
 }
 
