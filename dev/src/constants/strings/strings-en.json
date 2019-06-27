@@ -23,7 +23,7 @@
         "dontDeleteDirBtn": "Don't Delete",
         "alwaysDeleteDirBtn": "Always",
         "neverDeleteDirBtn": "Never",
-        "refreshingConnection": "Refreshed Codewind at {{- uri }}.",
+        "refreshedConnection": "Refreshed Projects list.",
         "projectAlreadyBuilding": "{{ projectName }} is already building. Build request cancelled.",
         "explicitBuildNotNecessary": "{{ projectName }} has auto-build enabled. There is no need to request a build.",
         "seeProblemsView": "See the Problems view for details.",

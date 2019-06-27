@@ -29,6 +29,6 @@ export default async function refreshConnectionCmd(connection: Connection): Prom
         connection = selected;
     }
 
-    vscode.window.showInformationMessage(Translator.t(StringNamespaces.CMD_MISC, "refreshingConnection", { uri: connection.url }));
+    vscode.window.showInformationMessage(Translator.t(StringNamespaces.CMD_MISC, "refreshedConnection"));
     return connection.forceUpdateProjectList(true);
 }
