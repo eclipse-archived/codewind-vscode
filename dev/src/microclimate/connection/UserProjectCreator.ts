@@ -64,7 +64,8 @@ namespace UserProjectCreator {
         }
 
         // const result = creationRes.result as IProjectInitializeInfo;
-        const targetDir = vscode.Uri.file(creationRes.projectPath);
+        // const targetDir = vscode.Uri.file(creationRes.projectPath);
+        const targetDir = creationRes.projectPath;
 
         // create succeeded, now we bind
         await requestBind(connection, projectName, targetDir, template.language, template.projectType);
@@ -117,7 +118,7 @@ namespace UserProjectCreator {
             projectTypeInfo = userProjectType;
         }
 
-        await requestBind(connection, projectName, pathToBindUri, projectTypeInfo.language, projectTypeInfo.projectType);
+        await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -281,16 +282,14 @@ namespace UserProjectCreator {
         return creationRes;
     }
 
-    async function requestBind(connection: Connection, projectName: string, dirToBind: vscode.Uri, language: string, projectType: string)
+    async function requestBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
         : Promise<void> {
-
-        const bindPath = MCUtil.fsPathToContainerPath(dirToBind);
 
         const bindReq = {
             name: projectName,
             language,
             projectType,
-            path: bindPath,
+            path: dirToBindContainerPath,
         };
 
         Log.d("Bind request", bindReq);
