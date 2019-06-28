@@ -14,8 +14,8 @@ import * as path from "path";
 import * as child_process from "child_process";
 import * as fs from "fs";
 import * as os from "os";
-// import * as readline from "readline";
-// import { Readable } from "stream";
+import * as readline from "readline";
+import { Readable } from "stream";
 import { promisify } from "util";
 
 import * as MCUtil from "../../MCUtil";
@@ -227,7 +227,7 @@ namespace InstallerWrapper {
         if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
             progressTitle = getUserActionName(cmd);
             if (tag) {
-                progressTitle += `: ${tag}`;
+                progressTitle += ` - ${tag}`;
             }
         }
 
@@ -237,7 +237,7 @@ namespace InstallerWrapper {
             cancellable: INSTALLER_COMMANDS[cmd].cancellable,
             location: vscode.ProgressLocation.Notification,
             title: progressTitle,
-        }, (_progress, token) => {
+        }, (progress, token) => {
             return new Promise<void>((resolve, reject) => {
                 currentOperation = cmd;
 
@@ -245,7 +245,7 @@ namespace InstallerWrapper {
                     cwd: executableDir
                 });
 
-                // updateProgress(isInstallCmd, child.stdout, progress);
+                updateProgress(isInstallCmd, child.stdout, progress);
 
                 child.on("error", (err) => {
                     return reject(err);
@@ -389,11 +389,10 @@ namespace InstallerWrapper {
     }
 
     function onMoreInfo(): void {
-        // replace this with vscode.commands.executeCommand(Commands.VSC_OPEN, <more info url>);
-        vscode.window.showInformationMessage("More info not implemented");
+        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}installlocally.html`);
+        vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 
-    /*
     function updateProgress(isInstall: boolean, stdout: Readable, progress: vscode.Progress<{ message?: string, increment?: number }>): void {
         const reader = readline.createInterface(stdout);
         reader.on("line", (line) => {
@@ -418,7 +417,6 @@ namespace InstallerWrapper {
             }
         });
     }
-    */
 }
 
 export default InstallerWrapper;

@@ -22,6 +22,7 @@ import Connection from "./Connection";
 import Constants from "../../constants/Constants";
 import SocketEvents from "./SocketEvents";
 import { setRegistryCmd } from "../../command/SetRegistryCmd";
+import Commands from "../../constants/Commands";
 
 // let registryIsSet: boolean = global.isTheia;            // no registry required in local case
 let registryIsSet: boolean = false;
@@ -52,12 +53,17 @@ function getRegistryStatus(connection: Connection): Promise<{ deploymentRegistry
 
 export async function onRegistryNotSet(connection: Connection): Promise<void> {
     const setRegistryBtn = "Set Registry";
+    const moreInfoBtn = "More Info";
     const res = await vscode.window.showErrorMessage(
         "You must set a deployment registry before binding a project. Run the Set Deployment Registry command.",
         setRegistryBtn
     );
     if (res === setRegistryBtn) {
         setRegistryCmd(connection);
+    }
+    else if (res === moreInfoBtn) {
+        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}dockerregistry.html`);
+        vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 }
 
@@ -162,10 +168,10 @@ async function testRegistry(connection: Connection, registry: string): Promise<b
     }, (_progress) => {
         try {
             return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY), {
-                    body: {
-                        deploymentRegistry: registry,
-                    }
-                });
+                body: {
+                    deploymentRegistry: registry,
+                }
+            });
         }
         catch (err) {
             Log.e("Error testing registry", err);
