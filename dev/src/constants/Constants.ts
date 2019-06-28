@@ -20,6 +20,11 @@ namespace Constants {
     export const CW_CONFIG_FILE = path.join(CW_CONFIG_DIR, "settings.json");
 
     export const CHE_EXTERNAL_URL_ENVVAR = "CHE_API_EXTERNAL";
+
+    export const CW_ENV_VAR = "CW_ENV";
+    export const CW_ENV_DEV = "dev";
+    export const CW_ENV_TEST = "test";
+    export const CW_ENV_TAG_VAR = "CW_TAG";
 }
 
 export default Constants;
