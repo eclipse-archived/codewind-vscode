@@ -56,7 +56,7 @@ export async function onRegistryNotSet(connection: Connection): Promise<void> {
     const moreInfoBtn = "More Info";
     const res = await vscode.window.showErrorMessage(
         "You must set a deployment registry before binding a project. Run the Set Deployment Registry command.",
-        setRegistryBtn
+        setRegistryBtn, moreInfoBtn
     );
     if (res === setRegistryBtn) {
         setRegistryCmd(connection);
