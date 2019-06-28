@@ -33,5 +33,7 @@ Features:</br>
 Submit issues and contributions:
 - [Submitting issues](https://github.com/eclipse/codewind/issues)
 - [Contributing](CONTRIBUTING.md)
+- [Development Builds](https://download.eclipse.org/codewind/codewind-vscode/)
+- [Jenkins](https://ci.eclipse.org/codewind/job/Codewind/job/codewind-vscode/)
 - To host the extension yourself so you can develop or debug it, clone this repository and run the **Extension** launch in `dev/.vscode/launch.json`. See [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
-- You can also build the extension `.vsix` yourself by running [`vsce package`](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions) from `dev/`. Refer to the [`ci-scripts`](https://github.com/eclipse/codewind-vscode/tree/master/ci-scripts) to see the exact steps the build runs.
+- You can also build the extension `.vsix` yourself by running [`vsce package`](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions) from `dev/`. Refer to the [`Jenkinsfile`](https://github.com/eclipse/codewind-vscode/blob/master/Jenkinsfile) to see the exact steps the build runs.
