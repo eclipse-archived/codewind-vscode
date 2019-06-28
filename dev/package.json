@@ -315,7 +315,7 @@
                 },
                 {
                     "command": "%cmdID_refreshConnection%",
-                    "when": "%isActiveConnection%",
+                    "when": "%isConnection%",
                     "group": "ext.cw.conn.c@0"
                 },
                 {
