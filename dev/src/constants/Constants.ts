@@ -25,6 +25,8 @@ namespace Constants {
     export const CW_ENV_DEV = "dev";
     export const CW_ENV_TEST = "test";
     export const CW_ENV_TAG_VAR = "CW_TAG";
+
+    export const CW_SITE_BASEURL = "https://www.eclipse.org/codewind/";
 }
 
 export default Constants;

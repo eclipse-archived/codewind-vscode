@@ -122,7 +122,7 @@ namespace UserProjectCreator {
         return { projectName, projectPath: pathToBind };
     }
 
-    const OTHER_OPTION = "Other";
+    const OTHER_TYPE_OPTION = "Other (Basic Container)";
 
     /**
      * When detection fails, have the user select the project type that fits best.
@@ -152,7 +152,7 @@ namespace UserProjectCreator {
         projectTypeQpis.sort();
         // Add "other" option last
         projectTypeQpis.push({
-            label: OTHER_OPTION,
+            label: OTHER_TYPE_OPTION,
             language: "any"             // this will be replaced below
         });
 
@@ -167,7 +167,7 @@ namespace UserProjectCreator {
 
         let projectType: string = projectTypeRes.label;
         let language: string;
-        if (projectType !== OTHER_OPTION) {
+        if (projectType !== OTHER_TYPE_OPTION) {
             language = projectTypeRes.language;
         }
         else {
@@ -183,13 +183,15 @@ namespace UserProjectCreator {
         return { projectType, language };
     }
 
+    const OTHER_LANG_BTN = "Other";
+
     async function promptForLanguage(templates: IMCTemplateData[]): Promise<string | undefined> {
         Log.d("Prompting user for project language");
         let languageQpis = templates.map((template) => template.language);
         // remove duplicates
         languageQpis = [ ... new Set(languageQpis) ];
         languageQpis.sort();
-        languageQpis.push(OTHER_OPTION);
+        languageQpis.push(OTHER_LANG_BTN);
 
         let language = await vscode.window.showQuickPick(languageQpis, {
             placeHolder: "Select the language that best fits your project",
@@ -199,7 +201,7 @@ namespace UserProjectCreator {
         if (language == null) {
             return;
         }
-        else if (language === OTHER_OPTION) {
+        else if (language === OTHER_LANG_BTN) {
             language = await vscode.window.showInputBox({
                 ignoreFocusOut: true,
                 prompt: "Enter the programming language for your project",
