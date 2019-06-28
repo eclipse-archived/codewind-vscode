@@ -14,15 +14,16 @@ import * as path from "path";
 import * as child_process from "child_process";
 import * as fs from "fs";
 import * as os from "os";
-import * as readline from "readline";
+// import * as readline from "readline";
+// import { Readable } from "stream";
 import { promisify } from "util";
 
 import * as MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
-import { Readable } from "stream";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
+import Constants from "../../constants/Constants";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -30,6 +31,10 @@ const BIN_DIR = "bin";
 const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
+
+// Codewind tag to install if no env vars set
+const DEFAULT_CW_TAG = "0.2";
+const TAG_LATEST = "latest";
 
 export enum InstallerCommands {
     INSTALL = "install",
@@ -42,19 +47,26 @@ export enum InstallerCommands {
 }
 
 // const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: string, cancellable: boolean } } = {
-const INSTALLER_COMMANDS: { [key in InstallerCommands]: { action: string, userActionName: string, cancellable: boolean } } = {
+const INSTALLER_COMMANDS: {
+    [key in InstallerCommands]: {
+        action: string,
+        userActionName: string,
+        cancellable: boolean,
+        usesTag: boolean
+    }
+} = {
     install:
-        { action: "install", userActionName: "Downloading Codewind Docker images", cancellable: true },
+        { action: "install", userActionName: "Pulling Codewind Docker images", cancellable: true, usesTag: true },
     "install-dev":
-        { action: "install-dev", userActionName: "Downloading Codewind Docker images (DEV BUILD)", cancellable: true },
+        { action: "install-dev", userActionName: "Pulling Codewind Docker images (DEV BUILD)", cancellable: true, usesTag: false },
     start:
-        { action: "start", userActionName: "Starting Codewind", cancellable: true },
+        { action: "start", userActionName: "Starting Codewind", cancellable: true, usesTag: true },
     stop:
-        { action: "stop", userActionName: "Stopping Codewind", cancellable: true },
+        { action: "stop", userActionName: "Stopping Codewind", cancellable: true, usesTag: false },
     "stop-all":
-        { action: "stop-all", userActionName: "Stopping Codewind and applications", cancellable: true },
+        { action: "stop-all", userActionName: "Stopping Codewind and applications", cancellable: true, usesTag: false },
     remove:
-        { action: "remove", userActionName: "Removing Codewind and project images", cancellable: true },
+        { action: "remove", userActionName: "Removing Codewind and project images", cancellable: true, usesTag: false },
     // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
 
@@ -141,8 +153,29 @@ namespace InstallerWrapper {
         return _executablePath;
     }
 
+    function isDevEnv(): boolean {
+        const env = process.env[Constants.CW_ENV_VAR];
+        return env === Constants.CW_ENV_DEV || env === Constants.CW_ENV_TEST;
+    }
+
     function getUserActionName(cmd: InstallerCommands): string {
         return INSTALLER_COMMANDS[cmd].userActionName;
+    }
+
+    function doesUseTag(cmd: InstallerCommands): boolean {
+        return INSTALLER_COMMANDS[cmd].usesTag;
+    }
+
+    function getTag(): string {
+        let tag = DEFAULT_CW_TAG;
+        const versionVarValue = process.env[Constants.CW_ENV_TAG_VAR];
+        if (versionVarValue) {
+            tag = versionVarValue;
+        }
+        else if (isDevEnv()) {
+            tag = TAG_LATEST;
+        }
+        return tag;
     }
 
     // serves as a lock, only one operation at a time.
@@ -160,7 +193,7 @@ namespace InstallerWrapper {
 
         const isInstallCmd = cmd === InstallerCommands.INSTALL;
         if (isInstallCmd) {
-            if (process.env.CW_ENV === "dev" || process.env.CW_ENV === "test") {
+            if (isDevEnv()) {
                 Log.i("Installing in development mode");
 
                 // Use install-dev instead of install
@@ -181,25 +214,38 @@ namespace InstallerWrapper {
         }
         // const timeout = isInstallCmd ? undefined : 60000;
 
-        Log.i(`Running installer command: ${cmd}`);
+        const args: string[] = [ cmd ];
+        let tag: string | undefined;
+        if (doesUseTag(cmd)) {
+            tag = getTag();
+            args.push("-t", tag);
+        }
+        Log.i(`Running installer command: ${args}`);
 
         let progressTitle;
         // For STOP the installer output looks better by itself, so we don't display any extra title
         if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
             progressTitle = getUserActionName(cmd);
+            if (tag) {
+                progressTitle += `: ${tag}`;
+            }
         }
+
         const executableDir = path.dirname(executablePath);
 
         await vscode.window.withProgress({
             cancellable: INSTALLER_COMMANDS[cmd].cancellable,
             location: vscode.ProgressLocation.Notification,
             title: progressTitle,
-        }, (progress, token) => {
+        }, (_progress, token) => {
             return new Promise<void>((resolve, reject) => {
                 currentOperation = cmd;
-                const child = child_process.spawn(executablePath, [ cmd ], {
+
+                const child = child_process.spawn(executablePath, args, {
                     cwd: executableDir
                 });
+
+                // updateProgress(isInstallCmd, child.stdout, progress);
 
                 child.on("error", (err) => {
                     return reject(err);
@@ -214,8 +260,6 @@ namespace InstallerWrapper {
                     child.kill();
                     return reject(INSTALLCMD_CANCELLED);
                 });
-
-                updateProgress(isInstallCmd, child.stdout, progress);
 
                 child.on("close", (code: number | null) => {
                     if (code == null) {
@@ -281,7 +325,7 @@ namespace InstallerWrapper {
         const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
 
         let response;
-        if (process.env.CW_ENV === "test") {
+        if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST) {
             response = installAffirmBtn;
         }
         else {
@@ -349,6 +393,7 @@ namespace InstallerWrapper {
         vscode.window.showInformationMessage("More info not implemented");
     }
 
+    /*
     function updateProgress(isInstall: boolean, stdout: Readable, progress: vscode.Progress<{ message?: string, increment?: number }>): void {
         const reader = readline.createInterface(stdout);
         reader.on("line", (line) => {
@@ -364,27 +409,16 @@ namespace InstallerWrapper {
                 return;
             }
 
-            // install output is JSON, one object per line
-            let lineObj: { status: string; id: string; };
-            try {
-                lineObj = JSON.parse(line);
-            }
-            catch (err) {
-                Log.e(`Error parsing JSON from installer output, line was "${line}"`);
-                return;
-            }
-
             // we're interested in lines like:
             // {"status":"Pulling from codewind-pfe-amd64","id":"latest"}
             const pullingFrom = "Pulling from";
-            if (lineObj.status.startsWith(pullingFrom)) {
+            if (line.includes(pullingFrom)) {
                 // const imageName = lineObj.status.substring(pullingFrom.length);
-                const imageTag = lineObj.id;
-                const message = lineObj.status + ":" + imageTag;
-                progress.report({ message });
+                progress.report({ message: line });
             }
         });
     }
+    */
 }
 
 export default InstallerWrapper;
