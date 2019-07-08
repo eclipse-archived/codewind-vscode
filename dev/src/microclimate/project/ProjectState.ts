@@ -68,6 +68,10 @@ export class ProjectState {
         return ProjectState.getStartedStates().includes(this.appState);
     }
 
+    public get isStarting(): boolean {
+        return ProjectState.getStartingStates().includes(this.appState);
+    }
+
     public get isDebuggable(): boolean {
         return ProjectState.getDebuggableStates().includes(this.appState);
     }

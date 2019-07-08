@@ -101,7 +101,7 @@
     },
 
     "openInBrowserCmd": {
-        "canOnlyOpenStartedProjects": "You can only open projects that are Started in the browser.",
+        "canOnlyOpenStartedProjects": "{{ projectName }} is not running - wait until the project is Starting or Started and try again.",
         "failedDetermineAppUrl": "Could not determine application URL for {{ projectName }}.",
         "cantOpenDisconnected": "This connection is Disconnected. You cannot open Codewind if it is not running."
     },
