@@ -36,7 +36,7 @@ export default async function openAppMonitorCmd(project: Project): Promise<void>
     }
 
     try {
-        const appMetricsPath: string | undefined = langToPathMap.get(project.type.language);
+        const appMetricsPath = langToPathMap.get(project.type.language);
 
         const supported = appMetricsPath != null && await Requester.areMetricsAvailable(project);
         // const supported = appMetricsPath != null;
@@ -56,7 +56,8 @@ export default async function openAppMonitorCmd(project: Project): Promise<void>
             monitorPageUrlStr += "/";
         }
 
-        monitorPageUrlStr = monitorPageUrlStr + appMetricsPath;
+        // https://github.com/eclipse/codewind-vscode/issues/99
+        monitorPageUrlStr = monitorPageUrlStr + appMetricsPath + "/";
         Log.d("Open monitor at " + monitorPageUrlStr);
         vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(monitorPageUrlStr));
     }
