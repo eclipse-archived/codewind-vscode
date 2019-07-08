@@ -15,7 +15,7 @@ namespace SocketEvents {
 
     export const STATUS_SUCCESS: string = "success";
 
-    // from https://github.ibm.com/dev-ex/microclimate/blob/master/docker/file-watcher/server/src/projects/actions.ts - "restart" function
+    // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/actions.ts - "restart" function
     export interface IProjectRestartedEvent {
         operationID: string;
         projectID: string;
@@ -30,7 +30,7 @@ namespace SocketEvents {
         };
     }
 
-    // from https://github.ibm.com/dev-ex/microclimate/blob/master/docker/file-watcher/server/src/projects/Validator.ts#L144
+    // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/Validator.ts
     export interface IValidationResult {
         // severity: Severity;
         severity: string;

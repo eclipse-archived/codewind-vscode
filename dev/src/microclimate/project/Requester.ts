@@ -73,8 +73,6 @@ namespace Requester {
         // return doProjectRequest(project, url, body, request.post, "Build");
         const buildMsg = Translator.t(STRING_NS, "build");
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, request.post, buildMsg);
-        // This is a workaround for the Build action not refreshing validation state.
-        // Will be fixed by https://github.ibm.com/dev-ex/iterative-dev/issues/530
         // await requestValidate(project, true);
     }
 
@@ -84,8 +82,6 @@ namespace Requester {
         // user-friendly action
         const autoBuildMsgKey = newAutoBuild ? "autoBuildEnable" : "autoBuildDisable";                  // non-nls
         const newAutoBuildUserStr: string = Translator.t(STRING_NS, autoBuildMsgKey);
-
-        // action we'll put into the request body   https://github.ibm.com/dev-ex/portal/wiki/API:-Build
         const newAutoBuildAction:  string = newAutoBuild ? "enableautobuild" : "disableautobuild";     // non-nls
 
         const body = {

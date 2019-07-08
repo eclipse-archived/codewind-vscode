@@ -14,7 +14,7 @@ import Log from "../Logger";
 
 // non-nls-file
 
-// from https://github.ibm.com/dev-ex/microclimate/blob/master/docker/file-watcher/server/src/projects/constants.ts
+// from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/constants.ts
 
 namespace StartModes {
 

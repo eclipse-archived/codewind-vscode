@@ -98,7 +98,7 @@ namespace InstallerWrapper {
                 }
             });
 
-            // from https://github.ibm.com/dev-ex/portal/issues/945
+            // https://github.com/eclipse/codewind-installer/blob/master/commands.go#L143
             // 0 - not installed, 1 - installed but stopped, 2 - installed and running
             child.on("exit", (code, _signal) => {
                 if (code === 0) {
