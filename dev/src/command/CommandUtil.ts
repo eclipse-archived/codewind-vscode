@@ -21,7 +21,7 @@ import Commands from "../constants/Commands";
 
 import openWorkspaceFolderCmd from "./OpenWorkspaceFolderCmd";
 import restartProjectCmd from "./project/RestartProjectCmd";
-import openAppCmd from "./project/OpenInBrowserCmd";
+import openAppCmd from "./project/OpenAppCmd";
 import requestBuildCmd from "./project/RequestBuildCmd";
 import toggleEnablementCmd from "./project/ToggleEnablementCmd";
 import containerBashCmd from "./project/ContainerShellCmd";

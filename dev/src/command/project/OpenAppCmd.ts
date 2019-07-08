@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -32,15 +32,8 @@ export default async function openAppCmd(project: Project): Promise<void> {
         project = selected;
     }
 
-    let uriToOpen: vscode.Uri;
-    // This will open the project or Microclimate in the external web browser.
-    if (!(project instanceof Project)) {
-        // should never happen
-        Log.e(`Don't know how to open object of type ${typeof(project)} in browser`);
-        return;
-    }
-    if (!project.state.isStarted) {
-        vscode.window.showWarningMessage(Translator.t(STRING_NS, "canOnlyOpenStartedProjects"));
+    if (!(project.state.isStarted || project.state.isStarting)) {
+        vscode.window.showWarningMessage(Translator.t(STRING_NS, "canOnlyOpenStartedProjects", { projectName: project.name }));
         return;
     }
     else if (project.appBaseUrl == null) {
@@ -48,8 +41,8 @@ export default async function openAppCmd(project: Project): Promise<void> {
         vscode.window.showErrorMessage(Translator.t(STRING_NS, "failedDetermineAppUrl", { projectName: project.name }));
         return;
     }
-    uriToOpen = project.appBaseUrl;
 
+    const uriToOpen = project.appBaseUrl;
 
     Log.i("Open in browser: " + uriToOpen);
     // vscode.window.showInformationMessage("Opening " + uriToOpen);
