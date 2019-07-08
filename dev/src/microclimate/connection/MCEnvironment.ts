@@ -21,7 +21,7 @@ import Requester from "../project/Requester";
 
 namespace MCEnvironment {
 
-    // From https://github.ibm.com/dev-ex/microclimate/blob/master/docker/portal/server.js#L229
+    // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
     export interface IMCEnvData {
         devops_available: boolean;
         editor_url: string;
