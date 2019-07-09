@@ -15,11 +15,21 @@ import Connection from "../microclimate/connection/Connection";
 import { setRegistry } from "../microclimate/connection/Registry";
 import * as MCUtil from "../MCUtil";
 import Log from "../Logger";
+import { promptForConnection } from "./CommandUtil";
 
 export async function setRegistryCmd(connection: Connection): Promise<void> {
     if (!global.isTheia) {
         vscode.window.showErrorMessage("This command does not apply to local Codewind.");
         return;
+    }
+
+    if (connection == null) {
+        const selected = await promptForConnection(true);
+        if (selected == null) {
+            // user cancelled
+            return;
+        }
+        connection = selected;
     }
 
     try {
