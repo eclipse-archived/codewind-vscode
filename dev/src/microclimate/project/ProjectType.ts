@@ -26,9 +26,9 @@ export class ProjectType {
         public readonly language: string,
         public readonly extensionName?: string,
     ) {
-        this.type = ProjectType.getType(internalType, language);
+        this.type = ProjectType.getType(internalType, language, extensionName);
         // this.userFriendlyType = ProjectType.getUserFriendlyType(this.type);
-        this.debugType = ProjectType.getDebugType(this.type);
+        this.debugType = ProjectType.getDebugType(this.type, language);
         this.icon = ProjectType.getProjectIcon(this.type, language);
     }
 
@@ -43,11 +43,7 @@ export class ProjectType {
         return this.type.toString();
     }
 
-    /**
-     *
-     * @param internalType A Microclimate/Codewind internal project type.
-     */
-    private static getType(internalType: string, language: string, extension?: string): ProjectType.Types {
+    private static getType(internalType: string, language: string, extensionName: OptionalString): ProjectType.Types {
         if (internalType === this.InternalTypes.MICROPROFILE) {
             return ProjectType.Types.MICROPROFILE;
         }
@@ -71,7 +67,7 @@ export class ProjectType {
                 return ProjectType.Types.GENERIC_DOCKER;
             }
         }
-        else if (extension) {
+        else if (extensionName) {
             return ProjectType.Types.EXTENSION;
         }
         else {
@@ -82,15 +78,24 @@ export class ProjectType {
 
     /**
      * Get the corresponding VSCode debug configuration "type" value.
-     * Returns undefined if we don't know how to debug this project type.
+     * Returns undefined if we don't have any project types that use the language and support debug.
      */
-    private static getDebugType(type: ProjectType.Types): ProjectType.DebugTypes | undefined {
+    private static getDebugType(type: ProjectType.Types, language: string): ProjectType.DebugTypes | undefined {
         switch (type) {
             case ProjectType.Types.MICROPROFILE:
             case ProjectType.Types.SPRING:
                 return this.DebugTypes.JAVA;
             case ProjectType.Types.NODE:
                 return this.DebugTypes.NODE;
+            case ProjectType.Types.EXTENSION:
+                // For extension types, we use the language to determine debug type
+                const lang = language.toLowerCase();
+                if (lang === this.Languages.JAVA) {
+                    return this.DebugTypes.JAVA;
+                }
+                else if (lang === this.Languages.NODE) {
+                    return this.DebugTypes.NODE;
+                }
             default:
                 return undefined;
         }
