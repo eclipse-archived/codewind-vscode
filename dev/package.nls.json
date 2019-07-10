@@ -75,6 +75,9 @@
     "cmdID_disable": "ext.cw.disable",
     "cmdTitle_disable": "Disable Project",
 
+    "cmdID_removeProject": "ext.cw.removeProject",
+    "cmdTitle_removeProject": "Remove from Codewind",
+
     "cmdID_containerShell": "ext.cw.containerShell",
     "cmdTitle_containerShell": "Open Container Shell",
 

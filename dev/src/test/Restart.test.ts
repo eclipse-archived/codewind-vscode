@@ -27,7 +27,7 @@ import ProjectObserver from "./ProjectObserver";
 import SocketTestUtil from "./SocketTestUtil";
 import SocketEvents from "../microclimate/connection/SocketEvents";
 import TestConfig from "./TestConfig";
-import MiscProjectActions from "../microclimate/project/MiscProjectActions";
+import { removeProject } from "../command/project/RemoveProjectCmd";
 
 describe(`Restart tests`, async function() {
 
@@ -158,7 +158,7 @@ describe(`Restart tests`, async function() {
         it(`should clean up the test project`, async function() {
             if (project != null) {
                 try {
-                    await MiscProjectActions.unbind(project, false);
+                    await removeProject(project, false);
                     ProjectObserver.instance.onDelete(project.id);
                 }
                 catch (err) {

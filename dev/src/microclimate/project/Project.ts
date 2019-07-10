@@ -26,8 +26,8 @@ import ProjectPendingRestart from "./ProjectPendingRestart";
 import Connection from "../connection/Connection";
 import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
-import MiscProjectActions from "./MiscProjectActions";
 import Requester from "./Requester";
+import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -388,7 +388,7 @@ export default class Project implements vscode.QuickPickItem {
         Log.i(`${this.name} was deleted`);
         // vscode.window.showInformationMessage(Translator.t(STRING_NS, "onDeletion", { projectName: this.name }));
         DebugUtils.removeDebugLaunchConfigFor(this);
-        const deleteFilesProm = this.deleteFilesOnUnbind ? MiscProjectActions.deleteProjectDir(this) : Promise.resolve();
+        const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
         await Promise.all([
             deleteFilesProm,
             this.dispose(),

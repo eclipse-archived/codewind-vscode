@@ -230,6 +230,11 @@
                 "command": "%cmdID_openPerfDashboard%",
                 "title": "%cmdTitle_openPerfDashboard%",
                 "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_removeProject%",
+                "title": "%cmdTitle_removeProject%",
+                "category": "%commandCategory%"
             }
         ],
         "menus": {
@@ -416,17 +421,22 @@
                 {
                     "command": "%cmdID_disable%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.z"
+                    "group": "ext.cw.y"
                 },
                 {
                     "command": "%cmdID_enable%",
                     "when": "%isDisabledProject%",
-                    "group": "ext.cw.z"
+                    "group": "ext.cw.y"
                 },
                 {
                     "command": "%cmdID_enable%",
                     "when": "%isDisabledProject%",
                     "group": "inline"
+                },
+                {
+                    "command": "%cmdID_removeProject%",
+                    "when": "%isProject%",
+                    "group": "ext.cw.z"
                 }
             ]
         }
