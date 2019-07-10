@@ -18,7 +18,7 @@ import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import { refreshProjectOverview } from "./ProjectOverviewPage";
-import StartModes from "../../constants/StartModes";
+import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import MCLogManager from "./logs/MCLogManager";
 import DebugUtils from "./DebugUtils";
 import ProjectType from "./ProjectType";
@@ -27,6 +27,7 @@ import Connection from "../connection/Connection";
 import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
 import MiscProjectActions from "./MiscProjectActions";
+import Requester from "./Requester";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -42,12 +43,16 @@ interface IProjectPorts {
 
 export default class Project implements vscode.QuickPickItem {
 
+    public readonly initPromise: Promise<void>;
+
     // Immutable project data
     public readonly name: string;
     public readonly id: string;
     public readonly type: ProjectType;
     public readonly language: string;
     public readonly localPath: vscode.Uri;
+
+    private _capabilities: ProjectCapabilities | undefined;
 
     // Mutable project data, will change with calls to update() and similar functions. Prefixed with _ because these all have getters.
     private _state: ProjectState;
@@ -114,6 +119,18 @@ export default class Project implements vscode.QuickPickItem {
         // this.detail = this.id;
 
         this.logManager = new MCLogManager(this);
+
+        // Do any async initialization work that must be done before the project is "ready", here
+        this.initPromise = new Promise(async (resolve) => {
+            try {
+                this._capabilities = await Requester.getCapabilities(this);
+            }
+            catch (err) {
+                Log.e("Error retrieving initial capabilities for " + this.name, err);
+            }
+            // Log.d(`the capabilities for ${this.name} are `, this.capabilities);
+            resolve();
+        });
 
         Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
     }
@@ -267,7 +284,7 @@ export default class Project implements vscode.QuickPickItem {
         }
     }
 
-    public doRestart(mode: StartModes.Modes): boolean {
+    public doRestart(mode: StartModes): boolean {
         if (this.pendingRestart != null) {
             // should be prevented by the RestartProjectCommand
             Log.e(this.name + ": doRestart called when already restarting");
@@ -306,7 +323,9 @@ export default class Project implements vscode.QuickPickItem {
 
             success = false;
         }
-        else if (event.ports == null || event.startMode == null || !StartModes.allStartModes().includes(event.startMode)) {
+        else if (event.ports == null || event.startMode == null ||
+                !ProjectCapabilities.allStartModes.map((mode) => mode.toString()).includes(event.startMode)) {
+
             // If the status is "success" (as we just checked), these must all be set and valid
             errMsg = Translator.t(StringNamespaces.DEFAULT, "genericErrorProjectRestart", { thisName: this.name });
             Log.e(errMsg + ", payload:", event);
@@ -441,6 +460,14 @@ export default class Project implements vscode.QuickPickItem {
         return this._state;
     }
 
+    public get capabilities(): ProjectCapabilities {
+        // This will only happen if this funciton is called before the initPromise resolves, which should never happen
+        if (!this._capabilities) {
+            this._capabilities = ProjectCapabilities.ALL_CAPABILITIES;
+        }
+        return this._capabilities;
+    }
+
     public get appBaseUrl(): vscode.Uri | undefined {
         if (this._ports.appPort == null || isNaN(this._ports.appPort)) {
             // app is stopped, disabled, etc.
@@ -448,7 +475,7 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         return this.connection.url.with({
-            scheme: "http",                 // :)                           // non-nls
+            scheme: "http",                 // TODO :)                           // non-nls
             authority: `${this.connection.host}:${this._ports.appPort}`,    // non-nls
             path: this._contextRoot
         });

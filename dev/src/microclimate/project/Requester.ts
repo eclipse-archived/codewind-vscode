@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 import * as request from "request-promise-native";
 
 import Project from "./Project";
-import StartModes from "../../constants/StartModes";
+import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import Log from "../../Logger";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
@@ -56,12 +56,12 @@ namespace Requester {
         return Requester.get(templatesUrl);
     }
 
-    export async function requestProjectRestart(project: Project, startMode: StartModes.Modes): Promise<request.FullResponse> {
+    export async function requestProjectRestart(project: Project, startMode: StartModes): Promise<request.FullResponse> {
         const body = {
             startMode: startMode.toString()
         };
 
-        const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: StartModes.getUserFriendlyStartMode(startMode) });
+        const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode) });
         return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, request.post, restartMsg);
     }
 
@@ -168,7 +168,13 @@ namespace Requester {
         await doProjectRequest(project, ProjectEndpoints.LOGS, {}, method, msg, true);
     }
 
-    export async function areMetricsAvailable(project: Project): Promise<boolean> {
+    export async function getCapabilities(project: Project): Promise<ProjectCapabilities> {
+        const capabilitiesRes = (await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, request.get, "Getting capabilities", true)).body;
+        const metricsAvailable = await areMetricsAvailable(project);
+        return new ProjectCapabilities(capabilitiesRes.startModes, capabilitiesRes.controlCommands, metricsAvailable);
+    }
+
+    async function areMetricsAvailable(project: Project): Promise<boolean> {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
         const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, request.get, msg, true);
         const available = res.body.metricsAvailable;

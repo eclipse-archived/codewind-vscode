@@ -16,7 +16,7 @@ import Log from "../../Logger";
 import Project from "./Project";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
-import StartModes from "../../constants/StartModes";
+import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import attachDebuggerCmd from "../../command/project/AttachDebuggerCmd";
 import Resources from "../../constants/Resources";
 
@@ -62,19 +62,19 @@ export default class ProjectPendingRestart {
 
     constructor(
         private readonly project: Project,
-        private readonly startMode: StartModes.Modes,
+        private readonly startMode: StartModes,
         timeoutMs: number,
     ) {
         Log.d(`${project.name}: New pendingRestart into ${startMode} mode`);
 
-        this.expectedStates = StartModes.isDebugMode(startMode) ? RESTART_STATES_DEBUG : RESTART_STATES_RUN;
+        this.expectedStates = ProjectCapabilities.isDebugMode(startMode) ? RESTART_STATES_DEBUG : RESTART_STATES_RUN;
 
         // Resolved when the restart completes or times out. Displayed in the status bar.
-        const restartPromise = new Promise<void>( (resolve_) => {
+        const restartPromise = new Promise<void>((resolve_) => {
             this.resolve = resolve_;
         });
 
-        this.restartEventPromise = new Promise<void> ( (resolve_) => {
+        this.restartEventPromise = new Promise<void>((resolve_) => {
             this.resolveRestartEvent = resolve_;
         });
 
@@ -85,10 +85,13 @@ export default class ProjectPendingRestart {
             this.fulfill(false, failReason);
         }, timeoutMs);
 
-        const restartMsg = `${Resources.getOcticon(Resources.Octicons.sync, true)} ` +
-            Translator.t(STRING_NS, "restartingStatusMsg", { projectName: project.name, startMode: StartModes.getUserFriendlyStartMode(startMode) });
+        const restartMsg = Translator.t(STRING_NS, "restartingStatusMsg", {
+            projectName: project.name,
+            startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode)
+        });
+        const restartStatusItem = `${Resources.getOcticon(Resources.Octicons.sync, true)} ${restartMsg}`;
 
-        vscode.window.setStatusBarMessage(restartMsg, restartPromise);
+        vscode.window.setStatusBarMessage(restartStatusItem, restartPromise);
     }
 
     /**
@@ -125,7 +128,7 @@ export default class ProjectPendingRestart {
             this.fulfill(success, error);
         }
         else {
-            if (StartModes.isDebugMode(this.startMode)) {
+            if (ProjectCapabilities.isDebugMode(this.startMode)) {
                 await this.attachDebugger();
             }
         }
@@ -150,7 +153,7 @@ export default class ProjectPendingRestart {
                 Log.w(debuggerAttachFailedMsg);
 
                 // If we're debugging init, the restart fails here because it will get stuck without the debugger attach
-                if (this.startMode === StartModes.Modes.DEBUG) {
+                if (this.startMode === StartModes.DEBUG) {
                     this.fulfill(false, debuggerAttachFailedMsg);
                 }
             }
@@ -186,7 +189,7 @@ export default class ProjectPendingRestart {
         this.resolve();
         if (success) {
             const successMsg = Translator.t(STRING_NS, "restartSuccess",
-                { projectName: this.project.name, startMode: StartModes.getUserFriendlyStartMode(this.startMode) }
+                { projectName: this.project.name, startMode: ProjectCapabilities.getUserFriendlyStartMode(this.startMode) }
             );
 
             Log.i(successMsg);
@@ -196,12 +199,12 @@ export default class ProjectPendingRestart {
             let failMsg: string;
             if (error != null) {
                 failMsg = Translator.t(STRING_NS, "restartFailureWithReason",
-                    { projectName: this.project.name, startMode: StartModes.getUserFriendlyStartMode(this.startMode), reason: error }
+                    { projectName: this.project.name, startMode: ProjectCapabilities.getUserFriendlyStartMode(this.startMode), reason: error }
                 );
             }
             else {
                 failMsg = Translator.t(STRING_NS, "restartFailure",
-                    { projectName: this.project.name, startMode: StartModes.getUserFriendlyStartMode(this.startMode) }
+                    { projectName: this.project.name, startMode: ProjectCapabilities.getUserFriendlyStartMode(this.startMode) }
                 );
             }
 

@@ -15,7 +15,7 @@ import Project from "../../microclimate/project/Project";
 import { promptForProject } from "../CommandUtil";
 import ProjectState from "../../microclimate/project/ProjectState";
 import Log from "../../Logger";
-import StartModes from "../../constants/StartModes";
+import ProjectCapabilities from "../../microclimate/project/ProjectCapabilities";
 import Requester from "../../microclimate/project/Requester";
 import * as MCUtil from "../../MCUtil";
 import Translator from "../../constants/strings/translator";
@@ -32,7 +32,7 @@ export default async function restartProjectCmd(project: Project, debug: boolean
         project = selected;
     }
 
-    const startMode: StartModes.Modes = StartModes.getDefaultStartMode(debug, project.type.type);
+    const startMode = ProjectCapabilities.getDefaultStartMode(debug, project.type.type);
 
     Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
 
