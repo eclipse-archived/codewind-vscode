@@ -130,7 +130,8 @@ export default class Project implements vscode.QuickPickItem {
 
         this.logManager = new MCLogManager(this);
 
-        // Do any async initialization work that must be done before the project is "ready", here
+        // Do any async initialization work that must be done before the project is ready, here.
+        // The function calling the constructor must await on this promise before expecting the project to be ready.
         this.initPromise = new Promise(async (resolve) => {
             try {
                 this._capabilities = await Requester.getCapabilities(this);
