@@ -207,6 +207,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const oldProjects = this._projects;
         this._projects = [];
+        const initPromises: Array<Promise<void>> = [];
 
         for (const projectInfo of result) {
             // This is a hard-coded exception for a backend bug where projects get stuck in the Deleting or Validating state
@@ -229,11 +230,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             }
             else {
                 project = new Project(projectInfo, this);
+                initPromises.push(project.initPromise);
                 Log.d("New project " + project.name);
             }
             this._projects.push(project);
         }
 
+        // Log.d("Awaiting init promises " + Date.now());
+        await Promise.all(initPromises);
+        // Log.d("Done awaiting init promises " + Date.now());
         this.needProjectUpdate = false;
         Log.d("Done projects update");
         this.onChange();

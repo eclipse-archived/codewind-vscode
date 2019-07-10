@@ -43,6 +43,8 @@ export enum ProjectEndpoints {
     OPEN = "open",
     CLOSE = "close",
     UNBIND = "unbind",
+
+    CAPABILITIES = "capabilities",
 }
 
 /**

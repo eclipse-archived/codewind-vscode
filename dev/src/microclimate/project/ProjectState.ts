@@ -10,8 +10,8 @@
  *******************************************************************************/
 
 import Log from "../../Logger";
-import StartModes from "../../constants/StartModes";
 import SocketEvents from "../connection/SocketEvents";
+import ProjectCapabilities from "./ProjectCapabilities";
 
 /**
  * Represents the project's state in Microclimate. This means app state, build state, and any status details.
@@ -198,13 +198,13 @@ export namespace ProjectState {
         // Now, check the app states. Compare against both the value we expect from MC,
         // as well as our own possible values, in case we used the fallbackState in the constructor.
         else if (appStatus === "started" || appStatus === AppStates.DEBUGGING || appStatus === AppStates.STARTED) {             // non-nls
-            if (startMode != null && StartModes.isDebugMode(startMode)) {
+            if (startMode != null && ProjectCapabilities.isDebugMode(startMode)) {
                 return ProjectState.AppStates.DEBUGGING;
             }
             return ProjectState.AppStates.STARTED;
         }
         else if (appStatus === "starting" || appStatus === AppStates.STARTING || appStatus === AppStates.DEBUG_STARTING) {      // non-nls
-            if (startMode != null && StartModes.isDebugMode(startMode)) {
+            if (startMode != null && ProjectCapabilities.isDebugMode(startMode)) {
                 return ProjectState.AppStates.DEBUG_STARTING;
             }
             return ProjectState.AppStates.STARTING;

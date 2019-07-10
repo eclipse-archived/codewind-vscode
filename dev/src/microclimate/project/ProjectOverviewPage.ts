@@ -42,6 +42,10 @@ export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, projec
     webviewPanel.webview.html = generateHtml(project);
 }
 
+const NOT_AVAILABLE = "Not available";
+const NOT_RUNNING = "Not running";
+const NOT_DEBUGGING = "Not debugging";
+
 export function generateHtml(project: Project): string {
 
     const emptyRow =
@@ -51,10 +55,6 @@ export function generateHtml(project: Project): string {
         <td>&nbsp;</td>
     </tr>
     `;
-
-    const notAvailable = "Not available";
-    const notRunning = "Not running";
-    const notDebugging = "Not debugging";
 
     return `
         <!DOCTYPE html>
@@ -86,7 +86,7 @@ export function generateHtml(project: Project): string {
                 ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 <!--${buildRow("Microclimate URL", project.connection.toString())}-->
                 ${buildRow("Project ID", project.id)}
-                ${buildRow("Container ID", normalize(project.containerID, notAvailable, 32))}
+                ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
                 ${buildRow("Location on Disk", project.localPath.fsPath, Openable.FOLDER)}
                 <tr>
                     <td class="info-label">Auto build:</td>
@@ -100,31 +100,27 @@ export function generateHtml(project: Project): string {
                 </tr>
                 ${emptyRow}
                 ${buildRow("Application Status", project.state.appState)}
-                ${buildRow("Build Status", normalize(project.state.getBuildString(), notAvailable))}
+                ${buildRow("Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
                 ${emptyRow}
-                ${buildRow("Last Image Build", normalizeDate(project.lastImgBuild, notAvailable))}
-                ${buildRow("Last Build", normalizeDate(project.lastBuild, notAvailable))}
+                ${buildRow("Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
+                ${buildRow("Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
             </table>
 
             <!-- Separate fixed table for the lower part so that the Edit buttons line up in their own column,
                 but also don't appear too far to the right -->
             <table class="fixed-table">
                 ${emptyRow}
-                ${buildRow("Exposed App Port", normalize(project.ports.appPort, notRunning))}
+                ${buildRow("Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
                 ${buildRow("Internal App Port",
-                    normalize(project.ports.internalPort, notAvailable),
+                    normalize(project.ports.internalPort, NOT_AVAILABLE),
                     undefined, true)}
                 ${buildRow("Application Endpoint",
-                    normalize(project.appBaseUrl, notRunning),
+                    normalize(project.appBaseUrl, NOT_RUNNING),
                     (project.appBaseUrl != null ? Openable.WEB : undefined), true)}
                 ${emptyRow}
-                <!-- Hide debug info in theia -->
-                ${global.isTheia ? "" : buildRow("Exposed Debug Port", normalize(project.ports.debugPort, notDebugging))}
-                ${global.isTheia ? "" : buildRow("Internal Debug Port",
-                    normalize(project.ports.internalDebugPort, notAvailable),
-                    undefined, true)}
-                ${global.isTheia ? "" : buildRow("Debug URL", normalize(project.debugUrl, notDebugging))}
-            </table>
+                <!-- buildDebugSection must also close the <table> -->
+                ${buildDebugSection(project)}
+            <!-- /table -->
 
             <div id="bottom-section">
                 <input id="delete-btn" type="button" onclick="sendMsg('${Messages.UNBIND}')" class="btn" value="Remove project"/>
@@ -229,4 +225,22 @@ function normalizeDate(d: Date, fallback: string): string {
     else {
         return fallback;
     }
+}
+
+function buildDebugSection(project: Project): string {
+    if (!project.capabilities.supportsDebug) {
+        return `
+            </table>
+            ${project.type} projects do not support debug.
+        `;
+    }
+
+    return `
+        ${buildRow("Exposed Debug Port", normalize(project.ports.debugPort, NOT_DEBUGGING))}
+        ${buildRow("Internal Debug Port",
+            normalize(project.ports.internalDebugPort, NOT_AVAILABLE),
+            undefined, true)}
+        ${buildRow("Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
+        </table>
+    `;
 }

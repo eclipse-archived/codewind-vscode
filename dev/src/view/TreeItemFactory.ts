@@ -53,7 +53,10 @@ enum TreeContextValues {
 
     // auto build statuses are mutex
     PROJ_AUTOBUILD_ON = "autoBuildOn",
-    PROJ_AUTOBUILD_OFF = "autoBuildOff"
+    PROJ_AUTOBUILD_OFF = "autoBuildOff",
+
+    PROJ_RESTARTABLE = "restartable",
+    PROJ_METRICS = "metricsAvailable",
 }
 
 export type CodewindTreeItem = Connection | Project | vscode.TreeItem;
@@ -218,6 +221,14 @@ function getProjectContext(project: Project): string {
     }
     else {
         contextValues.push(TreeContextValues.PROJ_AUTOBUILD_OFF);
+    }
+
+    if (project.capabilities.supportsRestart) {
+        contextValues.push(TreeContextValues.PROJ_RESTARTABLE);
+    }
+
+    if (project.capabilities.metricsAvailable) {
+        contextValues.push(TreeContextValues.PROJ_METRICS);
     }
 
     // The final result will look like eg: "ext.cw.project.enabled.autoBuildOn"

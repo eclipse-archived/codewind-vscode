@@ -16,7 +16,6 @@ import { promptForProject } from "../CommandUtil";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import * as MCUtil from "../../MCUtil";
-import Requester from "../../microclimate/project/Requester";
 
 const langToPathMap = new Map<string, string>();
 langToPathMap.set("java", "javametrics-dash");
@@ -38,7 +37,7 @@ export default async function openAppMonitorCmd(project: Project): Promise<void>
     try {
         const appMetricsPath = langToPathMap.get(project.type.language);
 
-        const supported = appMetricsPath != null && await Requester.areMetricsAvailable(project);
+        const supported = appMetricsPath != null && project.capabilities.metricsAvailable;
         // const supported = appMetricsPath != null;
         Log.d(`${project.name} supports metrics ? ${supported}`);
         if (!supported) {

@@ -350,12 +350,12 @@
                 },
                 {
                     "command": "%cmdID_openAppMonitor%",
-                    "when": "%isEnabledProject%",
+                    "when": "%isProjectWithMetrics%",
                     "group": "ext.cw.a@3"
                 },
                 {
                     "command": "%cmdID_openPerfDashboard%",
-                    "when": "%isEnabledProject%",
+                    "when": "%isProjectWithMetrics%",
                     "group": "ext.cw.a@4"
                 },
                 {
@@ -380,12 +380,12 @@
                 },
                 {
                     "command": "%cmdID_restartRun%",
-                    "when": "%isEnabledProject%",
+                    "when": "%isRestartableProject%",
                     "group": "ext.cw.d@0"
                 },
                 {
                     "command": "%cmdID_restartDebug%",
-                    "when": "%isEnabledProject%",
+                    "when": "%isRestartableProject%",
                     "group": "ext.cw.d@1"
                 },
                 {
