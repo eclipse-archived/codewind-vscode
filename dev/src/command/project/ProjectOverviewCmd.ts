@@ -21,8 +21,8 @@ import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
 import requestBuildCmd from "./RequestBuildCmd";
 import Resources from "../../constants/Resources";
-import MiscProjectActions from "../../microclimate/project/MiscProjectActions";
 import Constants from "../../constants/Constants";
+import { removeProject } from "./RemoveProjectCmd";
 
 export default async function projectOverviewCmd(project: Project): Promise<void> {
     // Log.d("projectOverviewCmd invoked");
@@ -99,7 +99,7 @@ function handleWebviewMessage(this: Project, msg: IWebViewMsg): void {
                 break;
             }
             case ProjectOverview.Messages.UNBIND: {
-                MiscProjectActions.unbind(project);
+                removeProject(project);
                 break;
             }
             case ProjectOverview.Messages.EDIT: {

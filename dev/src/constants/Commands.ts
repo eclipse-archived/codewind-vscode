@@ -53,6 +53,7 @@ enum Commands {
 
     DISABLE_PROJECT = "ext.cw.disable",
     ENABLE_PROJECT = "ext.cw.enable",
+    REMOVE_PROJECT = "ext.cw.removeProject",
 
     VALIDATE = "ext.cw.validate",
 

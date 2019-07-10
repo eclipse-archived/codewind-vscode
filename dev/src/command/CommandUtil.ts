@@ -40,6 +40,7 @@ import startCodewindCmd from "./StartCodewindCmd";
 import stopCodewindCmd from "./StopCodewindCmd";
 import removeImagesCmd from "./RemoveImagesCmd";
 import { setRegistryCmd } from "./SetRegistryCmd";
+import removeProjectCmd from "./project/RemoveProjectCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -84,6 +85,8 @@ export function createCommands(): vscode.Disposable[] {
 
         vscode.commands.registerCommand(Commands.DISABLE_PROJECT,   (selection) => toggleEnablementCmd(selection, false)),
         vscode.commands.registerCommand(Commands.ENABLE_PROJECT,    (selection) => toggleEnablementCmd(selection, true)),
+
+        vscode.commands.registerCommand(Commands.REMOVE_PROJECT,    (selection) => removeProjectCmd(selection)),
 
         vscode.commands.registerCommand(Commands.CONTAINER_SHELL,   (selection) => containerBashCmd(selection)),
 
