@@ -99,7 +99,7 @@ export default class Project implements vscode.QuickPickItem {
         if (projectInfo.extension && projectInfo.extension.config) {
             this.containerAppRoot = projectInfo.extension.config.containerAppRoot;
         }
-        else {
+        if (!this.containerAppRoot) {
             this.containerAppRoot = projectInfo.containerAppRoot;
         }
 
