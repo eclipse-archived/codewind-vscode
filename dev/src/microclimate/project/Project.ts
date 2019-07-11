@@ -47,7 +47,10 @@ export default class Project implements vscode.QuickPickItem {
     public readonly id: string;
     public readonly type: ProjectType;
     public readonly language: string;
+    // abs path to the project on the user's filesystem
     public readonly localPath: vscode.Uri;
+    // abs path to the source code within the container, used for debug source mapping so only set for specific project types.
+    public readonly containerAppRoot: string | undefined;
 
     // Mutable project data, will change with calls to update() and similar functions. Prefixed with _ because these all have getters.
     private _state: ProjectState;
@@ -92,6 +95,10 @@ export default class Project implements vscode.QuickPickItem {
         this.language = projectInfo.language || "Unknown";
         this.localPath = vscode.Uri.file(path.join(connection.workspacePath.fsPath, projectInfo.directory));
         this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
+
+        if (projectInfo.extension && projectInfo.extension.config) {
+            this.containerAppRoot = projectInfo.extension.config.containerAppRoot;
+        }
 
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
         this._autoBuildEnabled = projectInfo.autoBuild;
