@@ -123,12 +123,7 @@ export default class Project implements vscode.QuickPickItem {
         // Do any async initialization work that must be done before the project is ready, here.
         // The function calling the constructor must await on this promise before expecting the project to be ready.
         this.initPromise = new Promise(async (resolve) => {
-            try {
-                this._capabilities = await Requester.getCapabilities(this);
-            }
-            catch (err) {
-                Log.e("Error retrieving initial capabilities for " + this.name, err);
-            }
+            await this.updateCapabilities();
             // Log.d(`the capabilities for ${this.name} are `, this.capabilities);
             resolve();
         });
@@ -343,6 +338,28 @@ export default class Project implements vscode.QuickPickItem {
         this.pendingRestart.onReceiveRestartEvent(success, errMsg);
     }
 
+    private async updateCapabilities(): Promise<void> {
+        let capabilities: ProjectCapabilities;
+        if (!this.state.isEnabled) {
+            // we treat disabled projects as having all capabilities.
+            // The project must refresh the capabilities on re-enable.
+            // server will return a 404 in this case
+            capabilities = ProjectCapabilities.ALL_CAPABILITIES;
+        }
+        else {
+            try {
+                capabilities = await Requester.getCapabilities(this);
+            }
+            catch (err) {
+                // If the project is enabled and there is an error, we fall back to all capabilities so as not to block any UI actions.
+                // But this should never happen
+                Log.e("Error retrieving capabilities for " + this.name, err);
+                capabilities = ProjectCapabilities.ALL_CAPABILITIES;
+            }
+        }
+        this._capabilities = capabilities;
+    }
+
     public onConnectionReconnect(): void {
         this.logManager.onReconnectOrEnable();
     }
@@ -357,6 +374,7 @@ export default class Project implements vscode.QuickPickItem {
     public async onEnable(): Promise<void> {
         Log.i(`${this.name} has been enabled`);
         this.logManager.onReconnectOrEnable();
+        await this.updateCapabilities();
     }
 
     public async onDisable(): Promise<void> {

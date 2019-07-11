@@ -26,8 +26,6 @@ export enum ControlCommands {
 
 export default class ProjectCapabilities {
 
-
-
     constructor(
         // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/constants.ts
         public readonly startModes: StartModes[],
@@ -91,4 +89,6 @@ export default class ProjectCapabilities {
      */
     public static readonly ALL_CAPABILITIES: ProjectCapabilities =
         new ProjectCapabilities(ProjectCapabilities.allStartModes, ProjectCapabilities.allControlCommands, true);
+
+    // public static readonly NO_CAPABILITIES: ProjectCapabilities = new ProjectCapabilities([], [], false);
 }
