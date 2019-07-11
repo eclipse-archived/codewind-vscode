@@ -99,6 +99,9 @@ export default class Project implements vscode.QuickPickItem {
         if (projectInfo.extension && projectInfo.extension.config) {
             this.containerAppRoot = projectInfo.extension.config.containerAppRoot;
         }
+        else {
+            this.containerAppRoot = projectInfo.containerAppRoot;
+        }
 
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
         this._autoBuildEnabled = projectInfo.autoBuild;
