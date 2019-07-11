@@ -421,12 +421,12 @@
                 {
                     "command": "%cmdID_disable%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.y"
+                    "group": "ext.cw.z@0"
                 },
                 {
                     "command": "%cmdID_enable%",
                     "when": "%isDisabledProject%",
-                    "group": "ext.cw.y"
+                    "group": "ext.cw.z@0"
                 },
                 {
                     "command": "%cmdID_enable%",
@@ -436,7 +436,7 @@
                 {
                     "command": "%cmdID_removeProject%",
                     "when": "%isProject%",
-                    "group": "ext.cw.z"
+                    "group": "ext.cw.z@1"
                 }
             ]
         }
