@@ -21,7 +21,7 @@ import Log from "../../Logger";
 export default async function addProjectToWorkspaceCmd(project: Project): Promise<void> {
     const wsFolders: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
 
-    if (wsFolders.some((wsf) => wsf.uri === project.localPath)) {
+    if (wsFolders.some((wsf) => wsf.uri.fsPath === project.localPath.fsPath)) {
         vscode.window.showInformationMessage(`${project.localPath.fsPath} is already a workspace folder.`);
         return;
     }
