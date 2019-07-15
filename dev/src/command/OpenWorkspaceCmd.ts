@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,7 @@ import Commands from "../constants/Commands";
 import Translator from "../constants/strings/translator";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 
-export default async function openCodewindWorkspaceCmd(connection: Connection): Promise<void> {
+export default async function openWorkspaceCmd(connection: Connection): Promise<void> {
     const workspacePathUri = connection.workspacePath;
     Log.i("Going to folder " + workspacePathUri);
 
