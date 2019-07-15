@@ -15,22 +15,11 @@ import * as rmrf from "rimraf";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Log from "../../Logger";
-import * as MCUtil from "../../MCUtil";
-import { promptForProject } from "../CommandUtil";
-import Project from "../../microclimate/project/Project";
-import Requester from "../../microclimate/project/Requester";
+import MCUtil from "../../MCUtil";
+import Project from "../../codewind/project/Project";
+import Requester from "../../codewind/project/Requester";
 
 export default async function removeProjectCmd(project: Project): Promise<void> {
-    if (project == null) {
-        const selected = await promptForProject();
-        if (selected == null) {
-            // user cancelled
-            Log.d("User cancelled project prompt");
-            return;
-        }
-        project = selected;
-    }
-
     await removeProject(project);
 }
 

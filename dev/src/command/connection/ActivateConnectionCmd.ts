@@ -12,11 +12,11 @@
 import * as vscode from "vscode";
 
 import MCUtil from "../../MCUtil";
-import CodewindManager from "../../microclimate/connection/CodewindManager";
+import CodewindManager from "../../codewind/connection/CodewindManager";
 import Log from "../../Logger";
-import Connection from "../../microclimate/connection/Connection";
-import MCEnvironment from "../../microclimate/connection/MCEnvironment";
-import InstallerWrapper from "../../microclimate/connection/InstallerWrapper";
+import Connection from "../../codewind/connection/Connection";
+import MCEnvironment from "../../codewind/connection/MCEnvironment";
+import InstallerWrapper from "../../codewind/connection/InstallerWrapper";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Commands from "../../constants/Commands";
@@ -46,7 +46,6 @@ export default async function activateConnection(): Promise<void> {
 }
 
 async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Promise<Connection> {
-    // const rawVersion: string = envData.microclimate_version;
     const rawWorkspace: string = envData.workspace_location;
     const rawSocketNS: string = envData.socket_namespace || "";
 

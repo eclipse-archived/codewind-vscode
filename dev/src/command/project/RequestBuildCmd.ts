@@ -11,10 +11,10 @@
 
 import * as vscode from "vscode";
 
-import Project from "../../microclimate/project/Project";
+import Project from "../../codewind/project/Project";
 
 import Log from "../../Logger";
-import Requester from "../../microclimate/project/Requester";
+import Requester from "../../codewind/project/Requester";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 

@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import ProjectType from "../microclimate/project/ProjectType";
+import ProjectType from "../codewind/project/ProjectType";
 import Log from "../Logger";
 
 namespace TestConfig {
@@ -61,7 +61,7 @@ namespace TestConfig {
     export function getUrl(projectType: ProjectType): string {
         const found = testableProjectTypes.find((tpt) => tpt.projectType === projectType);
         if (!found) {
-            // The templates we use for tests are expected to always exist in Microclimate
+            // The templates we use for tests are expected to always exist
             throw new Error("Did not find template corresponding to " + projectType);
         }
         return found.url;

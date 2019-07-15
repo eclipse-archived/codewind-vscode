@@ -11,11 +11,11 @@
 
 import * as vscode from "vscode";
 
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../codewind/connection/CodewindManager";
 // import Commands from "../constants/Commands";
 import Log from "../Logger";
-import Project from "../microclimate/project/Project";
-import Connection from "../microclimate/connection/Connection";
+import Project from "../codewind/project/Project";
+import Connection from "../codewind/connection/Connection";
 import TreeItemFactory, { CodewindTreeItem } from "./TreeItemFactory";
 
 // const STRING_NS = StringNamespaces.TREEVIEW;

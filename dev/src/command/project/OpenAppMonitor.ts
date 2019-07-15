@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 
-import Project from "../../microclimate/project/Project";
+import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";

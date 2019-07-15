@@ -16,7 +16,7 @@ import * as io from "socket.io-client";
 import wildcard = require("socketio-wildcard");
 
 import Log from "../Logger";
-import SocketEvents from "../microclimate/connection/SocketEvents";
+import SocketEvents from "../codewind/connection/SocketEvents";
 
 export interface IExpectedSocketEvent {
     readonly eventType: SocketEvents.Types;

@@ -19,12 +19,12 @@ import * as Base from "./Base.test";
 import TestConfig from "./TestConfig";
 import Commands from "../constants/Commands";
 import ProjectObserver from "./ProjectObserver";
-import ProjectState from "../microclimate/project/ProjectState";
+import ProjectState from "../codewind/project/ProjectState";
 import Log from "../Logger";
 import TestUtil from "./TestUtil";
-import Project from "../microclimate/project/Project";
+import Project from "../codewind/project/Project";
 import SocketTestUtil from "./SocketTestUtil";
-import SocketEvents from "../microclimate/connection/SocketEvents";
+import SocketEvents from "../codewind/connection/SocketEvents";
 
 describe(`Extended tests`, async function() {
 

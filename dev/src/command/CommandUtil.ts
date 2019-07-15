@@ -33,10 +33,10 @@ import startCodewindCmd from "./StartCodewindCmd";
 import stopCodewindCmd from "./StopCodewindCmd";
 import removeImagesCmd from "./RemoveImagesCmd";
 import { setRegistryCmd } from "./connection/SetRegistryCmd";
-import Connection from "../microclimate/connection/Connection";
-import Project from "../microclimate/project/Project";
-import ProjectState from "../microclimate/project/ProjectState";
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import Connection from "../codewind/connection/Connection";
+import Project from "../codewind/project/Project";
+import ProjectState from "../codewind/project/ProjectState";
+import CodewindManager from "../codewind/connection/CodewindManager";
 import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import containerShellCmd from "./project/ContainerShellCmd";
 

@@ -11,16 +11,15 @@
 
 import * as vscode from "vscode";
 
-import Project from "../../microclimate/project/Project";
+import Project from "../../codewind/project/Project";
 
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import EndpointUtil from "../../constants/Endpoints";
-import Requester from "../../microclimate/project/Requester";
 import Commands from "../../constants/Commands";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
-    const supportsMetrics = await Requester.areMetricsAvailable(project);
+    const supportsMetrics = project.capabilities.metricsAvailable;
     Log.d(`${project.name} supports perfmonitor ? ${supportsMetrics}`);
     if (!supportsMetrics) {
         vscode.window.showWarningMessage(`${project.name} does not support the performance dashboard.`);

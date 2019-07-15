@@ -12,11 +12,11 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import Connection from "../../microclimate/connection/Connection";
+import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
-import UserProjectCreator, { IMCTemplateData } from "../../microclimate/connection/UserProjectCreator";
-import Requester from "../../microclimate/project/Requester";
-import { isRegistrySet, onRegistryNotSet } from "../../microclimate/connection/Registry";
+import UserProjectCreator, { IMCTemplateData } from "../../codewind/connection/UserProjectCreator";
+import Requester from "../../codewind/project/Requester";
+import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;

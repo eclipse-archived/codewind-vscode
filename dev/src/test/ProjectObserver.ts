@@ -9,10 +9,10 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../codewind/connection/CodewindManager";
 import Log from "../Logger";
-import ProjectState from "../microclimate/project/ProjectState";
-import Connection from "../microclimate/connection/Connection";
+import ProjectState from "../codewind/project/ProjectState";
+import Connection from "../codewind/connection/Connection";
 
 interface IProjectCreationAwaiting {
     projectName: string;

@@ -11,8 +11,8 @@
 
 import * as vscode from "vscode";
 
-import Connection from "../microclimate/connection/Connection";
-import Project from "../microclimate/project/Project";
+import Connection from "../codewind/connection/Connection";
+import Project from "../codewind/project/Project";
 
 export type Endpoint = MCEndpoints | ProjectEndpoints;
 

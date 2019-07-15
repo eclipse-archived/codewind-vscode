@@ -14,7 +14,7 @@ import SocketEvents from "../connection/SocketEvents";
 import ProjectCapabilities from "./ProjectCapabilities";
 
 /**
- * Represents the project's state in Microclimate. This means app state, build state, and any status details.
+ * Represents the project's state. This means app state, build state, and any status details.
  * Immutable.
  */
 export class ProjectState {
@@ -175,7 +175,7 @@ export namespace ProjectState {
     }
 
     /**
-     * Convert Microclimate's project info object into a ProjectState.
+     * Convert a project info object into a ProjectState.
      */
     export function getAppState(projectInfoPayload: any): ProjectState.AppStates {
 
