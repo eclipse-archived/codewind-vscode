@@ -43,7 +43,7 @@ spec:
 
                             # rename to have datetime for clarity + prevent collisions
                             export artifact_name=$(basename *.vsix)
-                            mv -v $artifact_name ${artifact_name/.vsix/_$(date +'%F-%H%M').vsix}
+                            mv -v $artifact_name ${artifact_name/.vsix/_$(date +'%Y%m%d%H%M').vsix}
                         '''
 
                         stash includes: '*.vsix', name: 'deployables'
@@ -68,7 +68,7 @@ spec:
 
                             # rename to have datetime for clarity + prevent collisions
                             export artifact_name=$(basename *.vsix)
-                            mv -v $artifact_name ${artifact_name/.vsix/-theia_$(date +'%F-%H%M').vsix}
+                            mv -v $artifact_name ${artifact_name/.vsix/-theia_$(date +'%Y%m%d%H%M').vsix}
                         '''
 
                         stash includes: '*.vsix', name: 'deployables'
@@ -86,19 +86,19 @@ spec:
 
                         export sshHost="genie.codewind@projects-storage.eclipse.org"
                         export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/codewind-vscode"
-                        
+
                         if [ -z $CHANGE_ID ]; then
     					    UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
-    					    
+
     					    ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/latest
                   	  		ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/latest
                   	  		scp *.vsix $sshHost:$deployParentDir/$GIT_BRANCH/latest
 					    else
     					    UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
 					    fi
- 	
+
  						export deployDir="$deployParentDir/$UPLOAD_DIR"
-                        
+
                         ssh $sshHost mkdir -p $deployDir
                         scp *.vsix $sshHost:$deployDir
                         echo "Uploaded to https://download.eclipse.org${deployDir##*download.eclipse.org}"
