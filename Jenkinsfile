@@ -43,7 +43,12 @@ spec:
 
                             # rename to have datetime for clarity + prevent collisions
                             export artifact_name=$(basename *.vsix)
-                            mv -v $artifact_name ${artifact_name/.vsix/_$(date +'%Y%m%d%H%M').vsix}
+                            # name is the part before first hyphen eg "codewind"
+                            export name="${artifact_name%-*}"
+                            # artifact name without extension
+                            export artifact_basename="${artifact_name%.*}"
+                            export version="${artifact_basename##*-}"
+                            mv -v $artifact_name $name-$version-$(date +'%Y%m%d%H%M').vsix}
                         '''
 
                         stash includes: '*.vsix', name: 'deployables'
@@ -68,7 +73,12 @@ spec:
 
                             # rename to have datetime for clarity + prevent collisions
                             export artifact_name=$(basename *.vsix)
-                            mv -v $artifact_name ${artifact_name/.vsix/-theia_$(date +'%Y%m%d%H%M').vsix}
+                            # name is the part before first hyphen eg "codewind"
+                            export name="${artifact_name%-*}-theia"
+                            # artifact name without extension
+                            export artifact_basename="${artifact_name%.*}"
+                            export version="${artifact_basename##*-}"
+                            mv -v $artifact_name $name-$version-$(date +'%Y%m%d%H%M').vsix
                         '''
 
                         stash includes: '*.vsix', name: 'deployables'
