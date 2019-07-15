@@ -11,10 +11,10 @@
 
 import * as vscode from "vscode";
 
-import InstallerWrapper, { InstallerCommands } from "../microclimate/connection/InstallerWrapper";
+import InstallerWrapper, { InstallerCommands } from "../codewind/connection/InstallerWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../codewind/connection/CodewindManager";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Translator from "../constants/strings/translator";
 

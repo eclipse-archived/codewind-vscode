@@ -11,10 +11,10 @@
 
 import * as vscode from "vscode";
 
-import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
+import InstallerWrapper from "../codewind/connection/InstallerWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../codewind/connection/CodewindManager";
 
 export default async function stopCodewindCmd(): Promise<void> {
     try {

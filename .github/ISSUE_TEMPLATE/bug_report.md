@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 <!---
-Please be sure your extension and Codewind versions are up-to-date, and you have already consulted our [troubleshooting page](https://microclimate-dev2ops.github.io/mdt-vsc-troubleshooting).
+Please be sure your extension and Codewind versions are up-to-date, and you have already consulted our [troubleshooting page](https://www.eclipse.org/codewind/mdt-vsc-troubleshooting.html).
 --->
 
 **Environment:**
@@ -24,5 +24,5 @@ Please be sure your extension and Codewind versions are up-to-date, and you have
 <!-- Please provide detailed steps. -->
 
 <!---
-Please also [upload the extension logs](https://microclimate-dev2ops.github.io/mdt-vsc-troubleshooting#finding-the-extension-logs) - this will help me resolve your issue much faster!
+Please also [upload the extension logs](https://www.eclipse.org/codewind/mdt-vsc-troubleshooting.html) - this will help me resolve your issue much faster!
 --->

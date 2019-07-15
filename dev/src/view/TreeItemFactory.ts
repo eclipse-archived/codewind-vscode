@@ -12,14 +12,14 @@
 
 import * as vscode from "vscode";
 
-import Project from "../microclimate/project/Project";
-import Connection from "../microclimate/connection/Connection";
+import Project from "../codewind/project/Project";
+import Connection from "../codewind/connection/Connection";
 import Translator from "../constants/strings/translator";
 import Resources from "../constants/Resources";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../codewind/connection/CodewindManager";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 

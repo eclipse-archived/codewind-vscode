@@ -32,7 +32,7 @@ import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 const STRING_NS = StringNamespaces.PROJECT;
 
 /**
- * Project's ports info. Keys match those provided by Microclimate.
+ * Project's ports info. Keys match those provided by backend.
  */
 interface IProjectPorts {
     appPort: OptionalNumber;
@@ -229,7 +229,7 @@ export default class Project implements vscode.QuickPickItem {
 
     /**
      * Update this project's port fields. Does not call onChange().
-     * @param ports - Ports object from a Microclimate socket event or Project info
+     * @param ports - Ports object from a socket event or Project info
      * @returns true if at least one port was changed
      */
     private updatePorts(ports: {
@@ -409,9 +409,6 @@ export default class Project implements vscode.QuickPickItem {
         this.deleteFilesOnUnbind = deleteOnUnbind;
     }
 
-    /**
-     * Call when this project is deleted in Microclimate
-     */
     public async onDelete(): Promise<void> {
         Log.i(`${this.name} was deleted`);
         // vscode.window.showInformationMessage(Translator.t(STRING_NS, "onDeletion", { projectName: this.name }));

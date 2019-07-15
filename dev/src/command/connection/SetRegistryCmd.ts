@@ -11,8 +11,8 @@
 
 import * as vscode from "vscode";
 
-import Connection from "../../microclimate/connection/Connection";
-import { setRegistry } from "../../microclimate/connection/Registry";
+import Connection from "../../codewind/connection/Connection";
+import { setRegistry } from "../../codewind/connection/Registry";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 

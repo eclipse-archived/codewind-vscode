@@ -18,7 +18,7 @@ import Log from "./Logger";
 
 import Translator from "./constants/strings/translator";
 import StringNamespaces from "./constants/strings/StringNamespaces";
-import CodewindManager from "./microclimate/connection/CodewindManager";
+import CodewindManager from "./codewind/connection/CodewindManager";
 import startCodewindCmd from "./command/StartCodewindCmd";
 import Constants from "./constants/Constants";
 

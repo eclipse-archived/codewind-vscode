@@ -13,12 +13,12 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 
 import Log from "../Logger";
-import ProjectType from "../microclimate/project/ProjectType";
-import Project from "../microclimate/project/Project";
-import Connection from "../microclimate/connection/Connection";
+import ProjectType from "../codewind/project/ProjectType";
+import Project from "../codewind/project/Project";
+import Connection from "../codewind/connection/Connection";
 import ProjectObserver from "./ProjectObserver";
-import ProjectState from "../microclimate/project/ProjectState";
-import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
+import ProjectState from "../codewind/project/ProjectState";
+import UserProjectCreator, { IMCTemplateData } from "../codewind/connection/UserProjectCreator";
 import TestConfig from "./TestConfig";
 
 namespace TestUtil {

@@ -193,7 +193,7 @@ export default class MCSocket implements vscode.Disposable {
             Validator.validate(project, payload.validationResults);
         }
         else {
-            Log.e("Microclimate didn't send result with validation event");
+            Log.e("Backend didn't send result with validation event");
         }
     }
 

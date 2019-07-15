@@ -14,11 +14,11 @@ import * as vscode from "vscode";
 import MCUtil from "../../MCUtil";
 
 import Resources from "../../constants/Resources";
-import Project from "../../microclimate/project/Project";
-import ProjectState from "../../microclimate/project/ProjectState";
+import Project from "../../codewind/project/Project";
+import ProjectState from "../../codewind/project/ProjectState";
 import Log from "../../Logger";
-import ProjectType from "../../microclimate/project/ProjectType";
-import DebugUtils from "../../microclimate/project/DebugUtils";
+import ProjectType from "../../codewind/project/ProjectType";
+import DebugUtils from "../../codewind/project/DebugUtils";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 

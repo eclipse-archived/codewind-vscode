@@ -12,8 +12,8 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import Project from "../../microclimate/project/Project";
-import MCLog from "../../microclimate/project/logs/MCLog";
+import Project from "../../codewind/project/Project";
+import MCLog from "../../codewind/project/logs/MCLog";
 
 // const STRING_NS = StringNamespaces.LOGS;
 

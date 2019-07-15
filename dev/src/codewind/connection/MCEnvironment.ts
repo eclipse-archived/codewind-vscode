@@ -25,7 +25,7 @@ namespace MCEnvironment {
     export interface IMCEnvData {
         devops_available: boolean;
         editor_url: string;
-        microclimate_version: string;
+        codewind_version: string;
         os_platform: string;
         running_on_icp: boolean;
         socket_namespace?: string;
@@ -58,18 +58,17 @@ namespace MCEnvironment {
      * **Throws an error** if the version is not supported.
      */
     export function getVersionNumber(_envData: IMCEnvData): number {
-        // const rawVersion = _envData.microclimate_version;
         // TODO when we have versioning in codewind
         return Number.MAX_SAFE_INTEGER;
 
         // if (rawVersion === "latest") {      // non-nls
         //     // This means it's being hosted by an internal MC dev.
         //     // There's nothing we can do here but assume they have all the features we need.
-        //     Log.i("Dev version of Microclimate");
+        //     Log.i("Dev version");
         //     return Number.MAX_SAFE_INTEGER;
         // }
         // else if (rawVersion.match(INTERNAL_BUILD_RX) != null) {
-        //     Log.i("Internal build of Microclimate");
+        //     Log.i("Internal version");
         //     return Number.MAX_SAFE_INTEGER;
         // }
         // else {
@@ -79,7 +78,7 @@ namespace MCEnvironment {
         //         throw new Error(Translator.t(STRING_NS, "versionNotRecognized", { rawVersion: rawVersion, requiredVersion: REQUIRED_VERSION_STR}));
         //     }
         //     else if (versionNum < REQUIRED_VERSION) {
-        //         Log.e(`Microclimate version ${versionNum} is too old.`);
+        //         Log.e(`Backend version ${versionNum} is too old.`);
         //         throw new Error(Translator.t(STRING_NS, "versionTooOld", { rawVersion: rawVersion, requiredVersion: REQUIRED_VERSION_STR}));
         //     }
         //     return versionNum;

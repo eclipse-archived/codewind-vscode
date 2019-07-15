@@ -16,8 +16,8 @@ import Log from "../../Logger";
 import Project from "./Project";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
-import StartModes from "../../constants/StartModes";
 import { attachDebugger } from "../../command/project/AttachDebuggerCmd";
+import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import Resources from "../../constants/Resources";
 
 const STRING_NS = StringNamespaces.PROJECT;
@@ -128,7 +128,7 @@ export default class ProjectPendingRestart {
             this.fulfill(success, error);
         }
         else {
-            if (StartModes.isDebugMode(this.startMode)) {
+            if (ProjectCapabilities.isDebugMode(this.startMode)) {
                 await this.attachDebuggerPostRestart();
             }
         }

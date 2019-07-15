@@ -11,8 +11,8 @@
 
 import * as vscode from "vscode";
 
-import Project from "../../microclimate/project/Project";
-import { ProjectType } from "../../microclimate/project/ProjectType";
+import Project from "../../codewind/project/Project";
+import { ProjectType } from "../../codewind/project/ProjectType";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 

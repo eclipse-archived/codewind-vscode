@@ -12,9 +12,9 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-import Project from "../../microclimate/project/Project";
+import Project from "../../codewind/project/Project";
 
-import * as ProjectOverview from "../../microclimate/project/ProjectOverviewPage";
+import * as ProjectOverview from "../../codewind/project/ProjectOverviewPage";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";

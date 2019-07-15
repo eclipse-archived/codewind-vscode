@@ -9,8 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import Project from "../../microclimate/project/Project";
-import Requester from "../../microclimate/project/Requester";
+import Project from "../../codewind/project/Project";
+import Requester from "../../codewind/project/Requester";
 
 export default async function toggleAutoBuildCmd(project: Project): Promise<void> {
     return Requester.requestToggleAutoBuild(project);

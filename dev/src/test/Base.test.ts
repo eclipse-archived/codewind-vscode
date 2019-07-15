@@ -14,13 +14,13 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 
 import Log from "../Logger";
-import CodewindManager from "../microclimate/connection/CodewindManager";
+import CodewindManager from "../codewind/connection/CodewindManager";
 
 import SocketTestUtil from "./SocketTestUtil";
 import ProjectObserver from "./ProjectObserver";
 import TestConfig from "./TestConfig";
-import Project from "../microclimate/project/Project";
-import Connection from "../microclimate/connection/Connection";
+import Project from "../codewind/project/Project";
+import Connection from "../codewind/connection/Connection";
 import TestUtil from "./TestUtil";
 
 const extensionID = "IBM.codewind";
@@ -30,7 +30,7 @@ export let testConnection: Connection;
 // Set this to true when the connection set up and project creation succeeds
 export let initializeSucceeded: boolean = false;
 
-describe("Microclimate Tools for VSCode basic test", async function() {
+describe("Codewind for VSCode basic test", async function() {
 
     // The test needs to be launched with the codewind-workspace open, so that the extension is activated.
 
@@ -107,14 +107,14 @@ describe("Microclimate Tools for VSCode basic test", async function() {
     });
 
     it("should have a test socket connection", async function() {
-        expect(testConnection, "No Microclimate connection").to.exist;
+        expect(testConnection, "No Codewind connection").to.exist;
         const socketUri = testConnection.socket.uri;
         const testSocket = await SocketTestUtil.createTestSocket(socketUri);
         expect(testSocket.connected, "Socket did not connect").to.be.true;
     });
 
     it("should initialize the ProjectObserver", async function() {
-        expect(testConnection, "No Microclimate connection").to.exist;
+        expect(testConnection, "No Codewind connection").to.exist;
         const obs = new ProjectObserver(testConnection);
         expect(obs, "Failed to initialize ProjectObserver").to.exist;
         expect(obs.connection, "Failed to initialize ProjectObserver connection").to.exist;
@@ -130,7 +130,7 @@ describe("Microclimate Tools for VSCode basic test", async function() {
         // Long timeout because project creation is slow
         this.timeout(TestUtil.getMinutes(10));
 
-        expect(testConnection, "No Microclimate connection").to.exist;
+        expect(testConnection, "No Codewind connection").to.exist;
 
         const projectTypesToTest = TestConfig.getProjectTypesToTest();
         Log.t("Testing project types:", projectTypesToTest);

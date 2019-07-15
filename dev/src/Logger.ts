@@ -18,7 +18,7 @@ import * as Stacktrace from "stack-trace";
 import * as CircularJson from "circular-json";
 import * as reqErrors from "request-promise-native/errors";
 
-import Project from "./microclimate/project/Project";
+import Project from "./codewind/project/Project";
 
 // non-nls-file
 

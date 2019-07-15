@@ -12,10 +12,10 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import Connection from "../../microclimate/connection/Connection";
+import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
-import UserProjectCreator from "../../microclimate/connection/UserProjectCreator";
-import { isRegistrySet, onRegistryNotSet } from "../../microclimate/connection/Registry";
+import UserProjectCreator from "../../codewind/connection/UserProjectCreator";
+import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 
 /**
  * @param create true for Create page, false for Import page

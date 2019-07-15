@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 
-import Connection from "../microclimate/connection/Connection";
+import Connection from "../codewind/connection/Connection";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
 import Translator from "../constants/strings/translator";

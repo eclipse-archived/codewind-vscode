@@ -17,15 +17,15 @@ import * as Base from "./Base.test";
 import * as Extended from "./Extended.test";
 Extended;
 
-import Project from "../microclimate/project/Project";
+import Project from "../codewind/project/Project";
 import Log from "../Logger";
-import ProjectState from "../microclimate/project/ProjectState";
+import ProjectState from "../codewind/project/ProjectState";
 import Commands from "../constants/Commands";
 
 import TestUtil from "./TestUtil";
 import ProjectObserver from "./ProjectObserver";
 import SocketTestUtil from "./SocketTestUtil";
-import SocketEvents from "../microclimate/connection/SocketEvents";
+import SocketEvents from "../codewind/connection/SocketEvents";
 import TestConfig from "./TestConfig";
 import { removeProject } from "../command/project/RemoveProjectCmd";
 
@@ -194,7 +194,7 @@ export async function testRestart(project: Project, debug: boolean, shouldSuccee
         projectID: project.id
     });
 
-    expect(socketData["status"], "Microclimate failed to restart project!").to.equal("success");
+    expect(socketData["status"], "Backend failed to restart project!").to.equal("success");
 
     Log.t("Received good Restart Result event, waiting now for project restart state changes");
 
