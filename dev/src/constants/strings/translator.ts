@@ -39,7 +39,7 @@ export default class Translator {
 
         if (typeof tResult === typeof "") {
             if (tResult === fullKey) {
-                Log.e(`Did not find string with key: ${fullKey}`);
+                Log.e(`Did not find string with key "${key}" in namespace "${namespace}"`);
             }
             return tResult as string;
         }
