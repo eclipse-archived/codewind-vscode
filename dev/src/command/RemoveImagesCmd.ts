@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import InstallerWrapper, { InstallerCommands } from "../microclimate/connection/InstallerWrapper";
 import Log from "../Logger";
-import * as MCUtil from "../MCUtil";
+import MCUtil from "../MCUtil";
 import CodewindManager from "../microclimate/connection/CodewindManager";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Translator from "../constants/strings/translator";
@@ -22,7 +22,6 @@ const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function removeImagesCmd(): Promise<void> {
     try {
-        Log.i("Removing Codewind images");
         if (CodewindManager.instance.isStarted()) {
             vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesBlockedStillRunning"));
             return;
@@ -37,6 +36,7 @@ export default async function removeImagesCmd(): Promise<void> {
             return;
         }
 
+        Log.i("Removing Codewind images");
         await InstallerWrapper.installerExec(InstallerCommands.REMOVE);
     }
     catch (err) {

@@ -11,15 +11,15 @@
 
 import * as vscode from "vscode";
 
-import * as MCUtil from "../MCUtil";
-import CodewindManager from "../microclimate/connection/CodewindManager";
-import Log from "../Logger";
-import Commands from "../constants/Commands";
-import Connection from "../microclimate/connection/Connection";
-import MCEnvironment from "../microclimate/connection/MCEnvironment";
-import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
-import Translator from "../constants/strings/translator";
-import StringNamespaces from "../constants/strings/StringNamespaces";
+import MCUtil from "../../MCUtil";
+import CodewindManager from "../../microclimate/connection/CodewindManager";
+import Log from "../../Logger";
+import Connection from "../../microclimate/connection/Connection";
+import MCEnvironment from "../../microclimate/connection/MCEnvironment";
+import InstallerWrapper from "../../microclimate/connection/InstallerWrapper";
+import Translator from "../../constants/strings/translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
+import Commands from "../../constants/Commands";
 
 const STRING_NS = StringNamespaces.STARTUP;
 

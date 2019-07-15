@@ -12,27 +12,16 @@
 import * as vscode from "vscode";
 
 import Project from "../../microclimate/project/Project";
-import { promptForProject } from "../CommandUtil";
-import ProjectState from "../../microclimate/project/ProjectState";
+
 import Log from "../../Logger";
 import ProjectCapabilities from "../../microclimate/project/ProjectCapabilities";
 import Requester from "../../microclimate/project/Requester";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
-    if (project == null) {
-        const selected = await promptForProject(ProjectState.AppStates.STARTED, ProjectState.AppStates.STARTING);
-        if (selected == null) {
-            // user cancelled
-            Log.d("User cancelled project prompt");
-            return false;
-        }
-        project = selected;
-    }
-
-    const startMode = ProjectCapabilities.getDefaultStartMode(debug, project.type.type);
+    const startMode: StartModes.Modes = StartModes.getDefaultStartMode(debug, project.type.type);
 
     Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
 

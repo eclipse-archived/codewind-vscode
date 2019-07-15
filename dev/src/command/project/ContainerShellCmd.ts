@@ -11,26 +11,12 @@
 
 import * as vscode from "vscode";
 
-import { ProjectState } from "../../microclimate/project/ProjectState";
-import { promptForProject } from "../CommandUtil";
 import Project from "../../microclimate/project/Project";
-import { Log } from "../../Logger";
 import { ProjectType } from "../../microclimate/project/ProjectType";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function containerShellCmd(project: Project): Promise<void> {
-    Log.d("containerBashCmd invoked");
-    if (project == null) {
-        const selected = await promptForProject(...ProjectState.getEnabledStates());
-        if (selected == null) {
-            // user cancelled
-            Log.d("User cancelled project prompt");
-            return;
-        }
-        project = selected;
-    }
-
     if (project.containerID == null || project.containerID === "") {
         vscode.window.showWarningMessage(Translator.t(StringNamespaces.CMD_MISC, "noContainerForShell", { projectName: project.name }));
         return;
@@ -53,6 +39,7 @@ export default async function containerShellCmd(project: Project): Promise<void>
     term.sendText(`docker exec -it ${project.containerID} /usr/bin/env ${toExec}`);     // non-nls
     term.show();
 }
+
 
 /*
 async function getExistingTerminals(name: string): Promise<vscode.Terminal[] | undefined> {

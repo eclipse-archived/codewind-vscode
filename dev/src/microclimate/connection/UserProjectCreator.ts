@@ -18,7 +18,7 @@ import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 
 export interface IMCTemplateData {
     label: string;

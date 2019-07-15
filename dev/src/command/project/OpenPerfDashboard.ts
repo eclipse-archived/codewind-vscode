@@ -12,24 +12,15 @@
 import * as vscode from "vscode";
 
 import Project from "../../microclimate/project/Project";
-import { promptForProject } from "../CommandUtil";
+
 import Log from "../../Logger";
-import Commands from "../../constants/Commands";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 import EndpointUtil from "../../constants/Endpoints";
+import Requester from "../../microclimate/project/Requester";
+import Commands from "../../constants/Commands";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
-    if (project == null) {
-        const selected = await promptForProject();
-        if (selected == null) {
-            Log.d("User cancelled prompt for resource");
-            // user cancelled
-            return;
-        }
-        project = selected;
-    }
-
-    const supportsMetrics = project.capabilities.metricsAvailable;
+    const supportsMetrics = await Requester.areMetricsAvailable(project);
     Log.d(`${project.name} supports perfmonitor ? ${supportsMetrics}`);
     if (!supportsMetrics) {
         vscode.window.showWarningMessage(`${project.name} does not support the performance dashboard.`);

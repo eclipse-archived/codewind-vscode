@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 
 import Project from "../../microclimate/project/Project";
-import { promptForProject } from "../CommandUtil";
+
 import * as ProjectOverview from "../../microclimate/project/ProjectOverviewPage";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
@@ -25,17 +25,6 @@ import Constants from "../../constants/Constants";
 import { removeProject } from "./RemoveProjectCmd";
 
 export default async function projectOverviewCmd(project: Project): Promise<void> {
-    // Log.d("projectOverviewCmd invoked");
-    if (project == null) {
-        const selected = await promptForProject();
-        if (selected == null) {
-            // user cancelled
-            Log.d("User cancelled project prompt");
-            return;
-        }
-        project = selected;
-    }
-
     const wvOptions: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
         enableScripts: true,
         retainContextWhenHidden: true,
@@ -53,7 +42,7 @@ export default async function projectOverviewCmd(project: Project): Promise<void
     }
 
     webPanel.reveal();
-    webPanel.onDidDispose( () => {
+    webPanel.onDidDispose(() => {
         // this will dispose the webview a second time, but that seems to be fine
         project.closeProjectInfo();
     });
@@ -91,7 +80,7 @@ function handleWebviewMessage(this: Project, msg: IWebViewMsg): void {
                 break;
             }
             case ProjectOverview.Messages.TOGGLE_ENABLEMENT: {
-                toggleEnablementCmd(project, !project.state.isEnabled);
+                toggleEnablementCmd(project);
                 break;
             }
             case ProjectOverview.Messages.BUILD: {

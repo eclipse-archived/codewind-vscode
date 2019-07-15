@@ -37,7 +37,7 @@ enum Commands {
     RESTART_RUN = "ext.cw.restartProjectRun",
     RESTART_DEBUG = "ext.cw.restartProjectDebug",
 
-    OPEN_IN_BROWSER = "ext.cw.openInBrowser",
+    OPEN_APP = "ext.cw.openInBrowser",
     REQUEST_BUILD = "ext.cw.requestBuild",
     TOGGLE_AUTOBUILD = "ext.cw.toggleAutoBuild",
     ENABLE_AUTOBUILD = "ext.cw.enableAutoBuild",

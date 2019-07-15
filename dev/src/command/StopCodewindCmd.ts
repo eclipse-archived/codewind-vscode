@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
 import Log from "../Logger";
-import * as MCUtil from "../MCUtil";
+import MCUtil from "../MCUtil";
 import CodewindManager from "../microclimate/connection/CodewindManager";
 
 export default async function stopCodewindCmd(): Promise<void> {

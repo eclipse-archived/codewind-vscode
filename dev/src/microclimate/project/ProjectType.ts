@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import Resources from "../../constants/Resources";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 // import Log from "../../Logger";
 
 export class ProjectType {
