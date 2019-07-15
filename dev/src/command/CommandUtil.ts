@@ -64,38 +64,51 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.OPEN_WS_FOLDER, openCodewindWorkspaceCmd, undefined),
         registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
 
-        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined),
-        registerProjectCommand(Commands.OPEN_APP, openAppCmd, ProjectState.getStartedOrStartingStates()),
-        registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllStates()),
+        registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, undefined, ProjectState.getStartedOrStartingStates()),
 
-        registerProjectCommand(Commands.REQUEST_BUILD, requestBuildCmd, undefined),
-        registerProjectCommand(Commands.TOGGLE_AUTOBUILD, toggleAutoBuildCmd, undefined),
+        registerProjectCommand(Commands.REQUEST_BUILD, requestBuildCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.TOGGLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),
         // Enable and disable AB are the same as Toggle AB - they are just presented to the user differently.
-        registerProjectCommand(Commands.ENABLE_AUTOBUILD, toggleAutoBuildCmd, undefined),
-        registerProjectCommand(Commands.DISABLE_AUTOBUILD, toggleAutoBuildCmd, undefined),
+        registerProjectCommand(Commands.ENABLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.DISABLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),
 
         registerProjectCommand(Commands.ATTACH_DEBUGGER, attachDebuggerCmd, undefined, ProjectState.getDebuggableStates()),
         registerProjectCommand<boolean>(Commands.RESTART_RUN, restartProjectCmd, false, ProjectState.getStartedOrStartingStates()),
-        registerProjectCommand<boolean>(Commands.RESTART_DEBUG, requestBuildCmd, true, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand<boolean>(Commands.RESTART_DEBUG, restartProjectCmd, true, ProjectState.getStartedOrStartingStates()),
 
-        registerProjectCommand(Commands.MANAGE_LOGS, manageLogs, undefined),
-        registerProjectCommand(Commands.SHOW_ALL_LOGS, showAllLogs, undefined),
-        registerProjectCommand(Commands.HIDE_ALL_LOGS, hideAllLogs, undefined),
+        registerProjectCommand(Commands.MANAGE_LOGS, manageLogs, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.SHOW_ALL_LOGS, showAllLogs, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.HIDE_ALL_LOGS, hideAllLogs, undefined, ProjectState.getEnabledStates()),
 
-        registerProjectCommand<boolean>(Commands.ENABLE_PROJECT, toggleEnablementCmd, true, [ ProjectState.AppStates.DISABLED ]),
-        registerProjectCommand<boolean>(Commands.DISABLE_PROJECT, toggleEnablementCmd, false, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.ENABLE_PROJECT, toggleEnablementCmd, undefined, [ ProjectState.AppStates.DISABLED ]),
+        registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, undefined, ProjectState.getAllStates()),
 
         registerProjectCommand(Commands.OPEN_APP_MONITOR, openAppMonitorCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),
     ];
 }
 
+/**
+ * Register a command that runs on Project objects.
+ *
+ * The type argument(s) must be the types of the arguments (other than the first) to be passed to the executor.
+ * Note the compiler does not check that these actually match the function signature.
+ *
+ * @param id - The command ID
+ * @param executor - The function that runs the command
+ * @param params - Parameters to pass to the executor function
+ * @param acceptableStates - If the user runs the command through the command palette,
+ *      the list of projects presented to choose from is filtered to projects in these states
+ */
 function registerProjectCommand<T>(
     id: string, executor: (project: Project, params: T) => void, params: T,
-    acceptableStates: ProjectState.AppStates[] = ProjectState.getEnabledStates()): vscode.Disposable {
+    acceptableStates: ProjectState.AppStates[]): vscode.Disposable {
 
     return vscode.commands.registerCommand(id, async (project: Project | undefined) => {
-        if (project == null) {
+        if (!project) {
             project = await promptForProject(acceptableStates);
             if (!project) {
                 return;
@@ -106,17 +119,29 @@ function registerProjectCommand<T>(
         }
         catch (err) {
             Log.e(`Unexpected error running command ${id}`, err);
-            vscode.window.showErrorMessage(`Unexpected error running command ${id}: on project ${project.name} ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Error running command ${id}: on project ${project.name} ${MCUtil.errToString(err)}`);
         }
     });
 }
 
+/**
+ * Register a command that runs on Connection objects.
+ *
+ * The type argument(s) must be the types of the arguments (other than the first) to be passed to the executor.
+ * Note the compiler does not check that these actually match the function signature.
+ *
+ * @param id - The command ID
+ * @param executor - The function that runs the command
+ * @param params - Parameters to pass to the executor function
+ * @param connectedOnly - If the user runs the command through the command palette,
+ *      only currently connected connections will be presented as options
+ */
 function registerConnectionCommand<T>(
     id: string, executor: (connection: Connection, params: T) => void, params: T,
     connectedOnly: boolean = false): vscode.Disposable {
 
     return vscode.commands.registerCommand(id, async (connection: Connection | undefined) => {
-        if (connection == null) {
+        if (!connection) {
             connection = await promptForConnection(connectedOnly);
             if (!connection) {
                 return;
@@ -127,13 +152,13 @@ function registerConnectionCommand<T>(
         }
         catch (err) {
             Log.e(`Unexpected error running command ${id}`, err);
-            vscode.window.showErrorMessage(`Unexpected error running command ${id}: on connection ${connection.url} ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Error running command ${id}: on connection ${connection.url} ${MCUtil.errToString(err)}`);
         }
     });
 }
 
 /**
- *
+ * If the user runs a Project command through the Command Palette, have them pick the project to run the cmd on
  * @param acceptableStates - If at least one state is passed, only projects in one of these states will be presented to the user.
  */
 async function promptForProject(acceptableStates: ProjectState.AppStates[]): Promise<Project | undefined> {
@@ -145,9 +170,6 @@ async function promptForProject(acceptableStates: ProjectState.AppStates[]): Pro
     if (acceptableStates.includes(ProjectState.AppStates.STARTING) && !acceptableStates.includes(ProjectState.AppStates.DEBUG_STARTING)) {
         acceptableStates.push(ProjectState.AppStates.DEBUG_STARTING);
     }
-
-    // Logger.log("Accept states", acceptableStates);
-
 
     const choices: vscode.QuickPickItem[] = (await CodewindManager.instance.allProjects)
         .filter((p) => acceptableStates.includes(p.state.appState));
@@ -167,7 +189,7 @@ async function promptForProject(acceptableStates: ProjectState.AppStates[]): Pro
 const STRING_NS = StringNamespaces.CMD_RES_PROMPT;
 
 function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): void {
-    const statesSpecified: boolean = acceptableStates.length !== 0;
+    const statesSpecified = acceptableStates.length !== 0;
     let noValidResourcesMsg: string;
     let requiredStatesStr: string = "";
     if (statesSpecified) {
@@ -181,7 +203,10 @@ function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): voi
     }
     vscode.window.showWarningMessage(noValidResourcesMsg);
 }
-
+/**
+ * If the user runs a Connection command through the Command Palette, have them pick the connection to run the cmd on
+ * @connectedOnly Only prompt the user with Connected connections
+ */
 async function promptForConnection(connectedOnly: boolean): Promise<Connection | undefined> {
     if (CodewindManager.instance.connections.length === 1) {
         const onlyConnection = CodewindManager.instance.connections[0];

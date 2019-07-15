@@ -28,6 +28,7 @@ import SocketTestUtil from "./SocketTestUtil";
 import SocketEvents from "../codewind/connection/SocketEvents";
 import TestConfig from "./TestConfig";
 import { removeProject } from "../command/project/RemoveProjectCmd";
+import restartProjectCmd from "../command/project/RestartProjectCmd";
 
 describe(`Restart tests`, async function() {
 
@@ -176,7 +177,8 @@ describe(`Restart tests`, async function() {
 export async function testRestart(project: Project, debug: boolean, shouldSucceed: boolean): Promise<boolean> {
     Log.t(`Testing restart debug=${debug} on project ${project.name}. should be restartable? ${shouldSucceed}`);
 
-    const restartCmdResult: any = await vscode.commands.executeCommand(debug ? Commands.RESTART_DEBUG : Commands.RESTART_RUN, project);
+    const restartCmdResult = await restartProjectCmd(project, debug);
+
     expect(restartCmdResult, "Restart command returned null").to.exist;
     // the result here is the request response
     Log.t("Restart response is", restartCmdResult);

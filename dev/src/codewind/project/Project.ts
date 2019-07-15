@@ -324,7 +324,7 @@ export default class Project implements vscode.QuickPickItem {
         if (SocketEvents.STATUS_SUCCESS !== event.status) {
             Log.e(`${this.name}: Restart failed, response is`, event);
 
-            errMsg = Translator.t(StringNamespaces.DEFAULT, "genericErrorProjectRestart", { thisName: this.name });
+            errMsg = Translator.t(STRING_NS, "genericErrorProjectRestart", { thisName: this.name });
             if (event.errorMsg != null) {
                 errMsg = event.errorMsg;
             }
