@@ -16,7 +16,7 @@ import Translator from "../constants/strings/translator";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
-import openCodewindWorkspaceCmd from "./OpenWorkspaceFolderCmd";
+import openWorkspaceCmd from "./OpenWorkspaceCmd";
 import restartProjectCmd from "./project/RestartProjectCmd";
 import openAppCmd from "./project/OpenAppCmd";
 import requestBuildCmd from "./project/RequestBuildCmd";
@@ -39,6 +39,7 @@ import ProjectState from "../codewind/project/ProjectState";
 import CodewindManager from "../codewind/connection/CodewindManager";
 import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import containerShellCmd from "./project/ContainerShellCmd";
+import removeProjectCmd from "./project/RemoveProjectCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -61,10 +62,10 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined),
 
         registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined),
-        registerConnectionCommand(Commands.OPEN_WS_FOLDER, openCodewindWorkspaceCmd, undefined),
+        registerConnectionCommand(Commands.OPEN_WS_FOLDER, openWorkspaceCmd, undefined),
         registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
 
-        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllStates()),
+        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),
         registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, undefined, ProjectState.getStartedOrStartingStates()),
 
@@ -84,7 +85,7 @@ export function createCommands(): vscode.Disposable[] {
 
         registerProjectCommand(Commands.ENABLE_PROJECT, toggleEnablementCmd, undefined, [ ProjectState.AppStates.DISABLED ]),
         registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, undefined, ProjectState.getAllStates()),
+        registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, undefined, ProjectState.getAllAppStates()),
 
         registerProjectCommand(Commands.OPEN_APP_MONITOR, openAppMonitorCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),

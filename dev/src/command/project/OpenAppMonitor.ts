@@ -15,7 +15,6 @@ import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
-import Requester from "../../microclimate/project/Requester";
 
 const langToPathMap = new Map<string, string>();
 langToPathMap.set("java", "javametrics-dash");

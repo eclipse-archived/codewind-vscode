@@ -12,16 +12,15 @@
 import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
-
 import Log from "../../Logger";
-import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
+import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
-    const startMode: StartModes.Modes = StartModes.getDefaultStartMode(debug, project.type.type);
+    const startMode = ProjectCapabilities.getDefaultStartMode(debug, project.type.type);
 
     Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
 

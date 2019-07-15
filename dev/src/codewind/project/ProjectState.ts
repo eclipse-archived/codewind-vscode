@@ -145,6 +145,10 @@ export namespace ProjectState {
         UNKNOWN = "Unknown"
     }
 
+    export function getAllAppStates(): AppStates[] {
+        return Object.values(AppStates);
+    }
+
     export function getEnabledStates(): AppStates[] {
         return Object.values(AppStates).filter((state) => state !== ProjectState.AppStates.DISABLED);
     }
