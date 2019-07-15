@@ -44,11 +44,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
 
-    // QuickPickItem
-    public readonly label: string;
-    public readonly description?: string;
-    // public readonly detail?: string;
-
     constructor(
         public readonly url: vscode.Uri,
         public readonly version: number,
@@ -64,9 +59,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         // it does happen very quickly (< 1s) but be aware of potential race here
         this.initFileWatcherPromise = this.initFileWatcher();
 
-        // QuickPickItem
-        this.label = Translator.t(StringNamespaces.TREEVIEW, "connectionLabel", { uri: this.url });
-        // this.description = this.workspacePath.fsPath.toString();
         Log.i(`Created new Connection @ ${this}, workspace ${this.workspacePath}`);
     }
 
@@ -266,5 +258,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // refresh whole tree
             this.onChange();
         }
+    }
+
+    // QuickPickItem
+    public get label(): string {
+        return Translator.t(StringNamespaces.TREEVIEW, "connectionLabel", { uri: this.url });
     }
 }
