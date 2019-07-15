@@ -158,7 +158,10 @@ async function promptForProject(acceptableStates: ProjectState.AppStates[]): Pro
         return undefined;
     }
 
-    return /* await */ vscode.window.showQuickPick(choices, { canPickMany: false }) as Promise<Project>;
+    return /* await */ vscode.window.showQuickPick(choices, {
+        canPickMany: false,
+        placeHolder: "Select a project to run this command on",
+    }) as Promise<Project>;
 }
 
 const STRING_NS = StringNamespaces.CMD_RES_PROMPT;
@@ -201,5 +204,8 @@ async function promptForConnection(connectedOnly: boolean): Promise<Connection |
         return undefined;
     }
 
-    return /* await */ vscode.window.showQuickPick(choices, { canPickMany: false }) as Promise<Connection>;
+    return /* await */ vscode.window.showQuickPick(choices, {
+        canPickMany: false,
+        placeHolder: "Select a Connection to run this command on",
+    }) as Promise<Connection>;
 }

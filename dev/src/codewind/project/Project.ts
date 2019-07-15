@@ -70,10 +70,6 @@ export default class Project implements vscode.QuickPickItem {
     public static readonly diagnostics: vscode.DiagnosticCollection
         = vscode.languages.createDiagnosticCollection(Validator.DIAGNOSTIC_COLLECTION_NAME);
 
-    // QuickPickItem fields
-    public readonly label: string;
-    public readonly detail?: string;
-
     // in MS
     private readonly RESTART_TIMEOUT: number = 180 * 1000;
     // Represents a pending restart operation. Only set if the project is currently restarting.
@@ -124,10 +120,6 @@ export default class Project implements vscode.QuickPickItem {
 
         this._state = this.update(projectInfo);
 
-        // QuickPickItem
-        this.label = Translator.t(STRING_NS, "quickPickLabel", { projectName: this.name, projectType: this.type.toString() });
-        // this.detail = this.id;
-
         this.logManager = new MCLogManager(this);
 
         // Do any async initialization work that must be done before the project is ready, here.
@@ -141,6 +133,11 @@ export default class Project implements vscode.QuickPickItem {
         Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
     }
 
+    // QuickPickItem field getters
+    public get label(): string {
+        return Translator.t(STRING_NS, "quickPickLabel", { projectName: this.name, projectType: this.type.toString() });
+    }
+
     // description used by QuickPickItem
     public get description(): string {
         const appUrl = this.appBaseUrl;
@@ -150,6 +147,11 @@ export default class Project implements vscode.QuickPickItem {
         else {
             return Translator.t(STRING_NS, "quickPickNotRunning");
         }
+    }
+
+    // detail used by QuickPickItem
+    public get detail(): string {
+        return this.state.toString();
     }
 
     /**
