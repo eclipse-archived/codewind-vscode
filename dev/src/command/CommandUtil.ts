@@ -40,6 +40,7 @@ import CodewindManager from "../codewind/connection/CodewindManager";
 import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import containerShellCmd from "./project/ContainerShellCmd";
 import removeProjectCmd from "./project/RemoveProjectCmd";
+import addProjectToWorkspaceCmd from "./project/AddToWorkspaceCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -68,6 +69,8 @@ export function createCommands(): vscode.Disposable[] {
         registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),
         registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, undefined, ProjectState.getStartedOrStartingStates()),
+
+        registerProjectCommand(Commands.ADD_PROJECT_TO_WS, addProjectToWorkspaceCmd, undefined, ProjectState.getAllAppStates()),
 
         registerProjectCommand(Commands.REQUEST_BUILD, requestBuildCmd, undefined, ProjectState.getEnabledStates()),
         registerProjectCommand(Commands.TOGGLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),

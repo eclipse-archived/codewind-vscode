@@ -33,6 +33,8 @@ enum Commands {
 
     OPEN_WS_FOLDER = "ext.cw.openWorkspaceFolder",
 
+    ADD_PROJECT_TO_WS = "ext.cw.addProjectToWorkspace",
+
     ATTACH_DEBUGGER = "ext.cw.attachDebugger",
     RESTART_RUN = "ext.cw.restartProjectRun",
     RESTART_DEBUG = "ext.cw.restartProjectDebug",

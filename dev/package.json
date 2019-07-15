@@ -131,6 +131,11 @@
                 "category": "%commandCategory%"
             },
             {
+                "command": "%cmdID_addProjToWorkspace%",
+                "title": "%cmdTitle_addProjToWorkspace%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_openInBrowser%",
                 "title": "%cmdTitle_openInBrowser%",
                 "category": "%commandCategory%",
@@ -362,6 +367,11 @@
                     "command": "%cmdID_openPerfDashboard%",
                     "when": "%isProjectWithMetrics%",
                     "group": "ext.cw.a@4"
+                },
+                {
+                    "command": "%cmdID_addProjToWorkspace%",
+                    "when": "%isProject%",
+                    "group": "ext.cw.b@0"
                 },
                 {
                     "command": "%cmdID_showAllLogs%",

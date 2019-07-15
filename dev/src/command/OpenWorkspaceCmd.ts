@@ -13,23 +13,24 @@ import * as vscode from "vscode";
 
 import Connection from "../codewind/connection/Connection";
 import Log from "../Logger";
-import Commands from "../constants/Commands";
 import Translator from "../constants/strings/translator";
 import StringNamespaces from "../constants/strings/StringNamespaces";
+import Commands from "../constants/Commands";
 
+/**
+ * Replace the user's current workspace with the codewind-workspace.
+ */
 export default async function openWorkspaceCmd(connection: Connection): Promise<void> {
     const workspacePathUri = connection.workspacePath;
-    Log.i("Going to folder " + workspacePathUri);
 
-    const currentFolders = vscode.workspace.workspaceFolders;
+    const currentFolders: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
     // currentFolders[0] is the current workspace root.
     if (currentFolders != null && currentFolders[0] != null && currentFolders[0].uri.fsPath === workspacePathUri.fsPath) {
         Log.i("Selected folder is already workspace root, nothing to do");
-        vscode.window.showWarningMessage(Translator.t(StringNamespaces.CMD_MISC, "alreadyInSelectedFolder"));
+        vscode.window.showWarningMessage(Translator.t(StringNamespaces.CMD_MISC, "alreadyInCodewindWorkspace"));
+        return;
     }
-    else {
-        // To change 'in new window' behaviour, use "window.openFoldersInNewWindow": "default",
-        Log.i(`Opening folder ${workspacePathUri.fsPath}`);
-        vscode.commands.executeCommand(Commands.VSC_OPEN_FOLDER, workspacePathUri);
-    }
+
+    Log.i(`Setting workspace to be ${workspacePathUri.fsPath}`);
+    vscode.commands.executeCommand(Commands.VSC_OPEN_FOLDER, workspacePathUri);
 }
