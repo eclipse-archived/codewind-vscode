@@ -9,7 +9,12 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: node
+  - name: vscode-builder
+    image: node:lts
+    tty: true
+    command:
+      - cat
+  - name: theia-builder
     image: node:lts
     tty: true
     command:
@@ -29,71 +34,39 @@ spec:
     }
 
     stages {
-        stage('Build for VS Code') {
-            steps {
-                container("node") {
-                    dir('dev') {
-                        sh '''#!/usr/bin/env bash
-                            # Test compilation to catch any errors
-                            npm run vscode:prepublish
-
-                            # Package for prod
-                            npm i vsce
-                            npx vsce package
-
-                            # rename to have datetime for clarity + prevent collisions
-                            export artifact_name=$(basename *.vsix)
-                            # name is the part before first hyphen eg "codewind"
-                            export name="${artifact_name%-*}"
-                            # artifact name without extension
-                            export artifact_basename="${artifact_name%.*}"
-                            export version="${artifact_basename##*-}"
-                            mv -v $artifact_name $name-$version-$(date +'%Y%m%d%H%M').vsix
-                        '''
-
-                        stash includes: '*.vsix', name: 'deployables'
+        stage("Build") {
+            stage("Build for VS Code") {
+                steps {
+                    container("vscode-builder") {
+                        sh 'ci-scripts/package.sh'
+                        stash includes: '*vscode*.vsix', name: 'deployables'
+                    }
+                }
+            }
+            stage("Build for Theia") {
+                steps {
+                    container("theia-builder") {
+                        sh 'ci-scripts/package.sh theia'
+                        stash includes: '*theia*.vsix', name: 'deployables'
                     }
                 }
             }
         }
-        stage("Build for Theia") {
-            steps {
-                container("node") {
-                    dir('dev') {
-                        sh '''#!/usr/bin/env bash
 
-                            ./theia-prebuild.js
-
-                            # Test compilation to catch any errors
-                            npm run vscode:prepublish
-
-                            # Package for prod
-                            npm i vsce
-                            npx vsce package
-
-                            # rename to have datetime for clarity + prevent collisions
-                            export artifact_name=$(basename *.vsix)
-                            # name is the part before first hyphen eg "codewind"
-                            export name="${artifact_name%-*}-theia"
-                            # artifact name without extension
-                            export artifact_basename="${artifact_name%.*}"
-                            export version="${artifact_basename##*-}"
-                            mv -v $artifact_name $name-$version-$(date +'%Y%m%d%H%M').vsix
-                        '''
-
-                        stash includes: '*.vsix', name: 'deployables'
-                    }
-                }
-            }
-        }
         stage ("Upload") {
+            // This when clause disables PR build uploads; you may comment this out if you want your build uploaded.
+            when {
+                beforeAgent true
+                not {
+                    changeRequest()
+                }
+            }
+
             agent any
             steps {
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
                     unstash 'deployables'
                     sh '''#!/usr/bin/env bash
-                        # ls -lA
-
                         export sshHost="genie.codewind@projects-storage.eclipse.org"
                         export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/codewind-vscode"
 
@@ -108,6 +81,8 @@ spec:
 					    fi
 
  						export deployDir="$deployParentDir/$UPLOAD_DIR"
+
+                        printf "Uploading files:\n$(ls -l *.vsix)\n"
 
                         ssh $sshHost mkdir -p $deployDir
                         scp *.vsix $sshHost:$deployDir
