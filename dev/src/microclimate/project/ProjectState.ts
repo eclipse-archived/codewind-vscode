@@ -146,15 +146,7 @@ export namespace ProjectState {
     }
 
     export function getEnabledStates(): AppStates[] {
-        return [
-            AppStates.STARTED,
-            AppStates.STARTING,
-            AppStates.STOPPING,
-            AppStates.STOPPED,
-            AppStates.DEBUGGING,
-            AppStates.DEBUG_STARTING,
-            AppStates.UNKNOWN
-        ];
+        return Object.values(AppStates).filter((state) => state !== ProjectState.AppStates.DISABLED);
     }
 
     export function getStartedStates(): AppStates[] {
@@ -169,6 +161,10 @@ export namespace ProjectState {
             ProjectState.AppStates.STARTING,
             ProjectState.AppStates.DEBUG_STARTING
         ];
+    }
+
+    export function getStartedOrStartingStates(): AppStates[] {
+        return getStartedStates().concat(getStartingStates());
     }
 
     export function getDebuggableStates(): AppStates[] {

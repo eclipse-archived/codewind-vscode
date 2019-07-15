@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
@@ -125,7 +125,7 @@ export default class Project implements vscode.QuickPickItem {
         this._state = this.update(projectInfo);
 
         // QuickPickItem
-        this.label = Translator.t(STRING_NS, "quickPickLabel", { projectName: this.name, projectType: this.type.type });
+        this.label = Translator.t(STRING_NS, "quickPickLabel", { projectName: this.name, projectType: this.type.toString() });
         // this.detail = this.id;
 
         this.logManager = new MCLogManager(this);

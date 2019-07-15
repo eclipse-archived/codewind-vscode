@@ -40,7 +40,7 @@
     "cmdTitle_bindProject": "Add Existing Project",
 
     "cmdID_openFolder": "ext.cw.openWorkspaceFolder",
-    "cmdTitle_openFolder": "Open Folder as Workspace",
+    "cmdTitle_openFolder": "Open Codewind Workspace",
 
     "cmdID_openInBrowser": "ext.cw.openInBrowser",
     "cmdTitle_openInBrowser": "Open App",

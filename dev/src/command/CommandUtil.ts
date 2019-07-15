@@ -11,36 +11,34 @@
 
 import * as vscode from "vscode";
 
-import Log from "../Logger";
-import Project from "../microclimate/project/Project";
-import Connection from "../microclimate/connection/Connection";
-import CodewindManager from "../microclimate/connection/CodewindManager";
-import ProjectState from "../microclimate/project/ProjectState";
-
 import Commands from "../constants/Commands";
-
-import openWorkspaceFolderCmd from "./OpenWorkspaceFolderCmd";
+import Translator from "../constants/strings/translator";
+import StringNamespaces from "../constants/strings/StringNamespaces";
+import Log from "../Logger";
+import MCUtil from "../MCUtil";
+import openCodewindWorkspaceCmd from "./OpenWorkspaceFolderCmd";
 import restartProjectCmd from "./project/RestartProjectCmd";
 import openAppCmd from "./project/OpenAppCmd";
 import requestBuildCmd from "./project/RequestBuildCmd";
 import toggleEnablementCmd from "./project/ToggleEnablementCmd";
-import containerBashCmd from "./project/ContainerShellCmd";
 import projectOverviewCmd from "./project/ProjectOverviewCmd";
-import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
 import openAppMonitorCmd from "./project/OpenAppMonitor";
-import refreshConnectionCmd from "./RefreshConnectionCmd";
-import Translator from "../constants/strings/translator";
-import StringNamespaces from "../constants/strings/StringNamespaces";
+import refreshConnectionCmd from "./connection/RefreshConnectionCmd";
 import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
-import createProject from "./CreateUserProjectCmd";
-import bindProject from "./BindProjectCmd";
+import createProject from "./connection/CreateUserProjectCmd";
+import bindProject from "./connection/BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
 import startCodewindCmd from "./StartCodewindCmd";
 import stopCodewindCmd from "./StopCodewindCmd";
 import removeImagesCmd from "./RemoveImagesCmd";
-import { setRegistryCmd } from "./SetRegistryCmd";
-import removeProjectCmd from "./project/RemoveProjectCmd";
+import { setRegistryCmd } from "./connection/SetRegistryCmd";
+import Connection from "../microclimate/connection/Connection";
+import Project from "../microclimate/project/Project";
+import ProjectState from "../microclimate/project/ProjectState";
+import CodewindManager from "../microclimate/connection/CodewindManager";
+import attachDebuggerCmd from "./project/AttachDebuggerCmd";
+import containerShellCmd from "./project/ContainerShellCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -52,227 +50,156 @@ export function createCommands(): vscode.Disposable[] {
     return [
         // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
         // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
-        vscode.commands.registerCommand(Commands.START_CODEWIND,    startCodewindCmd),
-        vscode.commands.registerCommand(Commands.START_CODEWIND_2,  startCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND,     stopCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,   stopCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND,      startCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND_2,    startCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND,       stopCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,     stopCodewindCmd),
 
-        vscode.commands.registerCommand(Commands.REMOVE_IMAGES,     removeImagesCmd),
+        vscode.commands.registerCommand(Commands.REMOVE_IMAGES,       removeImagesCmd),
 
-        vscode.commands.registerCommand(Commands.REFRESH_CONNECTION,    (selection) => refreshConnectionCmd(selection)),
-        vscode.commands.registerCommand(Commands.SET_REGISTRY,          (selection) => setRegistryCmd(selection)),
+        registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined),
+        registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined),
 
-        vscode.commands.registerCommand(Commands.CREATE_PROJECT,    (selection) => createProject(selection)),
-        vscode.commands.registerCommand(Commands.BIND_PROJECT,      (selection) => bindProject(selection)),
+        registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined),
+        registerConnectionCommand(Commands.OPEN_WS_FOLDER, openCodewindWorkspaceCmd, undefined),
+        registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
 
-        vscode.commands.registerCommand(Commands.OPEN_WS_FOLDER,    (selection) => openWorkspaceFolderCmd(selection)),
+        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined),
+        registerProjectCommand(Commands.OPEN_APP, openAppCmd, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, ProjectState.getStartedOrStartingStates()),
 
-        vscode.commands.registerCommand(Commands.ATTACH_DEBUGGER,   (selection) => attachDebuggerCmd(selection)),
-        vscode.commands.registerCommand(Commands.RESTART_RUN,       (selection) => restartProjectCmd(selection, false)),
-        vscode.commands.registerCommand(Commands.RESTART_DEBUG,     (selection) => restartProjectCmd(selection, true)),
-
-        vscode.commands.registerCommand(Commands.OPEN_IN_BROWSER,   (selection) => openAppCmd(selection)),
-
-        vscode.commands.registerCommand(Commands.REQUEST_BUILD,     (selection) => requestBuildCmd(selection)),
-        vscode.commands.registerCommand(Commands.TOGGLE_AUTOBUILD,  (selection) => toggleAutoBuildCmd(selection)),
+        registerProjectCommand(Commands.REQUEST_BUILD, requestBuildCmd, undefined),
+        registerProjectCommand(Commands.TOGGLE_AUTOBUILD, toggleAutoBuildCmd, undefined),
         // Enable and disable AB are the same as Toggle AB - they are just presented to the user differently.
-        vscode.commands.registerCommand(Commands.ENABLE_AUTOBUILD,  (selection) => toggleAutoBuildCmd(selection)),
-        vscode.commands.registerCommand(Commands.DISABLE_AUTOBUILD, (selection) => toggleAutoBuildCmd(selection)),
+        registerProjectCommand(Commands.ENABLE_AUTOBUILD, toggleAutoBuildCmd, undefined),
+        registerProjectCommand(Commands.DISABLE_AUTOBUILD, toggleAutoBuildCmd, undefined),
 
-        vscode.commands.registerCommand(Commands.MANAGE_LOGS,       (selection) => manageLogs(selection)),
-        vscode.commands.registerCommand(Commands.SHOW_ALL_LOGS,     (selection) => showAllLogs(selection)),
-        vscode.commands.registerCommand(Commands.HIDE_ALL_LOGS,     (selection) => hideAllLogs(selection)),
+        registerProjectCommand(Commands.ATTACH_DEBUGGER, attachDebuggerCmd, undefined, ProjectState.getDebuggableStates()),
+        registerProjectCommand<boolean>(Commands.RESTART_RUN, restartProjectCmd, false, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand<boolean>(Commands.RESTART_DEBUG, requestBuildCmd, true, ProjectState.getStartedOrStartingStates()),
 
-        vscode.commands.registerCommand(Commands.DISABLE_PROJECT,   (selection) => toggleEnablementCmd(selection, false)),
-        vscode.commands.registerCommand(Commands.ENABLE_PROJECT,    (selection) => toggleEnablementCmd(selection, true)),
+        registerProjectCommand(Commands.MANAGE_LOGS, manageLogs, undefined),
+        registerProjectCommand(Commands.SHOW_ALL_LOGS, showAllLogs, undefined),
+        registerProjectCommand(Commands.HIDE_ALL_LOGS, hideAllLogs, undefined),
 
-        vscode.commands.registerCommand(Commands.REMOVE_PROJECT,    (selection) => removeProjectCmd(selection)),
+        registerProjectCommand<boolean>(Commands.ENABLE_PROJECT, toggleEnablementCmd, true, [ ProjectState.AppStates.DISABLED ]),
+        registerProjectCommand<boolean>(Commands.DISABLE_PROJECT, toggleEnablementCmd, false, ProjectState.getEnabledStates()),
 
-        vscode.commands.registerCommand(Commands.CONTAINER_SHELL,   (selection) => containerBashCmd(selection)),
-
-        vscode.commands.registerCommand(Commands.PROJECT_OVERVIEW,  (selection) => projectOverviewCmd(selection)),
-
-        vscode.commands.registerCommand(Commands.OPEN_APP_MONITOR,      (selection) => openAppMonitorCmd(selection)),
-        vscode.commands.registerCommand(Commands.OPEN_PERF_DASHBOARD,   (selection) => openPerformanceDashboard(selection)),
+        registerProjectCommand(Commands.OPEN_APP_MONITOR, openAppMonitorCmd, undefined, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),
     ];
 }
 
-// Some commands require a project or connection to be selected,
-// if they're launched from the command palette we have to ask which resource they want to run the command on.
-// The functions below handle this use case.
+function registerProjectCommand<T>(
+    id: string, executor: (project: Project, params: T) => void, params: T,
+    acceptableStates: ProjectState.AppStates[] = ProjectState.getEnabledStates()): vscode.Disposable {
+
+    return vscode.commands.registerCommand(id, async (project: Project | undefined) => {
+        if (project == null) {
+            project = await promptForProject(acceptableStates);
+            if (!project) {
+                return;
+            }
+        }
+        try {
+            executor(project, params);
+        }
+        catch (err) {
+            Log.e(`Unexpected error running command ${id}`, err);
+            vscode.window.showErrorMessage(`Unexpected error running command ${id}: on project ${project.name} ${MCUtil.errToString(err)}`);
+        }
+    });
+}
+
+function registerConnectionCommand<T>(
+    id: string, executor: (connection: Connection, params: T) => void, params: T,
+    connectedOnly: boolean = false): vscode.Disposable {
+
+    return vscode.commands.registerCommand(id, async (connection: Connection | undefined) => {
+        if (connection == null) {
+            connection = await promptForConnection(connectedOnly);
+            if (!connection) {
+                return;
+            }
+        }
+        try {
+            executor(connection, params);
+        }
+        catch (err) {
+            Log.e(`Unexpected error running command ${id}`, err);
+            vscode.window.showErrorMessage(`Unexpected error running command ${id}: on connection ${connection.url} ${MCUtil.errToString(err)}`);
+        }
+    });
+}
 
 /**
  *
  * @param acceptableStates - If at least one state is passed, only projects in one of these states will be presented to the user.
  */
-export async function promptForProject(...acceptableStates: ProjectState.AppStates[]): Promise<Project | undefined> {
-    const project = await promptForResourceInner(false, true, false, ...acceptableStates);
-    if (project instanceof Project) {
-        return project as Project;
+async function promptForProject(acceptableStates: ProjectState.AppStates[]): Promise<Project | undefined> {
+    // for now, assume if they want Started, they also accept Debugging. This may change.
+    if (acceptableStates.includes(ProjectState.AppStates.STARTED) && !acceptableStates.includes(ProjectState.AppStates.DEBUGGING)) {
+        acceptableStates.push(ProjectState.AppStates.DEBUGGING);
     }
-    else if (project != null) {
-        // should never happen
-        Log.e("promptForProject received something other than a project back:", project);
-    }
-
-    // user cancelled, or error above
-    return undefined;
-}
-
-export async function promptForConnection(activeOnly: boolean): Promise<Connection | undefined> {
-    if (CodewindManager.instance.connections.length === 1) {
-        const onlyConnection = CodewindManager.instance.connections[0];
-        if (onlyConnection.isConnected || !activeOnly) {
-            return onlyConnection;
-        }
-        // else continue to promptForResource, which will report if there are no suitable connections.
+    // same for Starting / Starting - Debug
+    if (acceptableStates.includes(ProjectState.AppStates.STARTING) && !acceptableStates.includes(ProjectState.AppStates.DEBUG_STARTING)) {
+        acceptableStates.push(ProjectState.AppStates.DEBUG_STARTING);
     }
 
-    const connection = await promptForResourceInner(true, false, activeOnly);
-    if (connection instanceof Connection) {
-        return connection as Connection;
-    }
-    else if (connection != null) {
-        // should never happen
-        Log.e("promptForConnection received something other than a connection back:", connection);
-    }
+    // Logger.log("Accept states", acceptableStates);
 
-    // user cancelled, or error above
-    return undefined;
-}
 
-export async function promptForResource(activeConnectionsOnly: boolean, ...acceptableStates: ProjectState.AppStates[]):
-                                        Promise<Project | Connection | undefined> {
-
-    return promptForResourceInner(true, true, activeConnectionsOnly, ...acceptableStates);
-}
-
-/**
- * If !includeConnections, activeConnectionsOnly is ignored.
- * If !includeProjects, acceptableStates is ignored.
- */
-async function promptForResourceInner(includeConnections: boolean, includeProjects: boolean, activeConnectionsOnly: boolean,
-                                      ...acceptableStates: ProjectState.AppStates[]):
-                                      Promise<Project | Connection | undefined> {
-
-    if (!includeConnections && !includeProjects) {
-        // One of these must always be set
-        Log.e("Neither connection or projects are to be included!");
-        return undefined;
-    }
-    else if (!includeProjects && acceptableStates.length > 0) {
-        // This doesn't actually matter, but we're going to log this misuse anyway
-        Log.e("Not including projects, but acceptable states were specified!");
-        acceptableStates = [];
-    }
-    else if (!includeConnections && activeConnectionsOnly) {
-        // This doesn't actually matter, but we're going to log this misuse anyway
-        Log.e("Not including connections, but activeConnectionsOnly is set!");
-    }
-
-    const choices: vscode.QuickPickItem[] = [];
-
-    const connections = CodewindManager.instance.connections;
-    if (includeConnections) {
-        if (activeConnectionsOnly) {
-            choices.push(...(connections.filter( (conn) => conn.isConnected)));
-        }
-        else {
-            choices.push(...connections);
-        }
-    }
-
-    if (includeProjects) {
-        // for now, assume if they want Started, they also accept Debugging. This may change.
-        if (acceptableStates.includes(ProjectState.AppStates.STARTED) && !acceptableStates.includes(ProjectState.AppStates.DEBUGGING)) {
-            acceptableStates.push(ProjectState.AppStates.DEBUGGING);
-        }
-        // same for Starting / Starting - Debug
-        if (acceptableStates.includes(ProjectState.AppStates.STARTING) && !acceptableStates.includes(ProjectState.AppStates.DEBUG_STARTING)) {
-            acceptableStates.push(ProjectState.AppStates.DEBUG_STARTING);
-        }
-
-        // Logger.log("Accept states", acceptableStates);
-
-        // For each connection, get its project list, and filter by projects we're interested in.
-        // then add the remaining projects to our QuickPick choices.
-        for (const conn of connections) {
-            let projects = conn.projects;
-
-            if (acceptableStates.length > 0) {
-                // Filter out projects that are not in one of the acceptable states
-                projects = projects.filter( (p) => acceptableStates.includes(p.state.appState));
-            }
-            choices.push(...projects);
-        }
-    }
+    const choices: vscode.QuickPickItem[] = (await CodewindManager.instance.allProjects)
+        .filter((p) => acceptableStates.includes(p.state.appState));
 
     // If no choices are available, show a popup message
     if (choices.length === 0) {
-        showNoValidResourcesMsg(includeProjects, includeConnections, acceptableStates);
+        showNoValidProjectsMsg(acceptableStates);
         return undefined;
     }
 
-    const selection = await vscode.window.showQuickPick(choices, { canPickMany: false, /*ignoreFocusOut: choices.length !== 0*/ });
-    if (selection == null) {
-        // user cancelled
-        return undefined;
-    }
-    else if (selection instanceof Project) {
-        return selection as Project;
-    }
-    else if (selection instanceof Connection) {
-        return selection as Connection;
-    }
-    else {
-        Log.e(`Unsupported type in promptForResource ${typeof(selection)}`);
-        return undefined;
-    }
+    return /* await */ vscode.window.showQuickPick(choices, { canPickMany: false }) as Promise<Project>;
 }
 
 const STRING_NS = StringNamespaces.CMD_RES_PROMPT;
 
-/**
- * Show a message stating that the command to be run can't be run on the current state of the workspace.
- * The message will be something like:
- * "There is no connection, or Starting - Debug or Debugging project, to run this command on."
- */
-function showNoValidResourcesMsg(includeProjects: boolean, includeConnections: boolean, acceptableStates: ProjectState.AppStates[]): void {
-    let requiredStatesStr: string = "";     // non-nls
-
+function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): void {
     const statesSpecified: boolean = acceptableStates.length !== 0;
+    let noValidResourcesMsg: string;
+    let requiredStatesStr: string = "";
     if (statesSpecified) {
         // this builds something like "Starting - Debug or Debugging", to represent the project states this command can run on.
         const sep = Translator.t(StringNamespaces.DEFAULT, "statesSeparator");
-        requiredStatesStr += acceptableStates.map( (state) => state.toString()).join(sep);
-    }
-
-    // In the case that the user runs a command but there is nothing valid to run that command on, we have to show a message.
-    // There are several slightly different messages depending on the resource types the command accepts.
-    let noValidResourcesMsg: string;
-    if (includeProjects) {
-        if (includeConnections) {
-            if (statesSpecified) {
-                noValidResourcesMsg = Translator.t(STRING_NS, "noConnOrProjToRunOnWithStates", { states: requiredStatesStr });
-            }
-            else {
-                noValidResourcesMsg = Translator.t(STRING_NS, "noConnOrProjToRunOn");
-            }
-        }
-        else if (statesSpecified) {
-            noValidResourcesMsg = Translator.t(STRING_NS, "noProjToRunOnWithStates", { states: requiredStatesStr });
-        }
-        else {
-            noValidResourcesMsg = Translator.t(STRING_NS, "noProjToRunOn");
-        }
-    }
-    else if (includeConnections) {
-        noValidResourcesMsg = Translator.t(STRING_NS, "noConnToRunOn");
+        requiredStatesStr += acceptableStates.map((state) => state.toString()).join(sep);
+        noValidResourcesMsg = Translator.t(STRING_NS, "noProjToRunOnWithStates", { states: requiredStatesStr });
     }
     else {
-        // this will never happen, it's checked for at the top of promptForResourceInner
-        Log.e("Neither connection or projects are to be included!");
-        return;
+        noValidResourcesMsg = Translator.t(STRING_NS, "noProjToRunOn");
     }
     vscode.window.showWarningMessage(noValidResourcesMsg);
+}
+
+async function promptForConnection(connectedOnly: boolean): Promise<Connection | undefined> {
+    if (CodewindManager.instance.connections.length === 1) {
+        const onlyConnection = CodewindManager.instance.connections[0];
+        if (onlyConnection.isConnected || !connectedOnly) {
+            return onlyConnection;
+        }
+    }
+
+    const choices = [];
+    const connections = CodewindManager.instance.connections;
+    if (connectedOnly) {
+        choices.push(...(connections.filter((conn) => conn.isConnected)));
+    }
+    else {
+        choices.push(...connections);
+    }
+
+    if (choices.length === 0) {
+        vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"));
+        return undefined;
+    }
+
+    return /* await */ vscode.window.showQuickPick(choices, { canPickMany: false }) as Promise<Connection>;
 }

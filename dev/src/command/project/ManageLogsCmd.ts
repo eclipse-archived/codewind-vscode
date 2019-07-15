@@ -13,8 +13,6 @@ import * as vscode from "vscode";
 
 import Log from "../../Logger";
 import Project from "../../microclimate/project/Project";
-import ProjectState from "../../microclimate/project/ProjectState";
-import { promptForProject } from "../CommandUtil";
 import MCLog from "../../microclimate/project/logs/MCLog";
 
 // const STRING_NS = StringNamespaces.LOGS;
@@ -32,16 +30,6 @@ export async function manageLogs(project: Project): Promise<void> {
 }
 
 async function manageLogsInner(project: Project, all?: "show" | "hide"): Promise<void> {
-    if (project == null) {
-        const selected = await promptForProject(...ProjectState.getEnabledStates());
-        if (selected == null) {
-            // user cancelled
-            Log.d("User cancelled project prompt");
-            return;
-        }
-        project = selected;
-    }
-
     // Wait for the logmanager to initialize, just in case it hasn't finished yet
     await project.logManager.initPromise;
     const logs = project.logManager.logs;

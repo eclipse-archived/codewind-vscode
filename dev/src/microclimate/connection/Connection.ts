@@ -19,7 +19,7 @@ import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import MCEnvironment from "./MCEnvironment";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";

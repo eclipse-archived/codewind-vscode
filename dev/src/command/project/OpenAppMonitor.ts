@@ -12,10 +12,10 @@
 import * as vscode from "vscode";
 
 import Project from "../../microclimate/project/Project";
-import { promptForProject } from "../CommandUtil";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
+import Requester from "../../microclimate/project/Requester";
 
 const langToPathMap = new Map<string, string>();
 langToPathMap.set("java", "javametrics-dash");
@@ -23,17 +23,6 @@ langToPathMap.set("nodejs", "appmetrics-dash");
 langToPathMap.set("swift", "swiftmetrics-dash");
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
-    // Log.d("openAppMonitorCmd invoked");
-    if (project == null) {
-        const selected = await promptForProject();
-        if (selected == null) {
-            Log.d("User cancelled prompt for resource");
-            // user cancelled
-            return;
-        }
-        project = selected;
-    }
-
     try {
         const appMetricsPath = langToPathMap.get(project.type.language);
 

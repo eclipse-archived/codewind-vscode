@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Project from "./Project";
 import Resources from "../../constants/Resources";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 
 // This file does have a bunch of strings that should be translated,
 // but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.

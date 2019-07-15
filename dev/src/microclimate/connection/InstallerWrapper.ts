@@ -18,7 +18,7 @@ import * as readline from "readline";
 import { Readable } from "stream";
 import { promisify } from "util";
 
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import Translator from "../../constants/strings/translator";

@@ -292,10 +292,9 @@ export default class CodewindManager implements vscode.Disposable {
     // }
 
 
-    // public get allProjects(): Promise<Project[]> {
-    //     return this.connections.reduce(async (allProjects: Promise<Project[]>, connection: Connection): Promise<Project[]> => {
-    //         const projects = await connection.getProjects();
-    //         return (await allProjects).concat(projects);
-    //     }, Promise.resolve([]));
-    // }
+    public get allProjects(): Promise<Project[]> {
+        return this.connections.reduce(async (allProjects: Promise<Project[]>, connection: Connection): Promise<Project[]> => {
+            return (await allProjects).concat(connection.projects);
+        }, Promise.resolve([]));
+    }
 }

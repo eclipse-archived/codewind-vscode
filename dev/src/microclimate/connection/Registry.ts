@@ -21,7 +21,7 @@ import Connection from "./Connection";
 // import SocketEvents from "./SocketEvents";
 import Constants from "../../constants/Constants";
 import SocketEvents from "./SocketEvents";
-import { setRegistryCmd } from "../../command/SetRegistryCmd";
+import { setRegistryCmd } from "../../command/connection/SetRegistryCmd";
 import Commands from "../../constants/Commands";
 
 // let registryIsSet: boolean = global.isTheia;            // no registry required in local case

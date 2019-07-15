@@ -13,9 +13,9 @@ import * as vscode from "vscode";
 
 import InstallerWrapper from "../microclimate/connection/InstallerWrapper";
 import Log from "../Logger";
-import * as MCUtil from "../MCUtil";
+import MCUtil from "../MCUtil";
 import CodewindManager from "../microclimate/connection/CodewindManager";
-import activateConnection from "./ActivateConnectionCmd";
+import activateConnection from "./connection/ActivateConnectionCmd";
 
 export default async function startCodewindCmd(): Promise<void> {
     Log.i("Starting Codewind");

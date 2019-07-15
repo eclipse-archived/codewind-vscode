@@ -364,11 +364,6 @@
                     "group": "ext.cw.a@4"
                 },
                 {
-                    "command": "%cmdID_openFolder%",
-                    "when": "%isProject%",
-                    "group": "ext.cw.b"
-                },
-                {
                     "command": "%cmdID_showAllLogs%",
                     "when": "%isEnabledProject%",
                     "group": "ext.cw.c@1"

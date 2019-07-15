@@ -71,7 +71,7 @@
         "okBtn": "OK",
         "tryAgainBtn": "Try Again",
         "moreInfoBtn": "More Info",
-        "removeImagesBlockedStillRunning": "You cannot remove images if Codewind is still running",
+        "removeImagesBlockedStillRunning": "You cannot remove images if Codewind is still running. Stop Codewind, and try again.",
         "removeImagesModalWarning": "Are you sure you want to remove all Codewind Docker images? You will have to download them again before you can start Codewind again."
     },
 

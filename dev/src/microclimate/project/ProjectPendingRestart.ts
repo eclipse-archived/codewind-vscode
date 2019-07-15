@@ -16,8 +16,8 @@ import Log from "../../Logger";
 import Project from "./Project";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
-import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
-import attachDebuggerCmd from "../../command/project/AttachDebuggerCmd";
+import StartModes from "../../constants/StartModes";
+import { attachDebugger } from "../../command/project/AttachDebuggerCmd";
 import Resources from "../../constants/Resources";
 
 const STRING_NS = StringNamespaces.PROJECT;
@@ -128,8 +128,8 @@ export default class ProjectPendingRestart {
             this.fulfill(success, error);
         }
         else {
-            if (ProjectCapabilities.isDebugMode(this.startMode)) {
-                await this.attachDebugger();
+            if (StartModes.isDebugMode(this.startMode)) {
+                await this.attachDebuggerPostRestart();
             }
         }
 
@@ -143,11 +143,11 @@ export default class ProjectPendingRestart {
         }
     }
 
-    private async attachDebugger(): Promise<void> {
+    private async attachDebuggerPostRestart(): Promise<void> {
         Log.d("Attaching debugger as part of restart");
 
         try {
-            const debuggerAttached: boolean = await attachDebuggerCmd(this.project, true);
+            const debuggerAttached: boolean = await attachDebugger(this.project, true);
             if (!debuggerAttached) {
                 const debuggerAttachFailedMsg = Translator.t(STRING_NS, "restartFailedReasonDebugFailure");
                 Log.w(debuggerAttachFailedMsg);
@@ -159,7 +159,6 @@ export default class ProjectPendingRestart {
             }
         }
         catch (err) {
-            // attachDebuggerCmd shouldn't throw/reject, but just in case:
             Log.w("Debugger attach failed or was cancelled by user", err);
             const errMsg = err.message || err;
             vscode.window.showErrorMessage(errMsg);

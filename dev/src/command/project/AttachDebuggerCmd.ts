@@ -11,8 +11,8 @@
 
 import * as vscode from "vscode";
 
-import * as MCUtil from "../../MCUtil";
-import { promptForProject } from "../CommandUtil";
+import MCUtil from "../../MCUtil";
+
 import Resources from "../../constants/Resources";
 import Project from "../../microclimate/project/Project";
 import ProjectState from "../../microclimate/project/ProjectState";
@@ -24,23 +24,11 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 const STRING_NS = StringNamespaces.DEBUG;
 
-/**
- * Attach the debugger to the given project. Returns if we attached the debugger successfully.
- *
- * NOTE: Do not throw or reject from this function in case this command is invoked directly - vscode won't handle the rejection.
- * Show the user our error message here instead, and return a success status since we're also calling this function from the restart project code.
- */
-export default async function attachDebuggerCmd(project: Project, isRestart: boolean = false): Promise<boolean> {
-    if (project == null) {
-        const selected = await promptForProject(...ProjectState.getDebuggableStates());
-        if (selected == null) {
-            // user cancelled
-            Log.d("User cancelled project prompt");
-            return false;
-        }
-        project = selected;
-    }
+export default async function attachDebuggerCmd(project: Project): Promise<void> {
+    await attachDebugger(project, false);
+}
 
+export async function attachDebugger(project: Project, isRestart: boolean = false): Promise<boolean> {
     try {
         if (isRestart) {
             Log.d("Attach debugger runnning as part of a restart");
@@ -51,7 +39,7 @@ export default async function attachDebuggerCmd(project: Project, isRestart: boo
             if (project.type.type === ProjectType.Types.MICROPROFILE && project.state.appState === ProjectState.AppStates.DEBUG_STARTING) {
                 Log.d(`Waiting extra ${libertyDelayMs}ms for Starting Liberty project`);
 
-                const delayPromise: Promise<void> = new Promise( (resolve) => setTimeout(resolve, libertyDelayMs));
+                const delayPromise = new Promise((resolve) => setTimeout(resolve, libertyDelayMs));
 
                 const preDebugDelayMsg = Translator.t(STRING_NS, "waitingBeforeDebugAttachStatusMsg", { projectName: project.name });
                 vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.bug, true)} ${preDebugDelayMsg}`, delayPromise);

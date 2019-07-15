@@ -11,13 +11,12 @@
 
 import * as vscode from "vscode";
 
-import { promptForConnection } from "./CommandUtil";
-import Log from "../Logger";
-import Connection from "../microclimate/connection/Connection";
-import * as MCUtil from "../MCUtil";
-import UserProjectCreator, { IMCTemplateData } from "../microclimate/connection/UserProjectCreator";
-import Requester from "../microclimate/project/Requester";
-import { isRegistrySet, onRegistryNotSet } from "../microclimate/connection/Registry";
+import Log from "../../Logger";
+import Connection from "../../microclimate/connection/Connection";
+import MCUtil from "../../MCUtil";
+import UserProjectCreator, { IMCTemplateData } from "../../microclimate/connection/UserProjectCreator";
+import Requester from "../../microclimate/project/Requester";
+import { isRegistrySet, onRegistryNotSet } from "../../microclimate/connection/Registry";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -27,16 +26,6 @@ const BACK_BTN_MSG = "Back button";
  * @param create true for Create page, false for Import page
  */
 export default async function createProject(connection: Connection): Promise<void> {
-    if (connection == null) {
-        const selected = await promptForConnection(true);
-        if (selected == null) {
-            Log.d("User cancelled prompt for resource");
-            // user cancelled
-            return;
-        }
-        connection = selected;
-    }
-
     if (!(await isRegistrySet(connection))) {
         onRegistryNotSet(connection);
         return;

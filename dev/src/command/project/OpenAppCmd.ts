@@ -12,8 +12,7 @@
 import * as vscode from "vscode";
 
 import Project from "../../microclimate/project/Project";
-import { promptForProject } from "../CommandUtil";
-import { ProjectState } from "../../microclimate/project/ProjectState";
+
 import { Log } from "../../Logger";
 import Commands from "../../constants/Commands";
 import Translator from "../../constants/strings/translator";
@@ -22,16 +21,6 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 const STRING_NS = StringNamespaces.CMD_OPEN_IN_BROWSER;
 
 export default async function openAppCmd(project: Project): Promise<void> {
-    if (project == null) {
-        const selected = await promptForProject(...ProjectState.getStartedStates());
-        if (selected == null) {
-            Log.d("User cancelled prompt for resource");
-            // user cancelled
-            return;
-        }
-        project = selected;
-    }
-
     if (!(project.state.isStarted || project.state.isStarting)) {
         vscode.window.showWarningMessage(Translator.t(STRING_NS, "canOnlyOpenStartedProjects", { projectName: project.name }));
         return;

@@ -17,7 +17,7 @@ import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import Log from "../../Logger";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
-import * as MCUtil from "../../MCUtil";
+import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
 import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
