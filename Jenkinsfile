@@ -48,7 +48,7 @@ spec:
                             # artifact name without extension
                             export artifact_basename="${artifact_name%.*}"
                             export version="${artifact_basename##*-}"
-                            mv -v $artifact_name $name-$version-$(date +'%Y%m%d%H%M').vsix}
+                            mv -v $artifact_name $name-$version-$(date +'%Y%m%d%H%M').vsix
                         '''
 
                         stash includes: '*.vsix', name: 'deployables'
