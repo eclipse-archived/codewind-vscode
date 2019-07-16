@@ -4,18 +4,9 @@ if [[ $1 == "theia" ]]; then
     is_theia="true"
 fi
 
-# In the eclipse jenkins the two pods share a filesystem
-
-target_dir="$(dirname $0)/../dev"
-if [[ $is_theia ]]; then
-    # This was created in the 'duplicate' stage.
-    target_dir=${target_dir}-theia
-fi
-
 set -ex
 
-cd $target_dir/
-ls -lA
+cd $(dirname $0)/../dev
 
 if [[ $is_theia ]]; then
     echo "Building for Theia"
@@ -43,7 +34,6 @@ fi
 artifact_basename="${artifact_name%.*}"
 version="${artifact_basename##*-}"
 
-ls -lA
 mv -v $artifact_name $OLDPWD/${new_name}-${version}-$(date +'%Y%m%d%H%M').vsix
 
 cd -

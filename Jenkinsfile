@@ -3,18 +3,13 @@
 pipeline {
     agent {
 		kubernetes {
-      		label 'node'
+      		label 'vscode-builder'
 			yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
   - name: vscode-builder
-    image: node:lts
-    tty: true
-    command:
-      - cat
-  - name: theia-builder
     image: node:lts
     tty: true
     command:
@@ -34,21 +29,19 @@ spec:
     }
 
     stages {
-        stage("Build") {
-            stage("Build for VS Code") {
-                steps {
-                    container("vscode-builder") {
-                        sh 'ci-scripts/package.sh'
-                        stash includes: '*vscode*.vsix', name: 'deployables'
-                    }
+        stage("Build for VS Code") {
+            steps {
+                container("vscode-builder") {
+                    sh 'ci-scripts/package.sh'
+                    stash includes: '*.vsix', name: 'deployables'
                 }
             }
-            stage("Build for Theia") {
-                steps {
-                    container("theia-builder") {
-                        sh 'ci-scripts/package.sh theia'
-                        stash includes: '*theia*.vsix', name: 'deployables'
-                    }
+        }
+        stage("Build for Theia") {
+            steps {
+                container("vscode-builder") {
+                    sh 'ci-scripts/package.sh theia'
+                    stash includes: '*.vsix', name: 'deployables'
                 }
             }
         }
