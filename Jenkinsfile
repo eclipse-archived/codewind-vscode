@@ -67,26 +67,28 @@ spec:
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
                     unstash 'deployables'
                     sh '''#!/usr/bin/env bash
-                        export sshHost="genie.codewind@projects-storage.eclipse.org"
-                        export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/codewind-vscode"
 
-                        if [ -z $CHANGE_ID ]; then
-    					    UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
+                    export sshHost="genie.codewind@projects-storage.eclipse.org"
+                    export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/codewind-vscode"
 
-    					    ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/latest
-                  	  		ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/latest
-                  	  		scp *.vsix $sshHost:$deployParentDir/$GIT_BRANCH/latest
-					    else
-    					    UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
-					    fi
+                    if [ -z $CHANGE_ID ]; then
+                        UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
 
- 						export deployDir="$deployParentDir/$UPLOAD_DIR"
+                        ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/latest
+                        ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/latest
+                        scp *.vsix $sshHost:$deployParentDir/$GIT_BRANCH/latest
+                    else
+                        UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
+                    fi
 
-                        printf "Uploading files:\n$(ls -l *.vsix)\n"
+                    export deployDir="$deployParentDir/$UPLOAD_DIR"
 
-                        ssh $sshHost mkdir -p $deployDir
-                        scp *.vsix $sshHost:$deployDir
-                        echo "Uploaded to https://download.eclipse.org${deployDir##*download.eclipse.org}"
+                    printf "Uploading files:\n$(ls -l *.vsix)\n"
+
+                    ssh $sshHost mkdir -p $deployDir
+                    scp *.vsix $sshHost:$deployDir
+                    echo "Uploaded to https://download.eclipse.org${deployDir##*download.eclipse.org}"
+
                     '''
                 }
             }
