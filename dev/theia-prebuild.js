@@ -11,6 +11,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+const path = require("path");
 const fs = require("fs");
 const util = require("util");
 const rimraf = require("rimraf");
@@ -30,8 +31,8 @@ const cmdsToDelete = [
     "openPerfDashboard",
 ];
 
-const PACKAGE_JSON_PATH = "./package.json";
-const INSTALLER_DIR = "bin/installer";
+const PACKAGE_JSON_PATH = path.join(__dirname, "package.json");
+const INSTALLER_DIR = path.join(__dirname, "bin", "installer");
 const VIEW_CONTAINER_ID = "cw-viewcontainer";
 
 async function main() {
