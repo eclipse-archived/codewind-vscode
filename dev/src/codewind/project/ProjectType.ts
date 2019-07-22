@@ -26,7 +26,7 @@ export class ProjectType {
         public readonly language: string,
         public readonly extensionName?: string,
     ) {
-        this.type = ProjectType.getType(internalType, language, extensionName);
+        this.type = ProjectType.getType(internalType, extensionName);
         // this.userFriendlyType = ProjectType.getUserFriendlyType(this.type);
         this.debugType = ProjectType.getDebugType(this.type, language);
         this.icon = ProjectType.getProjectIcon(this.type, language);
@@ -43,7 +43,7 @@ export class ProjectType {
         return this.type.toString();
     }
 
-    private static getType(internalType: string, language: string, extensionName: OptionalString): ProjectType.Types {
+    private static getType(internalType: string, extensionName: OptionalString): ProjectType.Types {
         if (internalType === this.InternalTypes.MICROPROFILE) {
             return ProjectType.Types.MICROPROFILE;
         }
@@ -57,15 +57,7 @@ export class ProjectType {
             return ProjectType.Types.SWIFT;
         }
         else if (internalType === this.InternalTypes.DOCKER) {
-            if (language === this.Languages.PYTHON) {
-                return ProjectType.Types.PYTHON;
-            }
-            else if (language === this.Languages.GO) {
-                return ProjectType.Types.GO;
-            }
-            else {
-                return ProjectType.Types.GENERIC_DOCKER;
-            }
+            return ProjectType.Types.GENERIC_DOCKER;
         }
         else if (extensionName) {
             return ProjectType.Types.EXTENSION;
@@ -147,15 +139,14 @@ export class ProjectType {
 
 export namespace ProjectType {
 
-    // These are the project types as exposed to the user.
-    // String value must be user-friendly!
+    /*
+     * These are the project types as exposed to the user. String value must be user-friendly.
+     */
     export enum Types {
         MICROPROFILE = "Microprofile",
         SPRING = "Spring",
         NODE = "Node.js",
         SWIFT = "Swift",
-        PYTHON = "Python",
-        GO = "Go",
         GENERIC_DOCKER = "Docker",
         EXTENSION = "Extension",
         UNKNOWN = "Unknown"
@@ -163,7 +154,9 @@ export namespace ProjectType {
 
     // non-nls-section-start
 
-    // possible values of the "projectType" or "buildType" internal attribute
+    /**
+     * Possible values of the "projectType" or "buildType" internal attribute
+     */
     export enum InternalTypes {
         MICROPROFILE = "liberty",
         SPRING = "spring",
@@ -172,8 +165,11 @@ export namespace ProjectType {
         DOCKER = "docker"
     }
 
-    // Possible values of the "language" internal attribute
-    // could be others, but if they're not in this list we'll just treat them as generic docker
+
+    /**
+     * Some possible values of the "language" internal attribute, for which we have special treatment such as nicer icons.
+     * Language can be user-determined so this is not a complete list
+     */
     export enum Languages {
         JAVA = "java",
         NODE = "nodejs",
@@ -182,7 +178,9 @@ export namespace ProjectType {
         GO = "go"
     }
 
-    // VSCode debug types, used as the "type" attribute in a debug launch.
+    /**
+     * VSCode debug types, used as the "type" attribute in a debug launch.
+     */
     export enum DebugTypes {
         JAVA = "java",
         NODE = "node"

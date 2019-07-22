@@ -22,9 +22,13 @@ export default async function containerShellCmd(project: Project): Promise<void>
         return;
     }
 
-    // annoyingly, only python project containers seem to not have bash installed.
-    // TODO We could check what's installed by doing docker exec through child_process, if that's worth the trouble.
-    const toExec: string = project.type.type === ProjectType.Types.PYTHON ? "sh" : "bash";      // non-nls
+    // This is a hack for the python template project not having bash installed.
+    // This would trigger for a user python template too. :(
+    const toExec: string =
+        project.type.type === ProjectType.Types.GENERIC_DOCKER &&
+        project.type.language === ProjectType.Languages.PYTHON ?
+        "sh" : "bash";      // non-nls
+
     // const env = convertNodeEnvToTerminalEnv(process.env);
 
     const options: vscode.TerminalOptions = {
