@@ -63,7 +63,6 @@ spec:
 
                     export REPO_NAME="codewind-vscode"
 					export OUTPUT_NAME="codewind"
-					export VERSION="0.2.0"
 					export OUTPUT_THEIA_NAME="codewind-theia"
 					export OUTPUT_DIR="$WORKSPACE/dev/ant_build/artifacts"
 					export DOWNLOAD_AREA_URL="https://download.eclipse.org/codewind/$REPO_NAME"
@@ -79,23 +78,23 @@ spec:
 						ssh $sshHost rm -rf $deployDir/$GIT_BRANCH/$LATEST_DIR
 						ssh $sshHost mkdir -p $deployDir/$GIT_BRANCH/$LATEST_DIR
 						
-						cp $OUTPUT_DIR/$OUTPUT_NAME-$VERSION-*.vsix $OUTPUT_DIR/$OUTPUT_NAME.vsix
 						cp $OUTPUT_DIR/$OUTPUT_THEIA_NAME-*.vsix $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix
-						
-						scp $OUTPUT_DIR/$OUTPUT_NAME.vsix $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
 						scp $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
 					
 						echo "build_info.url=$BUILD_URL" >> $OUTPUT_DIR/$BUILD_INFO
-						SHA1=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
-						echo "build_info.SHA-1=${SHA1}" >> $OUTPUT_DIR/$BUILD_INFO
-						
 						SHA1_THEIA=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
 						echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $OUTPUT_DIR/$BUILD_INFO
+						rm $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix
 			  
+						cp $OUTPUT_DIR/$OUTPUT_NAME-*.vsix $OUTPUT_DIR/$OUTPUT_NAME.vsix
+						scp $OUTPUT_DIR/$OUTPUT_NAME.vsix $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
+					
+						SHA1=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
+						echo "build_info.SHA-1=${SHA1}" >> $OUTPUT_DIR/$BUILD_INFO
+					
 						scp $OUTPUT_DIR/$BUILD_INFO $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$BUILD_INFO
 						rm $OUTPUT_DIR/$BUILD_INFO
 						rm $OUTPUT_DIR/$OUTPUT_NAME.vsix
-						rm $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix
                     else
                         UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
                     fi
