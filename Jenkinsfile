@@ -69,32 +69,32 @@ spec:
 					export LATEST_DIR="latest"
 					export BUILD_INFO="build_info.properties"
 					export sshHost="genie.codewind@projects-storage.eclipse.org"
-					export deployDir="/home/data/httpd/download.eclipse.org/codewind/$REPO_NAME"
-
+					export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/$REPO_NAME"
+					
                     if [ -z $CHANGE_ID ]; then
                         UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
 						BUILD_URL="$DOWNLOAD_AREA_URL/$UPLOAD_DIR"
 			  
-						ssh $sshHost rm -rf $deployDir/$GIT_BRANCH/$LATEST_DIR
-						ssh $sshHost mkdir -p $deployDir/$GIT_BRANCH/$LATEST_DIR
+						ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/$LATEST_DIR
+						ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/$LATEST_DIR
 						
-						cp $OUTPUT_DIR/$OUTPUT_THEIA_NAME-*.vsix $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix
-						scp $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
+						cp $OUTPUT_THEIA_NAME-*.vsix $OUTPUT_THEIA_NAME.vsix
+						scp $OUTPUT_THEIA_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
 					
-						echo "build_info.url=$BUILD_URL" >> $OUTPUT_DIR/$BUILD_INFO
-						SHA1_THEIA=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
-						echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $OUTPUT_DIR/$BUILD_INFO
-						rm $OUTPUT_DIR/$OUTPUT_THEIA_NAME.vsix
+						echo "build_info.url=$BUILD_URL" >> $BUILD_INFO
+						SHA1_THEIA=$(sha1sum ${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
+						echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $BUILD_INFO
+						rm $OUTPUT_THEIA_NAME.vsix
 			  
-						cp $OUTPUT_DIR/$OUTPUT_NAME-*.vsix $OUTPUT_DIR/$OUTPUT_NAME.vsix
-						scp $OUTPUT_DIR/$OUTPUT_NAME.vsix $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
+						cp $OUTPUT_NAME-*.vsix $OUTPUT_NAME.vsix
+						scp $OUTPUT_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
 					
 						SHA1=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
-						echo "build_info.SHA-1=${SHA1}" >> $OUTPUT_DIR/$BUILD_INFO
+						echo "build_info.SHA-1=${SHA1}" >> $BUILD_INFO
 					
-						scp $OUTPUT_DIR/$BUILD_INFO $sshHost:$deployDir/$GIT_BRANCH/$LATEST_DIR/$BUILD_INFO
-						rm $OUTPUT_DIR/$BUILD_INFO
-						rm $OUTPUT_DIR/$OUTPUT_NAME.vsix
+						scp $BUILD_INFO $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$BUILD_INFO
+						rm $BUILD_INFO
+						rm $OUTPUT_NAME.vsix
                     else
                         UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
                     fi
