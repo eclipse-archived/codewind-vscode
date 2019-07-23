@@ -239,7 +239,7 @@ function buildDebugSection(project: Project): string {
         ${buildRow("Internal Debug Port",
             normalize(project.ports.internalDebugPort, NOT_AVAILABLE),
             undefined, true)}
-        ${buildRow("Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
         </table>
     `;
+        // ${buildRow("Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
 }
