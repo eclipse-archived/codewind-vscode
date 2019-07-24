@@ -78,7 +78,7 @@ spec:
 						ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/$LATEST_DIR
 						ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/$LATEST_DIR
 						
-						cp $OUTPUT_THEIA_NAME-*.vsix $OUTPUT_THEIA_NAME.vsix
+						cp $OUTPUT_THEIA_NAME-*.vsix ./$OUTPUT_THEIA_NAME.vsix
 						scp $OUTPUT_THEIA_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
 					
 						echo "build_info.url=$BUILD_URL" >> $BUILD_INFO
@@ -86,7 +86,7 @@ spec:
 						echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $BUILD_INFO
 						rm $OUTPUT_THEIA_NAME.vsix
 			  
-						cp $OUTPUT_NAME-*.vsix $OUTPUT_NAME.vsix
+						cp $OUTPUT_NAME-*.vsix ./$OUTPUT_NAME.vsix
 						scp $OUTPUT_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
 					
 						SHA1=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
