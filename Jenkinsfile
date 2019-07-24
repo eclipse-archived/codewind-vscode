@@ -1,10 +1,10 @@
-#!groovy​
+#!groovy
 
 pipeline {
     agent {
-		kubernetes {
-      		label 'vscode-builder'
-			yaml """
+        kubernetes {
+            label 'vscode-builder'
+            yaml """
 apiVersion: v1
 kind: Pod
 spec:
@@ -15,10 +15,10 @@ spec:
     command:
       - cat
 """
-    	}
-	}
+        }
+    }
 
-	options {
+    options {
         timestamps()
         skipStagesAfterUnstable()
     }
@@ -60,19 +60,43 @@ spec:
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
                     unstash 'deployables'
                     sh '''#!/usr/bin/env bash
-
+                    export REPO_NAME="codewind-vscode"
+                    export OUTPUT_NAME="codewind"
+                    export OUTPUT_THEIA_NAME="codewind-theia"
+                    export DOWNLOAD_AREA_URL="https://download.eclipse.org/codewind/$REPO_NAME"
+                    export LATEST_DIR="latest"
+                    export BUILD_INFO="build_info.properties"
                     export sshHost="genie.codewind@projects-storage.eclipse.org"
-                    export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/codewind-vscode"
+                    export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/$REPO_NAME"
+                    export BACKUP_DIR=temp_backup
 
-                    if [ -z $CHANGE_ID ]; then
-                        UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
+                    UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
+                    BUILD_URL="$DOWNLOAD_AREA_URL/$UPLOAD_DIR"
 
-                        ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/latest
-                        ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/latest
-                        scp *.vsix $sshHost:$deployParentDir/$GIT_BRANCH/latest
-                    else
-                        UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
-                    fi
+                    ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/$LATEST_DIR
+                    ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/$LATEST_DIR
+
+                    cp $OUTPUT_THEIA_NAME-*.vsix $OUTPUT_THEIA_NAME.vsix
+                    scp $OUTPUT_THEIA_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
+
+                    echo "build_info.url=$BUILD_URL" >> $BUILD_INFO
+                    SHA1_THEIA=$(sha1sum ${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
+                    echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $BUILD_INFO
+                    rm $OUTPUT_THEIA_NAME.vsix
+                    mkdir $BACKUP_DIR
+                    mv $OUTPUT_THEIA_NAME-*.vsix $BACKUP_DIR/
+
+                    cp $OUTPUT_NAME-*.vsix $OUTPUT_NAME.vsix
+                    scp $OUTPUT_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
+
+                    SHA1=$(sha1sum ${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
+                    echo "build_info.SHA-1=${SHA1}" >> $BUILD_INFO
+
+                    scp $BUILD_INFO $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$BUILD_INFO
+                    rm $BUILD_INFO
+                    rm $OUTPUT_NAME.vsix
+                    mv $BACKUP_DIR/* .
+                    rmdir $BACKUP_DIR
 
                     export deployDir="$deployParentDir/$UPLOAD_DIR"
 
