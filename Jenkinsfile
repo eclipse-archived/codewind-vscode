@@ -92,7 +92,7 @@ spec:
 			cp $OUTPUT_NAME-*.vsix $OUTPUT_NAME.vsix
 			scp $OUTPUT_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
 					
-			SHA1=$(sha1sum ${OUTPUT_DIR}/${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
+			SHA1=$(sha1sum ${OUTPUT_NAME}.vsix | cut -d ' ' -f 1)
 			echo "build_info.SHA-1=${SHA1}" >> $BUILD_INFO
 					
 			scp $BUILD_INFO $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$BUILD_INFO
