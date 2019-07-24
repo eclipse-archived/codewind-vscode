@@ -2,8 +2,8 @@
 
 pipeline {
     agent {
-		kubernetes {
-      		label 'vscode-builder'
+        kubernetes {
+      	    label 'vscode-builder'
 			yaml """
 apiVersion: v1
 kind: Pod
@@ -15,7 +15,7 @@ spec:
     command:
       - cat
 """
-    	}
+    	    }
 	}
 
 	options {
@@ -60,12 +60,10 @@ spec:
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
                     unstash 'deployables'
                     sh '''#!/usr/bin/env bash
-
                     export REPO_NAME="codewind-vscode"
 		    export OUTPUT_NAME="codewind"
 	       	    export OUTPUT_THEIA_NAME="codewind-theia"
- 		    export OUTPUT_DIR="$WORKSPACE/dev/ant_build/artifacts"
-		    export DOWNLOAD_AREA_URL="https://download.eclipse.org/codewind/$REPO_NAME"
+ 		    export DOWNLOAD_AREA_URL="https://download.eclipse.org/codewind/$REPO_NAME"
 		    export LATEST_DIR="latest"
 		    export BUILD_INFO="build_info.properties"
 		    export sshHost="genie.codewind@projects-storage.eclipse.org"
