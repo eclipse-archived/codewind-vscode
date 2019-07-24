@@ -70,6 +70,7 @@ spec:
 					export BUILD_INFO="build_info.properties"
 					export sshHost="genie.codewind@projects-storage.eclipse.org"
 					export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/$REPO_NAME"
+					export BACKUP_DIR=temp_backup
 					
                     if [ -z $CHANGE_ID ]; then
                         UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
@@ -85,8 +86,8 @@ spec:
 						SHA1_THEIA=$(sha1sum ${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
 						echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $BUILD_INFO
 						rm $OUTPUT_THEIA_NAME.vsix
-						mkdir temp_backup
-						mv $OUTPUT_THEIA_NAME-*.vsix temp_backup/
+						mkdir $BACKUP_DIR
+						mv $OUTPUT_THEIA_NAME-*.vsix $BACKUP_DIR/
 						
 						cp $OUTPUT_NAME-*.vsix $OUTPUT_NAME.vsix
 						scp $OUTPUT_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix
@@ -97,8 +98,8 @@ spec:
 						scp $BUILD_INFO $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$BUILD_INFO
 						rm $BUILD_INFO
 						rm $OUTPUT_NAME.vsix
-						mv temp_backup/* .
-						rmdir temp_backup
+						mv $BACKUP_DIR/* .
+						rmdir $BACKUP_DIR
                     else
                         UPLOAD_DIR="pr/$CHANGE_ID/$BUILD_ID"
                     fi
