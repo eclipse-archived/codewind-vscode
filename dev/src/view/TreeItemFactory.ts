@@ -20,6 +20,7 @@ import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
 import CodewindManager from "../codewind/connection/CodewindManager";
+import { CODEWIND_STATES } from "../codewind/connection/CodewindStates";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -65,9 +66,14 @@ namespace TreeItemFactory {
     export const CW_STARTED_NODE_ID = "ext.cw.treeroot";
 
     export function getRootTreeItems(): CodewindTreeItem[] {
-        const label = "Codewind";
-        const cwStarted = CodewindManager.instance.isStarted();
-        // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand
+        const cwState = CodewindManager.instance.state;
+        const cwStarted = CodewindManager.instance.isStarted;
+
+        let label = "Codewind";
+        if (CODEWIND_STATES[cwState].isErrorState || CODEWIND_STATES[cwState].isTransitionState) {
+            label += ` (${cwState})`;
+        }
+        // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand after it starts
         const id = cwStarted ?  CW_STARTED_NODE_ID : undefined;
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
         const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;

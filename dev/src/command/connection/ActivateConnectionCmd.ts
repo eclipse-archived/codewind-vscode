@@ -16,7 +16,6 @@ import CodewindManager from "../../codewind/connection/CodewindManager";
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCEnvironment from "../../codewind/connection/MCEnvironment";
-import InstallerWrapper from "../../codewind/connection/InstallerWrapper";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Commands from "../../constants/Commands";
@@ -24,25 +23,16 @@ import Commands from "../../constants/Commands";
 const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function activateConnection(): Promise<void> {
-    try {
-        const url = CodewindManager.instance.codewindUrl;
-        Log.i("Activating connection to " + url);
-        const envData = await MCEnvironment.getEnvData(url);
-        Log.i("ENV data:", envData);
+    const url = CodewindManager.instance.codewindUrl;
+    Log.i("Activating connection to " + url);
+    const envData = await MCEnvironment.getEnvData(url);
+    Log.i("ENV data:", envData);
 
-        const connection = await connect(url, envData);
-        await connection.initFileWatcherPromise;
+    const connection = await connect(url, envData);
+    await connection.initFileWatcherPromise;
 
-        onConnectSuccess(connection);
-        // return connection;
-    }
-    catch (err) {
-        if (!InstallerWrapper.isCancellation(err)) {
-            Log.e("Failed to start/connect to codewind:", err);
-            vscode.window.showErrorMessage(MCUtil.errToString(err));
-        }
-        // return undefined;
-    }
+    onConnectSuccess(connection);
+    // return connection;
 }
 
 async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Promise<Connection> {

@@ -86,7 +86,7 @@ describe("Codewind for VSCode basic test", async function() {
         // await CodewindManager.instance.initPromise;
         await new Promise<void>((resolve) => {
             const interval = setInterval(() => {
-                if (CodewindManager.instance.isStarted()) {
+                if (CodewindManager.instance.isStarted) {
                     clearInterval(interval);
                     resolve();
                 }

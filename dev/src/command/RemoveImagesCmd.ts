@@ -11,18 +11,19 @@
 
 import * as vscode from "vscode";
 
-import InstallerWrapper, { InstallerCommands } from "../codewind/connection/InstallerWrapper";
+import InstallerWrapper from "../codewind/connection/InstallerWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
 import CodewindManager from "../codewind/connection/CodewindManager";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Translator from "../constants/strings/translator";
+import { InstallerCommands } from "../codewind/connection/InstallerCommands";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function removeImagesCmd(): Promise<void> {
     try {
-        if (CodewindManager.instance.isStarted()) {
+        if (CodewindManager.instance.isStarted) {
             vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesBlockedStillRunning"));
             return;
         }

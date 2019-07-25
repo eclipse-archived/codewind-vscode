@@ -33,7 +33,7 @@ export default async function openAppCmd(project: Project): Promise<void> {
 
     const uriToOpen = project.appBaseUrl;
 
-    Log.i("Open in browser: " + uriToOpen);
+    Log.i(`Open project ${project.name} in browser at ${uriToOpen}`);
     // vscode.window.showInformationMessage("Opening " + uriToOpen);
     vscode.commands.executeCommand(Commands.VSC_OPEN, uriToOpen);
 }
