@@ -9,24 +9,12 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import * as vscode from "vscode";
+// import * as vscode from "vscode";
 
-import InstallerWrapper from "../codewind/connection/InstallerWrapper";
 import Log from "../Logger";
-import MCUtil from "../MCUtil";
 import CodewindManager from "../codewind/connection/CodewindManager";
-import activateConnection from "./connection/ActivateConnectionCmd";
 
 export default async function startCodewindCmd(): Promise<void> {
-    Log.i("Starting Codewind");
-    try {
-        await CodewindManager.instance.startCodewind();
-        await activateConnection();
-    }
-    catch (err) {
-        if (!InstallerWrapper.isCancellation(err)) {
-            Log.e("Error starting codewind", err);
-            vscode.window.showErrorMessage(MCUtil.errToString(err));
-        }
-    }
+    Log.i("Start Codewind Cmd");
+    await CodewindManager.instance.startCodewind();
 }
