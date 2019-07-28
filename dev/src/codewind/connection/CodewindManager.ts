@@ -14,17 +14,16 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
-import InstallerWrapper, { InstallerCommands } from "./InstallerWrapper";
+import InstallerWrapper from "./InstallerWrapper";
 import { MCEndpoints } from "../../constants/Endpoints";
 import Requester from "../project/Requester";
 import Resources from "../../constants/Resources";
+import MCUtil from "../../MCUtil";
+import { InstallerCommands } from "./InstallerCommands";
+import activateConnection from "../../command/connection/ActivateConnectionCmd";
+import { CodewindStates } from "./CodewindStates";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
-
-enum CodewindStates {
-    STOPPED, STARTED,
-    // STARTING, STOPPING,
-}
 
 /**
  * Manages the lifecycle of Codewind and its Connections.
@@ -46,7 +45,7 @@ export default class CodewindManager implements vscode.Disposable {
     constructor() {
         const protocol = global.isTheia ? "https" : "http";
         this.codewindUrl = vscode.Uri.parse(protocol + "://localhost:9090");
-        Log.i(`Codewind is ${global.isTheia ? "" : " NOT"} running in Theia; URL is ${this.codewindUrl}`);
+        Log.i(`Codewind is${global.isTheia ? "" : " NOT"} running in Theia; URL is ${this.codewindUrl}`);
     }
 
     public static get instance(): CodewindManager {
@@ -112,16 +111,33 @@ export default class CodewindManager implements vscode.Disposable {
 
     ///// Start/Stop Codewind /////
 
+    public async startCodewind(): Promise<void> {
+        const shouldConnect = await this.startCodewindInner();
+        if (!shouldConnect) {
+            // Something went wrong or it was cancelled
+            return;
+        }
+
+        try {
+            await activateConnection();
+        }
+        catch (err) {
+            Log.e("Error connecting to Codewind after it appeared to start", err);
+            this.changeState(CodewindStates.ERR_CONNECTING);
+            vscode.window.showErrorMessage(MCUtil.errToString(err));
+        }
+    }
+
     /**
      * Installs and starts Codewind, if required. Will exit immediately if already started.
-     * Throws errors so we wrap this in the the command handler
+     * @returns if Codewind appears to have started.
      */
-    public async startCodewind(): Promise<void> {
+    private async startCodewindInner(): Promise<boolean> {
         if (await this.isCodewindActive()) {
             // nothing to do
             Log.i("Codewind is already started");
             this.changeState(CodewindStates.STARTED);
-            return;
+            return true;
         }
 
         Log.i("Initial Codewind ping failed");
@@ -129,16 +145,34 @@ export default class CodewindManager implements vscode.Disposable {
         if (global.isTheia) {
             // In the che case, we do not start codewind. we just wait for it to come up
             await this.waitForCodewindToStart();
+            return true;
         }
-        else {
+
+        try {
             await InstallerWrapper.install();
+        }
+        catch (err) {
+            if (!InstallerWrapper.isCancellation(err)) {
+                CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
+                Log.e("Error installing codewind", err);
+                vscode.window.showErrorMessage("Error installing Codewind: " + MCUtil.errToString(err));
+            }
+            return false;
+        }
+
+        try {
             await InstallerWrapper.installerExec(InstallerCommands.START);
         }
+        catch (err) {
+            if (!InstallerWrapper.isCancellation(err)) {
+                Log.e("Error starting codewind", err);
+                vscode.window.showErrorMessage("Error starting Codewind: " + MCUtil.errToString(err));
+            }
+            return false;
+        }
 
-        Log.i("Codewind should have started, getting ENV data now");
-        // vscode.window.showInformationMessage("Codewind was started successfully");
-
-        this.changeState(CodewindStates.STARTED);
+        Log.i("Codewind appears to have started");
+        return true;
     }
 
     private async isCodewindActive(logFailure: boolean = false): Promise<boolean> {
@@ -156,6 +190,7 @@ export default class CodewindManager implements vscode.Disposable {
     }
 
     /**
+     * Theia Only -
      * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
      */
     private async waitForCodewindToStart(): Promise<void> {
@@ -181,16 +216,20 @@ export default class CodewindManager implements vscode.Disposable {
 
     public async stopCodewind(): Promise<void> {
         await InstallerWrapper.installerExec(InstallerCommands.STOP_ALL);
-        this.changeState(CodewindStates.STOPPED);
     }
 
-    private changeState(newState: CodewindStates): void {
+    public changeState(newState: CodewindStates): void {
+        // Log.d(`Codewind state changing from ${this._state} to ${newState}`);
         this._state = newState;
         this.onChange(undefined);
     }
 
-    public isStarted(): boolean {
-        return this._state === CodewindStates.STARTED;
+    public get state(): CodewindStates {
+        return this._state;
+    }
+
+    public get isStarted(): boolean {
+        return this._state === CodewindStates.STARTED || this._state === CodewindStates.STOPPING;
     }
 
     // public async removeConnection(connection: Connection): Promise<boolean> {

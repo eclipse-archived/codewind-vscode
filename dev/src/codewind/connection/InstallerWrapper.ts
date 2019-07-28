@@ -24,6 +24,9 @@ import Commands from "../../constants/Commands";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Constants from "../../constants/Constants";
+import { INSTALLER_COMMANDS, InstallerCommands } from "./InstallerCommands";
+import CodewindManager from "./CodewindManager";
+import { CodewindStates } from "./CodewindStates";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -35,40 +38,6 @@ const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
 // Codewind tag to install if no env vars set
 const DEFAULT_CW_TAG = "0.2";
 const TAG_LATEST = "latest";
-
-export enum InstallerCommands {
-    INSTALL = "install",
-    INSTALL_DEV = "install-dev",
-    START = "start",
-    STOP = "stop",
-    STOP_ALL = "stop-all",
-    REMOVE = "remove",
-    // "status" is treated differently, see getInstallerState()
-}
-
-// const INSTALLER_COMMANDS: { [key: string]: { action: string, userActionName: string, cancellable: boolean } } = {
-const INSTALLER_COMMANDS: {
-    [key in InstallerCommands]: {
-        action: string,
-        userActionName: string,
-        cancellable: boolean,
-        usesTag: boolean
-    }
-} = {
-    install:
-        { action: "install", userActionName: "Pulling Codewind Docker images", cancellable: true, usesTag: true },
-    "install-dev":
-        { action: "install-dev", userActionName: "Pulling Codewind Docker images (DEV BUILD)", cancellable: true, usesTag: false },
-    start:
-        { action: "start", userActionName: "Starting Codewind", cancellable: true, usesTag: true },
-    stop:
-        { action: "stop", userActionName: "Stopping Codewind", cancellable: true, usesTag: false },
-    "stop-all":
-        { action: "stop-all", userActionName: "Stopping Codewind and applications", cancellable: true, usesTag: false },
-    remove:
-        { action: "remove", userActionName: "Removing Codewind and project images", cancellable: true, usesTag: false },
-    // status:     { action: "status", userActionName: "Checking if Codewind is running" },
-};
 
 namespace InstallerWrapper {
     // check error against this to see if it's a real error or just a user cancellation
@@ -186,9 +155,29 @@ namespace InstallerWrapper {
     }
 
     export async function installerExec(cmd: InstallerCommands): Promise<void> {
+        const transitionStates = INSTALLER_COMMANDS[cmd].states;
+        if (transitionStates && transitionStates.during) {
+            CodewindManager.instance.changeState(transitionStates.during);
+        }
+        try {
+            await installerExecInner(cmd);
+        }
+        catch (err) {
+            if (transitionStates && transitionStates.onError) {
+                CodewindManager.instance.changeState(transitionStates.onError);
+            }
+            throw err;
+        }
+        if (transitionStates && transitionStates.after) {
+            CodewindManager.instance.changeState(transitionStates.after);
+        }
+    }
+
+    async function installerExecInner(cmd: InstallerCommands): Promise<void> {
         const executablePath = await initialize();
         if (isInstallerRunning()) {
-            throw new Error(`Already ${getUserActionName(currentOperation!)}`);
+            vscode.window.showWarningMessage(`Already ${getUserActionName(cmd)}`);
+            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
         }
 
         const isInstallCmd = cmd === InstallerCommands.INSTALL;
@@ -220,11 +209,12 @@ namespace InstallerWrapper {
             tag = getTag();
             args.push("-t", tag);
         }
-        Log.i(`Running installer command: ${args}`);
+        Log.i(`Running installer command: ${args.join(" ")}`);
 
         let progressTitle;
         // For STOP the installer output looks better by itself, so we don't display any extra title
-        if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
+        // if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
+        if (cmd !== InstallerCommands.STOP_ALL) {
             progressTitle = getUserActionName(cmd);
             if (tag) {
                 progressTitle += ` - ${tag}`;
@@ -268,8 +258,8 @@ namespace InstallerWrapper {
                     }
                     else if (code !== 0) {
                         Log.e(`Error running installer command ${cmd}`, errStr);
-                        outStr = outStr || "<no std output>";
-                        errStr = errStr || "<no error output>";
+                        outStr = outStr || "No output";
+                        errStr = errStr || "Unknown error " + INSTALLER_COMMANDS[cmd].userActionName;
                         writeOutError(cmd, outStr, errStr);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
@@ -285,29 +275,16 @@ namespace InstallerWrapper {
         });
     }
 
-    async function writeOutError(cmd: InstallerCommands, outStr: string, errStr: string): Promise<void> {
-        const logDir = path.join(Log.getLogDir, `installer-error-${cmd}-${Date.now()}`);
-        await promisify(fs.mkdir)(logDir, { recursive: true });
-
-        const stdoutLog = path.join(logDir, "out.log");
-        const stderrLog = path.join(logDir, "err.log");
-        await promisify(fs.writeFile)(stdoutLog, outStr);
-        await promisify(fs.writeFile)(stderrLog, errStr);
-        if (cmd === InstallerCommands.INSTALL) {
-            // show user the output in this case because they can't recover
-            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
-            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
-        }
-        Log.e("Wrote failed command output to " + logDir);
-    }
-
     export function isCancellation(err: any): boolean {
         return MCUtil.errToString(err) === INSTALLCMD_CANCELLED;
     }
 
+    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
+
     /**
      * Confirm install with user, then download the CW backend docker images.
      * Does nothing if already installed.
+     *
      */
     export async function install(): Promise<void> {
         if (!(await InstallerWrapper.isInstallRequired())) {
@@ -316,7 +293,8 @@ namespace InstallerWrapper {
         }
 
         if (InstallerWrapper.isInstallerRunning()) {
-            throw new Error("Please wait for the current operation to finish.");
+            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
+            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
         }
 
         Log.i("Codewind is not installed");
@@ -350,6 +328,7 @@ namespace InstallerWrapper {
                     throw err;
                 }
                 Log.e("Install failed", err);
+                CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
                 vscode.window.showErrorMessage(MCUtil.errToString(err));
                 return onInstallFailOrReject(false);
             }
@@ -386,6 +365,24 @@ namespace InstallerWrapper {
             }
             return Promise.reject(InstallerWrapper.INSTALLCMD_CANCELLED);
         });
+    }
+
+    async function writeOutError(cmd: InstallerCommands, outStr: string, errStr: string): Promise<void> {
+        const logDir = path.join(Log.getLogDir, `installer-error-${cmd}-${Date.now()}`);
+        await promisify(fs.mkdir)(logDir, { recursive: true });
+
+        const stdoutLog = path.join(logDir, "installer-output.log");
+        const stderrLog = path.join(logDir, "installer-error-output.log");
+        await promisify(fs.writeFile)(stdoutLog, outStr);
+        await promisify(fs.writeFile)(stderrLog, errStr);
+        if (cmd === InstallerCommands.INSTALL || cmd === InstallerCommands.INSTALL_DEV) {
+            // show user the output in this case because they can't recover
+            // I do not like having this, but I don't see an easier way to present the user with the reason for failure
+            // until the installer 'expects' more errors.
+            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
+            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
+        }
+        Log.e("Wrote failed command output to " + logDir);
     }
 
     function onMoreInfo(): void {

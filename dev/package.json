@@ -44,19 +44,20 @@
         "views": {
             "explorer": [
                 {
-                    "id": "%viewID%",
+                    "id": "ext.cw.explorer",
                     "name": "%viewName%"
                 }
             ]
         },
         "configuration": [
             {
-                "title": "Codewind",
+                "title": "%configTitle%",
                 "properties": {
                     "codewind.autoShowView": {
-                        "description": "Automatically expand the Codewind view after opening a Codewind workspace or project.",
+                        "description": "%configDescr_autoShowView%",
                         "type": "boolean",
-                        "default": true
+                        "default": true,
+                        "scope": "application"
                     }
                 }
             }
