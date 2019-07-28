@@ -36,9 +36,7 @@
         "workspaceContains:.idc",
         "workspaceContains:.projects",
         "workspaceContains:.extensions",
-        "workspaceContains:.mc-settings",
         "workspaceContains:.cw-settings",
-        "workspaceContains:**/.mc-settings",
         "workspaceContains:**/.cw-settings"
     ],
     "main": "./out/extension",
@@ -51,6 +49,18 @@
                 }
             ]
         },
+        "configuration": [
+            {
+                "title": "Codewind",
+                "properties": {
+                    "codewind.autoShowView": {
+                        "description": "Automatically expand the Codewind view after opening a Codewind workspace or project.",
+                        "type": "boolean",
+                        "default": true
+                    }
+                }
+            }
+        ],
         "commands": [
             {
                 "command": "%cmdID_startCodewind%",

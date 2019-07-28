@@ -164,6 +164,10 @@ namespace MCUtil {
         return `${deviceLetter}:${containerPath.substring(2)}`;
     }
 
+    /**
+     * List of files whose presence indicates we are in a CW workspace or project.
+     * This should match this list in the workspaceContains activation events in package.json.
+     */
     const CW_FILES = [
         // workspace files
         ".idc",

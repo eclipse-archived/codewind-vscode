@@ -18,6 +18,7 @@ import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
 import TreeItemFactory, { CodewindTreeItem } from "./TreeItemFactory";
 import MCUtil from "../MCUtil";
+import { CWConfigurations } from "../constants/Configurations";
 
 // const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -39,8 +40,11 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
 
         this.root = TreeItemFactory.getRootTreeItems();
         if (MCUtil.isUserInCwWorkspaceOrProject()) {
-            Log.d("Auto-expanding the Codewind view");
-            this.treeView.reveal(this.root);
+            const autoShowEnabled: boolean = vscode.workspace.getConfiguration().get(CWConfigurations.AUTO_SHOW_VIEW) || true;
+            if (autoShowEnabled) {
+                Log.d("Auto-expanding the Codewind view");
+                this.treeView.reveal(this.root);
+            }
         }
 
         // this.treeView.onDidChangeSelection((e) => {
