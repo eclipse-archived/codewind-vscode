@@ -36,9 +36,7 @@
         "workspaceContains:.idc",
         "workspaceContains:.projects",
         "workspaceContains:.extensions",
-        "workspaceContains:.mc-settings",
         "workspaceContains:.cw-settings",
-        "workspaceContains:**/.mc-settings",
         "workspaceContains:**/.cw-settings"
     ],
     "main": "./out/extension",
@@ -46,11 +44,24 @@
         "views": {
             "explorer": [
                 {
-                    "id": "%viewID%",
+                    "id": "ext.cw.explorer",
                     "name": "%viewName%"
                 }
             ]
         },
+        "configuration": [
+            {
+                "title": "%configTitle%",
+                "properties": {
+                    "codewind.autoShowView": {
+                        "description": "%configDescr_autoShowView%",
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "application"
+                    }
+                }
+            }
+        ],
         "commands": [
             {
                 "command": "%cmdID_startCodewind%",

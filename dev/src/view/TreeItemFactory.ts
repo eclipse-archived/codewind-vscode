@@ -65,7 +65,7 @@ export type CodewindTreeItem = Connection | Project | vscode.TreeItem;
 namespace TreeItemFactory {
     export const CW_STARTED_NODE_ID = "ext.cw.treeroot";
 
-    export function getRootTreeItems(): CodewindTreeItem[] {
+    export function getRootTreeItems(): CodewindTreeItem {
         const cwState = CodewindManager.instance.state;
         const cwStarted = CodewindManager.instance.isStarted;
 
@@ -87,9 +87,7 @@ namespace TreeItemFactory {
             contextValue: buildContextValue([contextValue]),
         };
 
-        return [
-            cwStatusItem,
-        ];
+        return cwStatusItem;
     }
 
     export function toTreeItem(resource: Project | Connection): vscode.TreeItem {

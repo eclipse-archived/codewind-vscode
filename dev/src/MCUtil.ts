@@ -9,8 +9,11 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import { Uri } from "vscode";
+import * as vscode from "vscode";
 import * as path from "path";
+import { promisify } from "util";
+import * as fs from "fs";
+
 import Log from "./Logger";
 
 namespace MCUtil {
@@ -58,7 +61,7 @@ namespace MCUtil {
      * Extract the hostname from a URL with authority hostname:9090, for example.
      * If there's no port, return the whole authority.
      */
-    export function getHostnameFrom(url: Uri): string {
+    export function getHostnameFrom(url: vscode.Uri): string {
         const authority = url.authority;
         const colonIndex: number = authority.indexOf(":");      // non-nls
         if (colonIndex === -1) {
@@ -133,7 +136,7 @@ namespace MCUtil {
     /**
      * C:\\Users\\... -> /C/Users/
      */
-    export function fsPathToContainerPath(fsPath: Uri): string {
+    export function fsPathToContainerPath(fsPath: vscode.Uri): string {
         if (getOS() !== "windows") {
             return fsPath.fsPath;
         }
@@ -159,6 +162,37 @@ namespace MCUtil {
             deviceLetter = containerPath.charAt(0);
         }
         return `${deviceLetter}:${containerPath.substring(2)}`;
+    }
+
+    /**
+     * List of files whose presence indicates we are in a CW workspace or project.
+     * This should match this list in the workspaceContains activation events in package.json.
+     */
+    const CW_FILES = [
+        // workspace files
+        ".idc",
+        ".projects",
+        ".extensions",
+        // project files
+        ".cw-settings",
+    ];
+
+    /**
+     * Returns true if any of the user's workspace folders look like a Codewind workspace, or a Codewind project,
+     * by checking for existence of the CW_FILES.
+     */
+    export async function isUserInCwWorkspaceOrProject(): Promise<boolean> {
+        const wsFolders = vscode.workspace.workspaceFolders;
+        if (wsFolders == null || wsFolders.length === 0) {
+            return false;
+        }
+        const checkWsFolderPromises = wsFolders.map((wsFolder) => isCwWorkspaceOrProject(wsFolder.uri.fsPath));
+        return (await Promise.all(checkWsFolderPromises)).some((result) => result);
+    }
+
+    async function isCwWorkspaceOrProject(dirPath: string): Promise<boolean> {
+        return (await promisify(fs.readdir)(dirPath))
+            .some((file) => CW_FILES.includes(file.toString()));
     }
 }
 
