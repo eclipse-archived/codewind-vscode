@@ -36,11 +36,13 @@ export default async function bindProject(connection: Connection): Promise<void>
             vscode.window.showErrorMessage(`You must select a project under the workspace; not the entire workspace.`);
             return;
         }
-        else if (!dirToBindUri.fsPath.startsWith(connection.workspacePath.fsPath)) {
-            Log.d(`${dirToBindUri.fsPath} is not under workspace ${connection.workspacePath.fsPath}`);
-            vscode.window.showErrorMessage(
-                `Currently, projects to be imported must be located under the workspace at ${connection.workspacePath.fsPath}`);
-            return;
+        if (!connection.remote) {
+            if (!dirToBindUri.fsPath.startsWith(connection.workspacePath.fsPath)) {
+                Log.d(`${dirToBindUri.fsPath} is not under workspace ${connection.workspacePath.fsPath}`);
+                vscode.window.showErrorMessage(
+                    `Currently, projects to be imported must be located under the workspace at ${connection.workspacePath.fsPath}`);
+                return;
+            }
         }
         const response = await UserProjectCreator.validateAndBind(connection, dirToBindUri);
         if (response == null) {

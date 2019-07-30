@@ -48,7 +48,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         public readonly url: vscode.Uri,
         public readonly version: number,
         public readonly socketNS: string,
-        workspacePath_: string
+        workspacePath_: string,
+        public readonly remote: boolean
     ) {
         this.socket = new MCSocket(this, socketNS);
         this.workspacePath = vscode.Uri.file(workspacePath_);
@@ -57,7 +58,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        this.initFileWatcherPromise = this.initFileWatcher();
+        if (!remote) {
+            this.initFileWatcherPromise = this.initFileWatcher();
+        } else {
+            // Disable file-watcher in remote mode for now.
+            this.initFileWatcherPromise = new Promise<void>((resolve) => (resolve()));
+        }
 
         Log.i(`Created new Connection @ ${this}, workspace ${this.workspacePath}`);
     }

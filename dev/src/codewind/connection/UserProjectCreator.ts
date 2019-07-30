@@ -14,12 +14,14 @@ import * as path from "path";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
-import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
+import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
 
+import { exec } from "child_process";
+import { inspect } from "util";
 export interface IMCTemplateData {
     label: string;
     description: string;
@@ -73,6 +75,14 @@ namespace UserProjectCreator {
     }
 
     export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
+        if (connection.remote) {
+            return validateAndBindRemote(connection, pathToBindUri);
+        } else {
+            return validateAndBindLocal(connection, pathToBindUri);
+        }
+    }
+
+    async function validateAndBindLocal(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
         const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
         Log.i("Binding to", pathToBind);
 
@@ -119,6 +129,30 @@ namespace UserProjectCreator {
         }
 
         await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
+        return { projectName, projectPath: pathToBind };
+    }
+
+    async function validateAndBindRemote(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
+        const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
+        Log.i("Binding to", pathToBind);
+
+        const projectName = path.basename(pathToBind);
+
+        // TODO - Validation removed until it's ported to the installer/cli.
+        // For now just prompt the user.
+        const projectTypeInfo = await promptForProjectType(connection);
+        if (projectTypeInfo == null) {
+            return;
+        }
+
+        const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
+        const projectID = projectInfo.projectID;
+        Log.i(inspect(projectInfo));
+        Log.i(pathToBind);
+        // TODO Copy the files *properly*
+        dockerCopyProjectFiles(pathToBind);
+
+        await requestRemoteBindEnd(connection, projectID);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -305,6 +339,77 @@ namespace UserProjectCreator {
         Log.d("Bind response", bindRes);
 
         // return bindRes;
+    }
+
+    async function requestRemoteBindStart(connection: Connection, projectName: string,
+                                          dirToBindContainerPath: string,
+                                          language: string, projectType: string): Promise<any> {
+
+        const bindReq = {
+            name: projectName,
+            language,
+            projectType,
+            path: dirToBindContainerPath,
+        };
+
+        Log.d("Remote Bind request", bindReq);
+
+        const remoteBindStartEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REMOTE_BIND_START);
+        const remoteBindRes = await Requester.post(remoteBindStartEndpoint, {
+            json: true,
+            body: bindReq,
+        });
+
+        Log.d("Remote Bind response", remoteBindRes);
+
+        return remoteBindRes;
+    }
+
+    async function requestRemoteBindEnd(connection: Connection, projectID: string) : Promise<void> {
+
+        Log.d(`Remote Bind request for ${projectID}`);
+
+        const remoteBindStartEndpoint = EndpointUtil.resolveProjectEndpoint(connection, projectID, ProjectEndpoints.REMOTE_BIND_END);
+        const remoteBindRes = await Requester.post(remoteBindStartEndpoint);
+
+        Log.d("Remote Bind response", remoteBindRes);
+    }
+
+    async function dockerCopyProjectFiles(pathToBind: string) : Promise<void> {
+        let outStr = "";
+        let errStr = "";
+        await new Promise<void>((resolve, reject) => {
+            const cmd = `docker cp ${pathToBind}/ codewind-pfe:/codewind-workspace`;
+            const child = exec(cmd);
+
+            child.on("error", (err) => {
+                return reject(err);
+            });
+
+            child.stdout.on("data", (chunk) => { outStr += chunk.toString(); });
+            child.stderr.on("data", (chunk) => { errStr += chunk.toString(); });
+
+            child.on("close", (code: number | null) => {
+                if (code == null) {
+                    // this happens in SIGTERM case, not sure what else may cause it
+                    Log.d(`Copy command ${cmd} did not exit normally`);
+                }
+                else if (code !== 0) {
+                    Log.e(`Error running installer command ${cmd}`, errStr);
+                    outStr = outStr || "<no std output>";
+                    errStr = errStr || "<no error output>";
+                    Log.e("Stdout:", outStr);
+                    Log.e("Stderr:", errStr);
+                    reject(errStr);
+                }
+                else {
+                    Log.i(`Successfully ran copy command: ${cmd}`);
+                    resolve();
+                }
+            });
+        });
+        Log.i(outStr);
+        Log.i(errStr);
     }
 }
 
