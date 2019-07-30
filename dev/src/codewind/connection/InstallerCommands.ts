@@ -13,7 +13,6 @@ import { CodewindStates } from "./CodewindStates";
 
 export enum InstallerCommands {
     INSTALL = "install",
-    INSTALL_DEV = "install-dev",
     START = "start",
     // STOP = "stop",
     STOP_ALL = "stop-all",
@@ -40,16 +39,6 @@ export const INSTALLER_COMMANDS: {
             userActionName: "Pulling Codewind Docker images",
             cancellable: true,
             usesTag: true,
-            states: {
-                during: CodewindStates.INSTALLING,
-                onError: CodewindStates.ERR_INSTALLING,
-            }
-        },
-    "install-dev": {
-            action: "install-dev",
-            userActionName: "Pulling Codewind Docker images (DEV BUILD)",
-            cancellable: true,
-            usesTag: false,
             states: {
                 during: CodewindStates.INSTALLING,
                 onError: CodewindStates.ERR_INSTALLING,

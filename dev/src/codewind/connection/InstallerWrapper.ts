@@ -67,16 +67,15 @@ namespace InstallerWrapper {
                 }
             });
 
-            // https://github.com/eclipse/codewind-installer/blob/master/commands.go#L143
-            // 0 - not installed, 1 - installed but stopped, 2 - installed and running
+            // https://github.com/eclipse/codewind-installer/blob/master/actions/status.go
             child.on("exit", (code, _signal) => {
-                if (code === 0) {
+                if (code === 200) {
                     return resolve(InstallerStates.NOT_INSTALLED);
                 }
-                else if (code === 1) {
+                else if (code === 201) {
                     return resolve(InstallerStates.STOPPED);
                 }
-                else if (code === 2) {
+                else if (code === 202) {
                     return resolve(InstallerStates.STARTED);
                 }
                 return reject(`Unexpected exit code ${code} from status check`);
@@ -179,28 +178,6 @@ namespace InstallerWrapper {
             vscode.window.showWarningMessage(`Already ${getUserActionName(cmd)}`);
             throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
         }
-
-        const isInstallCmd = cmd === InstallerCommands.INSTALL;
-        if (isInstallCmd) {
-            if (isDevEnv()) {
-                Log.i("Installing in development mode");
-
-                // Use install-dev instead of install
-                cmd = InstallerCommands.INSTALL_DEV;
-
-                // Remap AF_USER and AF_PASS to USER and PASS
-                // since the latter two are often overridden by the shell, we prefix them with "AF_"
-                if (process.env.AF_USER) {
-                    process.env.USER = process.env.AF_USER;
-                }
-                if (process.env.AF_PASS) {
-                    process.env.PASS = process.env.AF_PASS;
-                }
-                if (!process.env.USER || !process.env.PASS) {
-                    throw new Error(Translator.t(STRING_NS, "devModeNoCreds"));
-                }
-            }
-        }
         // const timeout = isInstallCmd ? undefined : 60000;
 
         const args: string[] = [ cmd ];
@@ -209,6 +186,11 @@ namespace InstallerWrapper {
             tag = getTag();
             args.push("-t", tag);
         }
+        const isInstallCmd = cmd === InstallerCommands.INSTALL;
+        if (isInstallCmd) {
+            // request JSON output
+            args.push("-j");
+        }
         Log.i(`Running installer command: ${args.join(" ")}`);
 
         let progressTitle;
@@ -216,9 +198,9 @@ namespace InstallerWrapper {
         // if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
         if (cmd !== InstallerCommands.STOP_ALL) {
             progressTitle = getUserActionName(cmd);
-            if (tag) {
-                progressTitle += ` - ${tag}`;
-            }
+            // if (tag) {
+            //     progressTitle += ` - ${tag}`;
+            // }
         }
 
         const executableDir = path.dirname(executablePath);
@@ -375,7 +357,7 @@ namespace InstallerWrapper {
         const stderrLog = path.join(logDir, "installer-error-output.log");
         await promisify(fs.writeFile)(stdoutLog, outStr);
         await promisify(fs.writeFile)(stderrLog, errStr);
-        if (cmd === InstallerCommands.INSTALL || cmd === InstallerCommands.INSTALL_DEV) {
+        if (cmd === InstallerCommands.INSTALL) {
             // show user the output in this case because they can't recover
             // I do not like having this, but I don't see an easier way to present the user with the reason for failure
             // until the installer 'expects' more errors.
@@ -405,12 +387,23 @@ namespace InstallerWrapper {
                 return;
             }
 
+            // With JSON flag, `install` output is JSON we can parse to give good output
+            let lineObj: { status: string; id: string; };
+            try {
+                lineObj = JSON.parse(line);
+            }
+            catch (err) {
+                Log.e(`Error parsing JSON from installer output, line was "${line}"`);
+                return;
+            }
+
             // we're interested in lines like:
             // {"status":"Pulling from codewind-pfe-amd64","id":"latest"}
             const pullingFrom = "Pulling from";
             if (line.includes(pullingFrom)) {
-                // const imageName = lineObj.status.substring(pullingFrom.length);
-                progress.report({ message: line });
+                const imageTag = lineObj.id;
+                const message = lineObj.status + ":" + imageTag;
+                progress.report({ message });
             }
         });
     }
