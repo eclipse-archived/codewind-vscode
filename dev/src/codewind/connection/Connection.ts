@@ -55,7 +55,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        this.initFileWatcherPromise = this.initFileWatcher();
+        if (!remote) {
+            this.initFileWatcherPromise = this.initFileWatcher();
+        } else {
+            // Disable file-watcher in remote mode for now.
+            this.initFileWatcherPromise = new Promise<void>((resolve) => (resolve()));
+        }
 
         Log.i(`Created new Connection @ ${this}, workspace ${this.workspacePath}`);
     }
