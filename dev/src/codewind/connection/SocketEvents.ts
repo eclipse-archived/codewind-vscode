@@ -117,7 +117,7 @@ export interface ILogResponse {
 
 export interface ILogObject {
     readonly logName: string;
-    readonly workspathLogPath?: string;
+    readonly workspaceLogPath?: string;
 }
 
 export default SocketEvents;

@@ -71,7 +71,7 @@ export default class MCLogManager {
                 existingLog.destroy();
             }
 
-            const newLog = new MCLog(this.project.name, newLogData.logName, newLogData.workspathLogPath);
+            const newLog = new MCLog(this.project.name, newLogData.logName, newLogData.workspaceLogPath);
             this.logs.push(newLog);
             if (openOnCreate) {
                 newLog.showOutput();
