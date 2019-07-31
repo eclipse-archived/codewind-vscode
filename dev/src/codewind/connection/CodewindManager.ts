@@ -74,7 +74,7 @@ export default class CodewindManager implements vscode.Disposable {
 
         // all validation that this connection is good must be done by this point
 
-        const newConnection: Connection = new Connection(uri, mcVersion, socketNS, workspace, true);
+        const newConnection: Connection = new Connection(uri, mcVersion, socketNS, workspace, false);
         Log.i("New Connection @ " + uri);
         this._connections.push(newConnection);
         // ConnectionManager.saveConnections();
