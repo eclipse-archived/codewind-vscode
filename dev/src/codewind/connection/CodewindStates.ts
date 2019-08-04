@@ -18,6 +18,7 @@ export enum CodewindStates {
     ERR_INSTALLING = "Error Installing",
     ERR_STARTING = "Error Starting",
     ERR_CONNECTING = "Error Connecting",
+    ERR_GENERAL = "Error",
 }
 
 export const CODEWIND_STATES: {
@@ -34,4 +35,5 @@ export const CODEWIND_STATES: {
     "Error Connecting": { isErrorState: true, isTransitionState: false },
     "Error Installing": { isErrorState: true, isTransitionState: false },
     "Error Starting":   { isErrorState: true, isTransitionState: false },
+    Error:   { isErrorState: true, isTransitionState: false },
 };

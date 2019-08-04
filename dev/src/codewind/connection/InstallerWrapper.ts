@@ -44,9 +44,9 @@ namespace InstallerWrapper {
     export const INSTALLCMD_CANCELLED = "Cancelled";
 
     enum InstallerStates {
-        NOT_INSTALLED,
-        STOPPED,
-        STARTED,
+        NOT_INSTALLED = 200,
+        STOPPED = 201,
+        STARTED = 202,
     }
 
     /**
@@ -57,28 +57,40 @@ namespace InstallerWrapper {
         const executablePath = await initialize();
 
         return new Promise<InstallerStates>((resolve, reject) => {
+            // So that we can asynchronously capture the stdout, stderr, and exit code, we do our handling in the 'exit' event handler.
+            // But that does not receive the output, so we await on this promise in the case of an error so we can view the stdout and stderr.
+            let outputPromiseResolve: (output: { stdout: string, stderr: string }) => void;
+            const outputPromise: Promise<{ stdout: string, stderr: string }> = new Promise((resolve_) => outputPromiseResolve = resolve_);
+
             const child = child_process.execFile(executablePath, [ "status" ], {
                 timeout: 10000,
             }, async (_err, stdout, stderr) => {
                 // err (non-zero exit) is expected
-                if (stderr) {
-                    Log.e("Stderr checking status:", stderr.toString());
-                    Log.e("Stdout checking status:", stdout.toString());
-                }
+                outputPromiseResolve({ stdout, stderr });
             });
 
             // https://github.com/eclipse/codewind-installer/blob/master/actions/status.go
-            child.on("exit", (code, _signal) => {
-                if (code === 200) {
+            child.on("exit", async (code, _signal) => {
+                if (code === InstallerStates.NOT_INSTALLED) {
                     return resolve(InstallerStates.NOT_INSTALLED);
                 }
-                else if (code === 201) {
+                else if (code === InstallerStates.STOPPED) {
                     return resolve(InstallerStates.STOPPED);
                 }
-                else if (code === 202) {
+                else if (code === InstallerStates.STARTED) {
                     return resolve(InstallerStates.STARTED);
                 }
-                return reject(`Unexpected exit code ${code} from status check`);
+                // else, unexpected status code, something went wrong
+                // Wait for output
+                const output = await outputPromise;
+                Log.e("Error running status command, stdout:", output.stdout);
+                Log.e("Error running status command, stderr:", output.stderr);
+                if (output.stderr) {
+                    return reject(output.stderr);
+                }
+                else {
+                    return reject(`Unexpected exit code ${code} from status check`);
+                }
             });
 
             child.on("error", (err) => {

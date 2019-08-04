@@ -148,16 +148,29 @@ export default class CodewindManager implements vscode.Disposable {
             return true;
         }
 
+        let installRequired;
         try {
-            await InstallerWrapper.install();
+            installRequired = await InstallerWrapper.isInstallRequired();
         }
         catch (err) {
-            if (!InstallerWrapper.isCancellation(err)) {
-                CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
-                Log.e("Error installing codewind", err);
-                vscode.window.showErrorMessage("Error installing Codewind: " + MCUtil.errToString(err));
-            }
+            CodewindManager.instance.changeState(CodewindStates.ERR_GENERAL);
+            Log.e("Error checking status", err);
+            vscode.window.showErrorMessage("Error checking Codewind status: " + MCUtil.errToString(err));
             return false;
+        }
+
+        if (installRequired) {
+            try {
+                await InstallerWrapper.install();
+            }
+            catch (err) {
+                if (!InstallerWrapper.isCancellation(err)) {
+                    CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
+                    Log.e("Error installing codewind", err);
+                    vscode.window.showErrorMessage("Error installing Codewind: " + MCUtil.errToString(err));
+                }
+                return false;
+            }
         }
 
         try {
