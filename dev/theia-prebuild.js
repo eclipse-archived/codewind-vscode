@@ -52,7 +52,7 @@ async function main() {
     pj.contributes.views = {
         [VIEW_CONTAINER_ID]: [
             {
-                id: "%viewID%",                 // resolved by package.nls.jsno
+                id: "ext.cw.explorer",
                 name: "Project Explorer"
             }
         ]
