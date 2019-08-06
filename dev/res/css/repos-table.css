@@ -1,0 +1,65 @@
+
+#add-repo-btn {
+    margin-left: .5em;
+    /* margin-top: .5em; */
+}
+
+#right-icons {
+    margin-left: auto;
+}
+
+.right-icon {
+    height: 2em;
+}
+
+tr {
+    border: 1px solid white;
+}
+
+table {
+    padding-bottom: 2em;
+}
+
+td {
+    padding: 1em;
+    border: 1px solid #bbb;
+}
+
+.title-row {
+    font-weight: bold;
+    padding-bottom: 1em;
+    font-size: 110%;
+}
+
+.title-row > td {
+    border: none;
+    text-align: center;
+}
+
+.enabled-checkbox-cell {
+    padding: 0.5em;
+    padding-right: 1em;
+    border: none;
+}
+
+input[type=checkbox] {
+    zoom: 2
+}
+
+.name-cell {
+    max-width: 33%;
+}
+
+.descr-cell {
+    max-width: 50%;
+}
+
+.source-cell {
+    text-align: center;
+}
+
+.delete-btn-cell {
+    padding: 0;
+    padding-left: 2em;
+    border: none;
+}

@@ -94,7 +94,11 @@ namespace Resources {
         Disconnected = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",
+        Help = "help.svg",
+        Info = "info.svg",
         LocalProjects = "local_projects.svg",
+        New = "new.svg",
+        Refresh = "refresh.svg",
 
         Generic      = "project-types/cloud.svg",
         Go           = "project-types/go.svg",

@@ -3,72 +3,10 @@
     max-width: 700px;
 }
 
-#top-section, #bottom-section {
-    width: 100%;
-
-    display: inline-flex;
-    align-items: center;
-}
-
-#top-section {
-    padding-bottom: 0.5em;
-}
-
-#mc-icon {
-    margin-right: 10px;
-}
-
-.fixed-table {
-    table-layout: fixed;
-}
-
-tr {
-    padding-bottom: 0.5em;
-}
-
 .info-label {
     font-weight: bold;
     padding-right: 1em;
     min-width: 125px;
-}
-
-input[type="checkbox"] {
-    padding: 0;
-    margin: 0;
-}
-
-input[type="checkbox"]:disabled {
-    cursor: not-allowed;
-}
-
-.btn {
-    color: var(--vscode-button-foreground);
-    padding: 0.6em;
-    padding-left: 1.5em;
-    padding-right: 1.5em;
-    background: var(--vscode-button-background);
-    font-size: 110%;
-    border: 1x solid var(--vscode-button-background);
-    border-radius: 5px;
-}
-
-.btn:hover, a:hover, .btn:focus, a:focus, .edit-btn, .edit-btn:focus {
-    text-decoration: underline;
-    cursor: pointer;
-    outline: var(--vscode-button-background);
-}
-
-.btn-disabled {
-    --disabled-btn-color: #444;
-    background: var(--disabled-btn-color);
-    border-color: var(--disabled-btn-color);
-}
-
-/* Override btn hover behaviour defined above */
-.btn-disabled:hover, .btn-disabled:focus {
-    outline: var(--disabled-btn-color);
-    text-decoration: none;
-    cursor: not-allowed;
 }
 
 .edit-btn {
@@ -76,24 +14,6 @@ input[type="checkbox"]:disabled {
     margin-left: 2em;
 }
 
-body.vscode-light > .edit-btn {
-    filter: invert(100%);
-    border: 10px solid red;
-}
-
 #build-btn {
     margin-left: auto;
-}
-
-#bottom-section {
-    margin-top: 2em;
-}
-
-#bottom-section > .btn {
-    margin-right: 15px;
-}
-
-#delete-btn {
-    background: darkred;
-    border-color: darkred;
 }

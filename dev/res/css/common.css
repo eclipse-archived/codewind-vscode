@@ -1,0 +1,76 @@
+#top-section, #bottom-section {
+    width: 100%;
+
+    display: inline-flex;
+    align-items: center;
+}
+
+#top-section {
+    padding-bottom: 0.5em;
+}
+
+#logo {
+    width: 2.5em;
+    margin-right: 1em;
+}
+
+.fixed-table {
+    table-layout: fixed;
+}
+
+tr {
+    padding-bottom: 0.5em;
+}
+
+input[type="checkbox"] {
+    padding: 0;
+    margin: 0;
+}
+
+input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+}
+
+.btn {
+    color: var(--vscode-button-foreground);
+    padding: 0.6em;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+    background: var(--vscode-button-background);
+    font-size: 110%;
+    border: 1x solid var(--vscode-button-background);
+    border-radius: 5px;
+}
+
+.btn:hover, a:hover, .btn:focus, a:focus, .edit-btn, .edit-btn:focus {
+    text-decoration: underline;
+    cursor: pointer;
+    outline: var(--vscode-button-background);
+}
+
+.btn-disabled {
+    --disabled-btn-color: #444;
+    background: var(--disabled-btn-color);
+    border-color: var(--disabled-btn-color);
+}
+
+/* Override btn hover behaviour defined above */
+.btn-disabled:hover, .btn-disabled:focus {
+    outline: var(--disabled-btn-color);
+    text-decoration: none;
+    cursor: not-allowed;
+}
+
+#bottom-section {
+    margin-top: 2em;
+}
+
+#bottom-section > .btn {
+    margin-right: 15px;
+}
+
+.red-btn {
+    background: darkred;
+    border-color: darkred;
+    color: #ddd;
+}

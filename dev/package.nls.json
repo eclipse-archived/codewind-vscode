@@ -40,6 +40,9 @@
     "cmdID_bindProject": "ext.cw.bindProject",
     "cmdTitle_bindProject": "Add Existing Project",
 
+    "cmdID_manageTemplateRepos": "ext.cw.manageTemplateRepos",
+    "cmdTitle_manageTemplateRepos": "Manage Template Repositories",
+
     "cmdID_openFolder": "ext.cw.openWorkspaceFolder",
     "cmdTitle_openFolder": "Open Codewind Workspace",
 

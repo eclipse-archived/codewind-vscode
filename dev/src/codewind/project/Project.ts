@@ -17,7 +17,6 @@ import ProjectState from "./ProjectState";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import { refreshProjectOverview } from "./ProjectOverviewPage";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import MCLogManager from "./logs/MCLogManager";
 import DebugUtils from "./DebugUtils";
@@ -28,6 +27,7 @@ import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
 import Requester from "./Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
+import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPage";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
