@@ -68,7 +68,7 @@ namespace Requester {
 
     export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get);
-        return result.body;
+        return result;
     }
 
     export async function manageTemplateRepos(connection: Connection, repoUrl: string, op: "add" | "delete"): Promise<IRawTemplateRepo[]> {
