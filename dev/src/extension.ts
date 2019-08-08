@@ -44,8 +44,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     global.extGlobalState = context.globalState;
 
     // https://github.com/theia-ide/theia/issues/5501
-    // global.isTheia = (process.env.appName || "").toLowerCase().includes("theia");
-    global.isTheia = !!process.env.CHE_WORKSPACE_ID;
+    global.isTheia = vscode.env.appName.toLowerCase().includes("theia");
 
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");

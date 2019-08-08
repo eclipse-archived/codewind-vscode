@@ -63,6 +63,7 @@ enum TreeContextValues {
 export type CodewindTreeItem = Connection | Project | vscode.TreeItem;
 
 namespace TreeItemFactory {
+    const CW_STOPPED_NODE_ID = "ext.cw.stoppedTreeroot";
     export const CW_STARTED_NODE_ID = "ext.cw.treeroot";
 
     export function getRootTreeItems(): CodewindTreeItem {
@@ -74,7 +75,7 @@ namespace TreeItemFactory {
             label += ` (${cwState})`;
         }
         // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand after it starts
-        const id = cwStarted ?  CW_STARTED_NODE_ID : undefined;
+        const id = cwStarted ?  CW_STARTED_NODE_ID : CW_STOPPED_NODE_ID;
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
         const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 

@@ -144,7 +144,9 @@ export default class CodewindManager implements vscode.Disposable {
 
         if (global.isTheia) {
             // In the che case, we do not start codewind. we just wait for it to come up
+            this.changeState(CodewindStates.STARTING);
             await this.waitForCodewindToStart();
+            this.changeState(CodewindStates.STARTED);
             return true;
         }
 
