@@ -22,6 +22,7 @@ import MCUtil from "../../MCUtil";
 import { InstallerCommands } from "./InstallerCommands";
 import activateConnection from "../../command/connection/ActivateConnectionCmd";
 import { CodewindStates } from "./CodewindStates";
+import { ICWEnvData } from "./CWEnvironment";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
@@ -63,7 +64,7 @@ export default class CodewindManager implements vscode.Disposable {
         return this._connections;
     }
 
-    public async addConnection(uri: vscode.Uri, mcVersion: number, socketNS: string, workspace: string): Promise<Connection> {
+    public async addConnection(uri: vscode.Uri, cwEnv: ICWEnvData): Promise<Connection> {
         const existing = this.getExisting(uri);
         if (existing != null) {
             Log.e("Connection already exists at " + uri.toString());
@@ -73,8 +74,8 @@ export default class CodewindManager implements vscode.Disposable {
         }
 
         // all validation that this connection is good must be done by this point
-
-        const newConnection: Connection = new Connection(uri, mcVersion, socketNS, workspace);
+        // - eg nothing missing from the environment, not a dupe
+        const newConnection: Connection = new Connection(uri, cwEnv);
         Log.i("New Connection @ " + uri);
         this._connections.push(newConnection);
         // ConnectionManager.saveConnections();
@@ -260,12 +261,12 @@ export default class CodewindManager implements vscode.Disposable {
     //     Log.d("Verifying reconnect at " + connection.mcUri);
 
     //     let tries = 0;
-    //     let newEnvData: MCEnvironment.IMCEnvData | undefined;
+    //     let newEnvData: CWEnvironment.IMCEnvData | undefined;
     //     // Sometimes this can execute before Portal is ready, resulting in a 404.
     //     while (newEnvData == null && tries < 10) {
     //         tries++;
     //         try {
-    //             newEnvData = await MCEnvironment.getEnvData(connection.mcUri);
+    //             newEnvData = await CWEnvironment.getEnvData(connection.mcUri);
     //         }
     //         catch (err) {
     //             // wait briefly before trying again
@@ -282,7 +283,7 @@ export default class CodewindManager implements vscode.Disposable {
     //         return false;
     //     }
 
-    //     if (MCEnvironment.envMatches(connection, newEnvData)) {
+    //     if (CWEnvironment.envMatches(connection, newEnvData)) {
     //         // it's the same instance, so we don't have to do anything
     //         return true;
     //     }
