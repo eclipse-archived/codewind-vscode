@@ -18,7 +18,7 @@ import CodewindManager, { OnChangeCallbackArgs } from "./CodewindManager";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import MCEnvironment from "./MCEnvironment";
+import CWEnvironment from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
@@ -52,7 +52,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     ) {
         this.socket = new MCSocket(this, socketNS);
         this.workspacePath = vscode.Uri.file(workspacePath_);
-        this.versionStr = MCEnvironment.getVersionAsString(version);
+        this.versionStr = CWEnvironment.getVersionAsString(version);
         this.host = this.getHost(url);
 
         // caller must await on this promise before expecting this connection to function correctly

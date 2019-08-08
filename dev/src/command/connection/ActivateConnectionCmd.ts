@@ -15,7 +15,7 @@ import MCUtil from "../../MCUtil";
 import CodewindManager from "../../codewind/connection/CodewindManager";
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
-import MCEnvironment from "../../codewind/connection/MCEnvironment";
+import MCEnvironment, { ICWEnvData } from "../../codewind/connection/CWEnvironment";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Commands from "../../constants/Commands";
@@ -35,7 +35,7 @@ export default async function activateConnection(): Promise<void> {
     // return connection;
 }
 
-async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Promise<Connection> {
+async function connect(url: vscode.Uri, envData: ICWEnvData): Promise<Connection> {
     const rawWorkspace: string = envData.workspace_location;
     const rawSocketNS: string = envData.socket_namespace || "";
 
