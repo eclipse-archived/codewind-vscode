@@ -34,6 +34,9 @@
     "cmdID_setRegistry": "ext.cw.setRegistry",
     "cmdTitle_setRegistry": "Set Deployment Registry",
 
+    "cmdID_openTekton": "ext.cw.openTekton",
+    "cmdTitle_openTekton": "Open Tekton Dashboard",
+
     "cmdID_newProject": "ext.cw.createProject",
     "cmdTitle_newProject": "Create New Project",
 

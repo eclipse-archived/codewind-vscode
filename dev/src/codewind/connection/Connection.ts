@@ -18,7 +18,7 @@ import CodewindManager, { OnChangeCallbackArgs } from "./CodewindManager";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import CWEnvironment from "./CWEnvironment";
+import CWEnvironment, { ICWEnvData } from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
@@ -34,8 +34,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public readonly socket: MCSocket;
 
+    public readonly tektonStatus: string;
+
     private fileWatcher: FileWatcher | undefined;
-    public readonly initFileWatcherPromise: Thenable<void>;
+    public readonly initFileWatcherPromise: Promise<void>;
 
     private hasConnected: boolean = false;
     // Is this connection CURRENTLY connected
@@ -46,13 +48,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     constructor(
         public readonly url: vscode.Uri,
-        public readonly version: number,
-        public readonly socketNS: string,
-        workspacePath_: string
+        cwEnv: ICWEnvData,
     ) {
-        this.socket = new MCSocket(this, socketNS);
-        this.workspacePath = vscode.Uri.file(workspacePath_);
-        this.versionStr = CWEnvironment.getVersionAsString(version);
+        this.socket = new MCSocket(this, cwEnv.socketNamespace);
+        this.workspacePath = vscode.Uri.file(cwEnv.workspace);
+        this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
+        this.tektonStatus = cwEnv.tektonStatus;
         this.host = this.getHost(url);
 
         // caller must await on this promise before expecting this connection to function correctly
