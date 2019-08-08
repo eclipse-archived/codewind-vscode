@@ -154,6 +154,7 @@ namespace InstallerWrapper {
     }
 
     export async function installerExec(cmd: InstallerCommands): Promise<void> {
+        const beforeCmdState = CodewindManager.instance.state;
         const transitionStates = INSTALLER_COMMANDS[cmd].states;
         if (transitionStates && transitionStates.during) {
             CodewindManager.instance.changeState(transitionStates.during);
@@ -162,7 +163,11 @@ namespace InstallerWrapper {
             await installerExecInner(cmd);
         }
         catch (err) {
-            if (transitionStates && transitionStates.onError) {
+            if (isCancellation(err)) {
+                // restore original state
+                CodewindManager.instance.changeState(beforeCmdState);
+            }
+            else if (transitionStates && transitionStates.onError) {
                 CodewindManager.instance.changeState(transitionStates.onError);
             }
             throw err;
@@ -317,7 +322,8 @@ namespace InstallerWrapper {
         }
         else if (response === moreInfoBtn) {
             onMoreInfo();
-            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+            // throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+            return onInstallFailOrReject(true);
         }
         else {
             Log.i("User rejected installation");
@@ -344,6 +350,7 @@ namespace InstallerWrapper {
             }
             else if (res === moreInfoBtn) {
                 onMoreInfo();
+                return onInstallFailOrReject(true);
             }
             return Promise.reject(InstallerWrapper.INSTALLCMD_CANCELLED);
         });
