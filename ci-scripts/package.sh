@@ -11,9 +11,10 @@ cd $(dirname $0)/../dev
 if [[ $is_theia ]]; then
     echo "Building for Theia"
     npm i rimraf
-    ./theia-prebuild.js
+    ./prebuild.js theia
 else
     echo "Building for VS Code"
+    ./prebuild.js vscode
 fi
 
 # Test compilation to catch any errors

@@ -42,6 +42,7 @@ import containerShellCmd from "./project/ContainerShellCmd";
 import removeProjectCmd from "./project/RemoveProjectCmd";
 import addProjectToWorkspaceCmd from "./project/AddToWorkspaceCmd";
 import manageTemplateReposCmd from "./connection/ManageTemplateReposCmd";
+import { openTektonDashboard } from "./connection/OpenTektonCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -65,8 +66,10 @@ export function createCommands(): vscode.Disposable[] {
 
         registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined),
         registerConnectionCommand(Commands.OPEN_WS_FOLDER, openWorkspaceCmd, undefined),
-        registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
         registerConnectionCommand(Commands.MANAGE_TEMPLATE_REPOS, manageTemplateReposCmd, undefined),
+
+        registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
+        registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined),
 
         registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),
         registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),

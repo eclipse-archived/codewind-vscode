@@ -27,6 +27,7 @@ enum Commands {
 
     REFRESH_CONNECTION = "ext.cw.refreshConnection",
     SET_REGISTRY = "ext.cw.setRegistry",
+    OPEN_TEKTON = "ext.cw.openTekton",
 
     CREATE_PROJECT = "ext.cw.createProject",
     BIND_PROJECT = "ext.cw.bindProject",

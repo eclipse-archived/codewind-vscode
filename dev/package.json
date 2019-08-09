@@ -132,14 +132,23 @@
                 }
             },
             {
+                "command": "%cmdID_manageTemplateRepos%",
+                "title": "%cmdTitle_manageTemplateRepos%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_setRegistry%",
                 "title": "%cmdTitle_setRegistry%",
                 "category": "%commandCategory%"
             },
             {
-                "command": "%cmdID_manageTemplateRepos%",
-                "title": "%cmdTitle_manageTemplateRepos%",
-                "category": "%commandCategory%"
+                "command": "%cmdID_openTekton%",
+                "title": "%cmdTitle_openTekton%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/tekton.svg",
+                    "dark": "res/img/dark/tekton.svg"
+                }
             },
             {
                 "command": "%cmdID_openFolder%",
@@ -345,14 +354,24 @@
                     "group": "ext.cw.conn.b"
                 },
                 {
-                    "command": "%cmdID_refreshConnection%",
-                    "when": "%isConnection%",
+                    "command": "%cmdID_setRegistry%",
+                    "when": "%isActiveConnection%",
                     "group": "ext.cw.conn.c@0"
                 },
                 {
-                    "command": "%cmdID_setRegistry%",
+                    "command": "%cmdID_openTekton%",
                     "when": "%isActiveConnection%",
                     "group": "ext.cw.conn.c@1"
+                },
+                {
+                    "command": "%cmdID_refreshConnection%",
+                    "when": "%isConnection%",
+                    "group": "ext.cw.conn.d@0"
+                },
+                {
+                    "command": "%cmdID_openTekton%",
+                    "when": "%isActiveConnection%",
+                    "group": "inline"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",

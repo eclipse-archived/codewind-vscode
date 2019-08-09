@@ -1,3 +1,5 @@
+
+
 /*******************************************************************************
  * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
@@ -12,44 +14,88 @@
 import { Uri } from "vscode";
 import * as reqErrors from "request-promise-native/errors";
 
-import Log from "../../Logger";
 import { MCEndpoints } from "../../constants/Endpoints";
+import Requester from "../project/Requester";
+import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Connection from "./Connection";
-import Requester from "../project/Requester";
+import MCUtil from "../../MCUtil";
 
-namespace MCEnvironment {
+// From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
+interface IRawCWEnvData {
+    readonly devops_available: boolean;
+    readonly codewind_version: string;
+    readonly os_platform: string;
+    readonly running_in_k8s: boolean;
+    readonly socket_namespace?: string;
+    readonly user_string?: string;
+    readonly workspace_location?: string;
+    readonly tekton_dashboard_url: string;
+}
 
-    // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
-    export interface IMCEnvData {
-        devops_available: boolean;
-        editor_url: string;
-        codewind_version: string;
-        os_platform: string;
-        running_on_icp: boolean;
-        socket_namespace?: string;
-        user_string?: string;
-        workspace_location: string;
-    }
+/**
+ * Massaged env data, which the plugin is actually interested in
+ */
+export interface ICWEnvData {
+    readonly workspace: string;
+    readonly socketNamespace: string;
+    readonly version: number;
+    /**
+     * In Kube, may be a URL to a tekton dashboard, "not-installed", or "error".
+     * On local, is always "" - for now.
+     */
+    readonly tektonStatus: string;
+}
 
-    export async function getEnvData(mcUri: Uri): Promise<IMCEnvData> {
-        const envUri: Uri = mcUri.with({ path: MCEndpoints.ENVIRONMENT });
+namespace CWEnvironment {
+    /**
+     * Get the environment data for a Codewind instance at the given url.
+     * Separate from normal Requester code because we do not yet have a Connection instance at this point.
+     */
+    export async function getEnvData(url: Uri): Promise<ICWEnvData> {
+        const envUri: Uri = url.with({ path: MCEndpoints.ENVIRONMENT });
         const connectTimeout = 2500;
 
         try {
-            const result = await Requester.get(envUri.toString(), { json: true, timeout: connectTimeout });
-            return result;
+            const result = await Requester.get(envUri.toString(), { timeout: connectTimeout });
+            Log.d("Raw env data:", result);
+            return massageEnv(result);
         }
         catch (err) {
             Log.i(`Connection ENV Request fail - ${err}`);
             // With the new install/start being abstracted away from the user, they should not have to see this message.
             if (err instanceof reqErrors.RequestError) {
-                throw new Error(Translator.t(StringNamespaces.DEFAULT, "connectFailed", { uri: mcUri }));
+                throw new Error(Translator.t(StringNamespaces.DEFAULT, "connectFailed", { uri: url }));
             }
             throw err;
         }
     }
+
+    function massageEnv(rawEnv: IRawCWEnvData): ICWEnvData {
+        // massage env data
+        const rawWorkspace = rawEnv.workspace_location;
+        const rawSocketNS = rawEnv.socket_namespace || "";
+
+        // if (rawVersion == null) {
+            // throw new Error("No version information was provided by Codewind.");
+        // }
+        if (!rawWorkspace) {
+            throw new Error("No workspace information was provided by Codewind.");
+        }
+        const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
+        const version = CWEnvironment.getVersionNumber(rawEnv);
+
+        // normalize namespace so it doesn't start with '/'
+        const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
+
+        return {
+            workspace,
+            version,
+            socketNamespace,
+            tektonStatus: rawEnv.tekton_dashboard_url,
+        };
+    }
+
     // const INTERNAL_BUILD_RX: RegExp = /^\d{4}_M\d+_[EI]/;
 
     /**
@@ -57,7 +103,7 @@ namespace MCEnvironment {
      *
      * **Throws an error** if the version is not supported.
      */
-    export function getVersionNumber(_envData: IMCEnvData): number {
+    export function getVersionNumber(_envData: IRawCWEnvData): number {
         // TODO when we have versioning in codewind
         return Number.MAX_SAFE_INTEGER;
 
@@ -99,21 +145,21 @@ namespace MCEnvironment {
     /**
      * @returns If the given Connection matches the given environment data for fields the tools are interested in.
      */
-    export function envMatches(connection: Connection, envData: IMCEnvData): boolean {
-        let newVersionNumber;
-        try {
-            newVersionNumber = getVersionNumber(envData);
-        }
-        catch (err) {
-            Log.w(err);
-            return false;
-        }
+    // export function envMatches(connection: Connection, envData: IMCEnvData): boolean {
+    //     let newVersionNumber;
+    //     try {
+    //         newVersionNumber = getVersionNumber(envData);
+    //     }
+    //     catch (err) {
+    //         Log.w(err);
+    //         return false;
+    //     }
 
-        return connection.version === newVersionNumber;
-            // should check workspace too, but need to consider platform when comparing paths
-            // more to check once we support ICP
-            // envData.user_string
-    }
+    //     return connection.version === newVersionNumber;
+    //         // should check workspace too, but need to consider platform when comparing paths
+    //         // more to check once we support ICP
+    //         // envData.user_string
+    // }
 }
 
-export default MCEnvironment;
+export default CWEnvironment;
