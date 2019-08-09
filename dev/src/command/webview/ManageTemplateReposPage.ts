@@ -13,8 +13,8 @@
 
 import Resources from "../../constants/Resources";
 // import MCUtil from "../../MCUtil";
-import { IRawTemplateRepo } from "../../codewind/connection/TemplateRepo";
 import WebviewUtil from "./WebviewUtil";
+import { IRawTemplateRepo } from "../connection/ManageTemplateReposCmd";
 
 export enum ManageReposWVMessages {
     ADD_NEW = "add-new",

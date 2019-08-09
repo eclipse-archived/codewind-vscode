@@ -14,11 +14,20 @@ import * as vscode from "vscode";
 import Connection from "../../codewind/connection/Connection";
 import Resources from "../../constants/Resources";
 import generateManageReposHtml, { ManageReposWVMessages } from "../webview/ManageTemplateReposPage";
-import { IRawTemplateRepo } from "../../codewind/connection/TemplateRepo";
 import WebviewUtil from "../webview/WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
+
+/**
+ * Template repository data as provided by the backend
+ */
+export interface IRawTemplateRepo {
+    readonly url: string;
+    readonly name: string;
+    readonly description: string;
+    readonly enabled: boolean;
+}
 
 // Only allow one of these for now - This should be moved to be per-connection like how overview is per-project.
 let manageReposPage: vscode.WebviewPanel | undefined;

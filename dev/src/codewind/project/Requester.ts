@@ -22,7 +22,7 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { IRawTemplateRepo } from "../connection/TemplateRepo";
+import { IRawTemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
