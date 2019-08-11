@@ -35,10 +35,10 @@ const STRING_NS = StringNamespaces.PROJECT;
  * Project's ports info. Keys match those provided by backend.
  */
 interface IProjectPorts {
-    appPort: OptionalNumber;
-    internalPort: OptionalNumber;
-    debugPort: OptionalNumber;
-    internalDebugPort: OptionalNumber;
+    appPort: number | undefined;
+    internalPort: number | undefined;
+    debugPort: number | undefined;
+    internalDebugPort: number | undefined;
 }
 
 export default class Project implements vscode.QuickPickItem {
@@ -59,7 +59,7 @@ export default class Project implements vscode.QuickPickItem {
 
     // Mutable project data, will change with calls to update() and similar functions. Prefixed with _ because these all have getters.
     private _state: ProjectState;
-    private _containerID: OptionalString;
+    private _containerID: string | undefined;
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
     private _autoBuildEnabled: boolean;
@@ -235,10 +235,10 @@ export default class Project implements vscode.QuickPickItem {
      * @returns true if at least one port was changed
      */
     private updatePorts(ports: {
-        exposedPort?: OptionalString;
-        exposedDebugPort?: OptionalString;
-        internalPort?: OptionalString;
-        internalDebugPort?: OptionalString;
+        exposedPort?: string | undefined;
+        exposedDebugPort?: string | undefined;
+        internalPort?: string | undefined;
+        internalDebugPort?: string | undefined;
     }): boolean {
         let changed = false;
         changed = this.setPort(ports.exposedPort, "appPort");
@@ -468,7 +468,7 @@ export default class Project implements vscode.QuickPickItem {
         return this.pendingRestart != null;
     }
 
-    public get containerID(): OptionalString {
+    public get containerID(): string | undefined {
         return this._containerID;
     }
 
@@ -509,7 +509,7 @@ export default class Project implements vscode.QuickPickItem {
         });
     }
 
-    public get debugUrl(): OptionalString {
+    public get debugUrl(): string | undefined {
         if (this._ports.debugPort == null || isNaN(this._ports.debugPort)) {
             return undefined;
         }
@@ -536,7 +536,7 @@ export default class Project implements vscode.QuickPickItem {
      * @param newPort Can be undefined if the caller wishes to "unset" the port (ie, because the app is stopping)
      * @returns true if at least one port was changed.
      */
-    private setPort(newPort: OptionalString, portType: keyof IProjectPorts): boolean {
+    private setPort(newPort: string | undefined, portType: keyof IProjectPorts): boolean {
         if (newPort === "") {
             newPort = undefined;
         }
@@ -563,7 +563,7 @@ export default class Project implements vscode.QuickPickItem {
         return false;
     }
 
-    private setContainerID(newContainerID: OptionalString): boolean {
+    private setContainerID(newContainerID: string | undefined): boolean {
         const oldContainerID = this._containerID;
         this._containerID = newContainerID;
 
@@ -578,7 +578,7 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    private setLastBuild(newLastBuild: OptionalNumber): boolean {
+    private setLastBuild(newLastBuild: number | undefined): boolean {
         if (newLastBuild == null) {
             return false;
         }
@@ -592,7 +592,7 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    private setLastImgBuild(newLastImgBuild: OptionalNumber): boolean {
+    private setLastImgBuild(newLastImgBuild: number | undefined): boolean {
         if (newLastImgBuild == null) {
             return false;
         }

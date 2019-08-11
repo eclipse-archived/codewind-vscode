@@ -137,7 +137,7 @@ async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): P
 }
 
 
-async function promptForProjectName(template: IMCTemplateData): Promise<OptionalString> {
+async function promptForProjectName(template: IMCTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 
@@ -183,7 +183,7 @@ const ILLEGAL_CHARS = [
     `"`, "/", "\\", "?", "%", "*", ":", "|", "<", ">", "&", " "
 ];
 
-function validateProjectName(projectName: string): OptionalString {
+function validateProjectName(projectName: string): string | undefined {
     const firstIllegalChar = [...projectName].find((c) => ILLEGAL_CHARS.includes(c));
 
     if (firstIllegalChar != null) {

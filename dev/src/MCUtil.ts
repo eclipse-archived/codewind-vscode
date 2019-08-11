@@ -53,7 +53,7 @@ namespace MCUtil {
         return !isNaN(date.valueOf());
     }
 
-    export function isGoodStatusCode(statusCode: OptionalNumber): boolean {
+    export function isGoodStatusCode(statusCode: number | undefined): boolean {
         return statusCode != null && !isNaN(statusCode) && statusCode >= 200 && statusCode < 400;
     }
 
@@ -70,7 +70,7 @@ namespace MCUtil {
         return authority.substring(0, colonIndex);
     }
 
-    export function isGoodPort(port: OptionalNumber): boolean {
+    export function isGoodPort(port: number | undefined): boolean {
         return port != null && !isNaN(port) && Number.isInteger(port) && port > 0 && port < 65536;
     }
 
