@@ -25,6 +25,7 @@ export enum MCEndpoints {
     ENVIRONMENT = "api/v1/environment",
     TEMPLATES = "api/v1/templates",
     TEMPLATE_REPOS = "api/v1/templates/repositories",
+    BATCH_TEMPLATE_REPOS = "api/v1/batch/templates/repositories",
     PROJECTS = "api/v1/projects",
     CREATE_FROM_TEMPLATE = "api/v1/projects/",
     PREBIND_VALIDATE = "api/v1/validate",

@@ -10,14 +10,18 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as fs from "fs";
+import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
 import Resources from "../../constants/Resources";
-import generateManageReposHtml, { ManageReposWVMessages } from "../webview/ManageTemplateReposPage";
+import generateManageReposHtml from "../webview/ManageTemplateReposPage";
 import WebviewUtil from "../webview/WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
+import Constants from "../../constants/Constants";
+// import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 
 /**
  * Template repository data as provided by the backend
@@ -28,6 +32,26 @@ export interface IRawTemplateRepo {
     readonly description: string;
     readonly enabled: boolean;
 }
+
+export enum ManageReposWVMessages {
+    ADD_NEW = "add-new",
+    DELETE = "delete",
+    HELP = "help",
+    REFRESH = "refresh",
+    ENABLE_DISABLE = "enableOrDisable",
+}
+
+/**
+ * 'data' field of ENABLE_DISABLE event, which can be converted to an enablement request.
+ */
+export interface IRepoEnablementEvent {
+    readonly repos: [{
+        readonly repoID: string;
+        readonly enable: boolean;
+    }];
+}
+
+export const REPOS_PAGE_TITLE = "Template Repositories";
 
 // Only allow one of these for now - This should be moved to be per-connection like how overview is per-project.
 let manageReposPage: vscode.WebviewPanel | undefined;
@@ -45,7 +69,7 @@ export default async function manageTemplateReposCmd(connection: Connection): Pr
         localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
     };
 
-    const title = "Template Repository Preferences";
+    const title = REPOS_PAGE_TITLE;
 
     manageReposPage = vscode.window.createWebviewPanel(
         title,
@@ -74,7 +98,16 @@ async function refreshPage(connection: Connection): Promise<void> {
         Log.e("Refreshing manage repos page but it doesn't exist");
         return;
     }
-    manageReposPage.webview.html = generateManageReposHtml(await fetchRepositoryList(connection));
+    const html = generateManageReposHtml(await fetchRepositoryList(connection));
+
+    // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
+    if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
+        const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
+        fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
+            (err) => { if (err) { throw err; } }
+        );
+    }
+    manageReposPage.webview.html = html;
 }
 
 async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessage): Promise<void> {
@@ -82,11 +115,17 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
 
     try {
         switch (msg.type) {
+            case ManageReposWVMessages.ENABLE_DISABLE: {
+                const enablement = msg.data as IRepoEnablementEvent;
+                Log.i("Enable/Disable repos:", enablement);
+                // await Requester.enableTemplateRepos(connection, enablement);
+                break;
+            }
             case ManageReposWVMessages.ADD_NEW: {
                 // connection.addNewRepo
                 Log.d("Adding new repo to " + connection.url);
                 const repoUrl = await promptForNewRepo();
-                if (repoUrl == null) {
+                if (!repoUrl) {
                     // cancelled
                     return;
                 }
@@ -103,7 +142,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
             }
             case ManageReposWVMessages.DELETE: {
                 // connection.deleteRepo
-                const repoUrl = msg.data.value;
+                const repoUrl: string = msg.data as string;
                 Log.d(`Delete repo ${repoUrl} from ${connection.url}`);
                 try {
                     await Requester.manageTemplateRepos(connection, repoUrl, "delete");
@@ -117,6 +156,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
             }
             case ManageReposWVMessages.HELP: {
                 vscode.window.showInformationMessage("More information about this page, or open a webpage, probably");
+                // vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(LEARN_MORE_LINK));
                 break;
             }
             case ManageReposWVMessages.REFRESH: {
@@ -135,9 +175,35 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
     }
 }
 
+async function promptForNewRepo(): Promise<string | undefined> {
+    const input = vscode.window.showInputBox({
+        ignoreFocusOut: true,
+        placeHolder: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
+        prompt: "Enter the URL to your template repository's index file.",
+        validateInput: validateRepoInput,
+    });
+
+    return input;
+}
+
+function validateRepoInput(input: string): string | undefined {
+    let asUrl: URL | undefined;
+    try {
+        // We use URL instead of vscode.Uri because the latter appears to throw errors irregularly.
+        asUrl = new URL(input);
+    }
+    catch (err) {
+        // not a url
+    }
+    if (!asUrl || !asUrl.host || !(asUrl.protocol === "http:" || asUrl.protocol === "https:")) {
+        return "The repository URL must be a valid http(s) URL.";
+    }
+    return undefined;
+}
+
 async function fetchRepositoryList(_connection: Connection): Promise<IRawTemplateRepo[]> {
     // return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS), { json: true });
-    return [
+    let repoList = [
         {
           url: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
           name: "Standard Codewind",
@@ -158,29 +224,9 @@ async function fetchRepositoryList(_connection: Connection): Promise<IRawTemplat
             enabled: true,
         }
     ];
-}
 
-async function promptForNewRepo(): Promise<string | undefined> {
-    const input = vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        placeHolder: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
-        prompt: "Enter the URL to your template repository's index file.",
-        validateInput: validateRepoInput,
-    });
-
-    return input;
-}
-
-function validateRepoInput(input: string): OptionalString {
-    let asUri: vscode.Uri | undefined;
-    try {
-        asUri = vscode.Uri.parse(input);
+    for (let i = 0; i < 3; i++) {
+        repoList = repoList.concat(repoList);
     }
-    catch (err) {
-        // not a uri
-    }
-    if (!asUri || !asUri.authority || !(asUri.scheme === "http" || asUri.scheme === "https")) {
-        return "The repository URL must be a valid http(s) URL.";
-    }
-    return undefined;
+    return repoList;
 }

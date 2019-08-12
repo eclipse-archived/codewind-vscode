@@ -39,7 +39,7 @@
         },
         {
             "label": "build",
-            "dependsOn": [ "npm: compile", "copy-strings" ]
+            "dependsOn": [ "copy-strings" ]
         }
     ]
 }

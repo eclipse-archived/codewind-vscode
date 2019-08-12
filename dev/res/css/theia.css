@@ -3,7 +3,10 @@
 :root {
     --vscode-button-background: #0F5891;
     --vscode-button-foreground: #c9cece;
-    color: #ccc;
+    --vscode-editor-foreground: #cccccc; /* not correct, fix this */
+    --vscode-editor-background: #252526;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
     font-family: sans-serif;
     line-height: 1.5;
 }

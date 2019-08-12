@@ -14,10 +14,13 @@ import * as vscode from "vscode";
 import Resources from "../../constants/Resources";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
+import { ProjectOverviewWVMessages, IWVOpenable } from "./ProjectOverviewPage";
+import { ManageReposWVMessages, IRepoEnablementEvent } from "../connection/ManageTemplateReposCmd";
 
 const RESOURCE_SCHEME = "vscode-resource:";
 
 namespace WebviewUtil {
+
     export function getStylesheetPath(filename: string): string {
         return RESOURCE_SCHEME + Resources.getCss(filename);
     }
@@ -29,32 +32,27 @@ namespace WebviewUtil {
     }
 
     export interface IWVMessage {
-        type: string;
-        data: {
-            type: string;
-            value: string;
-        };
-    }
-
-    export enum WVOpenable {
-        WEB = "web",
-        FILE = "file",
-        FOLDER = "folder",
+        type: ProjectOverviewWVMessages | ManageReposWVMessages;
+        data:
+            IWVOpenable |           // used by project overview
+            IRepoEnablementEvent |  // used by repo management
+            string;
     }
 
     export async function onRequestOpen(msg: WebviewUtil.IWVMessage): Promise<void> {
+        const openable = msg.data as IWVOpenable;
         Log.d("Got msg to open, data is ", msg.data);
         let uri: vscode.Uri;
-        if (msg.data.type === WVOpenable.FILE || msg.data.type === WVOpenable.FOLDER) {
-            uri = vscode.Uri.file(msg.data.value);
+        if (openable.type === "file" || openable.type === "folder") {
+            uri = vscode.Uri.file(openable.value);
         }
         else {
             // default to web
-            uri = vscode.Uri.parse(msg.data.value);
+            uri = vscode.Uri.parse(openable.value);
         }
 
         Log.i("The uri is:", uri);
-        const cmd: string = msg.data.type === WVOpenable.FOLDER ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
+        const cmd: string = openable.type === "folder" ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
         vscode.commands.executeCommand(cmd, uri);
     }
 }

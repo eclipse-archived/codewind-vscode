@@ -1,49 +1,92 @@
 
+
+#toolbar {
+    width: 100%;
+    display: inline-flex;
+    justify-content: space-between;
+
+    /* For some reason with top: 0, there is a 1px thick gap at the top which I couldn't reset */
+    top: -1px;
+    position: sticky;
+    height: 3em;
+
+    border-bottom: 2px solid var(--vscode-editor-foreground);
+    background: var(--vscode-editor-background);
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.toolbar-btn {
+    padding: 0;
+    margin-left: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar-btn > img {
+    padding-right: 0.5em;
+    height: 1.5em;
+}
+
+.toolbar-btn > input[type=checkbox] {
+    zoom: 2;
+    margin-right: 0.25em;
+}
+
+.repo-toggle {
+    zoom: 2;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.repo-toggle-cell {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    text-align: center;
+}
+
 #add-repo-btn {
-    margin-left: .5em;
-    /* margin-top: .5em; */
-}
-
-#right-icons {
     margin-left: auto;
-}
-
-.right-icon {
-    height: 2em;
-}
-
-tr {
-    border: 1px solid white;
+    margin-right: 1em;
 }
 
 table {
-    padding-bottom: 2em;
+    border-spacing: 0;
 }
 
 td {
     padding: 1em;
-    border: 1px solid #bbb;
+    border: 1px solid var(--vscode-editor-foreground);
+    border-top: none;
 }
 
-.title-row {
-    font-weight: bold;
+/* This rule and the next one, combined with the table's border-spacing: 0, give the table a nice single border */
+tr:first-child > td {
+    border-top: none;
+}
+
+td:not(:nth-last-child(2)) {
+    border-right: none;
+}
+
+thead > tr > td {
+    top: 3.75em;               /* Must match the height of the #toolbar including padding */
+    position: sticky;
     padding-bottom: 1em;
+    background: var(--vscode-editor-background);
+
+    font-weight: bold;
     font-size: 110%;
-}
-
-.title-row > td {
-    border: none;
     text-align: center;
-}
+    white-space: nowrap;
 
-.enabled-checkbox-cell {
-    padding: 0.5em;
-    padding-right: 1em;
     border: none;
+    border-bottom: 1px solid var(--vscode-editor-foreground);
 }
 
-input[type=checkbox] {
-    zoom: 2
+.no-border {
+    border: none;
 }
 
 .name-cell {
@@ -60,6 +103,5 @@ input[type=checkbox] {
 
 .delete-btn-cell {
     padding: 0;
-    padding-left: 2em;
-    border: none;
+    padding-left: 1em;
 }

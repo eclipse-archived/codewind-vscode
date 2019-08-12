@@ -23,13 +23,27 @@ import WebviewUtil from "../webview/WebviewUtil";
 /**
  * These are the messages the WebView can send back to its creator in ProjectInfoCmd
  */
-export enum ProjectInfoWVMessages {
+export enum ProjectOverviewWVMessages {
     BUILD = "build",
     TOGGLE_AUTOBUILD = "toggleAutoBuild",
     OPEN = "open",
     UNBIND = "unbind",
     TOGGLE_ENABLEMENT = "toggleEnablement",
     EDIT = "edit",
+}
+
+enum OpenableTypes {
+    WEB = "web",
+    FILE = "file",
+    FOLDER = "folder",
+}
+
+/**
+ * Used by 'open' messages to pass back data about what to open
+ */
+export interface IWVOpenable {
+    type: OpenableTypes;
+    value: string;
 }
 
 export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): void {
@@ -68,11 +82,11 @@ export function generateHtml(project: Project): string {
 
         <div id="main">
             <div id="top-section">
-                <img id="mc-icon" width="30px" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+                <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
                 <h2>Project ${project.name}</h2>
                 <input id="build-btn" type="button" value="Build"
-                    onclick="${project.state.isEnabled ? `sendMsg('${ProjectInfoWVMessages.BUILD}')` : ""}"
-                    class="btn ${project.state.isEnabled ? "" : "btn-disabled"}"/>
+                    onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"
+                    class="btn btn-w-background ${project.state.isEnabled ? "" : "btn-disabled"}"/>
             </div>
 
             <table>
@@ -81,12 +95,12 @@ export function generateHtml(project: Project): string {
                 ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow("Project ID", project.id)}
                 ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-                ${buildRow("Location on Disk", project.localPath.fsPath, WebviewUtil.WVOpenable.FOLDER)}
+                ${buildRow("Location on Disk", project.localPath.fsPath, OpenableTypes.FOLDER)}
                 <tr>
                     <td class="info-label">Auto build:</td>
                     <td>
                         <input id="auto-build-toggle" type="checkbox" class="btn"
-                            onclick="sendMsg('${ProjectInfoWVMessages.TOGGLE_AUTOBUILD}')"
+                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}')"
                             ${project.autoBuildEnabled ? "checked" : ""}
                             ${project.state.isEnabled ? " " : " disabled"}
                         />
@@ -110,15 +124,16 @@ export function generateHtml(project: Project): string {
                     undefined, true)}
                 ${buildRow("Application Endpoint",
                     normalize(project.appBaseUrl, NOT_RUNNING),
-                    (project.appBaseUrl != null ? WebviewUtil.WVOpenable.WEB : undefined), true)}
+                    (project.appBaseUrl != null ? OpenableTypes.FILE : undefined), true)}
                 ${emptyRow}
                 <!-- buildDebugSection must also close the <table> -->
                 ${buildDebugSection(project)}
             <!-- /table -->
 
             <div id="bottom-section">
-                <input class="red-btn" type="button" onclick="sendMsg('${ProjectInfoWVMessages.UNBIND}')" class="btn" value="Remove project"/>
-                <input id="enablement-btn" type="button" onclick="sendMsg('${ProjectInfoWVMessages.TOGGLE_ENABLEMENT}')" class="btn"
+                <input class="btn red-btn" type="button" onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')" class="" value="Remove project"/>
+                <input id="enablement-btn" class="btn btn-w-background" type="button"
+                    onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
                     value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"/>
             </div>
         </div>
@@ -127,7 +142,7 @@ export function generateHtml(project: Project): string {
             const vscode = acquireVsCodeApi();
 
             function vscOpen(element, type) {
-                sendMsg("${ProjectInfoWVMessages.OPEN}", { type: type, value: element.textContent });
+                sendMsg("${ProjectOverviewWVMessages.OPEN}", { type: type, value: element.textContent });
             }
 
             function sendMsg(type, data = undefined) {
@@ -141,7 +156,7 @@ export function generateHtml(project: Project): string {
     `;
 }
 
-function buildRow(label: string, data: string, openable?: WebviewUtil.WVOpenable, editable: boolean = false): string {
+function buildRow(label: string, data: string, openable?: OpenableTypes, editable: boolean = false): string {
     let secondColTdContents: string = "";
     let thirdColTdContents: string = "";
     if (openable) {
@@ -153,10 +168,10 @@ function buildRow(label: string, data: string, openable?: WebviewUtil.WVOpenable
 
     if (editable) {
         const tooltip = `title="Edit"`;
-        const onClick = `onclick="sendMsg('${ProjectInfoWVMessages.EDIT}', { type: '${editable}' })"`;
+        const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}', { type: '${editable}' })"`;
 
         thirdColTdContents = `
-            <img id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick}` +
+            <img id="edit-${MCUtil.slug(label)}" class="edit-btn clickable" ${tooltip} ${onClick}` +
                 `src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/>
         `;
     }

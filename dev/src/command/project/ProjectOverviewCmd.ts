@@ -64,27 +64,27 @@ function handleWebviewMessage(this: Project, msg: WebviewUtil.IWVMessage): void 
     // Log.d(`Got message from ProjectInfo for project ${project.name}: ${msg.type} data ${JSON.stringify(msg.data)}`);
     try {
         switch (msg.type) {
-            case ProjectOverview.ProjectInfoWVMessages.OPEN: {
+            case ProjectOverview.ProjectOverviewWVMessages.OPEN: {
                 WebviewUtil.onRequestOpen(msg);
                 break;
             }
-            case ProjectOverview.ProjectInfoWVMessages.TOGGLE_AUTOBUILD: {
+            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_AUTOBUILD: {
                 toggleAutoBuildCmd(project);
                 break;
             }
-            case ProjectOverview.ProjectInfoWVMessages.TOGGLE_ENABLEMENT: {
+            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_ENABLEMENT: {
                 toggleEnablementCmd(project);
                 break;
             }
-            case ProjectOverview.ProjectInfoWVMessages.BUILD: {
+            case ProjectOverview.ProjectOverviewWVMessages.BUILD: {
                 requestBuildCmd(project);
                 break;
             }
-            case ProjectOverview.ProjectInfoWVMessages.UNBIND: {
+            case ProjectOverview.ProjectOverviewWVMessages.UNBIND: {
                 removeProject(project);
                 break;
             }
-            case ProjectOverview.ProjectInfoWVMessages.EDIT: {
+            case ProjectOverview.ProjectOverviewWVMessages.EDIT: {
                 const settingsFilePath = vscode.Uri.file(path.join(project.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME));
                 vscode.commands.executeCommand(Commands.VSC_OPEN, settingsFilePath);
                 break;

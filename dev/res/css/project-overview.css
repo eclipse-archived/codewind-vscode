@@ -3,6 +3,16 @@
     max-width: 700px;
 }
 
+#auto-build-toggle {
+    margin: 0;
+    padding: 0;
+    zoom: 1.25;
+}
+
+table {
+    margin-top: 1em;
+}
+
 .info-label {
     font-weight: bold;
     padding-right: 1em;

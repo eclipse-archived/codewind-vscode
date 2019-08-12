@@ -1,3 +1,4 @@
+
 #top-section, #bottom-section {
     width: 100%;
 
@@ -7,6 +8,7 @@
 
 #top-section {
     padding-bottom: 0.5em;
+    border-bottom: 2px solid #aaa;
 }
 
 #logo {
@@ -22,11 +24,6 @@ tr {
     padding-bottom: 0.5em;
 }
 
-input[type="checkbox"] {
-    padding: 0;
-    margin: 0;
-}
-
 input[type="checkbox"]:disabled {
     cursor: not-allowed;
 }
@@ -36,13 +33,16 @@ input[type="checkbox"]:disabled {
     padding: 0.6em;
     padding-left: 1.5em;
     padding-right: 1.5em;
-    background: var(--vscode-button-background);
     font-size: 110%;
-    border: 1x solid var(--vscode-button-background);
     border-radius: 5px;
 }
 
-.btn:hover, a:hover, .btn:focus, a:focus, .edit-btn, .edit-btn:focus {
+.btn-w-background {
+    background: var(--vscode-button-background);
+    border: 1x solid var(--vscode-button-background);
+}
+
+.btn:hover, a:hover, .btn:focus, a:focus, input[type="checkbox"] {
     text-decoration: underline;
     cursor: pointer;
     outline: var(--vscode-button-background);

@@ -22,7 +22,7 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { IRawTemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
+import { IRawTemplateRepo, IRepoEnablementEvent } from "../../command/connection/ManageTemplateReposCmd";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
@@ -31,24 +31,8 @@ const STRING_NS = StringNamespaces.REQUESTS;
 namespace Requester {
 
     // These wrappers are exported because this class should be the only one that needs to import request.
-    // By enforcing this and using these to forward requests to the 'req' function,
-    // we can inject options to abstract away required configuration like using json, handling ssl certs, and authentication.
-
-    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.get, url, options);
-    }
-
-    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.post, url, options);
-    }
-
-    export async function put(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.put, url, options);
-    }
-
-    export async function delet(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.delete, url, options);
-    }
+    // By enforcing this and using these to forward all Codewind requests to the 'req' function,
+    // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
 
     async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         if (url instanceof vscode.Uri) {
@@ -64,6 +48,26 @@ namespace Requester {
         return method(url, options);
     }
 
+    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.get, url, options);
+    }
+
+    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.post, url, options);
+    }
+
+    export async function put(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.put, url, options);
+    }
+
+    export async function patch(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.patch, url, options);
+    }
+
+    export async function delet(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.delete, url, options);
+    }
+
     ///// Connection-specific requests
 
     export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
@@ -71,12 +75,37 @@ namespace Requester {
         return result;
     }
 
-    export async function manageTemplateRepos(connection: Connection, repoUrl: string, op: "add" | "delete"): Promise<IRawTemplateRepo[]> {
+    export async function manageTemplateRepos(connection: Connection, repoID: string, op: "add" | "delete"): Promise<IRawTemplateRepo[]> {
         const body = {
-            url: repoUrl,
+            url: repoID,
         };
         const method = op === "add" ? Requester.post : Requester.delet;
         return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, method, body);
+    }
+
+    interface IRepoEnablementReq {
+        op: "enable";
+        url: string;
+        value: string;
+    }
+
+    export async function enableTemplateRepos(connection: Connection, enablements: IRepoEnablementEvent): Promise<void> {
+        const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
+            return {
+                op: "enable",
+                url: repo.repoID,
+                value: repo.enable ? "true" : "false",
+            };
+        });
+
+        // status is always 207, we have to check the individual results for success status
+        const result: [{
+            status: number,
+            requestedOperation: IRepoEnablementReq,
+        }] = await doConnectionRequest(connection, MCEndpoints.BATCH_TEMPLATE_REPOS, Requester.patch, body);
+
+        Log.d("Repo enablement result", result);
+
     }
 
     async function doConnectionRequest(connection: Connection, endpoint: MCEndpoints, method: RequestFunc, body: {} = {}): Promise<any> {
