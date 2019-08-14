@@ -76,3 +76,11 @@ export const INSTALLER_COMMANDS: {
         },
     // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
+
+export function getUserActionName(cmd: InstallerCommands): string {
+    return INSTALLER_COMMANDS[cmd].userActionName;
+}
+
+export function doesUseTag(cmd: InstallerCommands): boolean {
+    return INSTALLER_COMMANDS[cmd].usesTag;
+}

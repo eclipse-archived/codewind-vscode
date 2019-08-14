@@ -21,13 +21,12 @@ import Commands from "../../constants/Commands";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
-export default async function activateConnection(): Promise<void> {
-    const url = CodewindManager.instance.codewindUrl;
+export default async function activateConnection(url: vscode.Uri): Promise<void> {
     Log.i("Activating connection to " + url);
     const envData = await CWEnvironment.getEnvData(url);
     Log.i("Massaged env data:", envData);
 
-    const connection = await CodewindManager.instance.addConnection(url, envData);
+    const connection = await CodewindManager.instance.connect(url, envData);
     await connection.initFileWatcherPromise;
 
     onConnectSuccess(connection);

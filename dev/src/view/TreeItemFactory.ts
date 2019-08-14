@@ -74,6 +74,7 @@ namespace TreeItemFactory {
         if (CODEWIND_STATES[cwState].isErrorState || CODEWIND_STATES[cwState].isTransitionState) {
             label += ` (${cwState})`;
         }
+        const tooltip = (CodewindManager.instance.codewindUrl || "Stopped").toString();
         // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand after it starts
         const id = cwStarted ?  CW_STARTED_NODE_ID : CW_STOPPED_NODE_ID;
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
@@ -82,7 +83,7 @@ namespace TreeItemFactory {
         const cwStatusItem: vscode.TreeItem = {
             id,
             label,
-            tooltip: label,
+            tooltip,
             collapsibleState,
             iconPath: Resources.getIconPaths(Resources.Icons.Logo),
             contextValue: buildContextValue([contextValue]),

@@ -24,7 +24,7 @@ import Commands from "../../constants/Commands";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Constants from "../../constants/Constants";
-import { INSTALLER_COMMANDS, InstallerCommands } from "./InstallerCommands";
+import { INSTALLER_COMMANDS, InstallerCommands, getUserActionName, doesUseTag } from "./InstallerCommands";
 import CodewindManager from "./CodewindManager";
 import { CodewindStates } from "./CodewindStates";
 
@@ -35,60 +35,70 @@ const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
 
+const TAG_OPTION = "-t";
+const JSON_OPTION = "-j";
+
 // Codewind tag to install if no env vars set
 const DEFAULT_CW_TAG = "0.2";
 const TAG_LATEST = "latest";
+
+interface InstallerStatus {
+    status: "uninstalled" | "stopped" | "started";
+    url?: string;   // only set when started
+}
 
 namespace InstallerWrapper {
     // check error against this to see if it's a real error or just a user cancellation
     export const INSTALLCMD_CANCELLED = "Cancelled";
 
-    enum InstallerStates {
-        NOT_INSTALLED,
-        STOPPED,
-        STARTED,
-    }
-
     /**
      * `installer status` command.
-     * This is a separate function because it exits quickly so the progress is not useful, and we expect non-zero exit codes
+     * This is a separate function because it exits quickly so the progress is not useful, and we have to parse its structured output.
      */
-    async function getInstallerStatus(): Promise<InstallerStates> {
+    async function getInstallerStatus(): Promise<InstallerStatus> {
         const executablePath = await initialize();
 
-        return new Promise<InstallerStates>((resolve, reject) => {
-            const child = child_process.execFile(executablePath, [ "status" ], {
+        const status = await new Promise<InstallerStatus>((resolve, reject) => {
+            const child = child_process.execFile(executablePath, [ "status", JSON_OPTION ], {
                 timeout: 10000,
-            }, async (_err, stdout, stderr) => {
-                // err (non-zero exit) is expected
-                if (stderr) {
-                    Log.e("Stderr checking status:", stderr.toString());
-                    Log.e("Stdout checking status:", stdout.toString());
-                }
-            });
+            }, (err, stdout_, stderr_) => {
+                const stdout = stdout_.toString();
+                const stderr = stderr_.toString();
 
-            // https://github.com/eclipse/codewind-installer/blob/master/actions/status.go
-            child.on("exit", (code, _signal) => {
-                if (code === 200) {
-                    return resolve(InstallerStates.NOT_INSTALLED);
+                if (err) {
+                    Log.e("Error checking status, stdout:", stderr);
+                    Log.e("Error checking status, stderr:", stdout);
+                    if (stderr) {
+                        return reject(stderr);
+                    }
+                    else {
+                        return reject(stdout);
+                    }
                 }
-                else if (code === 201) {
-                    return resolve(InstallerStates.STOPPED);
-                }
-                else if (code === 202) {
-                    return resolve(InstallerStates.STARTED);
-                }
-                return reject(`Unexpected exit code ${code} from status check`);
+
+                const statusObj = JSON.parse(stdout);
+                Log.d("Installer status", statusObj);
+                return resolve(statusObj);
             });
 
             child.on("error", (err) => {
                 return reject(err);
             });
-        });
+        })
+        .catch((err) => { throw err; });
+        return status;
     }
 
     export async function isInstallRequired(): Promise<boolean> {
-        return (await getInstallerStatus()) === InstallerStates.NOT_INSTALLED;
+        return (await getInstallerStatus()).status === "uninstalled";
+    }
+
+    export async function getCodewindUrl(): Promise<vscode.Uri | undefined> {
+        const url = (await getInstallerStatus()).url;
+        if (!url) {
+            return undefined;
+        }
+        return vscode.Uri.parse(url);
     }
 
     /**
@@ -124,14 +134,6 @@ namespace InstallerWrapper {
     function isDevEnv(): boolean {
         const env = process.env[Constants.CW_ENV_VAR];
         return env === Constants.CW_ENV_DEV || env === Constants.CW_ENV_TEST;
-    }
-
-    function getUserActionName(cmd: InstallerCommands): string {
-        return INSTALLER_COMMANDS[cmd].userActionName;
-    }
-
-    function doesUseTag(cmd: InstallerCommands): boolean {
-        return INSTALLER_COMMANDS[cmd].usesTag;
     }
 
     function getTag(): string {
@@ -177,10 +179,12 @@ namespace InstallerWrapper {
         }
     }
 
+    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
+
     async function installerExecInner(cmd: InstallerCommands): Promise<void> {
         const executablePath = await initialize();
         if (isInstallerRunning()) {
-            vscode.window.showWarningMessage(`Already ${getUserActionName(cmd)}`);
+            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
             throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
         }
         // const timeout = isInstallCmd ? undefined : 60000;
@@ -189,12 +193,12 @@ namespace InstallerWrapper {
         let tag: string | undefined;
         if (doesUseTag(cmd)) {
             tag = getTag();
-            args.push("-t", tag);
+            args.push(TAG_OPTION, tag);
         }
         const isInstallCmd = cmd === InstallerCommands.INSTALL;
         if (isInstallCmd) {
             // request JSON output
-            args.push("-j");
+            args.push(JSON_OPTION);
         }
         Log.i(`Running installer command: ${args.join(" ")}`);
 
@@ -265,8 +269,6 @@ namespace InstallerWrapper {
     export function isCancellation(err: any): boolean {
         return MCUtil.errToString(err) === INSTALLCMD_CANCELLED;
     }
-
-    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
 
     /**
      * Confirm install with user, then download the CW backend docker images.
