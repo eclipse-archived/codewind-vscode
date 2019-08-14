@@ -2,6 +2,7 @@
 	"extends": "tslint:recommended",
 	"rules": {
 		// Disable some recommended rules.
+		"interface-name": false,
 		"member-ordering": false,
 		"no-consecutive-blank-lines": false,
 		"no-namespace": false,

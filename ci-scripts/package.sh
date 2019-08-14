@@ -8,9 +8,9 @@ set -ex
 
 cd $(dirname $0)/../dev
 
+npm i rimraf
 if [[ $is_theia ]]; then
     echo "Building for Theia"
-    npm i rimraf
     ./prebuild.js theia
 else
     echo "Building for VS Code"
