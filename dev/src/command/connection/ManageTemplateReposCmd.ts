@@ -21,6 +21,7 @@ import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Constants from "../../constants/Constants";
+import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 // import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 
 /**
@@ -118,34 +119,40 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
             case ManageReposWVMessages.ENABLE_DISABLE: {
                 const enablement = msg.data as IRepoEnablementEvent;
                 Log.i("Enable/Disable repos:", enablement);
-                // await Requester.enableTemplateRepos(connection, enablement);
+                try {
+                    await Requester.enableTemplateRepos(connection, enablement);
+                }
+                catch (err) {
+                    // If any of the enablements fail, the checkboxes will be out of sync with the backend state, so refresh the page to reset
+                    await refreshPage(connection);
+                }
                 break;
             }
             case ManageReposWVMessages.ADD_NEW: {
                 // connection.addNewRepo
                 Log.d("Adding new repo to " + connection.url);
-                const repoUrl = await promptForNewRepo();
-                if (!repoUrl) {
+                const repoInfo = await promptForNewRepo();
+                if (!repoInfo) {
                     // cancelled
                     return;
                 }
 
                 try {
-                    await Requester.manageTemplateRepos(connection, repoUrl, "add");
+                    await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.description);
                     await refreshPage(connection);
                 }
                 catch (err) {
-                    vscode.window.showErrorMessage(`Error adding new template repository ${repoUrl}: ${MCUtil.errToString(err)}`, err);
-                    Log.e(`Error adding new template repo ${repoUrl}`, err);
+                    vscode.window.showErrorMessage(`Error adding new template repository: ${MCUtil.errToString(err)}`, err);
+                    Log.e(`Error adding new template repo ${repoInfo}`, err);
                 }
                 break;
             }
             case ManageReposWVMessages.DELETE: {
                 // connection.deleteRepo
-                const repoUrl: string = msg.data as string;
+                const repoUrl = msg.data as string;
                 Log.d(`Delete repo ${repoUrl} from ${connection.url}`);
                 try {
-                    await Requester.manageTemplateRepos(connection, repoUrl, "delete");
+                    await Requester.removeTemplateRepo(connection, repoUrl);
                     await refreshPage(connection);
                 }
                 catch (err) {
@@ -160,8 +167,8 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 break;
             }
             case ManageReposWVMessages.REFRESH: {
-                vscode.window.showInformationMessage("Refreshed repository list");
-                refreshPage(connection);
+                // vscode.window.showInformationMessage("Refreshed repository list");
+                await refreshPage(connection);
                 break;
             }
             default: {
@@ -175,15 +182,30 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
     }
 }
 
-async function promptForNewRepo(): Promise<string | undefined> {
-    const input = vscode.window.showInputBox({
+async function promptForNewRepo(): Promise<{ repoUrl: string, description: string } | undefined> {
+    let repoUrl = await vscode.window.showInputBox({
         ignoreFocusOut: true,
         placeHolder: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
         prompt: "Enter the URL to your template repository's index file.",
         validateInput: validateRepoInput,
     });
 
-    return input;
+    if (!repoUrl) {
+        return undefined;
+    }
+    repoUrl = repoUrl.trim();
+
+    let description = await vscode.window.showInputBox({
+        ignoreFocusOut: true,
+        placeHolder: "My Templates",
+        prompt: "Enter a description for this template repository",
+    });
+    if (!description) {
+        description = "(No description)";
+    }
+    description = description.trim();
+
+    return { repoUrl, description };
 }
 
 function validateRepoInput(input: string): string | undefined {
@@ -195,38 +217,26 @@ function validateRepoInput(input: string): string | undefined {
     catch (err) {
         // not a url
     }
-    if (!asUrl || !asUrl.host || !(asUrl.protocol === "http:" || asUrl.protocol === "https:")) {
+    if (!asUrl || !asUrl.host || !asUrl.protocol.startsWith("http")) {
         return "The repository URL must be a valid http(s) URL.";
+    }
+    // I think users will commonly make this error so we can help them out here for common hosting services
+    else if (asUrl.host.includes("github") && !asUrl.host.includes("raw")) {
+        return getRawLinkMsg("GitHub");
+    }
+    else if (asUrl.host.includes("bitbucket") && !asUrl.pathname.includes("raw")) {
+        return getRawLinkMsg("Bitbucket");
+    }
+    else if (asUrl.host.includes("gitlab") && !asUrl.pathname.includes("raw")) {
+        return getRawLinkMsg("GitLab");
     }
     return undefined;
 }
 
-async function fetchRepositoryList(_connection: Connection): Promise<IRawTemplateRepo[]> {
-    // return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS), { json: true });
-    let repoList = [
-        {
-          url: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
-          name: "Standard Codewind",
-          description: "Description of Codewind templates",
-          enabled: true,
-        },
-        {
-          url: "https://raw.githubusercontent.com/kabanero-io/codewind-appsody-templates/master/devfiles/index.json",
-          name: "Standard Appsody",
-          description: "Description of Appsody templates",
-          enabled: false,
-        },
-        {
-            url: "https://raw.githubusercontent.com/kabanero-io/codewind-appsody-templates/master/devfiles/index.json",
-            name: "Custom Appsody with a really really really really long name",
-            // tslint:disable-next-line: max-line-length
-            description: "Architect's Appsody templates with a really really really really really really really really really really long description",
-            enabled: true,
-        }
-    ];
+function getRawLinkMsg(provider: string): string {
+    return `For ${provider} URLs, you must use the raw link.`;
+}
 
-    for (let i = 0; i < 3; i++) {
-        repoList = repoList.concat(repoList);
-    }
-    return repoList;
+async function fetchRepositoryList(connection: Connection): Promise<IRawTemplateRepo[]> {
+    return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
 }

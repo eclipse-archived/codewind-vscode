@@ -71,16 +71,23 @@ namespace Requester {
     ///// Connection-specific requests
 
     export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
-        const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get);
+        const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get, { qs: { showEnabledOnly: true }});
         return result;
     }
 
-    export async function manageTemplateRepos(connection: Connection, repoID: string, op: "add" | "delete"): Promise<IRawTemplateRepo[]> {
+    export async function addTemplateRepo(connection: Connection, repoID: string, description: string): Promise<IRawTemplateRepo[]> {
+        const body = {
+            url: repoID,
+            description,
+        };
+        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.post, { body });
+    }
+
+    export async function removeTemplateRepo(connection: Connection, repoID: string): Promise<IRawTemplateRepo[]> {
         const body = {
             url: repoID,
         };
-        const method = op === "add" ? Requester.post : Requester.delet;
-        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, method, body);
+        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.delet, { body });
     }
 
     interface IRepoEnablementReq {
@@ -102,20 +109,32 @@ namespace Requester {
         const result: [{
             status: number,
             requestedOperation: IRepoEnablementReq,
-        }] = await doConnectionRequest(connection, MCEndpoints.BATCH_TEMPLATE_REPOS, Requester.patch, body);
+        }] = await doConnectionRequest(connection, MCEndpoints.BATCH_TEMPLATE_REPOS, Requester.patch, { body });
 
-        Log.d("Repo enablement result", result);
+        const failures = result.filter((opResult) => opResult.status !== 200);
+        if (failures.length > 0) {
+            Log.e("Repo enablement failure", result);
+            failures.forEach((failure) => {
+                const failedOp = failure.requestedOperation;
+                Log.e(`Failed to set ${failedOp.op}=${failedOp.value} for ${failedOp.url}: ${failure.status}`);
+            });
+            const errMsg = `Failed to enable/disable repositories: ${failures.map((failure) => failure.requestedOperation.url).join(", ")}`;
+            vscode.window.showErrorMessage(errMsg);
+        }
 
+        // Log.d("Repo enablement result", result);
     }
 
-    async function doConnectionRequest(connection: Connection, endpoint: MCEndpoints, method: RequestFunc, body: {} = {}): Promise<any> {
+    async function doConnectionRequest(
+        connection: Connection, endpoint: MCEndpoints, method: RequestFunc, options?: request.RequestPromiseOptions): Promise<any> {
+
         if (!connection.isConnected) {
             throw new Error("Codewind is disconnected.");
         }
 
         const url = EndpointUtil.resolveMCEndpoint(connection, endpoint);
         Log.d(`Doing ${method.name} request to ${url}`);
-        return req(method, url, { body });
+        return req(method, url, options);
     }
 
     // Project-specific requests

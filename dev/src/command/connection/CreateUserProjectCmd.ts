@@ -73,6 +73,10 @@ const TEMPLATE_QP_PLACEHOLDER = "Select the project type to create";
 async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
     const templates = await Requester.getTemplates(connection);
 
+    if (templates == null) {
+        // The user has no repos or has disabled all repos
+    }
+
     const templateQpis: Array<vscode.QuickPickItem & IMCTemplateData> = templates.map((type) => {
         return {
             ...type,

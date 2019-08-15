@@ -96,7 +96,7 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
 
         function deleteRepo(repoDeleteBtn) {
             const repoID = repoDeleteBtn.getAttribute("${REPO_ID_ATTR_NAME}");
-            sendMsg("${ManageReposWVMessages.DELETE}", { value: repoID });
+            sendMsg("${ManageReposWVMessages.DELETE}", repoID);
         }
 
         function sendMsg(type, data = undefined) {
@@ -121,8 +121,8 @@ function buildTemplateTable(repos: IRawTemplateRepo[]): string {
         <thead>
             <tr>
                 <td></td>
-                <td>Repo Name</td>
-                <td>Style</td>
+                <!--td>Repo Name</td-->
+                <!--td>Style</td-->
                 <td>Description</td>
                 <td>Link</td>
                 <td class="no-border"></td>        <!-- Delete buttons column -->
@@ -142,8 +142,8 @@ function buildRepoRow(repo: IRawTemplateRepo): string {
             <input ${REPO_ID_ATTR_NAME}="${repo.url}" class="${REPO_CHECKBOX_CLASS}" type="checkbox" class="btn" ${repo.enabled ? "checked" : ""}
             onclick="onToggleRepo(this)"/>
         </td>
-        <td class="name-cell">${repo.name}</td>
-        <td class="style-cell">${"????????, ".repeat(2)}</td>
+        <!--td class="name-cell">${repo.name}</td-->
+        <!--td class="style-cell">${"????????, ".repeat(2)}</td-->
         <td class="descr-cell">${repo.description}</td>
         <td class="source-cell"><a href="${repo.url}">Source</a></td>
         <td class="delete-btn-cell no-border">
