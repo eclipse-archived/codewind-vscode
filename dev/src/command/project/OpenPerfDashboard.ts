@@ -59,7 +59,7 @@ function getCodewindIngress(): vscode.Uri {
     }
 
     // this will resolve to something like:
-    // http://codewind-workspacebiq5onaqye4u9x3d-che-che.10.99.3.118.nip.io/
+    // codewind-workspacebiq5onaqye4u9x3d-che-che.10.99.3.118.nip.io
     const codewindIngressAuthority = `${CW_INGRESS_NAME}-${workspaceID}-${cheApiUrl.authority}`;
 
     const codewindIngress = vscode.Uri.parse(`${cheApiUrl.scheme}://${codewindIngressAuthority}`);
