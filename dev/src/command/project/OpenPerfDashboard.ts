@@ -17,6 +17,7 @@ import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import EndpointUtil from "../../constants/Endpoints";
 import Commands from "../../constants/Commands";
+import Constants from "../../constants/Constants";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
     const supportsMetrics = project.capabilities.metricsAvailable;
@@ -27,11 +28,41 @@ export default async function openPerformanceDashboard(project: Project): Promis
     }
 
     try {
-        const dashboardUrl = EndpointUtil.getPerformanceDashboard(project);
+        const cwBaseUrl = global.isTheia ? getCodewindIngress() : project.connection.url;
+        const dashboardUrl = EndpointUtil.getPerformanceDashboard(cwBaseUrl, project.id);
         Log.d(`Dashboard url for ${project.name} is ${dashboardUrl}`);
         vscode.commands.executeCommand(Commands.VSC_OPEN, dashboardUrl);
     }
     catch (err) {
         vscode.window.showErrorMessage(MCUtil.errToString(err));
     }
+}
+
+const CW_INGRESS_NAME = "codewind";         // :(
+
+function getCodewindIngress(): vscode.Uri {
+
+    // See https://github.com/eclipse/codewind-vscode/issues/123
+    // Hopefully, this is temporary. This is how we assemble the URL to the codewind ingress/route without a kube/OC client.
+    // Even though this has nothing to do with the perf dashboard in particular, that is the only feature which can't use the proxy.
+
+    const cheApiUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
+    if (!cheApiUrlStr) {
+        throw new Error(`Could not determine Che API URL; ${Constants.CHE_API_EXTERNAL_ENVVAR} was not set.`);
+    }
+    const cheApiUrl = vscode.Uri.parse(cheApiUrlStr);
+    Log.d(`Che API URL is "${cheApiUrl}"`);
+
+    const workspaceID = process.env[Constants.CHE_WORKSPACEID_ENVVAR];
+    if (!workspaceID) {
+        throw new Error(`Could not determine Che workspace ID; ${Constants.CHE_WORKSPACEID_ENVVAR} was not set.`);
+    }
+
+    // this will resolve to something like:
+    // http://codewind-workspacebiq5onaqye4u9x3d-che-che.10.99.3.118.nip.io/
+    const codewindIngressAuthority = `${CW_INGRESS_NAME}-${workspaceID}-${cheApiUrl.authority}`;
+
+    const codewindIngress = vscode.Uri.parse(`${cheApiUrl.scheme}://${codewindIngressAuthority}`);
+    Log.i(`Codewind Ingress URL is ${codewindIngress}`);
+    return codewindIngress;
 }
