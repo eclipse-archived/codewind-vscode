@@ -103,16 +103,14 @@ namespace CWEnvironment {
      *
      * **Throws an error** if the version is not supported.
      */
-    export function getVersionNumber(_envData: IRawCWEnvData): number {
-        // TODO when we have versioning in codewind
-        return Number.MAX_SAFE_INTEGER;
-
-        // if (rawVersion === "latest") {      // non-nls
-        //     // This means it's being hosted by an internal MC dev.
-        //     // There's nothing we can do here but assume they have all the features we need.
-        //     Log.i("Dev version");
-        //     return Number.MAX_SAFE_INTEGER;
-        // }
+    export function getVersionNumber(envData: IRawCWEnvData): number {
+        if (envData.codewind_version === "latest") {      // non-nls
+            // This means it's being hosted by an internal MC dev.
+            // There's nothing we can do here but assume they have all the features we need.
+            Log.i("Dev version");
+            return Number.MAX_SAFE_INTEGER;
+        }
+        return Number(envData.codewind_version);
         // else if (rawVersion.match(INTERNAL_BUILD_RX) != null) {
         //     Log.i("Internal version");
         //     return Number.MAX_SAFE_INTEGER;
@@ -136,9 +134,13 @@ namespace CWEnvironment {
             return "latest";
         }
         else {
+            // add this back when we switch back to yy.mm
+            /*
             const year = Math.floor(versionNum / 100);
             const month = versionNum % 100;
             return `${year}.${month < 10 ? "0" + month : month}`;
+            */
+            return versionNum.toString();
         }
     }
 

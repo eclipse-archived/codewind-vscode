@@ -17,7 +17,6 @@ import MCUtil from "../MCUtil";
 import CodewindManager from "../codewind/connection/CodewindManager";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Translator from "../constants/strings/translator";
-import { InstallerCommands } from "../codewind/connection/InstallerCommands";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -38,7 +37,7 @@ export default async function removeImagesCmd(): Promise<void> {
         }
 
         Log.i("Removing Codewind images");
-        await InstallerWrapper.installerExec(InstallerCommands.REMOVE);
+        await InstallerWrapper.removeAllImages();
     }
     catch (err) {
         if (!InstallerWrapper.isCancellation(err)) {

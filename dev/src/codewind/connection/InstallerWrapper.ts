@@ -43,7 +43,9 @@ const DEFAULT_CW_TAG = "0.3";
 const TAG_LATEST = "latest";
 
 interface InstallerStatus {
-    status: "uninstalled" | "stopped" | "started";
+    // status: "uninstalled" | "stopped" | "started";
+    "installed-versions": string[];
+    started: string[];
     url?: string;   // only set when started
 }
 
@@ -78,6 +80,13 @@ namespace InstallerWrapper {
 
                 const statusObj = JSON.parse(stdout);
                 Log.d("Installer status", statusObj);
+                // The installer will leave out these fields if they are empty, but an empty array is easier to deal with.
+                if (statusObj["installed-versions"] == null) {
+                    statusObj["installed-versions"] = [];
+                }
+                if (statusObj.started == null) {
+                    statusObj.started = [];
+                }
                 return resolve(statusObj);
             });
 
@@ -87,10 +96,6 @@ namespace InstallerWrapper {
         })
         .catch((err) => { throw err; });
         return status;
-    }
-
-    export async function isInstallRequired(): Promise<boolean> {
-        return (await getInstallerStatus()).status === "uninstalled";
     }
 
     export async function getCodewindUrl(): Promise<vscode.Uri | undefined> {
@@ -155,14 +160,14 @@ namespace InstallerWrapper {
         return currentOperation !== undefined;
     }
 
-    export async function installerExec(cmd: InstallerCommands): Promise<void> {
+    async function installerExec(cmd: InstallerCommands, tagOverride?: string): Promise<void> {
         const beforeCmdState = CodewindManager.instance.state;
         const transitionStates = INSTALLER_COMMANDS[cmd].states;
         if (transitionStates && transitionStates.during) {
             CodewindManager.instance.changeState(transitionStates.during);
         }
         try {
-            await installerExecInner(cmd);
+            await installerExecInner(cmd, tagOverride);
         }
         catch (err) {
             if (isCancellation(err)) {
@@ -181,7 +186,10 @@ namespace InstallerWrapper {
 
     const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
 
-    async function installerExecInner(cmd: InstallerCommands): Promise<void> {
+    /**
+     * @param tagOverride - If the command should be run against a tag other than the one determined by getTag
+     */
+    async function installerExecInner(cmd: InstallerCommands, tagOverride?: string): Promise<void> {
         const executablePath = await initialize();
         if (isInstallerRunning()) {
             vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
@@ -190,11 +198,11 @@ namespace InstallerWrapper {
         // const timeout = isInstallCmd ? undefined : 60000;
 
         const args: string[] = [ cmd ];
-        let tag: string | undefined;
-        if (doesUseTag(cmd)) {
-            tag = getTag();
+        const tag = tagOverride || getTag();
+        if (tagOverride || doesUseTag(cmd)) {
             args.push(TAG_OPTION, tag);
         }
+
         const isInstallCmd = cmd === InstallerCommands.INSTALL;
         if (isInstallCmd) {
             // request JSON output
@@ -204,12 +212,8 @@ namespace InstallerWrapper {
 
         let progressTitle;
         // For STOP the installer output looks better by itself, so we don't display any extra title
-        // if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
         if (cmd !== InstallerCommands.STOP_ALL) {
-            progressTitle = getUserActionName(cmd);
-            // if (tag) {
-            //     progressTitle += ` - ${tag}`;
-            // }
+            progressTitle = getUserActionName(cmd, tag);
         }
 
         const executableDir = path.dirname(executablePath);
@@ -270,29 +274,105 @@ namespace InstallerWrapper {
         return MCUtil.errToString(err) === INSTALLCMD_CANCELLED;
     }
 
-    /**
-     * Confirm install with user, then download the CW backend docker images.
-     * Does nothing if already installed.
-     *
-     */
-    export async function install(): Promise<void> {
-        if (!(await InstallerWrapper.isInstallRequired())) {
-            Log.i("Codewind is already installed");
-            return;
+    export async function installAndStart(): Promise<void> {
+        const status = await getInstallerStatus();
+
+        const tag = getTag();
+        let hadOldVersionRunning = false;
+        Log.i(`Ready to install and start Codewind ${tag}`);
+        if (status.started.length > 0) {
+            if (status.started.includes(tag)) {
+                Log.i("The correct version of Codewind is already started");
+                return;
+            }
+            Log.i(`The wrong version of Codewind ${status.started[0]} is currently started`);
+
+            const okBtn = "OK";
+            const resp = await vscode.window.showWarningMessage(
+                `The running version of the Codewind backend (${status.started[0]}) is out-of-date, ` +
+                `and not compatible with this version of the extension. Codewind will now stop and upgrade to the new version.`,
+                { modal: true }, okBtn,
+            );
+            if (resp !== okBtn) {
+                throw new Error(Translator.t(STRING_NS, "backendUpgradeRequired", { tag }));
+            }
+            await stop();
+            hadOldVersionRunning = true;
+        }
+        else {
+            Log.i("Codewind is not running");
         }
 
-        if (InstallerWrapper.isInstallerRunning()) {
-            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
-            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+        if (!status["installed-versions"].includes(tag)) {
+            Log.i(`Codewind ${tag} is NOT installed`);
+
+            // If they had an old version running, they have already agreed to update to the new version
+            let promptForInstall = !hadOldVersionRunning;
+            if (promptForInstall) {
+                const wrongVersionInstalled = status["installed-versions"].length > 0;
+                if (wrongVersionInstalled) {
+                    await onWrongVersionInstalled(status["installed-versions"], tag);
+                    promptForInstall = false;
+                }
+            }
+
+            try {
+                await install(promptForInstall);
+            }
+            catch (err) {
+                if (isCancellation(err)) {
+                    throw err;
+                }
+                CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
+                Log.e("Error installing codewind", err);
+                throw new Error("Error installing Codewind: " + MCUtil.errToString(err));
+            }
+        }
+        else {
+            Log.i(`Codewind ${tag} is already installed`);
         }
 
-        Log.i("Codewind is not installed");
+        try {
+            await installerExec(InstallerCommands.START);
+        }
+        catch (err) {
+            if (isCancellation(err)) {
+                throw err;
+            }
+            Log.e("Error starting codewind", err);
+            throw new Error("Error starting Codewind: " + MCUtil.errToString(err));
+        }
+    }
+
+    async function onWrongVersionInstalled(installedVersions: string[], requiredTag: string): Promise<void> {
+        // Generate a user-friendly string like "0.2, 0.3, and 0.4"
+        let installedVersionsStr = installedVersions.join(", ");
+        if (installedVersions.length > 1) {
+            const lastInstalledVersion = installedVersionsStr[installedVersions.length - 1];
+            installedVersionsStr = installedVersionsStr.replace(lastInstalledVersion, "and " + lastInstalledVersion);
+        }
+
+        const yesBtn = "OK";
+        const resp = await vscode.window.showWarningMessage(
+            `You currently have Codewind ${installedVersionsStr} installed, ` +
+            `but ${requiredTag} is required to use this version of the extension. Install Codewind ${requiredTag} now?`,
+            { modal: true }, yesBtn
+        );
+        if (resp !== yesBtn) {
+            throw new Error(Translator.t(STRING_NS, "backendUpgradeRequired", { tag: requiredTag }));
+        }
+        // Remove unwanted versions (ie all versions that are installed, since none of them are the required version)
+        await removeAllImages();
+    }
+
+    async function install(promptForInstall: boolean): Promise<void> {
+        Log.i("Installing Codewind");
 
         const installAffirmBtn = Translator.t(STRING_NS, "installAffirmBtn");
         const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
 
         let response;
-        if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST) {
+        if (!promptForInstall || process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST) {
             response = installAffirmBtn;
         }
         else {
@@ -304,10 +384,10 @@ namespace InstallerWrapper {
 
         if (response === installAffirmBtn) {
             try {
-                await InstallerWrapper.installerExec(InstallerCommands.INSTALL);
+                await installerExec(InstallerCommands.INSTALL);
                 // success
                 vscode.window.showInformationMessage(
-                    Translator.t(StringNamespaces.STARTUP, "installCompleted"),
+                    Translator.t(StringNamespaces.STARTUP, "installCompleted", { version: getTag() }),
                     Translator.t(StringNamespaces.STARTUP, "okBtn")
                 );
                 Log.i("Codewind installed successfully");
@@ -334,6 +414,17 @@ namespace InstallerWrapper {
         }
     }
 
+    export async function stop(): Promise<void> {
+        return installerExec(InstallerCommands.STOP_ALL);
+    }
+
+    export async function removeAllImages(): Promise<void> {
+        const installedVersions = (await getInstallerStatus())["installed-versions"];
+        for (const unwantedVersion of installedVersions) {
+            await installerExec(InstallerCommands.REMOVE, unwantedVersion);
+        }
+    }
+
     async function onInstallFailOrReject(rejected: boolean): Promise<void> {
         let msg: string;
         if (rejected) {
@@ -348,7 +439,7 @@ namespace InstallerWrapper {
         return vscode.window.showWarningMessage(msg, moreInfoBtn, tryAgainBtn, Translator.t(STRING_NS, "okBtn"))
         .then((res): Promise<void> => {
             if (res === tryAgainBtn) {
-                return install();
+                return install(false);
             }
             else if (res === moreInfoBtn) {
                 onMoreInfo();
@@ -377,7 +468,7 @@ namespace InstallerWrapper {
     }
 
     function onMoreInfo(): void {
-        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}installlocally.html`);
+        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}mdt-vsc-installinfo.html`);
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 
