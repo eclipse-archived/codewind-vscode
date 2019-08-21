@@ -40,6 +40,8 @@ spec:
         stage("Build for Theia") {
             steps {
                 container("vscode-builder") {
+                    // Reset changes from the vs code package.sh
+                    sh 'git reset --hard HEAD'
                     sh 'ci-scripts/package.sh theia'
                     stash includes: '*.vsix', name: 'deployables'
                 }
