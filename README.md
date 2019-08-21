@@ -7,7 +7,7 @@
 Create and develop cloud-native, containerized web applications from VS Code.
 
 ## Installing Codewind
-You can install Codewind locally on VS Code. For more information about installing Codewind, see [Getting started: Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
+You can install Codewind locally in VS Code. For more information about installing Codewind, see [Getting started: Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
 
 Prerequisites
 - Install [VS Code](https://code.visualstudio.com/download).
@@ -16,7 +16,7 @@ Prerequisites
 
 Complete the installation:
 1. Find Codewind for VS Code in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind) or by searching for `Codewind` in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions).
-2. Open the **Codewind** view in the [Explorer view group](https://code.visualstudio.com/docs/getstarted/userinterface) or enter `Focus on Codewind View` into the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). If you do not see the Codewind view in either the Explorer view or the **C**ommand Palette**, the extension did not install correctly.
+2. Open the **Codewind** view in the Explorer view group or enter `Focus on Codewind View` into the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). If you do not see the Codewind view in either the Explorer view or the **Command Palette**, the extension did not install correctly.
 3. Codewind requires the installation of additional Docker images to run. Choose **Install** when prompted to complete the installation. The installation may take a few minutes to complete. Codewind creates a folder called `codewind-workspace` within your home directory to contain your projects. On Windows, this is the `C:\codewind-workspace` directory. When the installation is complete, you can open the `codewind-workspace` folder or a project within the workspace as your VS Code workspace. The tools offer to open the workspace for you if it’s not open already.
 
 ## Using Codewind for VS Code
