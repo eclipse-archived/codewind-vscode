@@ -26,12 +26,12 @@ export async function openTektonDashboard(connection: Connection): Promise<void>
         // TODO add doc links and improve error
         if (!connection.tektonStatus || connection.tektonStatus === "error") {
             vscode.window.showErrorMessage("There was an error detecting the Tekton Dashboard installation on this cluster. " +
-                "Please re-install Tekton on your cluster, and re-create your Codewind workspace.");
+                "Please re-install Tekton Dashboard on your cluster, and re-create your Codewind workspace.");
             return;
         }
         else if (connection.tektonStatus === "not-installed") {
             vscode.window.showErrorMessage("Tekton Dashboard does not appear to be installed on this cluster. " +
-                "Please install Tekton on your cluster, and re-create your Codewind workspace.");
+                "Please install Tekton Dashboard on your cluster, and re-create your Codewind workspace.");
             return;
         }
 
