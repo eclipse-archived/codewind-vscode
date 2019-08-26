@@ -29,6 +29,14 @@ import Validator from "./Validator";
 import Requester from "./Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 
+/**
+ * Used to determine App Monitor URL
+ */
+const langToPathMap = new Map<string, string>();
+langToPathMap.set("java", "javametrics-dash");
+langToPathMap.set("nodejs", "appmetrics-dash");
+langToPathMap.set("swift", "swiftmetrics-dash");
+
 const STRING_NS = StringNamespaces.PROJECT;
 
 /**
@@ -527,6 +535,20 @@ export default class Project implements vscode.QuickPickItem {
 
     public get hasContextRoot(): boolean {
         return this._contextRoot != null && this._contextRoot.length > 0 && this._contextRoot !== "/";
+    }
+
+    public get appMonitorUrl(): string | undefined {
+        const appMetricsPath = langToPathMap.get(this.type.language);
+        const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
+        Log.d(`${this.name} supports metrics ? ${supported}`);
+        if (!supported || !this.appBaseUrl) {
+            return undefined;
+        }
+        let monitorPageUrlStr = this.appBaseUrl.toString();
+        if (!monitorPageUrlStr.endsWith("/")) {
+            monitorPageUrlStr += "/";
+        }
+        return monitorPageUrlStr + appMetricsPath + "/";
     }
 
     ///// Setters

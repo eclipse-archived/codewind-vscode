@@ -15,40 +15,57 @@ import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
-
-const langToPathMap = new Map<string, string>();
-langToPathMap.set("java", "javametrics-dash");
-langToPathMap.set("nodejs", "appmetrics-dash");
-langToPathMap.set("swift", "swiftmetrics-dash");
+import ProjectType from "../../codewind/project/ProjectType";
+import Requester from "../../codewind/project/Requester";
+import CodewindManager from "../../codewind/connection/CodewindManager";
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
     try {
-        const appMetricsPath = langToPathMap.get(project.type.language);
-
-        const supported = appMetricsPath != null && project.capabilities.metricsAvailable;
-        // const supported = appMetricsPath != null;
-        Log.d(`${project.name} supports metrics ? ${supported}`);
-        if (!supported) {
-            vscode.window.showWarningMessage(`${project.name} does not support application metrics.`);
-            return;
-        }
-
         if (project.appBaseUrl == null) {
             vscode.window.showWarningMessage(`Cannot open application monitor - ${project.name} is not currently running.`);
             return;
         }
 
-        let monitorPageUrlStr = project.appBaseUrl.toString();
-        if (!monitorPageUrlStr.endsWith("/")) {
-            monitorPageUrlStr += "/";
+        if (project.appMonitorUrl == null || !(await testPingAppMonitor(project))) {
+            vscode.window.showWarningMessage(getAppMetricsNotSupportedMsg(project.name));
+            return;
         }
 
-        // https://github.com/eclipse/codewind-vscode/issues/99
-        monitorPageUrlStr = monitorPageUrlStr + appMetricsPath + "/";
-        Log.d("Open monitor at " + monitorPageUrlStr);
-        vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(monitorPageUrlStr));
+        Log.d("Open monitor at " + project.appMonitorUrl);
+        vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(project.appMonitorUrl));
     }
     catch (err) {
         vscode.window.showErrorMessage(MCUtil.errToString(err));
+    }
+}
+
+export function getAppMetricsNotSupportedMsg(projectName: string): string {
+    return `${projectName} does not support application metrics or the performance dashboard.`;
+}
+
+/**
+ * Extra test for extension projects - workaround for https://github.com/eclipse/codewind/issues/258
+ */
+export async function testPingAppMonitor(project: Project): Promise<boolean> {
+    if (project.type.type !== ProjectType.Types.EXTENSION) {
+        // this test is not necessary for non-extension projects
+        return true;
+    }
+    // this was checked above; just to satisfy the compiler
+    if (project.appMonitorUrl == null) {
+        return false;
+    }
+
+    Log.i(`Testing extension project's app monitor before opening`);
+    try {
+        await Requester.get(project.appMonitorUrl);
+        return true;
+    }
+    catch (err) {
+        // cache this so we don't have to do this test every time.
+        project.capabilities.metricsAvailable = false;
+        // Notify the treeview that this project has changed so it can hide these context actions
+        CodewindManager.instance.onChange(project);
+        return false;
     }
 }

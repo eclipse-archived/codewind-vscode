@@ -31,7 +31,7 @@ export default class ProjectCapabilities {
         public readonly startModes: StartModes[],
         public readonly controlCommands: ControlCommands[],
         // metricsAvailable is not part of the interface as linked above, but is treated similarly so we use it here too
-        public readonly metricsAvailable: boolean,
+        public /* readonly */ metricsAvailable: boolean,
     ) {
 
     }
