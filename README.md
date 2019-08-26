@@ -7,7 +7,7 @@
 Create and develop cloud-native, containerized web applications from VS Code.
 
 ## Installing Codewind
-You can install Codewind locally in VS Code. For more information about installing Codewind, see [Getting started: Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
+You can install Codewind locally in VS Code. For more information about installing Codewind, see [Installing Codewind for VS Code](https://www.eclipse.org/codewind/mdtvscinstallinfo.html).
 
 Prerequisites
 - Install [VS Code](https://code.visualstudio.com/download).
