@@ -326,7 +326,7 @@
                 {
                     "command": "%cmdID_newProject%",
                     "when": "%isActiveConnection%",
-                    "group": "inline"
+                    "group": "inline@0"
                 },
                 {
                     "command": "%cmdID_bindProject%",
@@ -336,7 +336,7 @@
                 {
                     "command": "%cmdID_bindProject%",
                     "when": "%isActiveConnection%",
-                    "group": "inline"
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_openFolder%",
@@ -357,11 +357,6 @@
                     "command": "%cmdID_refreshConnection%",
                     "when": "%isConnection%",
                     "group": "ext.cw.conn.d@0"
-                },
-                {
-                    "command": "%cmdID_openTekton%",
-                    "when": "%isActiveConnection%",
-                    "group": "inline"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",
