@@ -104,8 +104,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         if (global.isTheia) {
             // On theia we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
-            const cheExternalUrlStr = process.env[Constants.CHE_EXTERNAL_URL_ENVVAR];
-            Log.d(`${Constants.CHE_EXTERNAL_URL_ENVVAR}=${cheExternalUrlStr}`);
+            const cheExternalUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
+            Log.d(`${Constants.CHE_API_EXTERNAL_ENVVAR}=${cheExternalUrlStr}`);
             if (cheExternalUrlStr != null) {
                 // we only want the authority component.
                 const cheExternalUrl = vscode.Uri.parse(cheExternalUrlStr);
@@ -115,7 +115,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
                     return authority;
                 }
             }
-            Log.e(`${Constants.CHE_EXTERNAL_URL_ENVVAR} is not set in the environment or was invalid: falling back to default host`);
+            Log.e(`${Constants.CHE_API_EXTERNAL_ENVVAR} is not set in the environment or was invalid: falling back to default host`);
         }
         return MCUtil.getHostnameFrom(url);
     }

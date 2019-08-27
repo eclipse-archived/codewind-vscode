@@ -12,7 +12,6 @@
 import * as vscode from "vscode";
 
 import Connection from "../codewind/connection/Connection";
-import Project from "../codewind/project/Project";
 
 export type Endpoint = MCEndpoints | ProjectEndpoints;
 
@@ -71,14 +70,12 @@ export namespace EndpointUtil {
         return enable ? ProjectEndpoints.OPEN : ProjectEndpoints.CLOSE;
     }
 
-    export function getPerformanceDashboard(project: Project): vscode.Uri {
+    export function getPerformanceDashboard(pfeUrl: vscode.Uri, projectID: string): vscode.Uri {
         // return value looks like http://localhost:9090/performance/charts?project=bacd4760-70ce-11e9-af94-d39edf21b705
 
-        const authority = global.isTheia ? project.connection.host : project.connection.url.authority;
-        return project.connection.url.with({
-            authority,
+        return pfeUrl.with({
             path: "/performance/charts",
-            query: `project=${project.id}`,
+            query: `project=${projectID}`,
         });
     }
 }

@@ -17,7 +17,6 @@ import Project from "../project/Project";
 import InstallerWrapper from "./InstallerWrapper";
 import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
-import { InstallerCommands } from "./InstallerCommands";
 import activateConnection from "../../command/connection/ActivateConnectionCmd";
 import { CodewindStates } from "./CodewindStates";
 import CWEnvironment, { ICWEnvData } from "./CWEnvironment";
@@ -124,52 +123,13 @@ export default class CodewindManager implements vscode.Disposable {
             return cheCwUrl;
         }
 
-        // desktop case
+        // If it was not started, we do that here. The install step is done if necessary.
+        await InstallerWrapper.installAndStart();
+
         let cwUrl: vscode.Uri | undefined;
         try {
             cwUrl = await InstallerWrapper.getCodewindUrl();
-        }
-        catch (err) {
-            // error checking status
-            Log.e("Error getting URL initially", err);
-            this.changeState(CodewindStates.ERR_GENERIC);
-            throw err;
-        }
-
-        if (cwUrl) {
-            // it's started already
-            Log.i("Codewind is already started at " + cwUrl);
-            this.changeState(CodewindStates.STARTED);
-            return cwUrl;
-        }
-
-        try {
-            await InstallerWrapper.install();
-        }
-        catch (err) {
-            if (InstallerWrapper.isCancellation(err)) {
-                throw err;
-            }
-            CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
-            Log.e("Error installing codewind", err);
-            throw new Error("Error installing Codewind: " + MCUtil.errToString(err));
-        }
-
-        try {
-            await InstallerWrapper.installerExec(InstallerCommands.START);
-        }
-        catch (err) {
-            if (InstallerWrapper.isCancellation(err)) {
-                throw err;
-            }
-            Log.e("Error starting codewind", err);
-            throw new Error("Error starting Codewind: " + MCUtil.errToString(err));
-        }
-
-        let newCwUrl: vscode.Uri | undefined;
-        try {
-            newCwUrl = await InstallerWrapper.getCodewindUrl();
-            if (!newCwUrl) {
+            if (!cwUrl) {
                 throw new Error("Could not determine Codewind URL");
             }
         }
@@ -178,13 +138,14 @@ export default class CodewindManager implements vscode.Disposable {
             this.changeState(CodewindStates.ERR_CONNECTING);
             throw err;
         }
-        Log.i("Codewind appears to have started at " + newCwUrl);
-        return newCwUrl;
+        Log.i("Codewind appears to have started at " + cwUrl);
+        return cwUrl;
     }
 
     public async stopCodewind(): Promise<void> {
-        await InstallerWrapper.installerExec(InstallerCommands.STOP_ALL);
+        await InstallerWrapper.stop();
         this._connections.splice(0, 1);
+        this._codewindUrl = undefined;
     }
 
     public changeState(newState: CodewindStates): void {
@@ -198,7 +159,7 @@ export default class CodewindManager implements vscode.Disposable {
     }
 
     public get isStarted(): boolean {
-        return this._state === CodewindStates.STARTED || this._state === CodewindStates.STOPPING;
+        return this._codewindUrl != null;
     }
 
     /**

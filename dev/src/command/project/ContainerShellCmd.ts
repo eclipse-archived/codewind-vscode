@@ -12,7 +12,6 @@
 import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
-import { ProjectType } from "../../codewind/project/ProjectType";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
@@ -22,17 +21,13 @@ export default async function containerShellCmd(project: Project): Promise<void>
         return;
     }
 
-    // This is a hack for the python template project not having bash installed.
-    // This would trigger for a user python template too. :(
-    const toExec: string =
-        project.type.type === ProjectType.Types.GENERIC_DOCKER &&
-        project.type.language === ProjectType.Languages.PYTHON ?
-        "sh" : "bash";      // non-nls
+    // exec bash if it's installed, else exec sh
+    const toExec = `sh -c "if type bash > /dev/null; then bash; else sh; fi"`;      // non-nls
 
     // const env = convertNodeEnvToTerminalEnv(process.env);
 
     const options: vscode.TerminalOptions = {
-        name: `${toExec} - ${project.name}`,        // non-nls
+        name: `${project.name} shell`,        // non-nls
 
         // Passing through environment variables is not actually useful,
         // since we'll lose them once we exec into the container anyway.

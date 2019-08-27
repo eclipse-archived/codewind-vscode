@@ -11,6 +11,8 @@
 
 import { CodewindStates } from "./CodewindStates";
 
+const TAG_PLACEHOLDER = `$tag$`;
+
 export enum InstallerCommands {
     INSTALL = "install",
     START = "start",
@@ -36,7 +38,7 @@ export const INSTALLER_COMMANDS: {
 } = {
     install: {
             action: "install",
-            userActionName: "Pulling Codewind Docker images",
+            userActionName: `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`,
             cancellable: true,
             usesTag: true,
             states: {
@@ -46,7 +48,7 @@ export const INSTALLER_COMMANDS: {
         },
     start: {
         action: "start",
-        userActionName: "Starting Codewind",
+        userActionName: `Starting Codewind ${TAG_PLACEHOLDER}`,
         cancellable: true,
         usesTag: true,
         states: {
@@ -70,15 +72,19 @@ export const INSTALLER_COMMANDS: {
         },
     remove: {
             action: "remove",
-            userActionName: "Removing Codewind and project images",
+            userActionName: `Removing Codewind ${TAG_PLACEHOLDER} and project images`,
             cancellable: true,
-            usesTag: false
+            usesTag: true,
         },
     // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
 
-export function getUserActionName(cmd: InstallerCommands): string {
-    return INSTALLER_COMMANDS[cmd].userActionName;
+export function getUserActionName(cmd: InstallerCommands, tag: string): string {
+    const actionName = INSTALLER_COMMANDS[cmd].userActionName;
+    if (doesUseTag(cmd)) {
+        return actionName.replace(TAG_PLACEHOLDER, tag);
+    }
+    return actionName;
 }
 
 export function doesUseTag(cmd: InstallerCommands): boolean {
