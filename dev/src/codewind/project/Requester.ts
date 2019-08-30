@@ -37,6 +37,9 @@ namespace Requester {
         return req(request.post, url, options);
     }
 
+    export async function put(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.put, url, options);
+    }
     async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         if (url instanceof vscode.Uri) {
             url = url.toString();
