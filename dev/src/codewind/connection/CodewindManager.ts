@@ -43,8 +43,9 @@ export default class CodewindManager implements vscode.Disposable {
     private _state: CodewindStates = CodewindStates.STOPPED;
 
     constructor() {
-        const protocol = global.isTheia ? "https" : "http";
-        this.codewindUrl = vscode.Uri.parse(protocol + "://localhost:9090");
+        //const protocol =  "https" ;
+        this.codewindUrl =
+            vscode.Uri.parse("https:///codewind-workspacebux3mu0xvxs4v0iw-eclipse-che.apps.exact-mongrel-icp-mst.9.20.195.90.nip.io/");
         Log.i(`Codewind is${global.isTheia ? "" : " NOT"} running in Theia; URL is ${this.codewindUrl}`);
     }
 
