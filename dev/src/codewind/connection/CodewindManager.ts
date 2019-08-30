@@ -65,32 +65,6 @@ export default class CodewindManager implements vscode.Disposable {
         return this._connections;
     }
 
-    public async addConnection(uri: vscode.Uri, mcVersion: number, socketNS: string, workspace: string): Promise<Connection> {
-        const existing = this.getExisting(uri);
-        if (existing != null) {
-            Log.e("Connection already exists at " + uri.toString());
-            // const alreadyExists = Translator.t(StringNamespaces.DEFAULT, "connectionAlreadyExists", { uri });
-            // Log.i(alreadyExists);
-            return existing;
-        }
-
-        // all validation that this connection is good must be done by this point
-
-        const newConnection: Connection = new Connection(uri, mcVersion, socketNS, workspace, false);
-        Log.i("New Connection @ " + uri);
-        this._connections.push(newConnection);
-        // ConnectionManager.saveConnections();
-
-        // pass undefined here to refresh the tree from its root
-        this.onChange(undefined);
-        return newConnection;
-    }
-
-    private getExisting(uri: vscode.Uri): Connection | undefined {
-        return this._connections.find((conn) => {
-            return conn.url.toString() === uri.toString();
-        });
-    }
 
     /**
      * Pass this a function to call whenever a connection is added, removed, or changed,
@@ -114,13 +88,12 @@ export default class CodewindManager implements vscode.Disposable {
     ///// Start/Stop Codewind /////
 
     public async startCodewind(): Promise<void> {
-  
+
         let cwUrl: vscode.Uri | undefined;
         try {
             cwUrl = await this.startCodewindInner();
             this._codewindUrl =
             vscode.Uri.parse("https:///codewind-workspacebux3mu0xvxs4v0iw-eclipse-che.apps.exact-mongrel-icp-mst.9.20.195.90.nip.io/");
-    
             // this._codewindUrl = cwUrl;
         }
         catch (err) {
