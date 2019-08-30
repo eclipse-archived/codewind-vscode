@@ -525,6 +525,7 @@
         "vscode": "^1.1.36"
     },
     "dependencies": {
+        "@types/fs-extra": "^8.0.0",
         "circular-json": "^0.5.9",
         "codewind-filewatcher": "https://download.eclipse.org/codewind/milestone/0.2.0/buildArtifacts/filewatcherd-node_1.0.0.tar.gz",
         "i18next": "^8.3.0",

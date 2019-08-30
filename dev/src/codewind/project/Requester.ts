@@ -34,6 +34,9 @@ namespace Requester {
     // By enforcing this and using these to forward all Codewind requests to the 'req' function,
     // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
 
+    export async function put(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.put, url, options);
+    }
     async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         if (url instanceof vscode.Uri) {
             url = url.toString();

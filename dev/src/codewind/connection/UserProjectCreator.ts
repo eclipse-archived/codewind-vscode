@@ -21,8 +21,14 @@ import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
 import InstallerWrapper from "./InstallerWrapper";
 
-import { exec } from "child_process";
 import { inspect } from "util";
+
+import * as fs from "fs-extra";
+
+import * as zlib from "zlib";
+
+
+
 export interface IMCTemplateData {
     label: string;
     description: string;
@@ -68,11 +74,8 @@ namespace UserProjectCreator {
         }
 
         // const result = creationRes.result as IProjectInitializeInfo;
-        // const targetDir = vscode.Uri.file(creationRes.projectPath);
-        const targetDir = creationRes.projectPath;
-
-        // create succeeded, now we bind
-        await requestBind(connection, projectName, targetDir, template.language, template.projectType);
+        const targetDir = vscode.Uri.file(creationRes.projectPath);
+        await validateAndBind(connection, targetDir);
         return { projectName, projectPath: creationRes.projectPath };
     }
 
@@ -152,7 +155,7 @@ namespace UserProjectCreator {
         Log.i(inspect(projectInfo));
         Log.i(pathToBind);
         // TODO Copy the files *properly*
-        dockerCopyProjectFiles(pathToBind);
+        await traverseFileSystem(connection, projectID, pathToBind, pathToBind);
 
         await requestRemoteBindEnd(connection, projectID);
         return { projectName, projectPath: pathToBind };
@@ -267,9 +270,6 @@ namespace UserProjectCreator {
     }
 
     export async function promptForDir(btnLabel: string, defaultUri: vscode.Uri): Promise<vscode.Uri | undefined> {
-        // if (!defaultUri && vscode.workspace.workspaceFolders != null) {
-        //     defaultUri = vscode.workspace.workspaceFolders[0].uri;
-        // }
 
         const selectedDirs = await vscode.window.showOpenDialog({
             canSelectFiles: false,
@@ -287,6 +287,7 @@ namespace UserProjectCreator {
 
     async function requestBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
         : Promise<void> {
+
 
         const bindReq = {
             name: projectName,
@@ -332,6 +333,33 @@ namespace UserProjectCreator {
         return remoteBindRes;
     }
 
+    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {
+
+
+        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
+        const strBuffer = zlib.deflateSync(fileContent);
+        const base64Compressed = strBuffer.toString("base64");
+        const relativePath = path.relative(parentPath, filePath);
+
+        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
+        Log.d(`remnotebindupload is ${remoteBindUpload}`);
+        const body = {
+            directory: false,
+            path: relativePath,
+            timestamp: Date.now(),
+            msg: base64Compressed,
+        };
+
+        const remoteBindRes = await Requester.put(remoteBindUpload, {
+            json: true,
+            body: body,
+        });
+
+        Log.d("Remote upload response", remoteBindRes);
+
+        return remoteBindRes;
+      }
+
     async function requestRemoteBindEnd(connection: Connection, projectID: string) : Promise<void> {
 
         Log.d(`Remote Bind request for ${projectID}`);
@@ -342,42 +370,26 @@ namespace UserProjectCreator {
         Log.d("Remote Bind response", remoteBindRes);
     }
 
-    async function dockerCopyProjectFiles(pathToBind: string) : Promise<void> {
-        let outStr = "";
-        let errStr = "";
-        await new Promise<void>((resolve, reject) => {
-            const cmd = `docker cp ${pathToBind}/ codewind-pfe:/codewind-workspace`;
-            const child = exec(cmd);
+    async function traverseFileSystem(connection: Connection, projectId: any, inputPath: string, parentPath: string) : Promise<void> {
+        Log.d(`traverseFileSystem request for ${projectId}`);
+        const files = fs.readdirSync(inputPath);
 
-            child.on("error", (err) => {
-                return reject(err);
-            });
-
-            child.stdout.on("data", (chunk) => { outStr += chunk.toString(); });
-            child.stderr.on("data", (chunk) => { errStr += chunk.toString(); });
-
-            child.on("close", (code: number | null) => {
-                if (code == null) {
-                    // this happens in SIGTERM case, not sure what else may cause it
-                    Log.d(`Copy command ${cmd} did not exit normally`);
-                }
-                else if (code !== 0) {
-                    Log.e(`Error running installer command ${cmd}`, errStr);
-                    outStr = outStr || "<no std output>";
-                    errStr = errStr || "<no error output>";
-                    Log.e("Stdout:", outStr);
-                    Log.e("Stderr:", errStr);
-                    reject(errStr);
-                }
-                else {
-                    Log.i(`Successfully ran copy command: ${cmd}`);
-                    resolve();
-                }
-            });
-        });
-        Log.i(outStr);
-        Log.i(errStr);
+        for (const f of files) {
+            const currentPath = `${inputPath}/${f}`;
+            Log.d("uploading " + currentPath);
+            const stats = fs.statSync(currentPath);
+            if (stats.isFile()) {
+                try {
+                await remoteUpload(connection, projectId, currentPath, parentPath);
+                 } catch (err) {
+                     Log.d(err);
+                 }
+            } else if (stats.isDirectory()) {
+                await traverseFileSystem(connection, projectId, currentPath, parentPath);
+            }
+        }
     }
+
 }
 
 export default UserProjectCreator;
