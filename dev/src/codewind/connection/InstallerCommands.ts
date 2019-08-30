@@ -11,9 +11,10 @@
 
 import { CodewindStates } from "./CodewindStates";
 
+const TAG_PLACEHOLDER = `$tag$`;
+
 export enum InstallerCommands {
     INSTALL = "install",
-    INSTALL_DEV = "install-dev",
     START = "start",
     // STOP = "stop",
     STOP_ALL = "stop-all",
@@ -37,7 +38,7 @@ export const INSTALLER_COMMANDS: {
 } = {
     install: {
             action: "install",
-            userActionName: "Pulling Codewind Docker images",
+            userActionName: `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`,
             cancellable: true,
             usesTag: true,
             states: {
@@ -45,19 +46,9 @@ export const INSTALLER_COMMANDS: {
                 onError: CodewindStates.ERR_INSTALLING,
             }
         },
-    "install-dev": {
-            action: "install-dev",
-            userActionName: "Pulling Codewind Docker images (DEV BUILD)",
-            cancellable: true,
-            usesTag: false,
-            states: {
-                during: CodewindStates.INSTALLING,
-                onError: CodewindStates.ERR_INSTALLING,
-            }
-        },
     start: {
         action: "start",
-        userActionName: "Starting Codewind",
+        userActionName: `Starting Codewind ${TAG_PLACEHOLDER}`,
         cancellable: true,
         usesTag: true,
         states: {
@@ -81,9 +72,21 @@ export const INSTALLER_COMMANDS: {
         },
     remove: {
             action: "remove",
-            userActionName: "Removing Codewind and project images",
+            userActionName: `Removing Codewind ${TAG_PLACEHOLDER} and project images`,
             cancellable: true,
-            usesTag: false
+            usesTag: true,
         },
     // status:     { action: "status", userActionName: "Checking if Codewind is running" },
 };
+
+export function getUserActionName(cmd: InstallerCommands, tag: string): string {
+    const actionName = INSTALLER_COMMANDS[cmd].userActionName;
+    if (doesUseTag(cmd)) {
+        return actionName.replace(TAG_PLACEHOLDER, tag);
+    }
+    return actionName;
+}
+
+export function doesUseTag(cmd: InstallerCommands): boolean {
+    return INSTALLER_COMMANDS[cmd].usesTag;
+}

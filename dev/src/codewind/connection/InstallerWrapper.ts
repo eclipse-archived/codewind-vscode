@@ -24,7 +24,7 @@ import Commands from "../../constants/Commands";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Constants from "../../constants/Constants";
-import { INSTALLER_COMMANDS, InstallerCommands } from "./InstallerCommands";
+import { INSTALLER_COMMANDS, InstallerCommands, getUserActionName, doesUseTag } from "./InstallerCommands";
 import CodewindManager from "./CodewindManager";
 import { CodewindStates } from "./CodewindStates";
 
@@ -35,61 +35,75 @@ const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
 
+const TAG_OPTION = "-t";
+const JSON_OPTION = "-j";
+
 // Codewind tag to install if no env vars set
-const DEFAULT_CW_TAG = "0.2";
+const DEFAULT_CW_TAG = "0.3";
 const TAG_LATEST = "latest";
+
+interface InstallerStatus {
+    // status: "uninstalled" | "stopped" | "started";
+    "installed-versions": string[];
+    started: string[];
+    url?: string;   // only set when started
+}
 
 namespace InstallerWrapper {
     // check error against this to see if it's a real error or just a user cancellation
     export const INSTALLCMD_CANCELLED = "Cancelled";
 
-    enum InstallerStates {
-        NOT_INSTALLED,
-        STOPPED,
-        STARTED,
-    }
-
     /**
      * `installer status` command.
-     * This is a separate function because it exits quickly so the progress is not useful, and we expect non-zero exit codes
+     * This is a separate function because it exits quickly so the progress is not useful, and we have to parse its structured output.
      */
-    async function getInstallerStatus(): Promise<InstallerStates> {
+    async function getInstallerStatus(): Promise<InstallerStatus> {
         const executablePath = await initialize();
 
-        return new Promise<InstallerStates>((resolve, reject) => {
-            const child = child_process.execFile(executablePath, [ "status" ], {
+        const status = await new Promise<InstallerStatus>((resolve, reject) => {
+            const child = child_process.execFile(executablePath, [ "status", JSON_OPTION ], {
                 timeout: 10000,
-            }, async (_err, stdout, stderr) => {
-                // err (non-zero exit) is expected
-                if (stderr) {
-                    Log.e("Stderr checking status:", stderr.toString());
-                    Log.e("Stdout checking status:", stdout.toString());
-                }
-            });
+            }, (err, stdout_, stderr_) => {
+                const stdout = stdout_.toString();
+                const stderr = stderr_.toString();
 
-            // https://github.com/eclipse/codewind-installer/blob/master/commands.go#L143
-            // 0 - not installed, 1 - installed but stopped, 2 - installed and running
-            child.on("exit", (code, _signal) => {
-                if (code === 0) {
-                    return resolve(InstallerStates.NOT_INSTALLED);
+                if (err) {
+                    Log.e("Error checking status, stdout:", stderr);
+                    Log.e("Error checking status, stderr:", stdout);
+                    if (stderr) {
+                        return reject(stderr);
+                    }
+                    else {
+                        return reject(stdout);
+                    }
                 }
-                else if (code === 1) {
-                    return resolve(InstallerStates.STOPPED);
+
+                const statusObj = JSON.parse(stdout);
+                Log.d("Installer status", statusObj);
+                // The installer will leave out these fields if they are empty, but an empty array is easier to deal with.
+                if (statusObj["installed-versions"] == null) {
+                    statusObj["installed-versions"] = [];
                 }
-                else if (code === 2) {
-                    return resolve(InstallerStates.STARTED);
+                if (statusObj.started == null) {
+                    statusObj.started = [];
                 }
-                return reject(`Unexpected exit code ${code} from status check`);
+                return resolve(statusObj);
             });
 
             child.on("error", (err) => {
                 return reject(err);
             });
-        });
+        })
+        .catch((err) => { throw err; });
+        return status;
     }
 
-    export async function isInstallRequired(): Promise<boolean> {
-        return (await getInstallerStatus()) === InstallerStates.NOT_INSTALLED;
+    export async function getCodewindUrl(): Promise<vscode.Uri | undefined> {
+        const url = (await getInstallerStatus()).url;
+        if (!url) {
+            return undefined;
+        }
+        return vscode.Uri.parse(url);
     }
 
     /**
@@ -127,14 +141,6 @@ namespace InstallerWrapper {
         return env === Constants.CW_ENV_DEV || env === Constants.CW_ENV_TEST;
     }
 
-    function getUserActionName(cmd: InstallerCommands): string {
-        return INSTALLER_COMMANDS[cmd].userActionName;
-    }
-
-    function doesUseTag(cmd: InstallerCommands): boolean {
-        return INSTALLER_COMMANDS[cmd].usesTag;
-    }
-
     function getTag(): string {
         let tag = DEFAULT_CW_TAG;
         const versionVarValue = process.env[Constants.CW_ENV_TAG_VAR];
@@ -154,16 +160,21 @@ namespace InstallerWrapper {
         return currentOperation !== undefined;
     }
 
-    export async function installerExec(cmd: InstallerCommands): Promise<void> {
+    async function installerExec(cmd: InstallerCommands, tagOverride?: string): Promise<void> {
+        const beforeCmdState = CodewindManager.instance.state;
         const transitionStates = INSTALLER_COMMANDS[cmd].states;
         if (transitionStates && transitionStates.during) {
             CodewindManager.instance.changeState(transitionStates.during);
         }
         try {
-            await installerExecInner(cmd);
+            await installerExecInner(cmd, tagOverride);
         }
         catch (err) {
-            if (transitionStates && transitionStates.onError) {
+            if (isCancellation(err)) {
+                // restore original state
+                CodewindManager.instance.changeState(beforeCmdState);
+            }
+            else if (transitionStates && transitionStates.onError) {
                 CodewindManager.instance.changeState(transitionStates.onError);
             }
             throw err;
@@ -173,52 +184,36 @@ namespace InstallerWrapper {
         }
     }
 
-    async function installerExecInner(cmd: InstallerCommands): Promise<void> {
+    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
+
+    /**
+     * @param tagOverride - If the command should be run against a tag other than the one determined by getTag
+     */
+    async function installerExecInner(cmd: InstallerCommands, tagOverride?: string): Promise<void> {
         const executablePath = await initialize();
         if (isInstallerRunning()) {
-            vscode.window.showWarningMessage(`Already ${getUserActionName(cmd)}`);
+            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
             throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
-        }
-
-        const isInstallCmd = cmd === InstallerCommands.INSTALL;
-        if (isInstallCmd) {
-            if (isDevEnv()) {
-                Log.i("Installing in development mode");
-
-                // Use install-dev instead of install
-                cmd = InstallerCommands.INSTALL_DEV;
-
-                // Remap AF_USER and AF_PASS to USER and PASS
-                // since the latter two are often overridden by the shell, we prefix them with "AF_"
-                if (process.env.AF_USER) {
-                    process.env.USER = process.env.AF_USER;
-                }
-                if (process.env.AF_PASS) {
-                    process.env.PASS = process.env.AF_PASS;
-                }
-                if (!process.env.USER || !process.env.PASS) {
-                    throw new Error(Translator.t(STRING_NS, "devModeNoCreds"));
-                }
-            }
         }
         // const timeout = isInstallCmd ? undefined : 60000;
 
         const args: string[] = [ cmd ];
-        let tag: string | undefined;
-        if (doesUseTag(cmd)) {
-            tag = getTag();
-            args.push("-t", tag);
+        const tag = tagOverride || getTag();
+        if (tagOverride || doesUseTag(cmd)) {
+            args.push(TAG_OPTION, tag);
+        }
+
+        const isInstallCmd = cmd === InstallerCommands.INSTALL;
+        if (isInstallCmd) {
+            // request JSON output
+            args.push(JSON_OPTION);
         }
         Log.i(`Running installer command: ${args.join(" ")}`);
 
         let progressTitle;
         // For STOP the installer output looks better by itself, so we don't display any extra title
-        // if (![InstallerCommands.STOP, InstallerCommands.STOP_ALL].includes(cmd)) {
         if (cmd !== InstallerCommands.STOP_ALL) {
-            progressTitle = getUserActionName(cmd);
-            if (tag) {
-                progressTitle += ` - ${tag}`;
-            }
+            progressTitle = getUserActionName(cmd, tag);
         }
 
         const executableDir = path.dirname(executablePath);
@@ -279,31 +274,105 @@ namespace InstallerWrapper {
         return MCUtil.errToString(err) === INSTALLCMD_CANCELLED;
     }
 
-    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
+    export async function installAndStart(): Promise<void> {
+        const status = await getInstallerStatus();
 
-    /**
-     * Confirm install with user, then download the CW backend docker images.
-     * Does nothing if already installed.
-     *
-     */
-    export async function install(): Promise<void> {
-        if (!(await InstallerWrapper.isInstallRequired())) {
-            Log.i("Codewind is already installed");
-            return;
+        const tag = getTag();
+        let hadOldVersionRunning = false;
+        Log.i(`Ready to install and start Codewind ${tag}`);
+        if (status.started.length > 0) {
+            if (status.started.includes(tag)) {
+                Log.i("The correct version of Codewind is already started");
+                return;
+            }
+            Log.i(`The wrong version of Codewind ${status.started[0]} is currently started`);
+
+            const okBtn = "OK";
+            const resp = await vscode.window.showWarningMessage(
+                `The running version of the Codewind backend (${status.started[0]}) is out-of-date, ` +
+                `and not compatible with this version of the extension. Codewind will now stop and upgrade to the new version.`,
+                { modal: true }, okBtn,
+            );
+            if (resp !== okBtn) {
+                throw new Error(Translator.t(STRING_NS, "backendUpgradeRequired", { tag }));
+            }
+            await stop();
+            hadOldVersionRunning = true;
+        }
+        else {
+            Log.i("Codewind is not running");
         }
 
-        if (InstallerWrapper.isInstallerRunning()) {
-            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
-            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+        if (!status["installed-versions"].includes(tag)) {
+            Log.i(`Codewind ${tag} is NOT installed`);
+
+            // If they had an old version running, they have already agreed to update to the new version
+            let promptForInstall = !hadOldVersionRunning;
+            if (promptForInstall) {
+                const wrongVersionInstalled = status["installed-versions"].length > 0;
+                if (wrongVersionInstalled) {
+                    await onWrongVersionInstalled(status["installed-versions"], tag);
+                    promptForInstall = false;
+                }
+            }
+
+            try {
+                await install(promptForInstall);
+            }
+            catch (err) {
+                if (isCancellation(err)) {
+                    throw err;
+                }
+                CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
+                Log.e("Error installing codewind", err);
+                throw new Error("Error installing Codewind: " + MCUtil.errToString(err));
+            }
+        }
+        else {
+            Log.i(`Codewind ${tag} is already installed`);
         }
 
-        Log.i("Codewind is not installed");
+        try {
+            await installerExec(InstallerCommands.START);
+        }
+        catch (err) {
+            if (isCancellation(err)) {
+                throw err;
+            }
+            Log.e("Error starting codewind", err);
+            throw new Error("Error starting Codewind: " + MCUtil.errToString(err));
+        }
+    }
+
+    async function onWrongVersionInstalled(installedVersions: string[], requiredTag: string): Promise<void> {
+        // Generate a user-friendly string like "0.2, 0.3, and 0.4"
+        let installedVersionsStr = installedVersions.join(", ");
+        if (installedVersions.length > 1) {
+            const lastInstalledVersion = installedVersionsStr[installedVersions.length - 1];
+            installedVersionsStr = installedVersionsStr.replace(lastInstalledVersion, "and " + lastInstalledVersion);
+        }
+
+        const yesBtn = "OK";
+        const resp = await vscode.window.showWarningMessage(
+            `You currently have Codewind ${installedVersionsStr} installed, ` +
+            `but ${requiredTag} is required to use this version of the extension. Install Codewind ${requiredTag} now?`,
+            { modal: true }, yesBtn
+        );
+        if (resp !== yesBtn) {
+            throw new Error(Translator.t(STRING_NS, "backendUpgradeRequired", { tag: requiredTag }));
+        }
+        // Remove unwanted versions (ie all versions that are installed, since none of them are the required version)
+        await removeAllImages();
+    }
+
+    async function install(promptForInstall: boolean): Promise<void> {
+        Log.i("Installing Codewind");
 
         const installAffirmBtn = Translator.t(STRING_NS, "installAffirmBtn");
         const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
 
         let response;
-        if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST) {
+        if (!promptForInstall || process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST) {
             response = installAffirmBtn;
         }
         else {
@@ -315,10 +384,10 @@ namespace InstallerWrapper {
 
         if (response === installAffirmBtn) {
             try {
-                await InstallerWrapper.installerExec(InstallerCommands.INSTALL);
+                await installerExec(InstallerCommands.INSTALL);
                 // success
                 vscode.window.showInformationMessage(
-                    Translator.t(StringNamespaces.STARTUP, "installCompleted"),
+                    Translator.t(StringNamespaces.STARTUP, "installCompleted", { version: getTag() }),
                     Translator.t(StringNamespaces.STARTUP, "okBtn")
                 );
                 Log.i("Codewind installed successfully");
@@ -335,12 +404,24 @@ namespace InstallerWrapper {
         }
         else if (response === moreInfoBtn) {
             onMoreInfo();
-            throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+            // throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
+            return onInstallFailOrReject(true);
         }
         else {
             Log.i("User rejected installation");
             // they pressed Cancel
             return onInstallFailOrReject(true);
+        }
+    }
+
+    export async function stop(): Promise<void> {
+        return installerExec(InstallerCommands.STOP_ALL);
+    }
+
+    export async function removeAllImages(): Promise<void> {
+        const installedVersions = (await getInstallerStatus())["installed-versions"];
+        for (const unwantedVersion of installedVersions) {
+            await installerExec(InstallerCommands.REMOVE, unwantedVersion);
         }
     }
 
@@ -358,10 +439,11 @@ namespace InstallerWrapper {
         return vscode.window.showWarningMessage(msg, moreInfoBtn, tryAgainBtn, Translator.t(STRING_NS, "okBtn"))
         .then((res): Promise<void> => {
             if (res === tryAgainBtn) {
-                return install();
+                return install(false);
             }
             else if (res === moreInfoBtn) {
                 onMoreInfo();
+                return onInstallFailOrReject(true);
             }
             return Promise.reject(InstallerWrapper.INSTALLCMD_CANCELLED);
         });
@@ -375,7 +457,7 @@ namespace InstallerWrapper {
         const stderrLog = path.join(logDir, "installer-error-output.log");
         await promisify(fs.writeFile)(stdoutLog, outStr);
         await promisify(fs.writeFile)(stderrLog, errStr);
-        if (cmd === InstallerCommands.INSTALL || cmd === InstallerCommands.INSTALL_DEV) {
+        if (cmd === InstallerCommands.INSTALL) {
             // show user the output in this case because they can't recover
             // I do not like having this, but I don't see an easier way to present the user with the reason for failure
             // until the installer 'expects' more errors.
@@ -386,7 +468,7 @@ namespace InstallerWrapper {
     }
 
     function onMoreInfo(): void {
-        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}installlocally.html`);
+        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}mdt-vsc-installinfo.html`);
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 
@@ -405,12 +487,23 @@ namespace InstallerWrapper {
                 return;
             }
 
+            // With JSON flag, `install` output is JSON we can parse to give good output
+            let lineObj: { status: string; id: string; };
+            try {
+                lineObj = JSON.parse(line);
+            }
+            catch (err) {
+                Log.e(`Error parsing JSON from installer output, line was "${line}"`);
+                return;
+            }
+
             // we're interested in lines like:
             // {"status":"Pulling from codewind-pfe-amd64","id":"latest"}
             const pullingFrom = "Pulling from";
             if (line.includes(pullingFrom)) {
-                // const imageName = lineObj.status.substring(pullingFrom.length);
-                progress.report({ message: line });
+                const imageTag = lineObj.id;
+                const message = lineObj.status + ":" + imageTag;
+                progress.report({ message });
             }
         });
     }

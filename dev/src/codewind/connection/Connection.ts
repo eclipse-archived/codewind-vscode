@@ -18,7 +18,7 @@ import CodewindManager, { OnChangeCallbackArgs } from "./CodewindManager";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import MCEnvironment from "./MCEnvironment";
+import CWEnvironment, { ICWEnvData } from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
@@ -34,8 +34,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public readonly socket: MCSocket;
 
+    public readonly tektonStatus: string;
+
     private fileWatcher: FileWatcher | undefined;
-    public readonly initFileWatcherPromise: Thenable<void>;
+    public readonly initFileWatcherPromise: Promise<void>;
 
     private hasConnected: boolean = false;
     // Is this connection CURRENTLY connected
@@ -46,19 +48,17 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     constructor(
         public readonly url: vscode.Uri,
-        public readonly version: number,
-        public readonly socketNS: string,
-        workspacePath_: string,
-        public readonly remote: boolean
+        cwEnv: ICWEnvData,
     ) {
-        this.socket = new MCSocket(this, socketNS);
-        this.workspacePath = vscode.Uri.file(workspacePath_);
-        this.versionStr = MCEnvironment.getVersionAsString(version);
+        this.socket = new MCSocket(this, cwEnv.socketNamespace);
+        this.workspacePath = vscode.Uri.file(cwEnv.workspace);
+        this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
+        this.tektonStatus = cwEnv.tektonStatus;
         this.host = this.getHost(url);
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        if (!remote) {
+        if (!cwEnv.remote) {
             this.initFileWatcherPromise = this.initFileWatcher();
         } else {
             // Disable file-watcher in remote mode for now.
@@ -109,8 +109,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         if (global.isTheia) {
             // On theia we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
-            const cheExternalUrlStr = process.env[Constants.CHE_EXTERNAL_URL_ENVVAR];
-            Log.d(`${Constants.CHE_EXTERNAL_URL_ENVVAR}=${cheExternalUrlStr}`);
+            const cheExternalUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
+            Log.d(`${Constants.CHE_API_EXTERNAL_ENVVAR}=${cheExternalUrlStr}`);
             if (cheExternalUrlStr != null) {
                 // we only want the authority component.
                 const cheExternalUrl = vscode.Uri.parse(cheExternalUrlStr);
@@ -120,7 +120,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
                     return authority;
                 }
             }
-            Log.e(`${Constants.CHE_EXTERNAL_URL_ENVVAR} is not set in the environment or was invalid: falling back to default host`);
+            Log.e(`${Constants.CHE_API_EXTERNAL_ENVVAR} is not set in the environment or was invalid: falling back to default host`);
         }
         return MCUtil.getHostnameFrom(url);
     }

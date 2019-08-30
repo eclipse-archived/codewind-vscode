@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "."
+		},
+		{
+			"path": "/Users/tobes/workspaces/git/eclipse/codewind"
 		}
 	],
 	"settings": {

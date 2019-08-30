@@ -2,12 +2,13 @@
     "displayName": "Codewind",
     "description": "Create and develop cloud-native, containerized web applications.",
 
-    "// Items starting with cmdID or viewID are not exposed to user": "",
-
     "viewName": "Codewind",
-    "viewID": "ext.cw.explorer",
+
+    "configTitle": "Codewind",
+    "configDescr_autoShowView": "Automatically expand the Codewind view after opening a Codewind workspace or project.",
 
     "commandCategory": "Codewind",
+    "// Items starting with cmdID are not exposed to user": "",
 
     "// cmdID_activateConn": "ext.cw.activateConn",
     "// cmdTitle_activateConn": "Activate Connection",
@@ -32,6 +33,9 @@
 
     "cmdID_setRegistry": "ext.cw.setRegistry",
     "cmdTitle_setRegistry": "Set Deployment Registry",
+
+    "cmdID_openTekton": "ext.cw.openTekton",
+    "cmdTitle_openTekton": "Open Tekton Dashboard",
 
     "cmdID_newProject": "ext.cw.createProject",
     "cmdTitle_newProject": "Create New Project",

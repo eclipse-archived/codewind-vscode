@@ -18,7 +18,8 @@
             ],
             "preLaunchTask": "build",
             "env": {
-                "CW_ENV": "dev"
+                "CW_ENV": "dev",
+                "NODE_TLS_REJECT_UNAUTHORIZED": "0"
             }
         },
         {

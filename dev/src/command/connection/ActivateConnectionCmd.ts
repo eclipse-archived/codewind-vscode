@@ -11,48 +11,26 @@
 
 import * as vscode from "vscode";
 
-import MCUtil from "../../MCUtil";
 import CodewindManager from "../../codewind/connection/CodewindManager";
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
-import MCEnvironment from "../../codewind/connection/MCEnvironment";
+import CWEnvironment from "../../codewind/connection/CWEnvironment";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Commands from "../../constants/Commands";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
-export default async function activateConnection(): Promise<void> {
-    const url = CodewindManager.instance.codewindUrl;
+export default async function activateConnection(url: vscode.Uri): Promise<void> {
     Log.i("Activating connection to " + url);
-    const envData = await MCEnvironment.getEnvData(url);
-    Log.i("ENV data:", envData);
+    const envData = await CWEnvironment.getEnvData(url);
+    Log.i("Massaged env data:", envData);
 
-    const connection = await connect(url, envData);
+    const connection = await CodewindManager.instance.connect(url, envData);
     await connection.initFileWatcherPromise;
 
     onConnectSuccess(connection);
     // return connection;
-}
-
-async function connect(url: vscode.Uri, envData: MCEnvironment.IMCEnvData): Promise<Connection> {
-    const rawWorkspace: string = envData.workspace_location;
-    const rawSocketNS: string = envData.socket_namespace || "";
-
-    // if (rawVersion == null) {
-        // throw new Error("No version information was provided by Codewind.");
-    // }
-    if (rawWorkspace == null) {
-        throw new Error("No workspace information was provided by Codewind.");
-    }
-
-    const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
-    const versionNum = MCEnvironment.getVersionNumber(envData);
-
-    // normalize namespace so it doesn't start with '/'
-    const socketNS = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
-
-    return await CodewindManager.instance.addConnection(url, versionNum, socketNS, workspace);
 }
 
 /**

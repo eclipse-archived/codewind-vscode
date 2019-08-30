@@ -27,12 +27,6 @@ if [[ "$skip_tests" != "true" ]]; then
     # If the tests are run before the extension is activated, it will fail with a TypeError, something like "path must be of type string, received undefined"
     touch "$CODE_TESTS_WORKSPACE/.cw-settings"
 
-    # Set artifactory credentials so that installer can pull images from there
-    # The installer uses USER and PASS but those can get overridden by the shell.
-    # These are handled specially by the InstallerWrapper
-    export AF_USER=${artifactory_user}
-    export AF_PASS=${artifactory_apikey}
-
     set +e
 
     sudo -E env PATH="$PATH" $(which npm) test --verbose

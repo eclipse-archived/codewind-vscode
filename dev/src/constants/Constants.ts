@@ -19,7 +19,8 @@ namespace Constants {
     export const CW_CONFIG_DIR = ".config";
     export const CW_CONFIG_FILE = path.join(CW_CONFIG_DIR, "settings.json");
 
-    export const CHE_EXTERNAL_URL_ENVVAR = "CHE_API_EXTERNAL";
+    export const CHE_WORKSPACEID_ENVVAR = "CHE_WORKSPACE_ID";
+    export const CHE_API_EXTERNAL_ENVVAR = "CHE_API_EXTERNAL";
 
     export const CW_ENV_VAR = "CW_ENV";
     export const CW_ENV_DEV = "dev";

@@ -17,22 +17,35 @@ import Log from "../Logger";
 import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
 import TreeItemFactory, { CodewindTreeItem } from "./TreeItemFactory";
+import MCUtil from "../MCUtil";
+import { CWConfigurations } from "../constants/Configurations";
 
 // const STRING_NS = StringNamespaces.TREEVIEW;
 
 export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<CodewindTreeItem> {
 
-    private readonly VIEW_ID: string = "ext.cw.explorer";                  // must match package.nls.json
+    public static readonly VIEW_ID: string = "ext.cw.explorer";                  // must match package.nls.json
     public readonly treeView: vscode.TreeView<CodewindTreeItem>;
 
     private readonly onTreeDataChangeEmitter: vscode.EventEmitter<CodewindTreeItem> = new vscode.EventEmitter<CodewindTreeItem>();
     public readonly onDidChangeTreeData: vscode.Event<CodewindTreeItem> = this.onTreeDataChangeEmitter.event;
 
+    private root: vscode.TreeItem;
+
     constructor() {
-        this.treeView = vscode.window.createTreeView(this.VIEW_ID, { treeDataProvider: this });
+        this.treeView = vscode.window.createTreeView(ProjectTreeDataProvider.VIEW_ID, { treeDataProvider: this });
 
         CodewindManager.instance.addOnChangeListener(this.refresh);
         Log.d("Finished constructing ProjectTree");
+
+        this.root = TreeItemFactory.getRootTreeItems();
+        if (MCUtil.isUserInCwWorkspaceOrProject()) {
+            const autoShowEnabled: boolean = vscode.workspace.getConfiguration().get(CWConfigurations.AUTO_SHOW_VIEW) || true;
+            if (autoShowEnabled) {
+                Log.d("Auto-expanding the Codewind view");
+                this.treeView.reveal(this.root);
+            }
+        }
 
         // this.treeView.onDidChangeSelection((e) => {
         //     Log.d("Selection is now", e.selection[0]);
@@ -58,8 +71,8 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
 
     public getChildren(node?: CodewindTreeItem): CodewindTreeItem[] | Promise<CodewindTreeItem[]> {
         if (node == null) {
-            // root
-            return TreeItemFactory.getRootTreeItems();
+            this.root = TreeItemFactory.getRootTreeItems();
+            return [ this.root ];
         }
         else if (node instanceof Connection) {
             return TreeItemFactory.getConnectionChildren(node);
@@ -82,6 +95,9 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
             return node.connection;
         }
         else if (node instanceof Connection) {
+            return this.root;
+        }
+        else if (node === this.root) {
             return undefined;
         }
         Log.e("Unexpected TreeItem!", node);

@@ -15,13 +15,13 @@ import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
 import InstallerWrapper from "./InstallerWrapper";
-import { MCEndpoints } from "../../constants/Endpoints";
-import Requester from "../project/Requester";
 import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
-import { InstallerCommands } from "./InstallerCommands";
 import activateConnection from "../../command/connection/ActivateConnectionCmd";
 import { CodewindStates } from "./CodewindStates";
+import CWEnvironment, { ICWEnvData } from "./CWEnvironment";
+
+const CHE_CW_URL = "https://localhost:9090";
 
 export type OnChangeCallbackArgs = Connection | Project | undefined;
 
@@ -31,31 +31,32 @@ export type OnChangeCallbackArgs = Connection | Project | undefined;
  */
 export default class CodewindManager implements vscode.Disposable {
 
-    public readonly codewindUrl: vscode.Uri;
+    private _codewindUrl: vscode.Uri | undefined;
 
     // public readonly initPromise: Promise<void>;
 
     private static _instance: CodewindManager;
 
+    /**
+     * Currently only connections[0] is used, but all the caller code treats this as an array,
+     * so we will leave it this way until we make a decision about multi-connection architecture.
+     */
     private readonly _connections: Connection[] = [];
     private readonly listeners: Array<( (changed: OnChangeCallbackArgs) => void )> = [];
 
     private _state: CodewindStates = CodewindStates.STOPPED;
 
-    constructor() {
-        //const protocol =  "https" ;
-        this.codewindUrl =
-            vscode.Uri.parse("https:///codewind-workspacebux3mu0xvxs4v0iw-eclipse-che.apps.exact-mongrel-icp-mst.9.20.195.90.nip.io/");
-        Log.i(`Codewind is${global.isTheia ? "" : " NOT"} running in Theia; URL is ${this.codewindUrl}`);
-    }
-
     public static get instance(): CodewindManager {
         return CodewindManager._instance || (CodewindManager._instance = new this());
     }
 
+    public get codewindUrl(): vscode.Uri | undefined {
+        return this._codewindUrl;
+    }
+
     public async dispose(): Promise<void> {
         await Promise.all([
-            // InstallerWrapper.stopAll(),
+        //     // InstallerWrapper.stopAll(),
             this.connections.map((conn) => conn.dispose()),
         ]);
     }
@@ -113,14 +114,24 @@ export default class CodewindManager implements vscode.Disposable {
     ///// Start/Stop Codewind /////
 
     public async startCodewind(): Promise<void> {
-        const shouldConnect = await this.startCodewindInner();
-        if (!shouldConnect) {
-            // Something went wrong or it was cancelled
+  
+        let cwUrl: vscode.Uri | undefined;
+        try {
+            cwUrl = await this.startCodewindInner();
+            this._codewindUrl =
+            vscode.Uri.parse("https:///codewind-workspacebux3mu0xvxs4v0iw-eclipse-che.apps.exact-mongrel-icp-mst.9.20.195.90.nip.io/");
+    
+            // this._codewindUrl = cwUrl;
+        }
+        catch (err) {
+            if (!InstallerWrapper.isCancellation(err)) {
+                vscode.window.showErrorMessage(MCUtil.errToString(err));
+            }
             return;
         }
 
         try {
-            await activateConnection();
+            await activateConnection(cwUrl);
         }
         catch (err) {
             Log.e("Error connecting to Codewind after it appeared to start", err);
@@ -131,92 +142,41 @@ export default class CodewindManager implements vscode.Disposable {
 
     /**
      * Installs and starts Codewind, if required. Will exit immediately if already started.
-     * @returns if Codewind appears to have started.
+     * @returns The URL to the running Codewind instance, or undefined if it did not appear to start successfully.
      */
-    private async startCodewindInner(): Promise<boolean> {
-        if (await this.isCodewindActive()) {
-            // nothing to do
-            Log.i("Codewind is already started");
-            this.changeState(CodewindStates.STARTED);
-            return true;
-        }
-
-        Log.i("Initial Codewind ping failed");
-
+    private async startCodewindInner(): Promise<vscode.Uri> {
         if (global.isTheia) {
             // In the che case, we do not start codewind. we just wait for it to come up
-            await this.waitForCodewindToStart();
-            return true;
+            this.changeState(CodewindStates.STARTING);
+            const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
+            await this.waitForCodewindToStart(cheCwUrl);
+            this.changeState(CodewindStates.STARTED);
+            return cheCwUrl;
         }
 
+        // If it was not started, we do that here. The install step is done if necessary.
+        await InstallerWrapper.installAndStart();
+
+        let cwUrl: vscode.Uri | undefined;
         try {
-            await InstallerWrapper.install();
+            cwUrl = await InstallerWrapper.getCodewindUrl();
+            if (!cwUrl) {
+                throw new Error("Could not determine Codewind URL");
+            }
         }
         catch (err) {
-            if (!InstallerWrapper.isCancellation(err)) {
-                CodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
-                Log.e("Error installing codewind", err);
-                vscode.window.showErrorMessage("Error installing Codewind: " + MCUtil.errToString(err));
-            }
-            return false;
+            Log.e("Error getting URL after Codewind should have started", err);
+            this.changeState(CodewindStates.ERR_CONNECTING);
+            throw err;
         }
-
-        try {
-            await InstallerWrapper.installerExec(InstallerCommands.START);
-        }
-        catch (err) {
-            if (!InstallerWrapper.isCancellation(err)) {
-                Log.e("Error starting codewind", err);
-                vscode.window.showErrorMessage("Error starting Codewind: " + MCUtil.errToString(err));
-            }
-            return false;
-        }
-
-        Log.i("Codewind appears to have started");
-        return true;
-    }
-
-    private async isCodewindActive(logFailure: boolean = false): Promise<boolean> {
-        try {
-            await Requester.get(this.codewindUrl.with({ path: MCEndpoints.ENVIRONMENT }));
-            Log.i("Good response from healthcheck");
-            return true;
-        }
-        catch (err) {
-            if (logFailure) {
-                Log.i("Healthcheck failed", err.message);
-            }
-            return false;
-        }
-    }
-
-    /**
-     * Theia Only -
-     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
-     */
-    private async waitForCodewindToStart(): Promise<void> {
-        const waitingToStartProm = new Promise<void>((resolve) => {
-            const delay = 500;
-            let counter = 0;
-            const interval = setInterval(async () => {
-                counter++;
-                const logHealth = counter % 8 === 0;
-                if (logHealth) {
-                    Log.d(`Waiting for Codewind to start, ${counter * delay / 1000}s have elapsed`);
-                }
-                if (await this.isCodewindActive(logHealth)) {
-                    clearInterval(interval);
-                    resolve();
-                }
-            }, delay);
-        });
-        vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
-            `Waiting for Codewind to start...`, waitingToStartProm);
-        return waitingToStartProm;
+        Log.i("Codewind appears to have started at " + cwUrl);
+        return cwUrl;
     }
 
     public async stopCodewind(): Promise<void> {
-        await InstallerWrapper.installerExec(InstallerCommands.STOP_ALL);
+        await InstallerWrapper.stop();
+        this._connections.splice(0, 1);
+        this._codewindUrl = undefined;
     }
 
     public changeState(newState: CodewindStates): void {
@@ -230,8 +190,74 @@ export default class CodewindManager implements vscode.Disposable {
     }
 
     public get isStarted(): boolean {
-        return this._state === CodewindStates.STARTED || this._state === CodewindStates.STOPPING;
+        return this._codewindUrl != null;
     }
+
+    /**
+     * Theia Only -
+     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
+     */
+    private async waitForCodewindToStart(baseUrl: vscode.Uri): Promise<void> {
+        const waitingToStartProm = new Promise<void>((resolve) => {
+            const delay = 1000;
+            let counter = 0;
+            const interval = setInterval(async () => {
+                counter++;
+                const logHealth = counter % 8 === 0;
+                if (logHealth) {
+                    Log.d(`Waiting for Codewind to start, ${counter * delay / 1000}s have elapsed`);
+                }
+                try {
+                    await CWEnvironment.getEnvData(baseUrl);
+                    clearInterval(interval);
+                    resolve();
+                }
+                catch (err) {
+                    if (logHealth) {
+                        Log.d("Error contacting ENV endpoint", err);
+                    }
+                }
+            }, delay);
+        });
+        vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
+            `Waiting for Codewind to start...`, waitingToStartProm);
+        return waitingToStartProm;
+    }
+
+    public async connect(uri: vscode.Uri, cwEnv: ICWEnvData): Promise<Connection> {
+        const existing = this._connections[0];
+        if (existing) {
+            if (existing.url.toString() === uri.toString()) {
+                return existing;
+            }
+            const errMsg = `Requested to add a second connection with URL ${uri} when one already exists with URL ${existing.url}`;
+            Log.e(errMsg);
+            throw new Error(errMsg);
+        }
+        // const existing = this.getExisting(uri);
+        // if (existing != null) {
+        //     Log.e("Connection already exists at " + uri.toString());
+        //     // const alreadyExists = Translator.t(StringNamespaces.DEFAULT, "connectionAlreadyExists", { uri });
+        //     // Log.i(alreadyExists);
+        //     return existing;
+        // }
+
+        // all validation that this connection is good must be done by this point
+        // - eg nothing missing from the environment, not a dupe
+        const newConnection: Connection = new Connection(uri, cwEnv);
+        Log.i("New Connection @ " + uri);
+        this._connections[0] = newConnection;
+
+        // pass undefined here to refresh the tree from its root
+        this.onChange(undefined);
+        return newConnection;
+    }
+
+    // private getExisting(uri: vscode.Uri): Connection | undefined {
+    //     return this._connections.find((conn) => {
+    //         return conn.url.toString() === uri.toString();
+    //     });
+    // }
 
     // public async removeConnection(connection: Connection): Promise<boolean> {
     //     const indexToRemove = this.connections.indexOf(connection);
@@ -259,12 +285,12 @@ export default class CodewindManager implements vscode.Disposable {
     //     Log.d("Verifying reconnect at " + connection.mcUri);
 
     //     let tries = 0;
-    //     let newEnvData: MCEnvironment.IMCEnvData | undefined;
+    //     let newEnvData: CWEnvironment.IMCEnvData | undefined;
     //     // Sometimes this can execute before Portal is ready, resulting in a 404.
     //     while (newEnvData == null && tries < 10) {
     //         tries++;
     //         try {
-    //             newEnvData = await MCEnvironment.getEnvData(connection.mcUri);
+    //             newEnvData = await CWEnvironment.getEnvData(connection.mcUri);
     //         }
     //         catch (err) {
     //             // wait briefly before trying again
@@ -281,7 +307,7 @@ export default class CodewindManager implements vscode.Disposable {
     //         return false;
     //     }
 
-    //     if (MCEnvironment.envMatches(connection, newEnvData)) {
+    //     if (CWEnvironment.envMatches(connection, newEnvData)) {
     //         // it's the same instance, so we don't have to do anything
     //         return true;
     //     }

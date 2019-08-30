@@ -63,9 +63,10 @@ enum TreeContextValues {
 export type CodewindTreeItem = Connection | Project | vscode.TreeItem;
 
 namespace TreeItemFactory {
+    const CW_STOPPED_NODE_ID = "ext.cw.stoppedTreeroot";
     export const CW_STARTED_NODE_ID = "ext.cw.treeroot";
 
-    export function getRootTreeItems(): CodewindTreeItem[] {
+    export function getRootTreeItems(): CodewindTreeItem {
         const cwState = CodewindManager.instance.state;
         const cwStarted = CodewindManager.instance.isStarted;
 
@@ -73,23 +74,22 @@ namespace TreeItemFactory {
         if (CODEWIND_STATES[cwState].isErrorState || CODEWIND_STATES[cwState].isTransitionState) {
             label += ` (${cwState})`;
         }
+        const tooltip = (CodewindManager.instance.codewindUrl || "Stopped").toString();
         // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand after it starts
-        const id = cwStarted ?  CW_STARTED_NODE_ID : undefined;
+        const id = cwStarted ?  CW_STARTED_NODE_ID : CW_STOPPED_NODE_ID;
         const contextValue = cwStarted ? TreeContextValues.CW_STARTED : TreeContextValues.CW_STOPPED;
         const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
         const cwStatusItem: vscode.TreeItem = {
             id,
             label,
-            tooltip: label,
+            tooltip,
             collapsibleState,
             iconPath: Resources.getIconPaths(Resources.Icons.Logo),
             contextValue: buildContextValue([contextValue]),
         };
 
-        return [
-            cwStatusItem,
-        ];
+        return cwStatusItem;
     }
 
     export function toTreeItem(resource: Project | Connection): vscode.TreeItem {

@@ -51,7 +51,7 @@
         "failedToAttach": "Failed to attach debugger to {{ projectName }}.",
         "failedToAttachWithUrl": "Failed to attach debugger to {{ projectName }} at {{- debugUrl }}.",
         "noDebugTypeKnown": "No debug type available for project of type {{ type }}.",
-        "noDebugPort": "No debug port set for project {{ projectName }}.",
+        "noDebugPort": "No debug port set for project {{ projectName }}. Try restarting the project into Debug mode again.",
         "errDetailSeparator": " ",
         "maybeAlreadyDebugging": "Are you already debugging this project?",
         "debuggerAttachSuccess": "Debugger attached to {{ projectName }} at {{- debugUrl }}.",
@@ -60,18 +60,18 @@
     },
 
     "startup": {
-        "devModeNoCreds": "Development mode is enabled, but no Artifactory credentials are present - install will fail. Set AF_USER and AF_PASS in the environment.",
         "openWorkspacePrompt": "Do you want to open your Codewind workspace folder now? Tip: Open any folder in the Codewind view by right-clicking and selecting \"Open Folder as Workspace\"",
         "installPrompt": "Codewind requires the installation of Docker containers to run, which might take a few minutes to download. Do you want to complete the installation now?",
         "installRejected": "Codewind will remain unavailable until the Docker containers are installed. To initiate installation again, select Try Again or click the \"on/off\" toggle in the Codewind view.",
         "installFailed": "Codewind failed to install. The installer logs have been opened. To initiate installation again, select Try Again or click the \"on/off\" toggle in the Codewind view.",
-        "installCompleted": "Codewind installation is complete",
+        "installCompleted": "Codewind {{ version }} installation is complete",
         "installAffirmBtn": "Install",
         "okBtn": "OK",
         "tryAgainBtn": "Try Again",
         "moreInfoBtn": "More Info",
         "removeImagesBlockedStillRunning": "You cannot remove images if Codewind is still running. Stop Codewind, and try again.",
-        "removeImagesModalWarning": "Are you sure you want to remove all Codewind Docker images? You will have to download them again before you can start Codewind again."
+        "removeImagesModalWarning": "Are you sure you want to remove all Codewind Docker images? You will have to download them again before you can start Codewind again.",
+        "backendUpgradeRequired": "You cannot use the extension without installing version {{ tag }} of the Codewind backend."
     },
 
     "logs": {

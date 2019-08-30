@@ -73,7 +73,7 @@ export function generateHtml(project: Project): string {
 
         <div id="main">
             <div id="top-section">
-                <img id="mc-icon" width="30px" src="${getIcon(Resources.Icons.Logo)}"/>
+                <img id="mc-icon" alt="Codewind logo" width="30px" src="${getIcon(Resources.Icons.Logo)}"/>
                 <h2>Project ${project.name}</h2>
                 <input id="build-btn" type="button" value="Build"
                     onclick="${project.state.isEnabled ? `sendMsg('${Messages.BUILD}')` : ""}"
