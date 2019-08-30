@@ -26,6 +26,7 @@ import { inspect } from "util";
 import * as fs from "fs-extra";
 
 import * as zlib from "zlib";
+import CWEnvironment from "./CWEnvironment";
 
 
 
@@ -80,7 +81,8 @@ namespace UserProjectCreator {
     }
 
     export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
-        if (connection.remote) {
+        const envData = await CWEnvironment.getEnvData(pathToBindUri);
+        if (envData.remote) {
             return validateAndBindRemote(connection, pathToBindUri);
         } else {
             return validateAndBindLocal(connection, pathToBindUri);
