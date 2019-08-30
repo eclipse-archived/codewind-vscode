@@ -47,6 +47,16 @@ export default class CodewindManager implements vscode.Disposable {
 
     private _state: CodewindStates = CodewindStates.STOPPED;
 
+<<<<<<< HEAD
+=======
+    constructor() {
+        //const protocol =  "https" ;
+        this.codewindUrl =
+            vscode.Uri.parse("https:///codewind-workspacebux3mu0xvxs4v0iw-eclipse-che.apps.exact-mongrel-icp-mst.9.20.195.90.nip.io/");
+        Log.i(`Codewind is${global.isTheia ? "" : " NOT"} running in Theia; URL is ${this.codewindUrl}`);
+    }
+
+>>>>>>> point at mongrel
     public static get instance(): CodewindManager {
         return CodewindManager._instance || (CodewindManager._instance = new this());
     }
