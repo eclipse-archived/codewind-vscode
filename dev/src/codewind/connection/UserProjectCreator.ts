@@ -14,21 +14,12 @@ import * as path from "path";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
-import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/Endpoints";
+import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
 import InstallerWrapper from "./InstallerWrapper";
-
-import { inspect } from "util";
-
-import * as fs from "fs-extra";
-
-import * as zlib from "zlib";
-import CWEnvironment from "./CWEnvironment";
-
-
 
 export interface IMCTemplateData {
     label: string;
@@ -75,21 +66,15 @@ namespace UserProjectCreator {
         }
 
         // const result = creationRes.result as IProjectInitializeInfo;
-        const targetDir = vscode.Uri.file(creationRes.projectPath);
-        await validateAndBind(connection, targetDir);
+        // const targetDir = vscode.Uri.file(creationRes.projectPath);
+        const targetDir = creationRes.projectPath;
+
+        // create succeeded, now we bind
+        await requestBind(connection, projectName, targetDir, template.language, template.projectType);
         return { projectName, projectPath: creationRes.projectPath };
     }
 
     export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
-        const envData = await CWEnvironment.getEnvData(pathToBindUri);
-        if (envData.remote) {
-            return validateAndBindRemote(connection, pathToBindUri);
-        } else {
-            return validateAndBindLocal(connection, pathToBindUri);
-        }
-    }
-
-    async function validateAndBindLocal(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
         const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
         Log.i("Binding to", pathToBind);
 
@@ -136,30 +121,6 @@ namespace UserProjectCreator {
         }
 
         await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
-        return { projectName, projectPath: pathToBind };
-    }
-
-    async function validateAndBindRemote(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
-        const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
-        Log.i("Binding to", pathToBind);
-
-        const projectName = path.basename(pathToBind);
-
-        // TODO - Validation removed until it's ported to the installer/cli.
-        // For now just prompt the user.
-        const projectTypeInfo = await promptForProjectType(connection);
-        if (projectTypeInfo == null) {
-            return;
-        }
-
-        const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
-        const projectID = projectInfo.projectID;
-        Log.i(inspect(projectInfo));
-        Log.i(pathToBind);
-        // TODO Copy the files *properly*
-        await traverseFileSystem(connection, projectID, pathToBind, pathToBind);
-
-        await requestRemoteBindEnd(connection, projectID);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -272,6 +233,9 @@ namespace UserProjectCreator {
     }
 
     export async function promptForDir(btnLabel: string, defaultUri: vscode.Uri): Promise<vscode.Uri | undefined> {
+        // if (!defaultUri && vscode.workspace.workspaceFolders != null) {
+        //     defaultUri = vscode.workspace.workspaceFolders[0].uri;
+        // }
 
         const selectedDirs = await vscode.window.showOpenDialog({
             canSelectFiles: false,
@@ -289,7 +253,6 @@ namespace UserProjectCreator {
 
     async function requestBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
         : Promise<void> {
-
 
         const bindReq = {
             name: projectName,
@@ -310,88 +273,6 @@ namespace UserProjectCreator {
 
         // return bindRes;
     }
-
-    async function requestRemoteBindStart(connection: Connection, projectName: string,
-                                          dirToBindContainerPath: string,
-                                          language: string, projectType: string): Promise<any> {
-
-        const bindReq = {
-            name: projectName,
-            language,
-            projectType,
-            path: dirToBindContainerPath,
-        };
-
-        Log.d("Remote Bind request", bindReq);
-
-        const remoteBindStartEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REMOTE_BIND_START);
-        const remoteBindRes = await Requester.post(remoteBindStartEndpoint, {
-            json: true,
-            body: bindReq,
-        });
-
-        Log.d("Remote Bind response", remoteBindRes);
-
-        return remoteBindRes;
-    }
-
-    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {
-
-
-        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
-        const strBuffer = zlib.deflateSync(fileContent);
-        const base64Compressed = strBuffer.toString("base64");
-        const relativePath = path.relative(parentPath, filePath);
-
-        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
-        Log.d(`remnotebindupload is ${remoteBindUpload}`);
-        const body = {
-            directory: false,
-            path: relativePath,
-            timestamp: Date.now(),
-            msg: base64Compressed,
-        };
-
-        const remoteBindRes = await Requester.put(remoteBindUpload, {
-            json: true,
-            body: body,
-        });
-
-        Log.d("Remote upload response", remoteBindRes);
-
-        return remoteBindRes;
-      }
-
-    async function requestRemoteBindEnd(connection: Connection, projectID: string) : Promise<void> {
-
-        Log.d(`Remote Bind request for ${projectID}`);
-
-        const remoteBindStartEndpoint = EndpointUtil.resolveProjectEndpoint(connection, projectID, ProjectEndpoints.REMOTE_BIND_END);
-        const remoteBindRes = await Requester.post(remoteBindStartEndpoint);
-
-        Log.d("Remote Bind response", remoteBindRes);
-    }
-
-    async function traverseFileSystem(connection: Connection, projectId: any, inputPath: string, parentPath: string) : Promise<void> {
-        Log.d(`traverseFileSystem request for ${projectId}`);
-        const files = fs.readdirSync(inputPath);
-
-        for (const f of files) {
-            const currentPath = `${inputPath}/${f}`;
-            Log.d("uploading " + currentPath);
-            const stats = fs.statSync(currentPath);
-            if (stats.isFile()) {
-                try {
-                await remoteUpload(connection, projectId, currentPath, parentPath);
-                 } catch (err) {
-                     Log.d(err);
-                 }
-            } else if (stats.isDirectory()) {
-                await traverseFileSystem(connection, projectId, currentPath, parentPath);
-            }
-        }
-    }
-
 }
 
 export default UserProjectCreator;
