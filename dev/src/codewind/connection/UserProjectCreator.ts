@@ -19,6 +19,7 @@ import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
+import InstallerWrapper from "./InstallerWrapper";
 
 import { inspect } from "util";
 
@@ -42,7 +43,7 @@ interface IProjectTypeInfo {
     projectType: string;
 }
 
-interface IInitializationResponse {
+export interface IInitializationResponse {
     status: string;
     result: IProjectTypeInfo | { error: string; };
     projectPath: string;
@@ -65,7 +66,8 @@ namespace UserProjectCreator {
         const userParentDir = connection.workspacePath;
 
         // caller must handle errors
-        const creationRes = await requestCreate(connection, template, projectName, userParentDir);
+        const projectPath = path.join(userParentDir.fsPath, projectName);
+        const creationRes = await InstallerWrapper.createProject(projectPath, template.url);
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (creationRes.result as { error: string });
@@ -92,7 +94,7 @@ namespace UserProjectCreator {
         Log.i("Binding to", pathToBind);
 
         const projectName = path.basename(pathToBind);
-        const validateRes = await requestValidate(connection, pathToBind);
+        const validateRes = await requestValidate(pathToBind);
         if (validateRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (validateRes.result as { error: string });
@@ -257,18 +259,13 @@ namespace UserProjectCreator {
         return language;
     }
 
-    async function requestValidate(connection: Connection, pathToBind: string): Promise<IInitializationResponse> {
+    async function requestValidate(pathToBind: string): Promise<IInitializationResponse> {
         const validateResponse = await vscode.window.withProgress({
             title: `Processing ${pathToBind}...`,
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
         }, () => {
-            return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PREBIND_VALIDATE), {
-                json: true,
-                body: {
-                    projectPath: pathToBind,
-                }
-            });
+            return InstallerWrapper.validateProjectDirectory(pathToBind);
         });
         Log.d("validate response", validateResponse);
         return validateResponse;
@@ -288,36 +285,6 @@ namespace UserProjectCreator {
         }
         // canSelectMany is false
         return selectedDirs[0];
-    }
-
-    async function requestCreate(
-        connection: Connection, projectTypeSelected: IMCTemplateData, projectName: string, parentPath: vscode.Uri)
-        : Promise<IInitializationResponse> {
-
-        const containerParentPath = MCUtil.fsPathToContainerPath(parentPath);
-
-        const payload = {
-            projectName: projectName,
-            url: projectTypeSelected.url,
-            parentPath: containerParentPath,
-        };
-
-        Log.d("Creation request", payload);
-
-        // This is a slow request because it has to spin up the initialization container
-        const creationRes = await vscode.window.withProgress({
-            title: `Creating ${projectName}...`,
-            location: vscode.ProgressLocation.Notification,
-            cancellable: false,
-        }, () => {
-            return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.PROJECTS), {
-                json: true,
-                body: payload,
-            });
-        });
-
-        Log.d("Creation response", creationRes);
-        return creationRes;
     }
 
     async function requestBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
