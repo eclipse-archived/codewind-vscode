@@ -64,9 +64,10 @@ namespace InstallerWrapper {
      */
     async function getInstallerStatus(): Promise<InstallerStatus> {
         const executablePath = await initialize();
+        Log.i("exectuablePath is " + executablePath);
 
         const status = await new Promise<InstallerStatus>((resolve, reject) => {
-            const child = child_process.execFile(executablePath, [ "status", JSON_OPTION ], {
+            const child = child_process.execFile(executablePath, [ "--insecure", "status", JSON_OPTION ], {
                 timeout: 10000,
             }, (err, stdout_, stderr_) => {
                 const stdout = stdout_.toString();
@@ -295,7 +296,7 @@ namespace InstallerWrapper {
         let hadOldVersionRunning = false;
         Log.i(`Ready to install and start Codewind ${tag}`);
         if (status.started.length > 0) {
-            if (status.started.includes(tag)) {
+            if (!status.started.includes(tag)) {
                 Log.i("The correct version of Codewind is already started");
                 return;
             }
