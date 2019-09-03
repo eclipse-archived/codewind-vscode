@@ -167,7 +167,7 @@ export default class Project implements vscode.QuickPickItem {
      * This includes checking the appStatus, buildStatus, buildStatusDetail, and startMode.
      * Also updates the appPort and debugPort.
      */
-    public update = (projectInfo: any, isRestart: boolean = false): ProjectState => {
+    public update = (projectInfo: any): ProjectState => {
         if (projectInfo.projectID !== this.id) {
             // shouldn't happen, but just in case
             Log.e(`Project ${this.id} received status update request for wrong project ${projectInfo.projectID}`);
@@ -178,14 +178,11 @@ export default class Project implements vscode.QuickPickItem {
         // Whether or not this update call has changed the project such that we have to update the UI.
         let changed: boolean = false;
 
-        if (!isRestart) {
-            // Ignore these if it's a restart because the restart event won't have them
-            changed = this.setContainerID(projectInfo.containerId) || changed;
-            changed = this.setLastBuild(projectInfo.lastbuild) || changed;
-            // appImageLastBuild is a string
-            changed = this.setLastImgBuild(Number(projectInfo.appImageLastBuild)) || changed;
-            changed = this.setAutoBuild(projectInfo.autoBuild) || changed;
-        }
+        changed = this.setContainerID(projectInfo.containerId) || changed;
+        // lastbuild is a number while appImageLastBuild is a string
+        changed = this.setLastBuild(projectInfo.lastbuild) || changed;
+        changed = this.setLastImgBuild(Number(projectInfo.appImageLastBuild)) || changed;
+        changed = this.setAutoBuild(projectInfo.autoBuild) || changed;
 
         // note oldState can be null if this is the first time update is being invoked.
         const oldState = this._state;
@@ -352,6 +349,10 @@ export default class Project implements vscode.QuickPickItem {
             Log.d("Restart event is valid");
             this.updatePorts(event.ports);
             this.onChange();
+            // https://github.com/eclipse/codewind/issues/311
+            if (event.containerId) {
+                this.setContainerID(event.containerId);
+            }
             success = true;
         }
 

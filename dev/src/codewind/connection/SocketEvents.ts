@@ -28,6 +28,7 @@ namespace SocketEvents {
             exposedDebugPort?: string;
             internalDebugPort?: string;
         };
+        containerId?: string;
     }
 
     // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/Validator.ts
