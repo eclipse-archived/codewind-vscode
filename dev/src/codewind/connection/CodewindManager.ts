@@ -88,13 +88,10 @@ export default class CodewindManager implements vscode.Disposable {
     ///// Start/Stop Codewind /////
 
     public async startCodewind(): Promise<void> {
-
         let cwUrl: vscode.Uri | undefined;
         try {
             cwUrl = await this.startCodewindInner();
-            this._codewindUrl =
-            vscode.Uri.parse("https:///codewind-workspacebux3mu0xvxs4v0iw-eclipse-che.apps.exact-mongrel-icp-mst.9.20.195.90.nip.io/");
-            // this._codewindUrl = cwUrl;
+            this._codewindUrl = cwUrl;
         }
         catch (err) {
             if (!InstallerWrapper.isCancellation(err)) {
