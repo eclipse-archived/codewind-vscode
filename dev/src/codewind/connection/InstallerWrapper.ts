@@ -283,7 +283,7 @@ namespace InstallerWrapper {
         let hadOldVersionRunning = false;
         Log.i(`Ready to install and start Codewind ${tag}`);
         if (status.started.length > 0) {
-            if (!status.started.includes(tag)) {
+            if (status.started.includes(tag)) {
                 Log.i("The correct version of Codewind is already started");
                 return;
             }

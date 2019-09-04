@@ -11,7 +11,6 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import { inspect } from "util";
 import * as fs from "fs-extra";
 import * as zlib from "zlib";
 
@@ -68,12 +67,12 @@ namespace UserProjectCreator {
             throw new Error(failedResult.error);
         }
 
-        // const result = creationRes.result as IProjectInitializeInfo;
+        const projectTypeInfo = creationRes.result as IProjectTypeInfo;
         // const targetDir = vscode.Uri.file(creationRes.projectPath);
         const targetDir = creationRes.projectPath;
 
         // create succeeded, now we bind
-        await requestBind(connection, projectName, targetDir, template.language, template.projectType);
+        await bind(connection, projectName, targetDir, projectTypeInfo);
         return { projectName, projectPath: creationRes.projectPath };
     }
 
@@ -123,6 +122,12 @@ namespace UserProjectCreator {
             projectTypeInfo = userProjectType;
         }
 
+        return bind(connection, projectName, pathToBind, projectTypeInfo);
+    }
+
+    async function bind(connection: Connection, projectName: string,
+                        pathToBind: string, projectTypeInfo: IProjectTypeInfo):
+                        Promise<INewProjectInfo | undefined> {
         if (connection.remote) {
             return bindRemote(connection, projectName, pathToBind, projectTypeInfo);
         } else {
@@ -134,7 +139,7 @@ namespace UserProjectCreator {
                              pathToBind: string, projectTypeInfo: IProjectTypeInfo):
                              Promise<INewProjectInfo | undefined> {
 
-        await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
+        await requestLocalBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -276,7 +281,7 @@ namespace UserProjectCreator {
         return selectedDirs[0];
     }
 
-    async function requestBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
+    async function requestLocalBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
         : Promise<void> {
 
         const bindReq = {
