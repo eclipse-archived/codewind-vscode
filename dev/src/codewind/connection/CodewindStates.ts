@@ -20,20 +20,3 @@ export enum CodewindStates {
     ERR_CONNECTING = "Error Connecting",
     ERR_GENERIC = "Error",
 }
-
-export const CODEWIND_STATES: {
-    [key in CodewindStates]: {
-        isErrorState: boolean;
-        isTransitionState: boolean;
-    }
-} = {
-    Stopped:    { isErrorState: false, isTransitionState: false },
-    Started:    { isErrorState: false, isTransitionState: false },
-    Starting:   { isErrorState: false, isTransitionState: true },
-    Stopping:   { isErrorState: false, isTransitionState: true },
-    Installing: { isErrorState: false, isTransitionState: true },
-    "Error Connecting": { isErrorState: true, isTransitionState: false },
-    "Error Installing": { isErrorState: true, isTransitionState: false },
-    "Error Starting":   { isErrorState: true, isTransitionState: false },
-    Error:              { isErrorState: true, isTransitionState: false },
-};
