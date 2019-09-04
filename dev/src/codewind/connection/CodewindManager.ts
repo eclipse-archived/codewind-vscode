@@ -19,7 +19,8 @@ import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
 import activateConnection from "../../command/connection/ActivateConnectionCmd";
 import { CodewindStates } from "./CodewindStates";
-import CWEnvironment, { ICWEnvData } from "./CWEnvironment";
+import { ICWEnvData } from "./CWEnvironment";
+import Requester from "../project/Requester";
 
 const CHE_CW_URL = "https://localhost:9090";
 
@@ -167,30 +168,10 @@ export default class CodewindManager implements vscode.Disposable {
      * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
      */
     private async waitForCodewindToStart(baseUrl: vscode.Uri): Promise<void> {
-        const waitingToStartProm = new Promise<void>((resolve) => {
-            const delay = 1000;
-            let counter = 0;
-            const interval = setInterval(async () => {
-                counter++;
-                const logHealth = counter % 8 === 0;
-                if (logHealth) {
-                    Log.d(`Waiting for Codewind to start, ${counter * delay / 1000}s have elapsed`);
-                }
-                try {
-                    await CWEnvironment.getEnvData(baseUrl);
-                    clearInterval(interval);
-                    resolve();
-                }
-                catch (err) {
-                    if (logHealth) {
-                        Log.d("Error contacting ENV endpoint", err);
-                    }
-                }
-            }, delay);
-        });
+        const waitingForReadyProm = Requester.waitForReady(baseUrl);
         vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
-            `Waiting for Codewind to start...`, waitingToStartProm);
-        return waitingToStartProm;
+            `Waiting for Codewind to start...`, waitingForReadyProm);
+        return waitingForReadyProm;
     }
 
     public async connect(uri: vscode.Uri, cwEnv: ICWEnvData): Promise<Connection> {

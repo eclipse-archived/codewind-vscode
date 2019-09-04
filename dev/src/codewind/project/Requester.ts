@@ -235,6 +235,33 @@ namespace Requester {
             throw err;
         }
     }
+
+    export async function waitForReady(cwBaseUrl: vscode.Uri): Promise<void> {
+        const delay = 1000;
+        let counter = 0;
+        return new Promise<void>((resolve) => {
+            const interval = setInterval(async () => {
+                const logStatus = counter % 10 === 0;
+                if (logStatus) {
+                    Log.d(`Waiting for Codewind to be ready, ${counter * delay / 1000}s have elapsed`);
+                }
+                try {
+                    // Ping Codewind's 'ready' endpoint
+                    const res = await Requester.get(cwBaseUrl.with({ path: MCEndpoints.READY }));
+                    if (res === true) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }
+                catch (err) {
+                    if (logStatus) {
+                        Log.d("Error contacting ready endpoint", err);
+                    }
+                }
+                counter++;
+            }, delay);
+        });
+    }
 }
 
 export default Requester;
