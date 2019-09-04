@@ -22,7 +22,7 @@ import { CWConfigurations } from "../constants/Configurations";
 
 // const STRING_NS = StringNamespaces.TREEVIEW;
 
-export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<CodewindTreeItem> {
+export default class CodewindTreeDataProvider implements vscode.TreeDataProvider<CodewindTreeItem> {
 
     public static readonly VIEW_ID: string = "ext.cw.explorer";                  // must match package.nls.json
     public readonly treeView: vscode.TreeView<CodewindTreeItem>;
@@ -33,7 +33,7 @@ export default class ProjectTreeDataProvider implements vscode.TreeDataProvider<
     private root: vscode.TreeItem;
 
     constructor() {
-        this.treeView = vscode.window.createTreeView(ProjectTreeDataProvider.VIEW_ID, { treeDataProvider: this });
+        this.treeView = vscode.window.createTreeView(CodewindTreeDataProvider.VIEW_ID, { treeDataProvider: this });
 
         CodewindManager.instance.addOnChangeListener(this.refresh);
         Log.d("Finished constructing ProjectTree");
