@@ -58,6 +58,12 @@
                         "type": "boolean",
                         "default": true,
                         "scope": "application"
+                    },
+                    "codewind.promptToOpenWorkspace": {
+                        "description": "%configDescr_promptToOpenWorkspace%",
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "application"
                     }
                 }
             }

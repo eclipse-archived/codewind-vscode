@@ -40,7 +40,10 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
 
         this.root = TreeItemFactory.getRootTreeItems();
         if (MCUtil.isUserInCwWorkspaceOrProject()) {
-            const autoShowEnabled: boolean = vscode.workspace.getConfiguration().get(CWConfigurations.AUTO_SHOW_VIEW) || true;
+            let autoShowEnabled = vscode.workspace.getConfiguration().get(CWConfigurations.AUTO_SHOW_VIEW);
+            if (autoShowEnabled == null) {
+                autoShowEnabled = true;
+            }
             if (autoShowEnabled) {
                 Log.d("Auto-expanding the Codewind view");
                 this.treeView.reveal(this.root);
