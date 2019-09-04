@@ -11,10 +11,13 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import { inspect } from "util";
+import * as fs from "fs-extra";
+import * as zlib from "zlib";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
-import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
+import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
@@ -120,7 +123,29 @@ namespace UserProjectCreator {
             projectTypeInfo = userProjectType;
         }
 
+        if (connection.remote) {
+            return bindRemote(connection, projectName, pathToBind, projectTypeInfo);
+        } else {
+            return bindLocal(connection, projectName, pathToBind, projectTypeInfo);
+        }
+    }
+
+    async function bindLocal(connection: Connection, projectName: string,
+                             pathToBind: string, projectTypeInfo: IProjectTypeInfo):
+                             Promise<INewProjectInfo | undefined> {
+
         await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
+        return { projectName, projectPath: pathToBind };
+    }
+
+    async function bindRemote(connection: Connection, projectName: string,
+                              pathToBind: string, projectTypeInfo: IProjectTypeInfo):
+                              Promise<INewProjectInfo | undefined> {
+        const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
+        const projectID = projectInfo.projectID;
+        await traverseFileSystem(connection, projectID, pathToBind, pathToBind);
+
+        await requestRemoteBindEnd(connection, projectID);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -261,7 +286,7 @@ namespace UserProjectCreator {
             path: dirToBindContainerPath,
         };
 
-        Log.d("Bind request", bindReq);
+        Log.i("Bind request", bindReq);
 
         const bindEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.BIND);
         const bindRes = await Requester.post(bindEndpoint, {
@@ -269,9 +294,89 @@ namespace UserProjectCreator {
             body: bindReq,
         });
 
-        Log.d("Bind response", bindRes);
+        Log.i("Bind response", bindRes);
 
         // return bindRes;
+    }
+
+    async function requestRemoteBindStart(connection: Connection, projectName: string,
+                                          dirToBindContainerPath: string,
+                                          language: string, projectType: string): Promise<any> {
+
+        const bindReq = {
+            name: projectName,
+            language,
+            projectType,
+            path: dirToBindContainerPath,
+        };
+
+        Log.d("Remote Bind request", bindReq);
+
+        const remoteBindStartEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REMOTE_BIND_START);
+        const remoteBindRes = await Requester.post(remoteBindStartEndpoint, {
+            json: true,
+            body: bindReq,
+        });
+
+        Log.i("Remote Bind response", remoteBindRes);
+
+        return remoteBindRes;
+    }
+
+    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {
+
+
+        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
+        const strBuffer = zlib.deflateSync(fileContent);
+        const base64Compressed = strBuffer.toString("base64");
+        const relativePath = path.relative(parentPath, filePath);
+
+        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
+        const body = {
+            directory: false,
+            path: relativePath,
+            timestamp: Date.now(),
+            msg: base64Compressed,
+        };
+
+        const remoteBindRes = await Requester.put(remoteBindUpload, {
+            json: true,
+            body: body,
+        });
+
+        Log.i("Remote upload response", remoteBindRes);
+
+        return remoteBindRes;
+    }
+
+    async function requestRemoteBindEnd(connection: Connection, projectID: string): Promise<void> {
+
+        Log.i(`Remote Bind End request for ${projectID}`);
+
+        const remoteBindStartEndpoint = EndpointUtil.resolveProjectEndpoint(connection, projectID, ProjectEndpoints.REMOTE_BIND_END);
+        const remoteBindRes = await Requester.post(remoteBindStartEndpoint);
+
+        Log.i("Remote Bind response", remoteBindRes);
+    }
+
+    async function traverseFileSystem(connection: Connection, projectId: any, inputPath: string, parentPath: string): Promise<void> {
+        Log.i(`traverseFileSystem for ${projectId} at ${inputPath}`);
+        const files = fs.readdirSync(inputPath);
+
+        for (const f of files) {
+            const currentPath = `${inputPath}/${f}`;
+            // Log.i("Uploading " + currentPath);
+            const stats = fs.statSync(currentPath);
+            if (stats.isFile()) {
+                try {
+                    await remoteUpload(connection, projectId, currentPath, parentPath);
+                } catch (err) {
+                    Log.d(err);
+                }
+            } else if (stats.isDirectory()) {
+                await traverseFileSystem(connection, projectId, currentPath, parentPath);
+            }
+        }
     }
 }
 
