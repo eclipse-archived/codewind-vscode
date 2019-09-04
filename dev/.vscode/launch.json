@@ -11,7 +11,8 @@
             "request": "launch",
             "runtimeExecutable": "${execPath}",
             "args": [
-                "--extensionDevelopmentPath=${workspaceFolder}"
+                "--extensionDevelopmentPath=${workspaceFolder}",
+                "/Users/tim/programs/codewind/codewind-workspace"
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/**/*.js"
@@ -30,7 +31,7 @@
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 "--extensionTestsPath=${workspaceFolder}/out/test",
                 // Replace below with your local codewind-workspace
-                "/Users/tim/programs/tempest/codewind-workspace"
+                "/Users/tim/programs/codewind/codewind-workspace"
                 // "/Users/tim/codewind-workspace/"
             ],
             "outFiles": [

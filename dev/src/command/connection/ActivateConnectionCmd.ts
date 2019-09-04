@@ -17,8 +17,9 @@ import Connection from "../../codewind/connection/Connection";
 import CWEnvironment from "../../codewind/connection/CWEnvironment";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Commands from "../../constants/Commands";
 import { CWConfigurations } from "../../constants/Configurations";
+import MCUtil from "../../MCUtil";
+import openWorkspaceCmd from "../OpenWorkspaceCmd";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -39,14 +40,8 @@ export default async function activateConnection(url: vscode.Uri): Promise<void>
  */
 async function onConnectSuccess(connection: Connection): Promise<void> {
     Log.i("Successfully connected to codewind at " + connection.url);
-    let isInWorkspace = false;
-    // See if the user has this connection's workspace open
-    const wsFolders = vscode.workspace.workspaceFolders;
-    if (wsFolders != null) {
-        isInWorkspace = wsFolders.some((folder) => folder.uri.fsPath.includes(connection.workspacePath.fsPath));
-    }
 
-    if (!isInWorkspace) {
+    if (!await MCUtil.isUserInCwWorkspaceOrProject()) {
         // Provide a button to change their workspace to the codewind-workspace if they wish, and haven't disabled this feature.
         let promptOpenWs = vscode.workspace.getConfiguration().get(CWConfigurations.PROMPT_TO_OPEN_WORKSPACE);
         if (promptOpenWs == null) {
@@ -63,7 +58,7 @@ async function onConnectSuccess(connection: Connection): Promise<void> {
         );
 
         if (openWsRes === openWsBtn) {
-            vscode.commands.executeCommand(Commands.VSC_OPEN_FOLDER, connection.workspacePath);
+            openWorkspaceCmd(connection);
         }
         else if (openWsRes === dontShowAgainBtn) {
             vscode.window.showInformationMessage(

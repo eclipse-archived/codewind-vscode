@@ -16,6 +16,7 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import UserProjectCreator from "../../codewind/connection/UserProjectCreator";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
+import { showOpenWorkspacePrompt } from "./CreateUserProjectCmd";
 
 /**
  * @param create true for Create page, false for Import page
@@ -46,7 +47,14 @@ export default async function bindProject(connection: Connection): Promise<void>
         if (response == null) {
             return;
         }
-        vscode.window.showInformationMessage(`Adding ${MCUtil.containerPathToFsPath(response.projectPath)} as ${response.projectName}`);
+
+        const addedMsg = `Added ${MCUtil.containerPathToFsPath(response.projectPath)} as ${response.projectName}`;
+        if (await MCUtil.isUserInCwWorkspaceOrProject()) {
+            vscode.window.showInformationMessage(addedMsg);
+        }
+        else {
+            showOpenWorkspacePrompt(connection, addedMsg);
+        }
     }
     catch (err) {
         const errMsg = "Error importing project: ";
