@@ -44,6 +44,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
 
+    public readonly remote: boolean;
+
     constructor(
         public readonly url: vscode.Uri,
         cwEnv: CWEnvData,
@@ -52,10 +54,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.workspacePath = vscode.Uri.file(cwEnv.workspace);
         this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
         this.host = this.getHost(url);
+        this.remote = cwEnv.remote;
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        if (!remote) {
+        if (!this.remote) {
             this.initFileWatcherPromise = this.initFileWatcher();
         } else {
             // Disable file-watcher in remote mode for now.

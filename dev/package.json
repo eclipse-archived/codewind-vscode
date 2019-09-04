@@ -518,6 +518,7 @@
         "@types/socketio-wildcard": "^2.0.1",
         "@types/stack-trace": "0.0.29",
         "chai": "^4.2.0",
+        "fs-extra": "^8.0.0",
         "socketio-wildcard": "^2.0.0",
         "ts-node": "^7.0.1",
         "tslint": "^5.18.0",
