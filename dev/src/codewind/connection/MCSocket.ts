@@ -17,6 +17,8 @@ import Project from "../project/Project";
 import Log from "../../Logger";
 import SocketEvents from "./SocketEvents";
 import Validator from "../project/Validator";
+import projectOverviewCmd from "../../command/project/ProjectOverviewCmd";
+import { CWConfigurations } from "../../constants/Configurations";
 
 /**
  * Receives and reacts to socket events from Portal
@@ -100,6 +102,14 @@ export default class MCSocket implements vscode.Disposable {
             else {
                 const msg = `Project ${newProject.name} has been created`;
                 Log.i(msg);
+
+                let showOverviewOnCreate = vscode.workspace.getConfiguration().get(CWConfigurations.OVERVIEW_ON_CREATION);
+                if (showOverviewOnCreate == null) {
+                    showOverviewOnCreate = true;
+                }
+                if (showOverviewOnCreate) {
+                    projectOverviewCmd(newProject);
+                }
                 // vscode.window.showInformationMessage(msg);
             }
         }

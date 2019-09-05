@@ -7,6 +7,7 @@
     "configTitle": "Codewind",
     "configDescr_autoShowView": "Automatically expand the Codewind view after opening a Codewind workspace or project.",
     "configDescr_promptToOpenWorkspace": "Prompt to open the Codewind Workspace when the Codewind extension is activated",
+    "configDescr_overviewOnCreation": "Open the Project Overview page after creating or adding a new Codewind project",
 
     "commandCategory": "Codewind",
     "// Items starting with cmdID are not exposed to user": "",
