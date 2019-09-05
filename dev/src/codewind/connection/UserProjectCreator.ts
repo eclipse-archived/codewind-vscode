@@ -11,8 +11,6 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs-extra";
-import * as zlib from "zlib";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
@@ -148,7 +146,7 @@ namespace UserProjectCreator {
                               Promise<INewProjectInfo | undefined> {
         const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         const projectID = projectInfo.projectID;
-        await traverseFileSystem(connection, projectID, pathToBind, pathToBind);
+        await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind);
 
         await requestRemoteBindEnd(connection, projectID);
         return { projectName, projectPath: pathToBind };
@@ -328,32 +326,6 @@ namespace UserProjectCreator {
         return remoteBindRes;
     }
 
-    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {
-
-
-        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
-        const strBuffer = zlib.deflateSync(fileContent);
-        const base64Compressed = strBuffer.toString("base64");
-        const relativePath = path.relative(parentPath, filePath);
-
-        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
-        const body = {
-            directory: false,
-            path: relativePath,
-            timestamp: Date.now(),
-            msg: base64Compressed,
-        };
-
-        const remoteBindRes = await Requester.put(remoteBindUpload, {
-            json: true,
-            body: body,
-        });
-
-        Log.i("Remote upload response", remoteBindRes);
-
-        return remoteBindRes;
-    }
-
     async function requestRemoteBindEnd(connection: Connection, projectID: string): Promise<void> {
 
         Log.i(`Remote Bind End request for ${projectID}`);
@@ -364,25 +336,6 @@ namespace UserProjectCreator {
         Log.i("Remote Bind response", remoteBindRes);
     }
 
-    async function traverseFileSystem(connection: Connection, projectId: any, inputPath: string, parentPath: string): Promise<void> {
-        Log.i(`traverseFileSystem for ${projectId} at ${inputPath}`);
-        const files = fs.readdirSync(inputPath);
-
-        for (const f of files) {
-            const currentPath = `${inputPath}/${f}`;
-            // Log.i("Uploading " + currentPath);
-            const stats = fs.statSync(currentPath);
-            if (stats.isFile()) {
-                try {
-                    await remoteUpload(connection, projectId, currentPath, parentPath);
-                } catch (err) {
-                    Log.d(err);
-                }
-            } else if (stats.isDirectory()) {
-                await traverseFileSystem(connection, projectId, currentPath, parentPath);
-            }
-        }
-    }
 }
 
 export default UserProjectCreator;
