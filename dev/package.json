@@ -2,7 +2,7 @@
     "name": "codewind",
     "displayName": "%displayName%",
     "description": "%description%",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "publisher": "IBM",
     "engines": {
         "vscode": "^1.28.0"
