@@ -48,6 +48,7 @@ export enum ProjectEndpoints {
     UNBIND = "unbind",
 
     UPLOAD = "remote-bind/upload",
+    CLEAR = "remote-bind/clear",
     REMOTE_BIND_END = "remote-bind/end",
 
     CAPABILITIES = "capabilities",

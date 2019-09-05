@@ -164,6 +164,8 @@ namespace Requester {
         const buildMsg = Translator.t(STRING_NS, "build");
         if (project.connection.remote) {
             const localPath = MCUtil.fsPathToContainerPath(project.localPath);
+            Log.i(`Clearing existing content for ${project.name} from ${project.connection.host}`);
+            await requestClear(project);
             Log.i(`Copying updated files from ${localPath} to ${project.connection.host}`);
             await requestUploadsRecursively(project.connection, project.id, localPath, localPath);
         } else {
@@ -171,6 +173,12 @@ namespace Requester {
         }
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
     }
+
+    export async function requestClear(project: Project): Promise<void> {
+        const msg = Translator.t(STRING_NS, "clear");
+        await doProjectRequest(project, ProjectEndpoints.CLEAR, {}, Requester.post, msg, true);
+    }
+
 
     export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string): Promise<void> {
         Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
