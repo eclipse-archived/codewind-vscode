@@ -31,20 +31,6 @@ export default async function requestBuildCmd(project: Project): Promise<void> {
         // still do the build, though.
     }*/
 
-    // if (project.connection.remote) {
-    //     Log.i(`Copying updated files from ${project.localPath} to ${project.connection.host}`);
-    //     await syncChangedFiles(project);
-    // } else {
-    //     Log.i(`Local build from local file system at ${project.localPath}`);
-    // }
-
     Log.i(`Request build for project ${project.name}`);
     Requester.requestBuild(project);
 }
-
-// async function syncChangedFiles(project: Project) : Promise<void> {
-//     Log.i(`Request build for project ${project.name} ${project.localPath.fsPath}`);
-//     await exec(`docker exec -it codewind-pfe sh -c "rm -rf /codewind-workspace/${project.name}/*"`);
-//     await exec(`docker cp ${project.localPath.fsPath}/ codewind-pfe:/codewind-workspace`);
-// }
-

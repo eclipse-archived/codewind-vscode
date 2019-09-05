@@ -11,6 +11,9 @@
 
 import * as vscode from "vscode";
 import * as request from "request-promise-native";
+import * as path from "path";
+import * as fs from "fs-extra";
+import * as zlib from "zlib";
 
 import Project from "./Project";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
@@ -75,8 +78,59 @@ namespace Requester {
 
         // return doProjectRequest(project, url, body, request.post, "Build");
         const buildMsg = Translator.t(STRING_NS, "build");
+        if (project.connection.remote) {
+            const localPath = MCUtil.fsPathToContainerPath(project.localPath);
+            Log.i(`Copying updated files from ${localPath} to ${project.connection.host}`);
+            await requestUploadsRecursively(project.connection, project.id, localPath, localPath);
+        } else {
+            Log.i(`Local build from local file system at ${project.localPath}`);
+        }
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, request.post, buildMsg);
-        // await requestValidate(project, true);
+    }
+
+    export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string): Promise<void> {
+        Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
+        const files = fs.readdirSync(inputPath);
+
+        for (const f of files) {
+            const currentPath = `${inputPath}/${f}`;
+            // Log.i("Uploading " + currentPath);
+            const stats = fs.statSync(currentPath);
+            if (stats.isFile()) {
+                try {
+                    await remoteUpload(connection, projectId, currentPath, parentPath);
+                } catch (err) {
+                    Log.d(err);
+                }
+            } else if (stats.isDirectory()) {
+                await requestUploadsRecursively(connection, projectId, currentPath, parentPath);
+            }
+        }
+    }
+
+    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {
+
+        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
+        const strBuffer = zlib.deflateSync(fileContent);
+        const base64Compressed = strBuffer.toString("base64");
+        const relativePath = path.relative(parentPath, filePath);
+
+        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
+        const body = {
+            directory: false,
+            path: relativePath,
+            timestamp: Date.now(),
+            msg: base64Compressed,
+        };
+
+        const remoteBindRes = await Requester.put(remoteBindUpload, {
+            json: true,
+            body: body,
+        });
+
+        Log.i("Remote upload response", remoteBindRes);
+
+        return remoteBindRes;
     }
 
     export async function requestToggleAutoBuild(project: Project): Promise<void> {
