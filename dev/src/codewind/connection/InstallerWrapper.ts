@@ -514,16 +514,16 @@ namespace InstallerWrapper {
     }
 
     export async function validateProjectDirectory(projectPath: string): Promise<IInitializationResponse> {
-        return runProjectCommand(projectPath, undefined);
+        return runProjectCommand(projectPath);
     }
 
-    async function runProjectCommand(projectPath: string, url: string | null | undefined = null ): Promise<IInitializationResponse> {
+    async function runProjectCommand(projectPath: string, url?: string ): Promise<IInitializationResponse> {
         const executablePath = await initialize();
         const executableDir = path.dirname(executablePath);
 
         const cmd = "project";
         const args = [cmd, projectPath];
-        if (url != null) {
+        if (url !== undefined) {
             args.push("--url", url);
         }
 
