@@ -45,7 +45,7 @@ export interface CWEnvData {
 
 export interface TektonStatus {
     readonly status: boolean;
-    readonly message: string;       // error message if status is false - not used by us
+    readonly message: string;       // error message or "not-installed" if status is false
     readonly url: string;           // empty if status is false
 }
 
