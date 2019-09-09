@@ -31,8 +31,8 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
         <!--meta http-equiv="Content-Security-Policy" content="default-src 'self' ;"-->
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("repos-table.css")}"/>
+        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
         <!--${global.isTheia ?
             `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}-->
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>
@@ -43,24 +43,28 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
         <div id="top-section">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
             <h2>Manage Template Sources</h2>
-            <div id="learn-more" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
-                <img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>Learn More
+            <div id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
+                Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
             </div>
         </div>
 
-        <div id="toolbar">
-            <div class="btn toolbar-btn" onclick="onEnableAllOrNone(event, true)">
-                <img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>Enable All
+        <div id="table-wrapper">
+            <div id="toolbar">
+                <!--div class="btn toolbar-btn" onclick="onEnableAllOrNone(event, true)">
+                    Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
+                </div-->
+                <div id="toolbar-right-buttons">
+                    <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                        Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
+                    </div>
+                    <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                        Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
+                    </div>
+                </div>
             </div>
-            <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
-                <img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>Refresh
-            </div>
-            <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
-                <img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>Add New
-            </div>
-        </div>
 
-        ${buildTemplateTable(repos)}
+            ${buildTemplateTable(repos)}
+        </div>
     </div>
 
     <script>
@@ -69,7 +73,6 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
         // function onEnableAllOrNone(event, isSelectAll) {
         //     const repos = Array.from(document.getElementsByClassName("${REPO_TOGGLE_CLASS}"))
         //     .map((toggleBtn) => {
-        //
         //         return getRepoEnablementObj(toggleBtn);
         //     });
         //     sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos });

@@ -1,7 +1,14 @@
 
-#learn-more {
+#learn-more-btn {
     margin-left: auto;
     margin-right: 1em;
+}
+
+#table-wrapper {
+    width: 90%;
+    padding-left: 5%;
+    padding-right: 5%;
+    display: inline-block;
 }
 
 #toolbar {
@@ -14,7 +21,6 @@
     position: sticky;
     height: 3em;
 
-    border-bottom: 2px solid var(--vscode-editor-foreground);
     background: var(--vscode-editor-background);
     padding-top: 0.5em;
     padding-bottom: 0.5em;
@@ -28,39 +34,32 @@
     justify-content: center;
 }
 
+.toolbar-btn:not(#add-repo-btn):not(#learn-more-btn) {
+    color: var(--vscode-sideBar-foreground);
+    background-color: var(--vscode-sideBar-background);
+}
+
 .toolbar-btn > img {
-    padding-right: 0.5em;
+    padding-left: 1.5em;
     height: 1.5em;
 }
 
-td > .btn {
-    padding: 0;
-    padding-right: .5em;
-    padding-left: .5em;
-}
-
-.repo-toggle {
-    min-height: 250%;
-    height: 250%;
-}
-
-.repo-toggle-cell {
-    padding: 0;
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-    text-align: center;
+#toolbar-right-buttons {
+    margin-left: auto;
+    display: inherit;
+    justify-content: inherit;
 }
 
 #add-repo-btn {
-    margin-left: auto;
-    margin-right: 1em;
     padding-left: 1em;
     padding-right: 1.5em;
 }
 
 table {
+    width: 100%;
     border-spacing: 0;
     table-layout: fixed;
+    background-color: var(--vscode-welcomePage-buttonBackground);
 }
 
 #status-col {
@@ -94,7 +93,8 @@ thead > tr > td {
     top: 3.75em;               /* Must match the height of the #toolbar including padding */
     position: sticky;
     padding-bottom: 1em;
-    background: var(--vscode-editor-background);
+    color: var(--vscode-activityBar-foreground);
+    background: var(--vscode-activityBar-background);
 
     font-weight: bold;
     font-size: 110%;
@@ -103,6 +103,24 @@ thead > tr > td {
 
     border: none;
     border-bottom: 1px solid var(--vscode-editor-foreground);
+}
+
+td > .btn {
+    padding: 0;
+    padding-right: .5em;
+    padding-left: .5em;
+}
+
+.repo-toggle {
+    min-height: 250%;
+    height: 250%;
+}
+
+.repo-toggle-cell {
+    padding: 0;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    text-align: center;
 }
 
 .source-cell {
