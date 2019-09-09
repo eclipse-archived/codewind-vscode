@@ -35,6 +35,10 @@ const BIN_DIR = "bin";
 const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
+const INSTALLER_PREREQS: { [s: string]: string[]; } = {
+    [INSTALLER_EXECUTABLE]: ["appsody"],
+    [INSTALLER_EXECUTABLE_WIN]: ["appsody.exe"]
+};
 
 const TAG_OPTION = "-t";
 const JSON_OPTION = "-j";
@@ -129,10 +133,18 @@ namespace InstallerWrapper {
         }
         const executableDir = os.tmpdir();
         const executable = getInternalExecutable();
+        const executableDirname = path.dirname(executable);
         const executableBasename = path.basename(executable);
         _executablePath = path.join(executableDir, executableBasename);
         Log.d(`Copying ${executable} to ${_executablePath}`);
         fs.copyFileSync(executable, path.join(executableDir, executableBasename));
+        Log.d("Copying installer prerequisites");
+        for (const prereq of INSTALLER_PREREQS[executableBasename]) {
+            const source = path.join(executableDirname, prereq);
+            const target = path.join(executableDir, prereq);
+            Log.d(`Copying ${source} to ${target}`);
+            fs.copyFileSync(source, target);
+        }
         Log.i("Installer copy succeeded");
         return _executablePath;
     }
