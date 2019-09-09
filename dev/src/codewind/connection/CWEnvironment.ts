@@ -22,7 +22,7 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import MCUtil from "../../MCUtil";
 
 // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
-interface IRawCWEnvData {
+interface RawCWEnvData {
     readonly devops_available: boolean;
     readonly codewind_version: string;
     readonly os_platform: string;
@@ -30,21 +30,23 @@ interface IRawCWEnvData {
     readonly socket_namespace?: string;
     readonly user_string?: string;
     readonly workspace_location?: string;
-    readonly tekton_dashboard_url: string;
+    readonly tekton_dashboard: TektonStatus;
 }
 
 /**
  * Massaged env data, which the plugin is actually interested in
  */
-export interface ICWEnvData {
+export interface CWEnvData {
     readonly workspace: string;
     readonly socketNamespace: string;
     readonly version: number;
-    /**
-     * In Kube, may be a URL to a tekton dashboard, "not-installed", or "error".
-     * On local, is always "" - for now.
-     */
-    readonly tektonStatus: string;
+    readonly tektonStatus: TektonStatus;
+}
+
+export interface TektonStatus {
+    readonly status: boolean;
+    readonly message: string;       // error message if status is false - not used by us
+    readonly url: string;           // empty if status is false
 }
 
 namespace CWEnvironment {
@@ -52,7 +54,7 @@ namespace CWEnvironment {
      * Get the environment data for a Codewind instance at the given url.
      * Separate from normal Requester code because we do not yet have a Connection instance at this point.
      */
-    export async function getEnvData(url: Uri): Promise<ICWEnvData> {
+    export async function getEnvData(url: Uri): Promise<CWEnvData> {
         const envUri: Uri = url.with({ path: MCEndpoints.ENVIRONMENT });
         const connectTimeout = 2500;
 
@@ -71,7 +73,7 @@ namespace CWEnvironment {
         }
     }
 
-    function massageEnv(rawEnv: IRawCWEnvData): ICWEnvData {
+    function massageEnv(rawEnv: RawCWEnvData): CWEnvData {
         // massage env data
         const rawWorkspace = rawEnv.workspace_location;
         const rawSocketNS = rawEnv.socket_namespace || "";
@@ -92,7 +94,7 @@ namespace CWEnvironment {
             workspace,
             version,
             socketNamespace,
-            tektonStatus: rawEnv.tekton_dashboard_url,
+            tektonStatus: rawEnv.tekton_dashboard,
         };
     }
 
@@ -103,7 +105,7 @@ namespace CWEnvironment {
      *
      * **Throws an error** if the version is not supported.
      */
-    export function getVersionNumber(envData: IRawCWEnvData): number {
+    export function getVersionNumber(envData: RawCWEnvData): number {
         if (envData.codewind_version === "latest") {      // non-nls
             // This means it's being hosted by an internal MC dev.
             // There's nothing we can do here but assume they have all the features we need.
