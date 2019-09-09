@@ -27,6 +27,7 @@ import Constants from "../../constants/Constants";
 import { INSTALLER_COMMANDS, InstallerCommands, getUserActionName, doesUseTag } from "./InstallerCommands";
 import CodewindManager from "./CodewindManager";
 import { CodewindStates } from "./CodewindStates";
+import { IInitializationResponse } from "./UserProjectCreator";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -505,6 +506,61 @@ namespace InstallerWrapper {
                 const message = lineObj.status + ":" + imageTag;
                 progress.report({ message });
             }
+        });
+    }
+
+    export async function createProject(projectPath: string, url: string) : Promise<IInitializationResponse> {
+        return runProjectCommand(projectPath, url);
+    }
+
+    export async function validateProjectDirectory(projectPath: string): Promise<IInitializationResponse> {
+        return runProjectCommand(projectPath);
+    }
+
+    async function runProjectCommand(projectPath: string, url?: string ): Promise<IInitializationResponse> {
+        const executablePath = await initialize();
+        const executableDir = path.dirname(executablePath);
+
+        const cmd = "project";
+        const args = [cmd, projectPath];
+        if (url !== undefined) {
+            args.push("--url", url);
+        }
+
+        return new Promise<any>((resolve, reject) => {
+
+            const child = child_process.spawn(executablePath, args, {
+                cwd: executableDir
+            });
+
+            child.on("error", (err) => {
+                return reject(err);
+            });
+
+            let outStr = "";
+            let errStr = "";
+            child.stdout.on("data", (chunk) => { outStr += chunk.toString(); });
+            child.stderr.on("data", (chunk) => { errStr += chunk.toString(); });
+
+            child.on("close", (code: number | null) => {
+                if (code == null) {
+                    // this happens in SIGTERM case, not sure what else may cause it
+                    Log.d(`Installer command ${cmd} did not exit normally, likely was cancelled`);
+                }
+                else if (code !== 0) {
+                    Log.e(`Error running installer command ${cmd}`, errStr);
+                    outStr = outStr || "No output";
+                    errStr = errStr || "Unknown error " + args.join(" ");
+                    Log.e("Stdout:", outStr);
+                    Log.e("Stderr:", errStr);
+                    reject(errStr);
+                }
+                else {
+                    Log.i(`Successfully ran installer command: ${cmd}`);
+                    const validationResponse = JSON.parse(outStr);
+                    resolve(validationResponse);
+                }
+            });
         });
     }
 }

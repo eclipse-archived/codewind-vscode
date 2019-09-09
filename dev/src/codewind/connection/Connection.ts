@@ -152,14 +152,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // things to do on reconnect, but not initial connect, go here
             this._projects.forEach((p) => p.onConnectionReconnect());
         }
+        await Requester.waitForReady(this.url);
         this.hasConnected = true;
         this._isConnected = true;
         Log.d(`${this} is now connected`);
         try {
             await this.forceUpdateProjectList();
-            // This is kind of a hack, but I have seen intermittently empty project lists immediately after reconnecting on slow machines.
-            // If we do another refresh after 5 seconds, it should handle this error case.
-            setTimeout(() => this.forceUpdateProjectList(), 5000);
         }
         catch (err) {
             Log.e("Error getting projects list after connect event", err);

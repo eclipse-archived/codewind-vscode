@@ -11,13 +11,13 @@
 
 import * as vscode from "vscode";
 
-import ProjectTreeDataProvider from "./ProjectTree";
+import CodewindTreeDataProvider from "./CodewindTree";
 import Log from "../Logger";
 
 export default function createViews(): vscode.Disposable[] {
     Log.d("Initializing views");
 
     return [
-        (new ProjectTreeDataProvider()).treeView,
+        (new CodewindTreeDataProvider()).treeView,
     ];
 }

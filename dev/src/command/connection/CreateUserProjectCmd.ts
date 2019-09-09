@@ -17,6 +17,7 @@ import MCUtil from "../../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
+import openWorkspaceCmd from "../OpenWorkspaceCmd";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -59,13 +60,30 @@ export default async function createProject(connection: Connection): Promise<voi
             // user cancelled
             return;
         }
-        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`);
+
+        const createdMsg = `Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`;
+        if (await MCUtil.isUserInCwWorkspaceOrProject()) {
+            vscode.window.showInformationMessage(createdMsg);
+        }
+        else {
+            showOpenWorkspacePrompt(connection, createdMsg);
+        }
     }
     catch (err) {
         const errMsg = "Error creating new project: ";
         Log.e(errMsg, err);
         vscode.window.showErrorMessage(errMsg + MCUtil.errToString(err));
     }
+}
+
+export async function showOpenWorkspacePrompt(connection: Connection, msg: string): Promise<void> {
+    const openWorkspaceBtn = "Open Workspace";
+    vscode.window.showInformationMessage(msg, openWorkspaceBtn)
+    .then((res) => {
+        if (res === openWorkspaceBtn) {
+            openWorkspaceCmd(connection);
+        }
+    });
 }
 
 const TEMPLATE_QP_PLACEHOLDER = "Select the project type to create";

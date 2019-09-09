@@ -11,4 +11,6 @@
 
 export enum CWConfigurations {
     AUTO_SHOW_VIEW = "codewind.autoShowView",
+    PROMPT_TO_OPEN_WORKSPACE = "codewind.promptToOpenWorkspace",
+    OVERVIEW_ON_CREATION = "codewind.openOverviewOnCreation",
 }

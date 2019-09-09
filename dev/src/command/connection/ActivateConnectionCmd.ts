@@ -17,7 +17,9 @@ import Connection from "../../codewind/connection/Connection";
 import CWEnvironment from "../../codewind/connection/CWEnvironment";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Commands from "../../constants/Commands";
+import { CWConfigurations } from "../../constants/Configurations";
+import MCUtil from "../../MCUtil";
+import openWorkspaceCmd from "../OpenWorkspaceCmd";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -38,26 +40,31 @@ export default async function activateConnection(url: vscode.Uri): Promise<void>
  */
 async function onConnectSuccess(connection: Connection): Promise<void> {
     Log.i("Successfully connected to codewind at " + connection.url);
-    let inMcWorkspace = false;
-    // See if the user has this connection's workspace open
-    const wsFolders = vscode.workspace.workspaceFolders;
-    if (wsFolders != null) {
-        inMcWorkspace = wsFolders.some((folder) => folder.uri.fsPath.includes(connection.workspacePath.fsPath));
-    }
 
-    if (!inMcWorkspace) {
+    if (!await MCUtil.isUserInCwWorkspaceOrProject()) {
+        // Provide a button to change their workspace to the codewind-workspace if they wish, and haven't disabled this feature.
+        let promptOpenWs = vscode.workspace.getConfiguration().get(CWConfigurations.PROMPT_TO_OPEN_WORKSPACE);
+        if (promptOpenWs == null) {
+            promptOpenWs = true;
+        }
+        if (!promptOpenWs) {
+            return;
+        }
+
         const openWsBtn = "Open Workspace";
+        const dontShowAgainBtn = "Hide This Message";
+        const openWsRes = await vscode.window.showInformationMessage(Translator.t(STRING_NS, "openWorkspacePrompt"),
+            { modal: true }, openWsBtn, dontShowAgainBtn
+        );
 
-        // Provide a button to change their workspace to the codewind-workspace if they wish
-        vscode.window.showInformationMessage(Translator.t(STRING_NS, "openWorkspacePrompt"), openWsBtn)
-        .then((response) => {
-            if (response === openWsBtn) {
-                vscode.commands.executeCommand(Commands.VSC_OPEN_FOLDER, connection.workspacePath);
-            }
-        });
-    }
-    else {
-        // The user already has the workspace open, we don't have to do it for them.
-        // vscode.window.showInformationMessage(successMsg);
+        if (openWsRes === openWsBtn) {
+            openWorkspaceCmd(connection);
+        }
+        else if (openWsRes === dontShowAgainBtn) {
+            vscode.window.showInformationMessage(
+                `You can re-enable the Open Workspace prompt by setting "${CWConfigurations.PROMPT_TO_OPEN_WORKSPACE}" in the Preferences.`
+            );
+            vscode.workspace.getConfiguration().update(CWConfigurations.PROMPT_TO_OPEN_WORKSPACE, false, vscode.ConfigurationTarget.Global);
+        }
     }
 }

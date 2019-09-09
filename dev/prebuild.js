@@ -98,10 +98,6 @@ async function prebuildTheia(pj) {
     pj.contributes.commands = removeCommands(pj.contributes.commands, theia_cmdsToDelete);
     pj.contributes.menus = removeMenus(pj.contributes.menus, theia_cmdsToDelete);
 
-    // Delete the installer
-    await util.promisify(rimraf)(INSTALLER_DIR);
-    console.log(`Deleted ${INSTALLER_DIR}`);
-
     return pj;
 }
 

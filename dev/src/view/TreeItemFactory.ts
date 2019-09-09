@@ -20,7 +20,6 @@ import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import Commands from "../constants/Commands";
 import CodewindManager from "../codewind/connection/CodewindManager";
-import { CODEWIND_STATES } from "../codewind/connection/CodewindStates";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -71,7 +70,8 @@ namespace TreeItemFactory {
         const cwStarted = CodewindManager.instance.isStarted;
 
         let label = "Codewind";
-        if (CODEWIND_STATES[cwState].isErrorState || CODEWIND_STATES[cwState].isTransitionState) {
+        // Show state except when started (since it's obvious in that case).
+        if (!cwStarted) {
             label += ` (${cwState})`;
         }
         const tooltip = (CodewindManager.instance.codewindUrl || "Stopped").toString();
