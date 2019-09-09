@@ -98,7 +98,12 @@ namespace Resources {
         Info = "info.svg",
         LocalProjects = "local_projects.svg",
         New = "new.svg",
+        Play = "play.svg",
         Refresh = "refresh.svg",
+        Stop = "stop.svg",
+        ToggleOn = "toggle_on.svg",
+        ToggleOff = "toggle_off.svg",
+        Trash = "trash.svg",
 
         Generic      = "project-types/cloud.svg",
         Go           = "project-types/go.svg",

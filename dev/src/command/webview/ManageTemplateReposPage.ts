@@ -16,8 +16,9 @@ import Resources from "../../constants/Resources";
 import WebviewUtil from "./WebviewUtil";
 import { IRawTemplateRepo, ManageReposWVMessages, REPOS_PAGE_TITLE } from "../connection/ManageTemplateReposCmd";
 
-const REPO_ID_ATTR_NAME = "data-id";
-const REPO_CHECKBOX_CLASS = "repo-toggle";
+const REPO_ID_ATTR = "data-id";
+const REPO_ENABLED_ATTR = "data-enabled";
+const REPO_TOGGLE_CLASS = "repo-toggle";
 export const LEARN_MORE_LINK = "learn-more-placeholder";
 
 export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
@@ -42,60 +43,70 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
         <div id="top-section">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
             <h2>${REPOS_PAGE_TITLE}</h2>
+            <div id="learn-more" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
+                <img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>Learn More
+            </div>
         </div>
 
         <div id="toolbar">
-            <div class="btn toolbar-btn" onclick="onSelectAllOrNone(event, true)">
-                <input type="checkbox" class="btn" checked/>Select All
-            </div>
-            <div class="btn toolbar-btn" onclick="onSelectAllOrNone(event, false)">
-                <input type="checkbox" class="btn"/>Select None
+            <div class="btn toolbar-btn" onclick="onEnableAllOrNone(event, true)">
+                <img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>Enable All
             </div>
             <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
                 <img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>Refresh
             </div>
-            <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
-                <img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>Learn More
+            <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                <img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>Add New
             </div>
-            <input id="add-repo-btn" class="btn btn-w-background"
-                type="button" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')" class="btn" value="Add New"/>
-
         </div>
 
         ${buildTemplateTable(repos)}
     </div>
 
-    <script type="text/javascript">
+    <script>
         const vscode = acquireVsCodeApi();
 
-        function onSelectAllOrNone(event, isSelectAll) {
-            event.preventDefault();
-            const repos = Array.from(document.getElementsByClassName("${REPO_CHECKBOX_CLASS}"))
-            .map((checkbox) => {
-                console.log("Disable " + JSON.stringify(checkbox));
-                checkbox.checked = isSelectAll;
-                return getRepoEnablementObj(checkbox);
-            });
-            sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos });
-        }
+        // function onEnableAllOrNone(event, isSelectAll) {
+        //     const repos = Array.from(document.getElementsByClassName("${REPO_TOGGLE_CLASS}"))
+        //     .map((toggleBtn) => {
+        //
+        //         return getRepoEnablementObj(toggleBtn);
+        //     });
+        //     sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos });
+        // }
 
-        function onToggleRepo(checkbox) {
-            sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(checkbox) ] })
+        function onToggleRepo(toggleBtn) {
+
+            // update the enable attr, and switch the toggle image
+            const newEnablement = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") != "true";
+            toggleBtn.setAttribute("${REPO_ENABLED_ATTR}", newEnablement);
+
+            let newToggleImg;
+            if (newEnablement) {
+                newToggleImg = "${getStatusToggleIconSrc(true)}";
+            }
+            else {
+                newToggleImg = "${getStatusToggleIconSrc(false)}";
+            }
+            toggleBtn.src = newToggleImg;
+
+            sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(toggleBtn) ] });
         }
 
         /**
          * Generate data field to pass back in IRepoEnablementEvent (see ManageTemplateReposCmd)
          */
-        function getRepoEnablementObj(checkbox) {
-            const repoID = checkbox.getAttribute("${REPO_ID_ATTR_NAME}");
+        function getRepoEnablementObj(toggleBtn) {
+            const repoID = toggleBtn.getAttribute("${REPO_ID_ATTR}");
+            const enable = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") == "true";
             return {
                 repoID,
-                enable: checkbox.checked,
+                enable,
             };
         }
 
         function deleteRepo(repoDeleteBtn) {
-            const repoID = repoDeleteBtn.getAttribute("${REPO_ID_ATTR_NAME}");
+            const repoID = repoDeleteBtn.getAttribute("${REPO_ID_ATTR}");
             sendMsg("${ManageReposWVMessages.DELETE}", repoID);
         }
 
@@ -118,14 +129,20 @@ function buildTemplateTable(repos: IRawTemplateRepo[]): string {
 
     return `
     <table>
+        <colgroup>
+            <col id="status-col"/>
+            <col id="descr-col"/>
+            <col id="source-col"/>
+            <col id="delete-col"/>
+        </colgroup>
         <thead>
             <tr>
-                <td></td>
+                <td>Status</td>
                 <!--td>Repo Name</td-->
                 <!--td>Style</td-->
                 <td>Description</td>
                 <td>Link</td>
-                <td class="no-border"></td>        <!-- Delete buttons column -->
+                <td></td>        <!-- Delete buttons column -->
             </tr>
         </thead>
         <tbody>
@@ -138,17 +155,42 @@ function buildTemplateTable(repos: IRawTemplateRepo[]): string {
 function buildRepoRow(repo: IRawTemplateRepo): string {
     return `
     <tr>
-        <td class="repo-toggle-cell">
-            <input ${REPO_ID_ATTR_NAME}="${repo.url}" class="${REPO_CHECKBOX_CLASS}" type="checkbox" class="btn" ${repo.enabled ? "checked" : ""}
-            onclick="onToggleRepo(this)"/>
-        </td>
+        ${getStatusToggleTD(repo)}
         <!--td class="name-cell">${repo.name}</td-->
         <!--td class="style-cell">${"????????, ".repeat(2)}</td-->
         <td class="descr-cell">${repo.description}</td>
         <td class="source-cell"><a href="${repo.url}">Source</a></td>
-        <td class="delete-btn-cell no-border">
-            <input ${REPO_ID_ATTR_NAME}="${repo.url}" class="red-btn btn" type="button" onclick="deleteRepo(this)" class="btn" value="Delete"/>
-        </td>
+        ${getDeleteBtnTD(repo)}
     </tr>
     `;
+}
+
+function getStatusToggleTD(repo: IRawTemplateRepo): string {
+    return `<td class="repo-toggle-cell">
+        <img ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}" class="${REPO_TOGGLE_CLASS} btn"
+            src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
+    </td>`;
+}
+
+function getStatusToggleIconSrc(enabled: boolean): string {
+    return WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOn : Resources.Icons.ToggleOff);
+}
+
+function getDeleteBtnTD(repo: IRawTemplateRepo): string {
+    let title = "Delete";
+    let deleteBtnClass = "btn";
+    let onClick = "deleteRepo(this)";
+    if (repo.protected) {
+        deleteBtnClass += " not-allowed";
+        title = "This source cannot be deleted.";
+        onClick = "";
+    }
+
+    const deleteBtn = `<img ${REPO_ID_ATTR}="${repo.url}" alt="Delete" title="${title}" onclick="${onClick}" class="${deleteBtnClass}"
+        src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
+
+    return `
+    <td class="delete-btn-cell">
+        ${deleteBtn}
+    </td>`;
 }

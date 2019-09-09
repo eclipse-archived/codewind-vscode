@@ -1,4 +1,8 @@
 
+#learn-more {
+    margin-left: auto;
+    margin-right: 1em;
+}
 
 #toolbar {
     width: 100%;
@@ -29,18 +33,19 @@
     height: 1.5em;
 }
 
-.toolbar-btn > input[type=checkbox] {
-    zoom: 2;
-    margin-right: 0.25em;
+td > .btn {
+    padding: 0;
+    padding-right: .5em;
+    padding-left: .5em;
 }
 
 .repo-toggle {
-    zoom: 2;
-    text-align: center;
-    vertical-align: middle;
+    min-height: 250%;
+    height: 250%;
 }
 
 .repo-toggle-cell {
+    padding: 0;
     padding-left: 0.5em;
     padding-right: 0.5em;
     text-align: center;
@@ -49,10 +54,25 @@
 #add-repo-btn {
     margin-left: auto;
     margin-right: 1em;
+    padding-left: 1em;
+    padding-right: 1.5em;
 }
 
 table {
     border-spacing: 0;
+    table-layout: fixed;
+}
+
+#status-col {
+    width: 75px;
+}
+
+#source-col {
+    width: 100px;
+}
+
+#delete-col {
+    width: 50px;
 }
 
 td {
@@ -66,7 +86,7 @@ tr:first-child > td {
     border-top: none;
 }
 
-td:not(:nth-last-child(2)) {
+td:not(:nth-last-child(1)) {
     border-right: none;
 }
 
@@ -85,23 +105,11 @@ thead > tr > td {
     border-bottom: 1px solid var(--vscode-editor-foreground);
 }
 
-.no-border {
-    border: none;
-}
-
-.name-cell {
-    max-width: 33%;
-}
-
-.descr-cell {
-    max-width: 50%;
-}
-
 .source-cell {
     text-align: center;
 }
 
 .delete-btn-cell {
     padding: 0;
-    padding-left: 1em;
+    text-align: center;
 }

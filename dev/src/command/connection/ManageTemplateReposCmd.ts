@@ -32,6 +32,7 @@ export interface IRawTemplateRepo {
     readonly name: string;
     readonly description: string;
     readonly enabled: boolean;
+    readonly protected: boolean;
 }
 
 export enum ManageReposWVMessages {

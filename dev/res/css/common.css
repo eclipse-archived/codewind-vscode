@@ -57,6 +57,9 @@ input[type="checkbox"]:disabled {
 /* Override btn hover behaviour defined above */
 .btn-disabled:hover, .btn-disabled:focus {
     outline: var(--disabled-btn-color);
+}
+
+.btn-disabled:hover, .btn-disabled:focus, .not-allowed:hover, .not-allowed:focus {
     text-decoration: none;
     cursor: not-allowed;
 }
