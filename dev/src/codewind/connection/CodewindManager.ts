@@ -19,7 +19,7 @@ import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
 import activateConnection from "../../command/connection/ActivateConnectionCmd";
 import { CodewindStates } from "./CodewindStates";
-import { ICWEnvData } from "./CWEnvironment";
+import { CWEnvData } from "./CWEnvironment";
 import Requester from "../project/Requester";
 
 const CHE_CW_URL = "https://localhost:9090";
@@ -174,7 +174,7 @@ export default class CodewindManager implements vscode.Disposable {
         return waitingForReadyProm;
     }
 
-    public async connect(uri: vscode.Uri, cwEnv: ICWEnvData): Promise<Connection> {
+    public async connect(uri: vscode.Uri, cwEnv: CWEnvData): Promise<Connection> {
         const existing = this._connections[0];
         if (existing) {
             if (existing.url.toString() === uri.toString()) {
