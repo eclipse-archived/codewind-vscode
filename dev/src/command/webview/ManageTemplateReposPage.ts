@@ -14,7 +14,7 @@
 import Resources from "../../constants/Resources";
 // import MCUtil from "../../MCUtil";
 import WebviewUtil from "./WebviewUtil";
-import { IRawTemplateRepo, ManageReposWVMessages, REPOS_PAGE_TITLE } from "../connection/ManageTemplateReposCmd";
+import { IRawTemplateRepo, ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
 
 const REPO_ID_ATTR = "data-id";
 const REPO_ENABLED_ATTR = "data-enabled";
@@ -42,7 +42,7 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
     <div id="main">
         <div id="top-section">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
-            <h2>${REPOS_PAGE_TITLE}</h2>
+            <h2>Manage Template Sources</h2>
             <div id="learn-more" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
                 <img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>Learn More
             </div>

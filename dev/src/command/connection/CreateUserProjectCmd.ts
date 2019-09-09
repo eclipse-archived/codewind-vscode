@@ -18,6 +18,7 @@ import UserProjectCreator, { IMCTemplateData } from "../../codewind/connection/U
 import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 import openWorkspaceCmd from "../OpenWorkspaceCmd";
+import manageTemplateReposCmd from "./ManageTemplateReposCmd";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -93,6 +94,17 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
 
     if (templates == null) {
         // The user has no repos or has disabled all repos
+        const manageReposBtn = "Manage Template Sources";
+        await vscode.window.showErrorMessage(
+            "You have no enabled template sources. You must enable at least one template source in order to create projects.",
+            manageReposBtn)
+        .then((res) => {
+            if (res === manageReposBtn) {
+                manageTemplateReposCmd(connection);
+            }
+        });
+
+        return undefined;
     }
 
     const templateQpis: Array<vscode.QuickPickItem & IMCTemplateData> = templates.map((type) => {

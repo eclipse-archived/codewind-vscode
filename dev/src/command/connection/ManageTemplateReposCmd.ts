@@ -22,10 +22,9 @@ import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Constants from "../../constants/Constants";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
-// import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 
 /**
- * Template repository data as provided by the backend
+ * Template repository/source data as provided by the backend
  */
 export interface IRawTemplateRepo {
     readonly url: string;
@@ -53,7 +52,7 @@ export interface IRepoEnablementEvent {
     }];
 }
 
-export const REPOS_PAGE_TITLE = "Template Repositories";
+const REPOS_PAGE_TITLE = "Template Sources";
 
 // Only allow one of these for now - This should be moved to be per-connection like how overview is per-project.
 let manageReposPage: vscode.WebviewPanel | undefined;
@@ -143,7 +142,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                     await refreshPage(connection);
                 }
                 catch (err) {
-                    vscode.window.showErrorMessage(`Error adding new template repository: ${MCUtil.errToString(err)}`, err);
+                    vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`, err);
                     Log.e(`Error adding new template repo ${repoInfo}`, err);
                 }
                 break;
@@ -157,7 +156,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                     await refreshPage(connection);
                 }
                 catch (err) {
-                    vscode.window.showErrorMessage(`Error deleting template repository ${repoUrl}: ${MCUtil.errToString(err)}`, err);
+                    vscode.window.showErrorMessage(`Error deleting template source ${repoUrl}: ${MCUtil.errToString(err)}`, err);
                     Log.e(`Error removing template repo ${repoUrl}`, err);
                 }
                 break;
@@ -187,7 +186,7 @@ async function promptForNewRepo(): Promise<{ repoUrl: string, description: strin
     let repoUrl = await vscode.window.showInputBox({
         ignoreFocusOut: true,
         placeHolder: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
-        prompt: "Enter the URL to your template repository's index file.",
+        prompt: "Enter the URL to your template source's index file.",
         validateInput: validateRepoInput,
     });
 
@@ -199,7 +198,7 @@ async function promptForNewRepo(): Promise<{ repoUrl: string, description: strin
     let description = await vscode.window.showInputBox({
         ignoreFocusOut: true,
         placeHolder: "My Templates",
-        prompt: "Enter a description for this template repository",
+        prompt: "Enter a description for this template source",
     });
     if (!description) {
         description = "(No description)";
