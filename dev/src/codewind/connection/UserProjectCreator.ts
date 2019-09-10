@@ -289,7 +289,7 @@ namespace UserProjectCreator {
             path: dirToBindContainerPath,
         };
 
-        Log.i("Bind request", bindReq);
+        Log.d("Bind request", bindReq);
 
         const bindEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.BIND);
         const bindRes = await Requester.post(bindEndpoint, {
@@ -297,7 +297,7 @@ namespace UserProjectCreator {
             body: bindReq,
         });
 
-        Log.i("Bind response", bindRes);
+        Log.d("Bind response", bindRes);
 
         // return bindRes;
     }

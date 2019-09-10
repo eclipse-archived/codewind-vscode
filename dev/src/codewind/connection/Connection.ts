@@ -54,7 +54,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.workspacePath = vscode.Uri.file(cwEnv.workspace);
         this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
         this.host = this.getHost(url);
-        this.remote = cwEnv.remote;
+        this.remote = true;
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here

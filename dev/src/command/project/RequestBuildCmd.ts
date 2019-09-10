@@ -18,8 +18,6 @@ import Requester from "../../codewind/project/Requester";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
-// import { exec } from "child_process";
-
 export default async function requestBuildCmd(project: Project): Promise<void> {
     if (project.state.isBuilding) {
         vscode.window.showWarningMessage(Translator.t(StringNamespaces.CMD_MISC, "projectAlreadyBuilding", { projectName: project.name }));
