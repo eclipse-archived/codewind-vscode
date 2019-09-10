@@ -22,7 +22,7 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { IRawTemplateRepo, IRepoEnablementEvent } from "../../command/connection/ManageTemplateReposCmd";
+import { IRawTemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
@@ -75,6 +75,10 @@ namespace Requester {
         return result;
     }
 
+    export async function getTemplateRepos(connection: Connection): Promise<IRawTemplateRepo[]> {
+        return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
+    }
+
     export async function addTemplateRepo(connection: Connection, repoID: string, description: string): Promise<IRawTemplateRepo[]> {
         const body = {
             url: repoID,
@@ -96,7 +100,7 @@ namespace Requester {
         value: string;
     }
 
-    export async function enableTemplateRepos(connection: Connection, enablements: IRepoEnablementEvent): Promise<void> {
+    export async function enableTemplateRepos(connection: Connection, enablements: IRepoEnablement): Promise<void> {
         const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
             return {
                 op: "enable",

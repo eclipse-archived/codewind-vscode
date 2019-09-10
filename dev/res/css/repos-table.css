@@ -70,6 +70,7 @@ table {
     width: 100%;
     border-spacing: 0;
     table-layout: fixed;
+    background-color: var(--vscode-welcomePage-background);     /* Doesn't work! */
 }
 
 #status-col {

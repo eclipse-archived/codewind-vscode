@@ -15,7 +15,7 @@ import Resources from "../../constants/Resources";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import { ProjectOverviewWVMessages, IWVOpenable } from "./ProjectOverviewPage";
-import { ManageReposWVMessages, IRepoEnablementEvent } from "../connection/ManageTemplateReposCmd";
+import { ManageReposWVMessages, IRepoEnablement } from "../connection/ManageTemplateReposCmd";
 
 const RESOURCE_SCHEME = "vscode-resource:";
 
@@ -35,7 +35,7 @@ namespace WebviewUtil {
         type: ProjectOverviewWVMessages | ManageReposWVMessages;
         data:
             IWVOpenable |           // used by project overview
-            IRepoEnablementEvent |  // used by repo management
+            IRepoEnablement |  // used by repo management
             string;
     }
 

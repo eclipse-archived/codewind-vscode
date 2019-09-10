@@ -21,7 +21,6 @@ import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Constants from "../../constants/Constants";
-import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 
 /**
  * Template repository/source data as provided by the backend
@@ -45,11 +44,11 @@ export enum ManageReposWVMessages {
 /**
  * 'data' field of ENABLE_DISABLE event, which can be converted to an enablement request.
  */
-export interface IRepoEnablementEvent {
-    readonly repos: [{
+export interface IRepoEnablement {
+    readonly repos: Array<{
         readonly repoID: string;
         readonly enable: boolean;
-    }];
+    }>;
 }
 
 const REPOS_PAGE_TITLE = "Template Sources";
@@ -90,16 +89,15 @@ export default async function manageTemplateReposCmd(connection: Connection): Pr
         dark:  vscode.Uri.file(icons.dark)
     };
 
-    refreshPage(connection);
+    refreshManageReposPage(connection);
     manageReposPage.webview.onDidReceiveMessage(handleWebviewMessage.bind(connection));
 }
 
-async function refreshPage(connection: Connection): Promise<void> {
+export async function refreshManageReposPage(connection: Connection): Promise<void> {
     if (!manageReposPage) {
-        Log.e("Refreshing manage repos page but it doesn't exist");
         return;
     }
-    const html = generateManageReposHtml(await fetchRepositoryList(connection));
+    const html = generateManageReposHtml(await Requester.getTemplateRepos(connection));
 
     // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
     if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
@@ -117,14 +115,14 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
     try {
         switch (msg.type) {
             case ManageReposWVMessages.ENABLE_DISABLE: {
-                const enablement = msg.data as IRepoEnablementEvent;
+                const enablement = msg.data as IRepoEnablement;
                 Log.i("Enable/Disable repos:", enablement);
                 try {
                     await Requester.enableTemplateRepos(connection, enablement);
                 }
                 catch (err) {
                     // If any of the enablements fail, the checkboxes will be out of sync with the backend state, so refresh the page to reset
-                    await refreshPage(connection);
+                    await refreshManageReposPage(connection);
                 }
                 break;
             }
@@ -139,7 +137,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
 
                 try {
                     await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.description);
-                    await refreshPage(connection);
+                    await refreshManageReposPage(connection);
                 }
                 catch (err) {
                     vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`, err);
@@ -165,7 +163,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
 
                 try {
                     await Requester.removeTemplateRepo(connection, repoUrl);
-                    await refreshPage(connection);
+                    await refreshManageReposPage(connection);
                 }
                 catch (err) {
                     vscode.window.showErrorMessage(`Error deleting template source ${repoUrl}: ${MCUtil.errToString(err)}`, err);
@@ -180,7 +178,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
             }
             case ManageReposWVMessages.REFRESH: {
                 // vscode.window.showInformationMessage("Refreshed repository list");
-                await refreshPage(connection);
+                await refreshManageReposPage(connection);
                 break;
             }
             default: {
@@ -247,8 +245,4 @@ function validateRepoInput(input: string): string | undefined {
 
 function getRawLinkMsg(provider: string): string {
     return `For ${provider} URLs, you must use the raw link.`;
-}
-
-async function fetchRepositoryList(connection: Connection): Promise<IRawTemplateRepo[]> {
-    return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
 }
