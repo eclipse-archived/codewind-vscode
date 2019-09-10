@@ -6,17 +6,20 @@
 :root {
     --vscode-button-background: #0F5891;
     --vscode-button-foreground: #c9cece;
-    --vscode-editor-foreground: #d4d4d4; /* not correct, fix this */
+    --vscode-editor-foreground: #d4d4d4;
     --vscode-editor-background: #1e1e1e;
-    --vscode-sideBar-foreground: #ccc;
+    --vscode-sideBarSectionHeader-foreground: #e0e0e0;
+    --vscode-sideBarSectionHeader-background: #383838;
+    --vscode-sideBar-foreground: #e0e0c2;
     --vscode-sideBar-background: #252526;
-    --vscode-activityBar-foreground: #fff;
-    --vscode-activityBar-background: #333;
-    --vscode-welcomePage-buttonBackground: #1e1e1e;
     background: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
     font-family: sans-serif;
     line-height: 1.5;
+}
+
+.repo-toggle {
+    min-height: 2em;
 }
 
 /*
