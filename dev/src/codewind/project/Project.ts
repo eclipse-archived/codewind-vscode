@@ -184,6 +184,12 @@ export default class Project implements vscode.QuickPickItem {
         changed = this.setLastImgBuild(Number(projectInfo.appImageLastBuild)) || changed;
         changed = this.setAutoBuild(projectInfo.autoBuild) || changed;
 
+        if (projectInfo.contextRoot && projectInfo.contextRoot !== this.contextRoot) {
+            Log.d(`Context root for ${this.name} changed from ${this.contextRoot} to ${projectInfo.contextRoot}`);
+            this._contextRoot = projectInfo.contextRoot;
+            changed = true;
+        }
+
         // note oldState can be null if this is the first time update is being invoked.
         const oldState = this._state;
         this._state = new ProjectState(projectInfo, oldState != null ? oldState : undefined);
