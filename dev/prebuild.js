@@ -98,6 +98,15 @@ async function prebuildTheia(pj) {
     pj.contributes.commands = removeCommands(pj.contributes.commands, theia_cmdsToDelete);
     pj.contributes.menus = removeMenus(pj.contributes.menus, theia_cmdsToDelete);
 
+    // Delete the installers that aren't needed.
+    let winInstaller = path.join(INSTALLER_DIR, "windows");
+    let macInstaller = path.join(INSTALLER_DIR, "macos");
+    await util.promisify(rimraf)(winInstaller);
+    console.log(`Deleted ${winInstaller}`);
+    await util.promisify(rimraf)(macInstaller);
+    console.log(`Deleted ${macInstaller}`);
+
+
     return pj;
 }
 
