@@ -31,6 +31,7 @@ enum Commands {
 
     CREATE_PROJECT = "ext.cw.createProject",
     BIND_PROJECT = "ext.cw.bindProject",
+    MANAGE_TEMPLATE_REPOS = "ext.cw.manageTemplateRepos",
 
     OPEN_WS_FOLDER = "ext.cw.openWorkspaceFolder",
 

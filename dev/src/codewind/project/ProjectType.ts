@@ -43,7 +43,7 @@ export class ProjectType {
         return this.type.toString();
     }
 
-    private static getType(internalType: string, extensionName: OptionalString): ProjectType.Types {
+    private static getType(internalType: string, extensionName: string | undefined): ProjectType.Types {
         if (internalType === this.InternalTypes.MICROPROFILE) {
             return ProjectType.Types.MICROPROFILE;
         }

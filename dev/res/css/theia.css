@@ -1,9 +1,20 @@
-/* In theia there is a lot of missing CSS so we fill it in here. Sadly we cannot detect whether dark or light theme. */
-
+/*
+    In theia there is a lot of missing CSS so we fill it in here. Sadly we cannot detect whether dark or light theme.
+    https://github.com/microsoft/vscode/blob/master/extensions/theme-defaults/themes/dark_defaults.json
+    https://github.com/microsoft/vscode/blob/master/src/vs/workbench/common/theme.ts
+*/
 :root {
     --vscode-button-background: #0F5891;
     --vscode-button-foreground: #c9cece;
-    color: #ccc;
+    --vscode-editor-foreground: #d4d4d4; /* not correct, fix this */
+    --vscode-editor-background: #1e1e1e;
+    --vscode-sideBar-foreground: #ccc;
+    --vscode-sideBar-background: #252526;
+    --vscode-activityBar-foreground: #fff;
+    --vscode-activityBar-background: #333;
+    --vscode-welcomePage-buttonBackground: #1e1e1e;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
     font-family: sans-serif;
     line-height: 1.5;
 }

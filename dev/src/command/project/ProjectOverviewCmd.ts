@@ -14,7 +14,7 @@ import * as path from "path";
 
 import Project from "../../codewind/project/Project";
 
-import * as ProjectOverview from "../../codewind/project/ProjectOverviewPage";
+import * as ProjectOverview from "../webview/ProjectOverviewPage";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
@@ -23,6 +23,7 @@ import requestBuildCmd from "./RequestBuildCmd";
 import Resources from "../../constants/Resources";
 import Constants from "../../constants/Constants";
 import { removeProject } from "./RemoveProjectCmd";
+import WebviewUtil from "../webview/WebviewUtil";
 
 export default async function projectOverviewCmd(project: Project): Promise<void> {
     const wvOptions: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
@@ -58,40 +59,32 @@ export default async function projectOverviewCmd(project: Project): Promise<void
     webPanel.webview.onDidReceiveMessage(handleWebviewMessage.bind(project));
 }
 
-interface IWebViewMsg {
-    type: string;
-    data: {
-        type: string;
-        value: string;
-    };
-}
-
-function handleWebviewMessage(this: Project, msg: IWebViewMsg): void {
+function handleWebviewMessage(this: Project, msg: WebviewUtil.IWVMessage): void {
     const project = this;
     // Log.d(`Got message from ProjectInfo for project ${project.name}: ${msg.type} data ${JSON.stringify(msg.data)}`);
     try {
         switch (msg.type) {
-            case ProjectOverview.Messages.OPEN: {
-                onRequestOpen(msg);
+            case ProjectOverview.ProjectOverviewWVMessages.OPEN: {
+                WebviewUtil.onRequestOpen(msg);
                 break;
             }
-            case ProjectOverview.Messages.TOGGLE_AUTOBUILD: {
+            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_AUTOBUILD: {
                 toggleAutoBuildCmd(project);
                 break;
             }
-            case ProjectOverview.Messages.TOGGLE_ENABLEMENT: {
+            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_ENABLEMENT: {
                 toggleEnablementCmd(project);
                 break;
             }
-            case ProjectOverview.Messages.BUILD: {
+            case ProjectOverview.ProjectOverviewWVMessages.BUILD: {
                 requestBuildCmd(project);
                 break;
             }
-            case ProjectOverview.Messages.UNBIND: {
+            case ProjectOverview.ProjectOverviewWVMessages.UNBIND: {
                 removeProject(project);
                 break;
             }
-            case ProjectOverview.Messages.EDIT: {
+            case ProjectOverview.ProjectOverviewWVMessages.EDIT: {
                 const settingsFilePath = vscode.Uri.file(path.join(project.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME));
                 vscode.commands.executeCommand(Commands.VSC_OPEN, settingsFilePath);
                 break;
@@ -104,20 +97,4 @@ function handleWebviewMessage(this: Project, msg: IWebViewMsg): void {
     catch (err) {
         Log.e("Error processing msg from WebView", err);
     }
-}
-
-async function onRequestOpen(msg: IWebViewMsg): Promise<void> {
-    Log.d("Got msg to open, data is ", msg.data);
-    let uri: vscode.Uri;
-    if (msg.data.type === ProjectOverview.Openable.FILE || msg.data.type === ProjectOverview.Openable.FOLDER) {
-        uri = vscode.Uri.file(msg.data.value);
-    }
-    else {
-        // default to web
-        uri = vscode.Uri.parse(msg.data.value);
-    }
-
-    Log.i("The uri is:", uri);
-    const cmd: string = msg.data.type === ProjectOverview.Openable.FOLDER ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
-    vscode.commands.executeCommand(cmd, uri);
 }

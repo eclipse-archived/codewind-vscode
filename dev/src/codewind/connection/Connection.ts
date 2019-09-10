@@ -208,7 +208,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             let project: Project;
 
             // If we already have a Project object for this project, just update it, don't make a new object
-            // (since then the old object will go stale while code might still be referencing it)
             const existing = oldProjects.find( (p) => p.id === projectInfo.projectID);
 
             if (existing != null) {

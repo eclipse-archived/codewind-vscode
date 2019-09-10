@@ -1,0 +1,146 @@
+
+body {
+    padding: 2%;
+}
+
+#title {
+    display: inline-flex;
+    align-content: center;
+    align-items: center;
+}
+
+#learn-more-btn {
+    margin-left: auto;
+}
+
+#table-wrapper {
+    width: 90%;
+    padding-left: 5%;
+    padding-right: 5%;
+    display: inline-block;
+}
+
+#toolbar {
+    width: 100%;
+    display: inline-flex;
+    justify-content: space-between;
+
+    /* For some reason with top: 0, there is a 1px thick gap at the top which I couldn't reset */
+    top: -1px;
+    position: sticky;
+    height: 3em;
+
+    padding-top: 2em;
+    padding-bottom: 1em;
+}
+
+.toolbar-btn {
+    padding: 0;
+    margin-left: 1.5em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar-btn:not(#add-repo-btn):not(#learn-more-btn) {
+    background-color: var(--vscode-sideBar-background);
+}
+
+.toolbar-btn:not(#add-repo-btn) {
+    color: var(--vscode-sideBar-foreground);
+}
+
+.toolbar-btn > img {
+    padding-left: 1.5em;
+    height: 1.5em;
+}
+
+#toolbar-right-buttons {
+    margin-left: auto;
+    display: inherit;
+    justify-content: inherit;
+}
+
+#add-repo-btn {
+    padding-left: 1em;
+    padding-right: 1.5em;
+}
+
+table {
+    width: 100%;
+    border-spacing: 0;
+    table-layout: fixed;
+    background-color: var(--vscode-welcomePage-background);     /* Doesn't work! */
+}
+
+#status-col {
+    width: 75px;
+}
+
+#source-col {
+    width: 100px;
+}
+
+#delete-col {
+    width: 50px;
+}
+
+td {
+    padding: 1em;
+    border-bottom: 1px solid #444;
+}
+
+/* This rule and the next one, combined with the table's border-spacing: 0, give the table a nice single border */
+tr:first-child > td {
+    border-top: none;
+}
+
+td:not(:nth-last-child(1)) {
+    border-right: none;
+}
+
+thead > tr > td {
+    top: 3.75em;               /* Must match the height of the #toolbar including padding */
+    position: sticky;
+    padding-bottom: 1em;
+    color: var(--vscode-sideBarSectionHeader-foreground);
+    background: var(--vscode-sideBarSectionHeader-background);
+
+    font-weight: bold;
+    font-size: 110%;
+    text-align: center;
+    white-space: nowrap;
+
+    border: none;
+}
+
+td > .btn {
+    padding: 0;
+    padding-right: .5em;
+    padding-left: .5em;
+}
+
+.repo-toggle {
+    min-height: 250%;
+    height: 250%;
+}
+
+.repo-toggle-cell {
+    padding: 0;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    text-align: center;
+}
+
+.source-cell {
+    text-align: center;
+}
+
+.delete-btn-cell {
+    padding: 0;
+    text-align: center;
+}
+
+.delete-btn {
+    height: 1.75em;
+}

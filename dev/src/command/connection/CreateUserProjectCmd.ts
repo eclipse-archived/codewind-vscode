@@ -18,10 +18,13 @@ import UserProjectCreator, { IMCTemplateData } from "../../codewind/connection/U
 import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 import openWorkspaceCmd from "../OpenWorkspaceCmd";
+import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
+
+const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
 /**
  * @param create true for Create page, false for Import page
@@ -30,6 +33,23 @@ export default async function createProject(connection: Connection): Promise<voi
     if (!(await isRegistrySet(connection))) {
         onRegistryNotSet(connection);
         return;
+    }
+
+    // On initial project create, prompt the user to select a template source
+    const extState = global.extGlobalState as vscode.Memento;
+    const hasSelectedSource = extState.get(HAS_SELECTED_SOURCE_KEY) as boolean;
+    if (!hasSelectedSource) {
+        const selectedSource = await showTemplateSourceQuickpick(connection);
+        if (selectedSource == null) {
+            return;
+        }
+        extState.update(HAS_SELECTED_SOURCE_KEY, true);
+        if (selectedSource === "managed") {
+            manageTemplateReposCmd(connection);
+            // Don't continue with the create in this case.
+            return;
+        }
+        await refreshManageReposPage(connection);
     }
 
     try {
@@ -86,10 +106,71 @@ export async function showOpenWorkspacePrompt(connection: Connection, msg: strin
     });
 }
 
+const MANAGE_SOURCES_ITEM = "Manage Template Sources";
+async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
+    const repos = await Requester.getTemplateRepos(connection);
+
+    const qpis: Array<({ url: string } & vscode.QuickPickItem)> = repos.map((repo) => {
+        // TODO add name, possibly remove url
+        return {
+            url: repo.url,
+            label: repo.description,
+            detail: repo.url,
+        };
+    });
+
+    qpis.push({
+        label: MANAGE_SOURCES_ITEM,
+        detail: "Select multiple sources and learn more about template sources.",
+        // special case
+        url: "",
+    });
+
+    const selection = await vscode.window.showQuickPick(qpis, {
+        placeHolder: `Select one of the template sources below, or select "${MANAGE_SOURCES_ITEM}".`
+    });
+    if (selection == null) {
+        return undefined;
+    }
+    if (selection.label === MANAGE_SOURCES_ITEM) {
+        return "managed";
+    }
+
+    // enable the selected repo, only
+    const repoEnablement: Array<{ enable: boolean, repoID: string }> = repos.map((repo) => {
+        return {
+            enable: repo.url === selection.url,
+            repoID: repo.url,
+        };
+    });
+
+    await Requester.enableTemplateRepos(connection, { repos: repoEnablement });
+
+    vscode.window.showInformationMessage(
+        `Set template source to ${selection.label}. You can change this setting at any time with the Manage Template Sources command.`
+    );
+    return "selected";
+}
+
 const TEMPLATE_QP_PLACEHOLDER = "Select the project type to create";
 
 async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
     const templates = await Requester.getTemplates(connection);
+
+    if (templates == null) {
+        // The user has no repos or has disabled all repos
+        const manageReposBtn = "Manage Template Sources";
+        await vscode.window.showErrorMessage(
+            "You have no enabled template sources. You must enable at least one template source in order to create projects.",
+            manageReposBtn)
+        .then((res) => {
+            if (res === manageReposBtn) {
+                manageTemplateReposCmd(connection);
+            }
+        });
+
+        return undefined;
+    }
 
     const templateQpis: Array<vscode.QuickPickItem & IMCTemplateData> = templates.map((type) => {
         return {
@@ -155,7 +236,7 @@ async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): P
 }
 
 
-async function promptForProjectName(template: IMCTemplateData): Promise<OptionalString> {
+async function promptForProjectName(template: IMCTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 
@@ -201,7 +282,7 @@ const ILLEGAL_CHARS = [
     `"`, "/", "\\", "?", "%", "*", ":", "|", "<", ">", "&", " "
 ];
 
-function validateProjectName(projectName: string): OptionalString {
+function validateProjectName(projectName: string): string | undefined {
     const firstIllegalChar = [...projectName].find((c) => ILLEGAL_CHARS.includes(c));
 
     if (firstIllegalChar != null) {

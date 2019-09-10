@@ -22,20 +22,17 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
+import { IRawTemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 
-type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any>;
+type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
 const STRING_NS = StringNamespaces.REQUESTS;
 
 namespace Requester {
 
-    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.get, url, options);
-    }
-
-    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.post, url, options);
-    }
+    // These wrappers are exported because this class should be the only one that needs to import request.
+    // By enforcing this and using these to forward all Codewind requests to the 'req' function,
+    // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
 
     async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         if (url instanceof vscode.Uri) {
@@ -51,10 +48,100 @@ namespace Requester {
         return method(url, options);
     }
 
-    export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
-        const templatesUrl = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATES);
-        return Requester.get(templatesUrl);
+    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.get, url, options);
     }
+
+    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.post, url, options);
+    }
+
+    export async function put(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.put, url, options);
+    }
+
+    export async function patch(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.patch, url, options);
+    }
+
+    export async function delet(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
+        return req(request.delete, url, options);
+    }
+
+    ///// Connection-specific requests
+
+    export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
+        const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get, { qs: { showEnabledOnly: true }});
+        return result;
+    }
+
+    export async function getTemplateRepos(connection: Connection): Promise<IRawTemplateRepo[]> {
+        return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
+    }
+
+    export async function addTemplateRepo(connection: Connection, repoID: string, description: string): Promise<IRawTemplateRepo[]> {
+        const body = {
+            url: repoID,
+            description,
+        };
+        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.post, { body });
+    }
+
+    export async function removeTemplateRepo(connection: Connection, repoID: string): Promise<IRawTemplateRepo[]> {
+        const body = {
+            url: repoID,
+        };
+        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.delet, { body });
+    }
+
+    interface IRepoEnablementReq {
+        op: "enable";
+        url: string;
+        value: string;
+    }
+
+    export async function enableTemplateRepos(connection: Connection, enablements: IRepoEnablement): Promise<void> {
+        const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
+            return {
+                op: "enable",
+                url: repo.repoID,
+                value: repo.enable ? "true" : "false",
+            };
+        });
+
+        // status is always 207, we have to check the individual results for success status
+        const result: [{
+            status: number,
+            requestedOperation: IRepoEnablementReq,
+        }] = await doConnectionRequest(connection, MCEndpoints.BATCH_TEMPLATE_REPOS, Requester.patch, { body });
+
+        const failures = result.filter((opResult) => opResult.status !== 200);
+        if (failures.length > 0) {
+            Log.e("Repo enablement failure", result);
+            failures.forEach((failure) => {
+                const failedOp = failure.requestedOperation;
+                Log.e(`Failed to set ${failedOp.op}=${failedOp.value} for ${failedOp.url}: ${failure.status}`);
+            });
+            const errMsg = `Failed to enable/disable repositories: ${failures.map((failure) => failure.requestedOperation.url).join(", ")}`;
+            vscode.window.showErrorMessage(errMsg);
+        }
+
+        // Log.d("Repo enablement result", result);
+    }
+
+    async function doConnectionRequest(
+        connection: Connection, endpoint: MCEndpoints, method: RequestFunc, options?: request.RequestPromiseOptions): Promise<any> {
+
+        if (!connection.isConnected) {
+            throw new Error("Codewind is disconnected.");
+        }
+
+        const url = EndpointUtil.resolveMCEndpoint(connection, endpoint);
+        Log.d(`Doing ${method.name} request to ${url}`);
+        return req(method, url, options);
+    }
+
+    // Project-specific requests
 
     export async function requestProjectRestart(project: Project, startMode: StartModes): Promise<request.FullResponse> {
         const body = {
@@ -62,7 +149,7 @@ namespace Requester {
         };
 
         const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode) });
-        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, request.post, restartMsg);
+        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, Requester.get, restartMsg);
     }
 
     export async function requestBuild(project: Project): Promise<void> {
@@ -70,9 +157,9 @@ namespace Requester {
             action: "build"         // non-nls
         };
 
-        // return doProjectRequest(project, url, body, request.post, "Build");
+        // return doProjectRequest(project, url, body, Requester.post, "Build");
         const buildMsg = Translator.t(STRING_NS, "build");
-        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, request.post, buildMsg);
+        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
         // await requestValidate(project, true);
     }
 
@@ -88,7 +175,7 @@ namespace Requester {
             action: newAutoBuildAction
         };
 
-        const response = await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, request.post, newAutoBuildUserStr);
+        const response = await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, newAutoBuildUserStr);
         if (MCUtil.isGoodStatusCode(response.statusCode)) {
             Log.d("Received good status from autoBuild request, new auto build is: " + newAutoBuild);
             project.setAutoBuild(newAutoBuild);
@@ -102,7 +189,7 @@ namespace Requester {
         const newEnablementStr: string = Translator.t(STRING_NS, newEnablementMsgKey);
 
         const endpoint = EndpointUtil.getEnablementAction(newEnablement);
-        await doProjectRequest(project, endpoint, {}, request.put, newEnablementStr);
+        await doProjectRequest(project, endpoint, {}, Requester.put, newEnablementStr);
     }
 
     // Validation appears to have been removed
@@ -110,7 +197,7 @@ namespace Requester {
     //     const [endpoint, body]: [Endpoint, IValidateRequestBody] = assembleValidateRequest(project, false);
 
     //     const userOperation = Translator.t(StringNamespaces.CMD_MISC, "validate");
-    //     await doProjectRequest(project, endpoint, body, request.post, userOperation, silent);
+    //     await doProjectRequest(project, endpoint, body, Requester.post, userOperation, silent);
     // }
 
     // export async function requestGenerate(project: Project): Promise<void> {
@@ -118,7 +205,7 @@ namespace Requester {
 
     //     const generateMsg = Translator.t(STRING_NS, "generateMissingFiles");
 
-    //     await doProjectRequest(project, endpoint, body, request.post, generateMsg);
+    //     await doProjectRequest(project, endpoint, body, Requester.post, generateMsg);
     //     // request a validate after the generate so that the validation errors go away faster
     //     await requestValidate(project, true);
     // }
@@ -147,7 +234,7 @@ namespace Requester {
 
     export async function requestUnbind(project: Project): Promise<void> {
         const msg = Translator.t(STRING_NS, "unbind");
-        await doProjectRequest(project, ProjectEndpoints.UNBIND, {}, request.post, msg, true);
+        await doProjectRequest(project, ProjectEndpoints.UNBIND, {}, Requester.post, msg, true);
     }
 
     export async function requestAvailableLogs(project: Project): Promise<ILogResponse> {
@@ -158,25 +245,26 @@ namespace Requester {
             };
         }
         const msg = Translator.t(STRING_NS, "checkingAvailableLogs");
-        return (await doProjectRequest(project, ProjectEndpoints.LOGS, {}, request.get, msg, true)).body;
+        return (await doProjectRequest(project, ProjectEndpoints.LOGS, {}, Requester.get, msg, true)).body;
     }
 
     export async function requestToggleLogs(project: Project, enable: boolean): Promise<void> {
-        const method = enable ? request.post : request.delete;
+        const method = enable ? Requester.post : Requester.delet;
         const onOrOff = enable ? "on" : "off";
         const msg = Translator.t(STRING_NS, "togglingLogs", { onOrOff });
         await doProjectRequest(project, ProjectEndpoints.LOGS, {}, method, msg, true);
     }
 
     export async function getCapabilities(project: Project): Promise<ProjectCapabilities> {
-        const capabilitiesRes = (await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, request.get, "Getting capabilities", true)).body;
+        const result = await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, Requester.get, "Getting capabilities", true);
+        const capabilitiesRes = result.body;
         const metricsAvailable = await areMetricsAvailable(project);
         return new ProjectCapabilities(capabilitiesRes.startModes, capabilitiesRes.controlCommands, metricsAvailable);
     }
 
     async function areMetricsAvailable(project: Project): Promise<boolean> {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
-        const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, request.get, msg, true);
+        const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, Requester.get, msg, true);
         const available = res.body.metricsAvailable;
         return available;
     }
@@ -186,7 +274,7 @@ namespace Requester {
      * Displays a message to the user that the request succeeded if userOperationName is not null.
      * Always displays a message to the user in the case of an error.
      * @param body - JSON request body for POST, PUT requests. Uses application/json content-type.
-     * @param requestFunc - eg. request.get, request.post...
+     * @param requestFunc - eg. Requester.get, Requester.post...
      * @param userOperationName - If `!silent`, a message will be displayed to the user that they are doing this operation on this project.
      * @param silent - If true, an info message will not be displayed when the request is initiated. Error messages are always displayed.
      */
@@ -204,18 +292,8 @@ namespace Requester {
 
         Log.i(`Doing ${userOperationName} request to ${url}`);
 
-        const options: request.RequestPromiseOptions = {
-            json: true,
-            body,
-            resolveWithFullResponse: true,
-            // TODO :)
-            rejectUnauthorized: false,
-        };
-
         try {
-            const result: request.FullResponse = await requestFunc(url, options);
-            Log.d(`Response code ${result.statusCode} from ` +
-                `${userOperationName.toLowerCase()} request for ${project.name}`);
+            const result = await requestFunc(url, { body });
 
             if (!silent) {
                 vscode.window.showInformationMessage(

@@ -11,9 +11,10 @@
 
 import * as vscode from "vscode";
 
-import Project from "./Project";
 import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
+import Project from "../../codewind/project/Project";
+import WebviewUtil from "../webview/WebviewUtil";
 
 // This file does have a bunch of strings that should be translated,
 // but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.
@@ -22,7 +23,7 @@ import MCUtil from "../../MCUtil";
 /**
  * These are the messages the WebView can send back to its creator in ProjectInfoCmd
  */
-export enum Messages {
+export enum ProjectOverviewWVMessages {
     BUILD = "build",
     TOGGLE_AUTOBUILD = "toggleAutoBuild",
     OPEN = "open",
@@ -31,12 +32,19 @@ export enum Messages {
     EDIT = "edit",
 }
 
-export enum Openable {
+enum OpenableTypes {
     WEB = "web",
     FILE = "file",
     FOLDER = "folder",
 }
 
+/**
+ * Used by 'open' messages to pass back data about what to open
+ */
+export interface IWVOpenable {
+    type: OpenableTypes;
+    value: string;
+}
 
 export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): void {
     webviewPanel.webview.html = generateHtml(project);
@@ -65,19 +73,20 @@ export function generateHtml(project: Project): string {
             <!--meta http-equiv="Content-Security-Policy" content="default-src 'self' ;"-->
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            <link rel="stylesheet" href="${getStylesheetPath("project-overview.css")}"/>
+            <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
+            <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("project-overview.css")}"/>
             ${global.isTheia ?
-                `<link rel="stylesheet" href="${getStylesheetPath("theia.css")}"/>` : ""}
+                `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
         </head>
         <body>
 
         <div id="main">
             <div id="top-section">
-                <img id="mc-icon" alt="Codewind logo" width="30px" src="${getIcon(Resources.Icons.Logo)}"/>
+                <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
                 <h2>Project ${project.name}</h2>
                 <input id="build-btn" type="button" value="Build"
-                    onclick="${project.state.isEnabled ? `sendMsg('${Messages.BUILD}')` : ""}"
-                    class="btn ${project.state.isEnabled ? "" : "btn-disabled"}"/>
+                    onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"
+                    class="btn btn-w-background ${project.state.isEnabled ? "" : "btn-disabled"}"/>
             </div>
 
             <table>
@@ -86,12 +95,12 @@ export function generateHtml(project: Project): string {
                 ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow("Project ID", project.id)}
                 ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-                ${buildRow("Location on Disk", project.localPath.fsPath, Openable.FOLDER)}
+                ${buildRow("Location on Disk", project.localPath.fsPath, OpenableTypes.FOLDER)}
                 <tr>
                     <td class="info-label">Auto build:</td>
                     <td>
                         <input id="auto-build-toggle" type="checkbox" class="btn"
-                            onclick="sendMsg('${Messages.TOGGLE_AUTOBUILD}')"
+                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}')"
                             ${project.autoBuildEnabled ? "checked" : ""}
                             ${project.state.isEnabled ? " " : " disabled"}
                         />
@@ -115,15 +124,16 @@ export function generateHtml(project: Project): string {
                     undefined, true)}
                 ${buildRow("Application Endpoint",
                     normalize(project.appBaseUrl, NOT_RUNNING),
-                    (project.appBaseUrl != null ? Openable.WEB : undefined), true)}
+                    (project.appBaseUrl != null ? OpenableTypes.FILE : undefined), true)}
                 ${emptyRow}
                 <!-- buildDebugSection must also close the <table> -->
                 ${buildDebugSection(project)}
             <!-- /table -->
 
             <div id="bottom-section">
-                <input id="delete-btn" type="button" onclick="sendMsg('${Messages.UNBIND}')" class="btn" value="Remove project"/>
-                <input id="enablement-btn" type="button" onclick="sendMsg('${Messages.TOGGLE_ENABLEMENT}')" class="btn"
+                <input class="btn red-btn" type="button" onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')" class="" value="Remove project"/>
+                <input id="enablement-btn" class="btn btn-w-background" type="button"
+                    onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
                     value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"/>
             </div>
         </div>
@@ -132,7 +142,7 @@ export function generateHtml(project: Project): string {
             const vscode = acquireVsCodeApi();
 
             function vscOpen(element, type) {
-                sendMsg("${Messages.OPEN}", { type: type, value: element.textContent });
+                sendMsg("${ProjectOverviewWVMessages.OPEN}", { type: type, value: element.textContent });
             }
 
             function sendMsg(type, data = undefined) {
@@ -146,19 +156,7 @@ export function generateHtml(project: Project): string {
     `;
 }
 
-const RESOURCE_SCHEME = "vscode-resource:";
-
-function getStylesheetPath(filename: string): string {
-    return RESOURCE_SCHEME + Resources.getCss(filename);
-}
-
-function getIcon(icon: Resources.Icons): string {
-    const iconPaths = Resources.getIconPaths(icon);
-    // return RESOURCE_SCHEME + dark ? iconPaths.dark : iconPaths.light;
-    return RESOURCE_SCHEME + iconPaths.dark;
-}
-
-function buildRow(label: string, data: string, openable?: Openable, editable: boolean = false): string {
+function buildRow(label: string, data: string, openable?: OpenableTypes, editable: boolean = false): string {
     let secondColTdContents: string = "";
     let thirdColTdContents: string = "";
     if (openable) {
@@ -170,11 +168,11 @@ function buildRow(label: string, data: string, openable?: Openable, editable: bo
 
     if (editable) {
         const tooltip = `title="Edit"`;
-        const onClick = `onclick="sendMsg('${Messages.EDIT}', { type: '${editable}' })"`;
+        const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}', { type: '${editable}' })"`;
 
         thirdColTdContents = `
-            <img id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick}` +
-                `src="${getIcon(Resources.Icons.Edit)}"/>
+            <img id="edit-${MCUtil.slug(label)}" class="edit-btn clickable" ${tooltip} ${onClick}` +
+                `src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/>
         `;
     }
 
