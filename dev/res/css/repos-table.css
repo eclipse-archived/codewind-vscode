@@ -1,7 +1,16 @@
 
+body {
+    padding: 2%;
+}
+
+#title {
+    display: inline-flex;
+    align-content: center;
+    align-items: center;
+}
+
 #learn-more-btn {
     margin-left: auto;
-    margin-right: 1em;
 }
 
 #table-wrapper {
@@ -21,9 +30,8 @@
     position: sticky;
     height: 3em;
 
-    background: var(--vscode-editor-background);
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
+    padding-top: 2em;
+    padding-bottom: 1em;
 }
 
 .toolbar-btn {
@@ -35,8 +43,11 @@
 }
 
 .toolbar-btn:not(#add-repo-btn):not(#learn-more-btn) {
-    color: var(--vscode-sideBar-foreground);
     background-color: var(--vscode-sideBar-background);
+}
+
+.toolbar-btn:not(#add-repo-btn) {
+    color: var(--vscode-sideBar-foreground);
 }
 
 .toolbar-btn > img {
@@ -59,7 +70,6 @@ table {
     width: 100%;
     border-spacing: 0;
     table-layout: fixed;
-    background-color: var(--vscode-welcomePage-buttonBackground);
 }
 
 #status-col {
@@ -76,8 +86,7 @@ table {
 
 td {
     padding: 1em;
-    border: 1px solid var(--vscode-editor-foreground);
-    border-top: none;
+    border-bottom: 1px solid #444;
 }
 
 /* This rule and the next one, combined with the table's border-spacing: 0, give the table a nice single border */
@@ -93,8 +102,8 @@ thead > tr > td {
     top: 3.75em;               /* Must match the height of the #toolbar including padding */
     position: sticky;
     padding-bottom: 1em;
-    color: var(--vscode-activityBar-foreground);
-    background: var(--vscode-activityBar-background);
+    color: var(--vscode-sideBarSectionHeader-foreground);
+    background: var(--vscode-sideBarSectionHeader-background);
 
     font-weight: bold;
     font-size: 110%;
@@ -102,7 +111,6 @@ thead > tr > td {
     white-space: nowrap;
 
     border: none;
-    border-bottom: 1px solid var(--vscode-editor-foreground);
 }
 
 td > .btn {
@@ -130,4 +138,8 @@ td > .btn {
 .delete-btn-cell {
     padding: 0;
     text-align: center;
+}
+
+.delete-btn {
+    height: 1.75em;
 }

@@ -151,6 +151,18 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 // connection.deleteRepo
                 const repoUrl = msg.data as string;
                 Log.d(`Delete repo ${repoUrl} from ${connection.url}`);
+
+                const yesBtn = "Yes";
+                // TODO add name?
+                const res = await vscode.window.showWarningMessage(
+                    `Are you sure you wish to delete this template repository?`,
+                    { modal: true }, yesBtn
+                );
+
+                if (res !== yesBtn) {
+                    return;
+                }
+
                 try {
                     await Requester.removeTemplateRepo(connection, repoUrl);
                     await refreshPage(connection);

@@ -1,4 +1,8 @@
 
+#top-section {
+    border-bottom: 2px solid #aaa;
+}
+
 #main {
     max-width: 700px;
 }

@@ -33,38 +33,38 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
 
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("repos-table.css")}"/>
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
-        <!--${global.isTheia ?
-            `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}-->
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>
+        ${global.isTheia ?
+            `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
+        <!--link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/-->
     </head>
     <body>
 
-    <div id="main">
+    <div id="table-wrapper">
         <div id="top-section">
-            <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
-            <h2>Manage Template Sources</h2>
+            <div id="title">
+                <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+                <h1>Template Source Manager</h1>
+            </div>
             <div id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
                 Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
             </div>
         </div>
 
-        <div id="table-wrapper">
-            <div id="toolbar">
-                <!--div class="btn toolbar-btn" onclick="onEnableAllOrNone(event, true)">
-                    Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
-                </div-->
-                <div id="toolbar-right-buttons">
-                    <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
-                        Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
-                    </div>
-                    <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
-                        Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
-                    </div>
+        <div id="toolbar">
+            <!--div class="btn toolbar-btn" onclick="onEnableAllOrNone(event, true)">
+                Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
+            </div-->
+            <div id="toolbar-right-buttons">
+                <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                    Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
+                </div>
+                <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                    Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
                 </div>
             </div>
-
-            ${buildTemplateTable(repos)}
         </div>
+
+        ${buildTemplateTable(repos)}
     </div>
 
     <script>
@@ -181,7 +181,7 @@ function getStatusToggleIconSrc(enabled: boolean): string {
 
 function getDeleteBtnTD(repo: IRawTemplateRepo): string {
     let title = "Delete";
-    let deleteBtnClass = "btn";
+    let deleteBtnClass = "btn delete-btn";
     let onClick = "deleteRepo(this)";
     if (repo.protected) {
         deleteBtnClass += " not-allowed";

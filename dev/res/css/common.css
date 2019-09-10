@@ -6,11 +6,6 @@
     align-items: center;
 }
 
-#top-section {
-    padding-bottom: 0.5em;
-    border-bottom: 2px solid #aaa;
-}
-
 #logo {
     width: 2.5em;
     margin-right: 1em;
@@ -75,5 +70,4 @@ input[type="checkbox"]:disabled {
 .red-btn {
     background: darkred;
     border-color: darkred;
-    color: #ddd;
 }
