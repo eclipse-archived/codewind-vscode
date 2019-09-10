@@ -110,6 +110,21 @@ const MANAGE_SOURCES_ITEM = "Manage Template Sources";
 async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
     const repos = await Requester.getTemplateRepos(connection);
 
+    if (repos.length === 0) {
+        // Should not be possible because Codewind templates are always present.
+        throw new Error("No template sources are configured. Use the Manage Template Sources command to add the Codewind templates.");
+    }
+    if (repos.length === 1) {
+        // if there is exactly one repo, just enable it and move on.
+        await Requester.enableTemplateRepos(connection, {
+            repos: [{
+                enable: true,
+                repoID: repos[0].url,
+            }]
+        });
+        return "selected";
+    }
+
     const qpis: Array<({ url: string } & vscode.QuickPickItem)> = repos.map((repo) => {
         // TODO add name, possibly remove url
         return {
