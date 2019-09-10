@@ -267,7 +267,7 @@ namespace InstallerWrapper {
                     else if (code !== 0) {
                         Log.e(`Error running installer command ${cmd}`, errStr);
                         outStr = outStr || "No output";
-                        errStr = errStr || "Unknown error " + INSTALLER_COMMANDS[cmd].userActionName;
+                        errStr = errStr || "Unknown error " + getUserActionName(cmd, tag);
                         writeOutError(cmd, outStr, errStr);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
