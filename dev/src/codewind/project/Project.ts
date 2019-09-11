@@ -71,6 +71,7 @@ export default class Project implements vscode.QuickPickItem {
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
     private _autoBuildEnabled: boolean;
+    private _usesHttps: boolean;
     // Dates below will always be set, but might be "invalid date"s
     private _lastBuild: Date;
     private _lastImgBuild: Date;
@@ -104,6 +105,7 @@ export default class Project implements vscode.QuickPickItem {
         this.language = projectInfo.language || "Unknown";
         this.localPath = vscode.Uri.file(path.join(connection.workspacePath.fsPath, projectInfo.directory));
         this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
+        this._usesHttps = projectInfo.isHttps === true;
 
         if (projectInfo.extension && projectInfo.extension.config) {
             this.containerAppRoot = projectInfo.extension.config.containerAppRoot;
@@ -184,8 +186,13 @@ export default class Project implements vscode.QuickPickItem {
         changed = this.setLastImgBuild(Number(projectInfo.appImageLastBuild)) || changed;
         changed = this.setAutoBuild(projectInfo.autoBuild) || changed;
 
+        if (projectInfo.isHttps && this._usesHttps !== projectInfo.isHttps) {
+            this._usesHttps = projectInfo.isHttps === true;
+            changed = true;
+        }
+
         if (projectInfo.contextRoot && projectInfo.contextRoot !== this.contextRoot) {
-            Log.d(`Context root for ${this.name} changed from ${this.contextRoot} to ${projectInfo.contextRoot}`);
+            // Log.d(`Context root for ${this.name} changed from ${this.contextRoot} to ${projectInfo.contextRoot}`);
             this._contextRoot = projectInfo.contextRoot;
             changed = true;
         }
@@ -517,8 +524,10 @@ export default class Project implements vscode.QuickPickItem {
             return undefined;
         }
 
+        const scheme = this._usesHttps ? "https" : "http";                  // non-nls
+
         return this.connection.url.with({
-            scheme: "http",                 // TODO :)                           // non-nls
+            scheme,
             authority: `${this.connection.host}:${this._ports.appPort}`,    // non-nls
             path: this._contextRoot
         });
