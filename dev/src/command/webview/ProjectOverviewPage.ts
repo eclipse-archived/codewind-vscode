@@ -124,7 +124,7 @@ export function generateHtml(project: Project): string {
                     undefined, true)}
                 ${buildRow("Application Endpoint",
                     normalize(project.appBaseUrl, NOT_RUNNING),
-                    (project.appBaseUrl != null ? OpenableTypes.FILE : undefined), true)}
+                    (project.appBaseUrl != null ? OpenableTypes.WEB : undefined), true)}
                 ${emptyRow}
                 <!-- buildDebugSection must also close the <table> -->
                 ${buildDebugSection(project)}
