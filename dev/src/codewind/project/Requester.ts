@@ -245,7 +245,7 @@ namespace Requester {
             };
         }
         const msg = Translator.t(STRING_NS, "checkingAvailableLogs");
-        return (await doProjectRequest(project, ProjectEndpoints.LOGS, {}, Requester.get, msg, true)).body;
+        return doProjectRequest(project, ProjectEndpoints.LOGS, {}, Requester.get, msg, true);
     }
 
     export async function requestToggleLogs(project: Project, enable: boolean): Promise<void> {
@@ -257,16 +257,14 @@ namespace Requester {
 
     export async function getCapabilities(project: Project): Promise<ProjectCapabilities> {
         const result = await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, Requester.get, "Getting capabilities", true);
-        const capabilitiesRes = result.body;
         const metricsAvailable = await areMetricsAvailable(project);
-        return new ProjectCapabilities(capabilitiesRes.startModes, capabilitiesRes.controlCommands, metricsAvailable);
+        return new ProjectCapabilities(result.startModes, result.controlCommands, metricsAvailable);
     }
 
     async function areMetricsAvailable(project: Project): Promise<boolean> {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
         const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, Requester.get, msg, true);
-        const available = res.body.metricsAvailable;
-        return available;
+        return res.metricsAvailable;
     }
 
     /**
@@ -280,7 +278,7 @@ namespace Requester {
      */
     async function doProjectRequest(
             project: Project, endpoint: Endpoint, body: {},
-            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false): Promise<request.FullResponse> {
+            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false): Promise<any> {
 
         let url: string;
         if (EndpointUtil.isProjectEndpoint(endpoint)) {
