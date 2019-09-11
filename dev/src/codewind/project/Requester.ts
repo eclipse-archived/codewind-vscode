@@ -22,7 +22,7 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { IRawTemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
+import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
@@ -75,11 +75,11 @@ namespace Requester {
         return result;
     }
 
-    export async function getTemplateRepos(connection: Connection): Promise<IRawTemplateRepo[]> {
+    export async function getTemplateRepos(connection: Connection): Promise<ITemplateRepo[]> {
         return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
     }
 
-    export async function addTemplateRepo(connection: Connection, repoID: string, description: string): Promise<IRawTemplateRepo[]> {
+    export async function addTemplateRepo(connection: Connection, repoID: string, description: string): Promise<ITemplateRepo[]> {
         const body = {
             url: repoID,
             description,
@@ -87,7 +87,7 @@ namespace Requester {
         return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.post, { body });
     }
 
-    export async function removeTemplateRepo(connection: Connection, repoID: string): Promise<IRawTemplateRepo[]> {
+    export async function removeTemplateRepo(connection: Connection, repoID: string): Promise<ITemplateRepo[]> {
         const body = {
             url: repoID,
         };

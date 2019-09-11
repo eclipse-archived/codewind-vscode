@@ -25,11 +25,12 @@ import Constants from "../../constants/Constants";
 /**
  * Template repository/source data as provided by the backend
  */
-export interface IRawTemplateRepo {
+export interface ITemplateRepo {
     readonly url: string;
     readonly name: string;
     readonly description: string;
     readonly enabled: boolean;
+    readonly projectStyles: string[];
     readonly protected: boolean;
 }
 
