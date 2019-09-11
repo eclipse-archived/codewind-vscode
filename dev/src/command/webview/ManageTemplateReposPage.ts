@@ -14,14 +14,14 @@
 import Resources from "../../constants/Resources";
 // import MCUtil from "../../MCUtil";
 import WebviewUtil from "./WebviewUtil";
-import { IRawTemplateRepo, ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
+import { ITemplateRepo, ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
 
 const REPO_ID_ATTR = "data-id";
 const REPO_ENABLED_ATTR = "data-enabled";
 const REPO_TOGGLE_CLASS = "repo-toggle";
 export const LEARN_MORE_LINK = "learn-more-placeholder";
 
-export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
+export default function getManageReposPage(repos: ITemplateRepo[]): string {
     return `
     <!DOCTYPE html>
 
@@ -128,25 +128,26 @@ export default function getManageReposPage(repos: IRawTemplateRepo[]): string {
     `;
 }
 
-function buildTemplateTable(repos: IRawTemplateRepo[]): string {
+function buildTemplateTable(repos: ITemplateRepo[]): string {
 
     const repoRows = repos.map(buildRepoRow);
 
     return `
     <table>
         <colgroup>
-            <col id="status-col"/>
             <col id="descr-col"/>
+            <col id="style-col"/>
             <col id="source-col"/>
+            <col id="status-col"/>
             <col id="delete-col"/>
         </colgroup>
         <thead>
             <tr>
-                <td>Enabled</td>
                 <!--td>Repo Name</td-->
-                <!--td>Style</td-->
                 <td>Description</td>
+                <td>Style</td>
                 <td>Link</td>
+                <td>Enabled</td>
                 <td></td>        <!-- Delete buttons column -->
             </tr>
         </thead>
@@ -157,20 +158,20 @@ function buildTemplateTable(repos: IRawTemplateRepo[]): string {
     `;
 }
 
-function buildRepoRow(repo: IRawTemplateRepo): string {
+function buildRepoRow(repo: ITemplateRepo): string {
     return `
     <tr>
-        ${getStatusToggleTD(repo)}
         <!--td class="name-cell">${repo.name}</td-->
-        <!--td class="style-cell">${"????????, ".repeat(2)}</td-->
         <td class="descr-cell">${repo.description}</td>
+        <td class="style-cell">${repo.projectStyles.join(", ")}</td-->
         <td class="source-cell"><a href="${repo.url}">Source</a></td>
+        ${getStatusToggleTD(repo)}
         ${getDeleteBtnTD(repo)}
     </tr>
     `;
 }
 
-function getStatusToggleTD(repo: IRawTemplateRepo): string {
+function getStatusToggleTD(repo: ITemplateRepo): string {
     return `<td class="repo-toggle-cell">
         <img ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}" class="${REPO_TOGGLE_CLASS} btn"
             src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
@@ -181,7 +182,7 @@ function getStatusToggleIconSrc(enabled: boolean): string {
     return WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOn : Resources.Icons.ToggleOff);
 }
 
-function getDeleteBtnTD(repo: IRawTemplateRepo): string {
+function getDeleteBtnTD(repo: ITemplateRepo): string {
     let title = "Delete";
     let deleteBtnClass = "btn delete-btn";
     let onClick = "deleteRepo(this)";

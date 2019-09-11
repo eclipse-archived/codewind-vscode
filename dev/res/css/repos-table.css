@@ -77,6 +77,10 @@ table {
     width: 75px;
 }
 
+#style-col {
+    width: 10%;
+}
+
 #source-col {
     width: 100px;
 }
@@ -108,7 +112,7 @@ thead > tr > td {
 
     font-weight: bold;
     font-size: 110%;
-    text-align: center;
+    /* text-align: center; */
     white-space: nowrap;
 
     border: none;
@@ -129,10 +133,6 @@ td > .btn {
     padding: 0;
     padding-left: 0.5em;
     padding-right: 0.5em;
-    text-align: center;
-}
-
-.source-cell {
     text-align: center;
 }
 
