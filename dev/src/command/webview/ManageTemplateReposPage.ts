@@ -28,9 +28,11 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
     <html>
     <head>
         <meta charset="UTF-8">
+
+        ${global.isTheia ? "" : `
         <meta http-equiv="Content-Security-Policy"
             content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource:;"
-        >
+        >`}
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("repos-table.css")}"/>
