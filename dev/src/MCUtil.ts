@@ -117,14 +117,14 @@ namespace MCUtil {
             .replace(/-+$/, "");            // trim - from end
     }
 
-    export function getOS(): "windows" | "macos" | "linux" {
+    export function getOS(): "windows" | "darwin" | "linux" {
         const platf = process.platform;
         // https://nodejs.org/api/process.html#process_process_platform
         if (platf === "win32") {
             return "windows";
         }
         else if (platf === "darwin") {
-            return "macos";
+            return "darwin";
         }
         else if (platf !== "linux") {
             Log.w("Potentially unsupported platform: " + platf);

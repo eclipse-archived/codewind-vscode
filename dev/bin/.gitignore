@@ -1,0 +1,5 @@
+*
+!.gitignore
+!*.sh
+
+**/installer-docker-compose.yaml

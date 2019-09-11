@@ -29,6 +29,16 @@ spec:
     }
 
     stages {
+        stage("Download dependency binaries") {
+            steps {
+                container("vscode-builder") {
+                    dir("dev/bin") {
+                        sh './pull-cli.sh'
+                        sh './pull-appsody.sh'
+                    }
+                }
+            }
+        }
         stage("Build for VS Code") {
             steps {
                 container("vscode-builder") {
