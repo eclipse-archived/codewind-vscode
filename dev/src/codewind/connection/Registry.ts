@@ -101,6 +101,10 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
             // user did not get a successful test
             return false;
         }
+        else if (testResult === "retry") {
+            return setRegistry(connection);
+        }
+        // else test succeeded, or they selected to override the failed test
     }
     // if they selected noBtn just continue and write
 
@@ -160,7 +164,7 @@ async function writeRegistry(configFilePath: string, registry: string): Promise<
     return promisify(fs.writeFile)(configFilePath, toWrite);
 }
 
-async function testRegistry(connection: Connection, registry: string): Promise<boolean> {
+async function testRegistry(connection: Connection, registry: string): Promise<boolean | "retry"> {
     const testResult: SocketEvents.IRegistryStatusEvent = await vscode.window.withProgress({
         title: `Pushing a test image to ${registry}...`,
         location: vscode.ProgressLocation.Notification,
@@ -198,7 +202,7 @@ async function testRegistry(connection: Connection, registry: string): Promise<b
         return false;
     }
     else if (pushFailedRes === enterNewBtn) {
-        return setRegistry(connection);
+        return "retry";
     }
     else if (pushFailedRes === tryAgainBtn) {
         return testRegistry(connection, registry);
