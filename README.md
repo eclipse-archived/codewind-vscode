@@ -23,14 +23,14 @@ Complete the installation:
 To see the actions available, open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type `Codewind`.</br>
 
 Features:</br>
-- [**Create New Project** and **Add Existing Project**](mdt-vsc-commands-project.html): Create new projects from application templates or import existing container-ready projects.
-- [**Codewind view**](mdt-vsc-commands-project.html): View Codewind projects, including application and build statuses.
-- [**Attach debugger**](mdt-vsc-commands-restart-and-debug.html): Debug Microprofile, Spring, and Node.js projects in their containers.
-- [**Show all logs**](mdt-vsc-commands-project.html): View application and build logs in the VS Code **Output** view.
-- [**Open folder as workspace**](mdt-vsc-commands-project.html): View and edit project deployment information.
-- [**Open container shell**](mdt-vsc-commands-project.html): Open a shell session into a Codewind application container.
-- [**Toggle auto build**](mdt-vsc-commands-project.html): Toggle project auto build and manually initiate project builds.
-- [**Enable or disable project** and **Show project overview**](mdt-vsc-commands-project.html): Disable, enable, and delete projects.
+- [**Create New Project** and **Add Existing Project**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Create new projects from application templates or import existing container-ready projects.
+- [**Codewind view**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): View Codewind projects, including application and build statuses.
+- [**Attach debugger**](https://www.eclipse.org/codewind/mdt-vsc-commands-restart-and-debug.html): Debug Microprofile, Spring, and Node.js projects in their containers.
+- [**Show all logs**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): View application and build logs in the VS Code **Output** view.
+- [**Open folder as workspace**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): View and edit project deployment information.
+- [**Open container shell**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Open a shell session into a Codewind application container.
+- [**Toggle auto build**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Toggle project auto build and manually initiate project builds.
+- [**Enable or disable project** and **Show project overview**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Disable, enable, and delete projects.
 
 ## Contributing
 Submit issues and contributions:
