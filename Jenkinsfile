@@ -42,8 +42,10 @@ spec:
         stage("Download dependency binaries") {
             steps {
                 dir("dev/bin") {
-                    sh "export CW_CLI_BRANCH=${params.CW_CLI_BRANCH} APPSODY_VERSION=${params.APPSODY_VERSION}"
-                    sh './pull.sh'
+                    sh """#!/usr/bin/env bash
+                        export CW_CLI_BRANCH=${params.CW_CLI_BRANCH} APPSODY_VERSION=${params.APPSODY_VERSION}
+                        ./pull.sh
+                    """
                 }
             }
         }
