@@ -56,7 +56,9 @@ spec:
                     // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
                     sh '''#!/usr/bin/env bash
                         shopt -s extglob
-                        cp -rv *codewind-vscode_$GIT_BRANCH!(*tmp) codewind-theia
+                        export dir_name=$(echo *codewind-vscode_$GIT_BRANCH!(*tmp))
+                        echo "Duplicating $dir_name"
+                        cp -r "$dir_name" codewind-theia
                     '''
                 }
             }
@@ -67,7 +69,8 @@ spec:
                     steps {
                         container("vscode-builder") {
                             sh 'ci-scripts/package.sh'
-                            stash includes: '*.vsix', name: 'deployables'
+                            // The parallel stages cannot share a stash or they will overwrite and corrupt each other
+                            stash includes: '*.vsix', name: 'vscode-vsix'
                         }
                     }
                 }
@@ -76,7 +79,7 @@ spec:
                         container("theia-builder") {
                             dir("../codewind-theia") {
                                 sh 'ci-scripts/package.sh theia'
-                                stash includes: '*.vsix', name: 'deployables'
+                                stash includes: '*.vsix', name: 'theia-vsix'
                             }
                         }
                     }
@@ -93,10 +96,15 @@ spec:
                 }
             }
 
+            options {
+                skipDefaultCheckout()
+            }
+
             agent any
             steps {
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
-                    unstash 'deployables'
+                    unstash 'vscode-vsix'
+                    unstash 'theia-vsix'
                     sh '''#!/usr/bin/env bash
                     export REPO_NAME="codewind-vscode"
                     export OUTPUT_NAME="codewind"
