@@ -6,7 +6,8 @@ set -o pipefail
 appsody_version=${APPSODY_VERSION}
 
 if [[ -z $appsody_version ]]; then
-    appsody_version="0.4.3"
+    echo "\$APPSODY_VERSION needs to be set in the environment!"
+    exit 1
 fi
 
 echo "Downloading Appsody version ${appsody_version}"
