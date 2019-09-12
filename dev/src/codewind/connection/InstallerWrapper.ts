@@ -73,6 +73,7 @@ namespace InstallerWrapper {
                 const stderr = stderr_.toString();
 
                 if (err) {
+                    Log.e("Error checking status", err);
                     Log.e("Error checking status, stdout:", stderr);
                     Log.e("Error checking status, stderr:", stdout);
                     if (stderr) {
