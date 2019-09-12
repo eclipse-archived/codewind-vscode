@@ -555,7 +555,7 @@ export default class Project implements vscode.QuickPickItem {
         if (!monitorPageUrlStr.endsWith("/")) {
             monitorPageUrlStr += "/";
         }
-        return monitorPageUrlStr + appMetricsPath + "/";
+        return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
     }
 
     ///// Setters
