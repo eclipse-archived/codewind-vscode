@@ -3,13 +3,18 @@
 pipeline {
     agent {
         kubernetes {
-            label 'vscode-builder'
+            label 'vscode-buildpod'
             yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
   - name: vscode-builder
+    image: node:lts
+    tty: true
+    command:
+      - cat
+  - name: theia-builder
     image: node:lts
     tty: true
     command:
@@ -28,31 +33,49 @@ spec:
         HOME="."
     }
 
+    parameters {
+        string(name: "CW_CLI_BRANCH", defaultValue: "master", description: "Codewind CLI branch from which to download the latest build")
+        string(name: "APPSODY_VERSION", defaultValue: "0.4.3", description: "Appsody executable version to download")
+    }
+
     stages {
         stage("Download dependency binaries") {
+            dir("dev/bin") {
+                sh "export CW_CLI_BRANCH=${params.CW_CLI_BRANCH} APPSODY_VERSION=${params.APPSODY_VERSION}"
+                sh './pull.sh'
+            }
+        }
+        // we duplicate the cloned repo so that we can build vscode and theia in parallel without the builds interfering with one another
+        stage("Duplicate code") {
             steps {
-                container("vscode-builder") {
-                    dir("dev/bin") {
-                        sh './pull.sh'
+                dir ("..") {
+                    // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
+                    sh '''#!/usr/bin/env bash
+                        shopt -s extglob
+                        cp -rv *codewind-vscode_$GIT_BRANCH!(*tmp) codewind-theia
+                    '''
+                }
+            }
+        }
+        stage("Build") {
+            parallel {
+                stage("Build for VS Code") {
+                    steps {
+                        container("vscode-builder") {
+                            sh 'ci-scripts/package.sh'
+                            stash includes: '*.vsix', name: 'deployables'
+                        }
                     }
                 }
-            }
-        }
-        stage("Build for VS Code") {
-            steps {
-                container("vscode-builder") {
-                    sh 'ci-scripts/package.sh'
-                    stash includes: '*.vsix', name: 'deployables'
-                }
-            }
-        }
-        stage("Build for Theia") {
-            steps {
-                container("vscode-builder") {
-                    // Reset changes from the vs code package.sh
-                    sh 'git reset --hard HEAD'
-                    sh 'ci-scripts/package.sh theia'
-                    stash includes: '*.vsix', name: 'deployables'
+                stage("Build for Theia") {
+                    steps {
+                        container("theia-builder") {
+                            dir("../codewind-theia") {
+                                sh 'ci-scripts/package.sh theia'
+                                stash includes: '*.vsix', name: 'deployables'
+                            }
+                        }
+                    }
                 }
             }
         }
