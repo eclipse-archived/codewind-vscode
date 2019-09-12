@@ -181,7 +181,7 @@ function getStatusToggleTD(repo: ITemplateRepo): string {
 }
 
 function getStatusToggleIconSrc(enabled: boolean): string {
-    return WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOn : Resources.Icons.ToggleOff);
+    return WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
 }
 
 function getDeleteBtnTD(repo: ITemplateRepo): string {

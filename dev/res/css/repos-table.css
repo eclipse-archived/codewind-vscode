@@ -125,8 +125,8 @@ td > .btn {
 }
 
 .repo-toggle {
-    min-height: 250%;
-    height: 250%;
+    min-height: 1.25em;
+    height: 150%;
 }
 
 .repo-toggle-cell {
