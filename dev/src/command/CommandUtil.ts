@@ -234,7 +234,14 @@ async function promptForConnection(connectedOnly: boolean): Promise<Connection |
     }
 
     if (choices.length === 0) {
-        vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"));
+        const startCwBtn = "Start Codewind";
+        vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn)
+        .then((res?: string) => {
+            if (res === startCwBtn) {
+                startCodewindCmd();
+            }
+        });
+
         return undefined;
     }
 
