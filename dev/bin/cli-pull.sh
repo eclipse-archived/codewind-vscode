@@ -96,4 +96,4 @@ done
 
 echo "$cli_lastbuild" > cli_build.txt;
 
-echo "Success"
+echo "Successfully pulled Codewind CLI"

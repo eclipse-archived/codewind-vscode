@@ -47,4 +47,4 @@ done
 
 echo "$appsody_version" > appsody_version.txt;
 
-echo "Success"
+echo "Successfully pulled Appsody $appsody_version"

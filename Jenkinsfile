@@ -33,8 +33,7 @@ spec:
             steps {
                 container("vscode-builder") {
                     dir("dev/bin") {
-                        sh './pull-cli.sh'
-                        sh './pull-appsody.sh'
+                        sh './pull.sh'
                     }
                 }
             }
