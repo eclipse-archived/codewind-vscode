@@ -85,7 +85,7 @@ get_cli () {
 
 if ! is_cli_upgrade_available; then
     echo "No CLI update required"
-    exit 1
+    exit 0
 fi
 
 platforms=("linux" "darwin" "windows")
