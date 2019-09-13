@@ -36,7 +36,6 @@ const vscode_cmdsToDelete = [
 ];
 
 const PACKAGE_JSON_PATH = path.join(__dirname, "package.json");
-const INSTALLER_DIR = path.join(__dirname, "bin", "installer");
 
 const VIEW_CONTAINER_ID = "cw-viewcontainer";
 const VIEW_ID = "ext.cw.explorer";
@@ -98,9 +97,10 @@ async function prebuildTheia(pj) {
     pj.contributes.commands = removeCommands(pj.contributes.commands, theia_cmdsToDelete);
     pj.contributes.menus = removeMenus(pj.contributes.menus, theia_cmdsToDelete);
 
-    // Delete the installers that aren't needed.
-    let winInstaller = path.join(INSTALLER_DIR, "windows");
-    let macInstaller = path.join(INSTALLER_DIR, "macos");
+    // Delete the binaries that aren't needed.
+    const BIN_DIR = "bin";
+    const winInstaller = path.join(BIN_DIR, "windows");
+    const macInstaller = path.join(BIN_DIR, "darwin");
     await util.promisify(rimraf)(winInstaller);
     console.log(`Deleted ${winInstaller}`);
     await util.promisify(rimraf)(macInstaller);
@@ -150,5 +150,8 @@ async function main() {
 }
 
 main()
-.then(() => { console.log("Done") })
-.catch((err) => { console.error(err) });
+.then(() => { console.log("Done"); })
+.catch((err) => {
+    console.error(err);
+    process.exit(1);
+});
