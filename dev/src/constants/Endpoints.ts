@@ -30,7 +30,6 @@ export enum MCEndpoints {
     PREBIND_VALIDATE = "api/v1/validate",
     BIND = "api/v1/projects/bind",
     REMOTE_BIND_START = "api/v1/projects/remote-bind/start",
-    REMOTE_BIND_END = "api/v1/projects/remote-bind/end",
 
     REGISTRY = "api/v1/registry",
 }
