@@ -3,13 +3,18 @@
 pipeline {
     agent {
         kubernetes {
-            label 'vscode-builder'
+            label 'vscode-buildpod'
             yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
   - name: vscode-builder
+    image: node:lts
+    tty: true
+    command:
+      - cat
+  - name: theia-builder
     image: node:lts
     tty: true
     command:
@@ -28,22 +33,56 @@ spec:
         HOME="."
     }
 
+    parameters {
+        string(name: "CW_CLI_BRANCH", defaultValue: "master", description: "Codewind CLI branch from which to download the latest build")
+        string(name: "APPSODY_VERSION", defaultValue: "0.4.3", description: "Appsody executable version to download")
+    }
+
     stages {
-        stage("Build for VS Code") {
+        stage("Download dependency binaries") {
             steps {
-                container("vscode-builder") {
-                    sh 'ci-scripts/package.sh'
-                    stash includes: '*.vsix', name: 'deployables'
+                dir("dev/bin") {
+                    sh """#!/usr/bin/env bash
+                        export CW_CLI_BRANCH=${params.CW_CLI_BRANCH} APPSODY_VERSION=${params.APPSODY_VERSION}
+                        ./pull.sh
+                    """
                 }
             }
         }
-        stage("Build for Theia") {
+        // we duplicate the cloned repo so that we can build vscode and theia in parallel without the builds interfering with one another
+        stage("Duplicate code") {
             steps {
-                container("vscode-builder") {
-                    // Reset changes from the vs code package.sh
-                    sh 'git reset --hard HEAD'
-                    sh 'ci-scripts/package.sh theia'
-                    stash includes: '*.vsix', name: 'deployables'
+                dir ("..") {
+                    // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
+                    sh '''#!/usr/bin/env bash
+                        shopt -s extglob
+                        export dir_name=$(echo *codewind-vscode_$GIT_BRANCH!(*tmp))
+                        echo "Duplicating $dir_name"
+                        cp -r "$dir_name" codewind-theia
+                    '''
+                }
+            }
+        }
+        stage("Build") {
+            parallel {
+                stage("Build for VS Code") {
+                    steps {
+                        container("vscode-builder") {
+                            sh 'ci-scripts/package.sh'
+                            // The parallel stages cannot share a stash or they will overwrite and corrupt each other
+                            stash includes: '*.vsix', name: 'vscode-vsix'
+                        }
+                    }
+                }
+                stage("Build for Theia") {
+                    steps {
+                        container("theia-builder") {
+                            dir("../codewind-theia") {
+                                sh 'ci-scripts/package.sh theia'
+                                stash includes: '*.vsix', name: 'theia-vsix'
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -57,10 +96,15 @@ spec:
                 }
             }
 
+            options {
+                skipDefaultCheckout()
+            }
+
             agent any
             steps {
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
-                    unstash 'deployables'
+                    unstash 'vscode-vsix'
+                    unstash 'theia-vsix'
                     sh '''#!/usr/bin/env bash
                     export REPO_NAME="codewind-vscode"
                     export OUTPUT_NAME="codewind"

@@ -32,7 +32,6 @@ import { IInitializationResponse } from "./UserProjectCreator";
 const STRING_NS = StringNamespaces.STARTUP;
 
 const BIN_DIR = "bin";
-const INSTALLER_DIR = "installer";
 const INSTALLER_EXECUTABLE = "codewind-installer";
 const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
 const INSTALLER_PREREQS: { [s: string]: string[]; } = {
@@ -118,7 +117,7 @@ namespace InstallerWrapper {
     function getInternalExecutable(): string {
         const platform = MCUtil.getOS();
         const executable = platform === "windows" ? INSTALLER_EXECUTABLE_WIN : INSTALLER_EXECUTABLE;
-        return path.join(global.__extRoot, BIN_DIR, INSTALLER_DIR, platform, executable);
+        return path.join(global.__extRoot, BIN_DIR, platform, executable);
     }
 
     // abs path to copied-out executable. Set and returned by initialize()
