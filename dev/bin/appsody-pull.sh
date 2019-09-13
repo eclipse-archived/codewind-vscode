@@ -6,7 +6,11 @@ set -o pipefail
 appsody_version=${APPSODY_VERSION}
 
 if [[ -z $appsody_version ]]; then
-    echo "\$APPSODY_VERSION needs to be set in the environment!"
+    appsody_version=$1
+fi
+
+if [[ -z $appsody_version ]]; then
+    echo "\$APPSODY_VERSION needs to be set in the environment or in \$1"
     exit 1
 fi
 
