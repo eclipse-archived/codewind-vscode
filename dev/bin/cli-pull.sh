@@ -46,7 +46,7 @@ is_cli_upgrade_available () {
         return 0;
     fi
 
-    if [[ $(uname) == "darwin" ]]; then
+    if [[ $(uname) == "Darwin" ]]; then
         actual_sha=$(shasum $test_file | awk '{ print $1 }')
     else
         actual_sha=$(sha1sum $test_file | awk '{ print $1 }')
