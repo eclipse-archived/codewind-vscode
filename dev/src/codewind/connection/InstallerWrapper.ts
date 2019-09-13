@@ -43,7 +43,7 @@ const TAG_OPTION = "-t";
 const JSON_OPTION = "-j";
 
 // Codewind tag to install if no env vars set
-const DEFAULT_CW_TAG = "0.3";
+const DEFAULT_CW_TAG = "0.4.0";
 const TAG_LATEST = "latest";
 
 interface InstallerStatus {

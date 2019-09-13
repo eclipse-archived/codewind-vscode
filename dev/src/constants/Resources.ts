@@ -101,8 +101,8 @@ namespace Resources {
         Play = "play.svg",
         Refresh = "refresh.svg",
         Stop = "stop.svg",
-        ToggleOn = "toggle_on.svg",
-        ToggleOff = "toggle_off.svg",
+        ToggleOnThin = "toggle_on_thin.svg",
+        ToggleOffThin = "toggle_off_thin.svg",
         Trash = "trash.svg",
 
         Generic      = "project-types/cloud.svg",
