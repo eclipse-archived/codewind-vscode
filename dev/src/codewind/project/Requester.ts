@@ -149,7 +149,7 @@ namespace Requester {
         };
 
         const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode) });
-        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, Requester.get, restartMsg);
+        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, Requester.post, restartMsg, false, true);
     }
 
     export async function requestBuild(project: Project): Promise<void> {
@@ -278,7 +278,7 @@ namespace Requester {
      */
     async function doProjectRequest(
             project: Project, endpoint: Endpoint, body: {},
-            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false): Promise<any> {
+            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false, returnFullRes: boolean = false): Promise<any> {
 
         let url: string;
         if (EndpointUtil.isProjectEndpoint(endpoint)) {
@@ -290,8 +290,13 @@ namespace Requester {
 
         Log.i(`Doing ${userOperationName} request to ${url}`);
 
+        const options: request.RequestPromiseOptions = {
+            body,
+            resolveWithFullResponse: returnFullRes,
+        };
+
         try {
-            const result = await requestFunc(url, { body });
+            const result = await requestFunc(url, options);
 
             if (!silent) {
                 vscode.window.showInformationMessage(
