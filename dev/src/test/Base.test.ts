@@ -94,6 +94,7 @@ describe("Codewind for VSCode basic test", async function() {
         });
     });
 
+
     it("should connect to the backend", async function() {
         this.timeout(10 * 1000);
         const connMan = CodewindManager.instance;
@@ -101,9 +102,24 @@ describe("Codewind for VSCode basic test", async function() {
         expect(connMan.connections.length).to.eq(1, "No connection exists");
 
         const connection = connMan.connections[0];
-        // expect(connection.isConnected).to.be.true;
-        expect(connection.url.authority).to.contain("localhost:9090");
         testConnection = connection;
+
+        // wait for the connection to be ready, this should be fast since CW is already started
+        await new Promise((resolve, reject) => {
+            const interval = setInterval(() => {
+                let counter = 0;
+                Log.t("Waiting for Codewind to be connected...");
+                if (testConnection.isConnected) {
+                    clearInterval(interval);
+                    return resolve();
+                }
+                if (counter >= 10) {
+                    clearInterval(interval);
+                    return reject(`Codewind was not ready in ${counter} seconds`);
+                }
+                counter++;
+            }, 1000);
+        });
     });
 
     it("should have a test socket connection", async function() {
