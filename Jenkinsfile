@@ -33,6 +33,10 @@ spec:
         HOME="."
     }
 
+    triggers {
+        upstream(upstreamProjects: "Codewind/codewind-installer/master", threshold: hudson.model.Result.SUCCESS)
+    }
+
     parameters {
         string(name: "CW_CLI_BRANCH", defaultValue: "master", description: "Codewind CLI branch from which to download the latest build")
         string(name: "APPSODY_VERSION", defaultValue: "0.4.3", description: "Appsody executable version to download")
@@ -154,6 +158,24 @@ spec:
 
                     '''
                 }
+            }
+        }
+
+        stage("Report") {
+            when {
+                beforeAgent true
+                triggeredBy 'UpstreamCause'
+            }
+
+            options {
+                skipDefaultCheckout()
+            }
+
+            agent any
+            steps {
+                mail to: 'jspitman@ca.ibm.com, timetchells@ibm.com',
+                subject: "${currentBuild.currentResult}: Upstream triggered build for ${currentBuild.fullProjectName}",
+                body: "${currentBuild.absoluteUrl}\n${currentBuild.getBuildCauses()[0].shortDescription} had status ${currentBuild.currentResult}"
             }
         }
     }
