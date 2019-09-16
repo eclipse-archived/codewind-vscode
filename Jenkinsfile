@@ -125,6 +125,7 @@ spec:
                     cp $OUTPUT_THEIA_NAME-*.vsix $OUTPUT_THEIA_NAME.vsix
                     scp $OUTPUT_THEIA_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
 
+                    echo "# Build date: $(date +%F-%T)" >> $BUILD_INFO
                     echo "build_info.url=$BUILD_URL" >> $BUILD_INFO
                     SHA1_THEIA=$(sha1sum ${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
                     echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $BUILD_INFO
