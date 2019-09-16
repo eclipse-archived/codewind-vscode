@@ -34,7 +34,7 @@ spec:
     }
 
     triggers {
-        upstream(upstreamProjects: "Codewind/codewind-installer/master", threshold: hudson.model.Result.SUCCESS)
+        upstream(upstreamProjects: "Codewind/codewind-installer/${env.GIT_BRANCH}", threshold: hudson.model.Result.SUCCESS)
     }
 
     parameters {
@@ -172,7 +172,6 @@ spec:
                 skipDefaultCheckout()
             }
 
-            agent any
             steps {
                 mail to: 'jspitman@ca.ibm.com, timetchells@ibm.com',
                 subject: "${currentBuild.currentResult}: Upstream triggered build for ${currentBuild.fullProjectName}",
