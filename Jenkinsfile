@@ -34,7 +34,7 @@ spec:
     }
 
     triggers {
-        upstream(upstreamProjects: "Codewind/codewind-installer/${env.GIT_BRANCH}", threshold: hudson.model.Result.SUCCESS)
+        upstream(upstreamProjects: "Codewind/codewind-installer/${env.BRANCH_NAME}", threshold: hudson.model.Result.SUCCESS)
     }
 
     parameters {
