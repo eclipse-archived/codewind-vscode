@@ -88,14 +88,17 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
             const newEnablement = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") != "true";
             toggleBtn.setAttribute("${REPO_ENABLED_ATTR}", newEnablement);
 
-            let newToggleImg;
+            let newToggleImg, newToggleAlt;
             if (newEnablement) {
                 newToggleImg = "${getStatusToggleIconSrc(true)}";
+                newToggleAlt = "${getStatusToggleAlt(true)}";
             }
             else {
                 newToggleImg = "${getStatusToggleIconSrc(false)}";
+                newToggleAlt = "${getStatusToggleAlt(false)}";
             }
             toggleBtn.src = newToggleImg;
+            toggleBtn.alt = newToggleAlt;
 
             sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(toggleBtn) ] });
         }
@@ -174,11 +177,14 @@ function buildRepoRow(repo: ITemplateRepo): string {
 }
 
 function getStatusToggleTD(repo: ITemplateRepo): string {
-    const alt = repo.enabled ? `Disable ${repo.description}` : `Enable ${repo.description}`;
     return `<td class="repo-toggle-cell">
-        <input type="image" alt="${alt}" ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}" class="${REPO_TOGGLE_CLASS} btn"
-            src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
+        <input type="image" alt="${getStatusToggleAlt(repo.enabled)}" ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}"
+            class="${REPO_TOGGLE_CLASS} btn" src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
     </td>`;
+}
+
+function getStatusToggleAlt(enabled: boolean): string {
+    return enabled ? `Disable source` : `Enable source`;
 }
 
 function getStatusToggleIconSrc(enabled: boolean): string {
