@@ -37,10 +37,15 @@ input[type="checkbox"]:disabled {
     border: 1x solid var(--vscode-button-background);
 }
 
-.btn:hover, a:hover, .btn:focus, a:focus, input[type="checkbox"] {
+.btn:hover, a:hover  {
     text-decoration: underline;
     cursor: pointer;
-    outline: var(--vscode-button-background);
+}
+
+.btn:focus, a:focus, input[type="checkbox"]:focus, input[type="image"]:focus {
+    text-decoration: underline;
+    cursor: pointer;
+    outline: var(--vscode-button-background) solid 1px;
 }
 
 .btn-disabled {
@@ -49,14 +54,10 @@ input[type="checkbox"]:disabled {
     border-color: var(--disabled-btn-color);
 }
 
-/* Override btn hover behaviour defined above */
-.btn-disabled:hover, .btn-disabled:focus {
-    outline: var(--disabled-btn-color);
-}
-
 .btn-disabled:hover, .btn-disabled:focus, .not-allowed:hover, .not-allowed:focus {
     text-decoration: none;
     cursor: not-allowed;
+    outline: var(--disabled-btn-color) solid 1px;
 }
 
 #bottom-section {
