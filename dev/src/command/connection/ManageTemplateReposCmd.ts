@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
+// import * as fs from "fs";
 import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
@@ -20,7 +20,7 @@ import WebviewUtil from "../webview/WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
-import Constants from "../../constants/Constants";
+// import Constants from "../../constants/Constants";
 
 /**
  * Template repository/source data as provided by the backend
@@ -101,12 +101,12 @@ export async function refreshManageReposPage(connection: Connection): Promise<vo
     const html = generateManageReposHtml(await Requester.getTemplateRepos(connection));
 
     // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
-    if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
-        const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
-        fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
-            (err) => { if (err) { throw err; } }
-        );
-    }
+    // if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
+    //     const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
+    //     fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
+    //         (err) => { if (err) { throw err; } }
+    //     );
+    // }
     manageReposPage.webview.html = html;
 }
 
