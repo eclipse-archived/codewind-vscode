@@ -20,6 +20,8 @@ import WebviewUtil from "../webview/WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
+import Commands from "../../constants/Commands";
+import Constants from "../../constants/Constants";
 // import Constants from "../../constants/Constants";
 
 /**
@@ -53,6 +55,7 @@ export interface IRepoEnablement {
 }
 
 const REPOS_PAGE_TITLE = "Template Sources";
+const LEARN_MORE_LINK = Constants.CW_SITE_BASEURL + "mdt-vsc-usingadifferenttemplate.html";
 
 // Only allow one of these for now - This should be moved to be per-connection like how overview is per-project.
 let manageReposPage: vscode.WebviewPanel | undefined;
@@ -173,8 +176,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 break;
             }
             case ManageReposWVMessages.HELP: {
-                vscode.window.showInformationMessage("More information about this page, or open a webpage, probably");
-                // vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(LEARN_MORE_LINK));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(LEARN_MORE_LINK));
                 break;
             }
             case ManageReposWVMessages.REFRESH: {
