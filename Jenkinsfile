@@ -53,6 +53,20 @@ spec:
                 }
             }
         }
+
+        stage ("Test") {
+            // We need the docker agent for test step so we can run Codewind in docker
+            agent {
+                label "docker-build"
+            }
+
+            steps {
+                sh '''#!/usr/bin/env bash
+                    ./ci-scripts/run-tests.sh
+                '''
+            }
+        }
+
         // we duplicate the cloned repo so that we can build vscode and theia in parallel without the builds interfering with one another
         stage("Duplicate code") {
             steps {
@@ -67,6 +81,7 @@ spec:
                 }
             }
         }
+
         stage("Build") {
             parallel {
                 stage("Build for VS Code") {
