@@ -90,11 +90,11 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
 
             let newToggleImg, newToggleAlt;
             if (newEnablement) {
-                newToggleImg = "${getStatusToggleIconSrc(true)}";
+                newToggleImg = "${getStatusToggleIconSrc(true, true)}";
                 newToggleAlt = "${getStatusToggleAlt(true)}";
             }
             else {
-                newToggleImg = "${getStatusToggleIconSrc(false)}";
+                newToggleImg = "${getStatusToggleIconSrc(false, true)}";
                 newToggleAlt = "${getStatusToggleAlt(false)}";
             }
             toggleBtn.src = newToggleImg;
@@ -187,8 +187,14 @@ function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-function getStatusToggleIconSrc(enabled: boolean): string {
-    return WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+function getStatusToggleIconSrc(enabled: boolean, escapeBackslash = false): string {
+    let toggleIcon = WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+    if (escapeBackslash) {
+        // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
+        // https://github.com/eclipse/codewind/issues/476
+        toggleIcon = toggleIcon.replace(/\\/g, "\\\\")
+    }
+    return toggleIcon;
 }
 
 function getDeleteBtnTD(repo: ITemplateRepo): string {
