@@ -75,7 +75,7 @@ namespace UserProjectCreator {
     }
 
     export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
-        const pathToBind = MCUtil.fsPathToContainerPath(pathToBindUri);
+        const pathToBind = pathToBindUri.fsPath;
         Log.i("Binding to", pathToBind);
 
         const projectName = path.basename(pathToBind);
@@ -279,14 +279,16 @@ namespace UserProjectCreator {
         return selectedDirs[0];
     }
 
-    async function requestLocalBind(connection: Connection, projectName: string, dirToBindContainerPath: string, language: string, projectType: string)
+    async function requestLocalBind(connection: Connection, projectName: string, dirToBindFsPath: string, language: string, projectType: string)
         : Promise<void> {
+
+        const fsPath = MCUtil.fsPathToContainerPath(dirToBindFsPath);
 
         const bindReq = {
             name: projectName,
             language,
             projectType,
-            path: dirToBindContainerPath,
+            path: fsPath,
         };
 
         Log.d("Bind request", bindReq);

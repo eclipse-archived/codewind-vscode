@@ -49,7 +49,7 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
                 <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
                 <h1>Template Source Manager</h1>
             </div>
-            <div id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
+            <div tabindex="0" id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
                 Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
             </div>
         </div>
@@ -59,10 +59,10 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
                 Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
             </div-->
             <div id="toolbar-right-buttons">
-                <div class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                <div tabindex="0" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
                     Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
                 </div>
-                <div id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
                     Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
                 </div>
             </div>
@@ -88,14 +88,17 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
             const newEnablement = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") != "true";
             toggleBtn.setAttribute("${REPO_ENABLED_ATTR}", newEnablement);
 
-            let newToggleImg;
+            let newToggleImg, newToggleAlt;
             if (newEnablement) {
                 newToggleImg = "${getStatusToggleIconSrc(true)}";
+                newToggleAlt = "${getStatusToggleAlt(true)}";
             }
             else {
                 newToggleImg = "${getStatusToggleIconSrc(false)}";
+                newToggleAlt = "${getStatusToggleAlt(false)}";
             }
             toggleBtn.src = newToggleImg;
+            toggleBtn.alt = newToggleAlt;
 
             sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(toggleBtn) ] });
         }
@@ -175,9 +178,13 @@ function buildRepoRow(repo: ITemplateRepo): string {
 
 function getStatusToggleTD(repo: ITemplateRepo): string {
     return `<td class="repo-toggle-cell">
-        <img ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}" class="${REPO_TOGGLE_CLASS} btn"
-            src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
+        <input type="image" alt="${getStatusToggleAlt(repo.enabled)}" ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}"
+            class="${REPO_TOGGLE_CLASS} btn" src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
     </td>`;
+}
+
+function getStatusToggleAlt(enabled: boolean): string {
+    return enabled ? `Disable source` : `Enable source`;
 }
 
 function getStatusToggleIconSrc(enabled: boolean): string {
@@ -194,8 +201,8 @@ function getDeleteBtnTD(repo: ITemplateRepo): string {
         onClick = "";
     }
 
-    const deleteBtn = `<img ${REPO_ID_ATTR}="${repo.url}" alt="Delete" title="${title}" onclick="${onClick}" class="${deleteBtnClass}"
-        src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
+    const deleteBtn = `<input type="image" ${REPO_ID_ATTR}="${repo.url}" alt="Delete ${repo.description}" title="${title}"
+        onclick="${onClick}" class="${deleteBtnClass}" src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
 
     return `
     <td class="delete-btn-cell">

@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
+// import * as fs from "fs";
 import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
@@ -20,7 +20,9 @@ import WebviewUtil from "../webview/WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
+import Commands from "../../constants/Commands";
 import Constants from "../../constants/Constants";
+// import Constants from "../../constants/Constants";
 
 /**
  * Template repository/source data as provided by the backend
@@ -53,6 +55,7 @@ export interface IRepoEnablement {
 }
 
 const REPOS_PAGE_TITLE = "Template Sources";
+const LEARN_MORE_LINK = Constants.CW_SITE_BASEURL + "mdt-vsc-usingadifferenttemplate.html";
 
 // Only allow one of these for now - This should be moved to be per-connection like how overview is per-project.
 let manageReposPage: vscode.WebviewPanel | undefined;
@@ -101,12 +104,12 @@ export async function refreshManageReposPage(connection: Connection): Promise<vo
     const html = generateManageReposHtml(await Requester.getTemplateRepos(connection));
 
     // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
-    if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
-        const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
-        fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
-            (err) => { if (err) { throw err; } }
-        );
-    }
+    // if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
+    //     const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
+    //     fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
+    //         (err) => { if (err) { throw err; } }
+    //     );
+    // }
     manageReposPage.webview.html = html;
 }
 
@@ -173,8 +176,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 break;
             }
             case ManageReposWVMessages.HELP: {
-                vscode.window.showInformationMessage("More information about this page, or open a webpage, probably");
-                // vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(LEARN_MORE_LINK));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(LEARN_MORE_LINK));
                 break;
             }
             case ManageReposWVMessages.REFRESH: {

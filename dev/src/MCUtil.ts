@@ -117,14 +117,14 @@ namespace MCUtil {
             .replace(/-+$/, "");            // trim - from end
     }
 
-    export function getOS(): "windows" | "macos" | "linux" {
+    export function getOS(): "windows" | "darwin" | "linux" {
         const platf = process.platform;
         // https://nodejs.org/api/process.html#process_process_platform
         if (platf === "win32") {
             return "windows";
         }
         else if (platf === "darwin") {
-            return "macos";
+            return "darwin";
         }
         else if (platf !== "linux") {
             Log.w("Potentially unsupported platform: " + platf);
@@ -136,11 +136,11 @@ namespace MCUtil {
     /**
      * C:\\Users\\... -> /C/Users/
      */
-    export function fsPathToContainerPath(fsPath: vscode.Uri): string {
+    export function fsPathToContainerPath(fsPath: vscode.Uri | string): string {
+        const pathStr: string = fsPath instanceof vscode.Uri ? fsPath.fsPath : fsPath;
         if (getOS() !== "windows") {
-            return fsPath.fsPath;
+            return pathStr;
         }
-        const pathStr = fsPath.fsPath;
         const driveLetter = pathStr.charAt(0);
         // we have to convert C:\<path> to /C/<path>
         const containerPath = pathStr.substring(2).replace(/\\/g, "/");
