@@ -120,6 +120,10 @@ export class ProjectType {
         }
     }
 
+    public static getRecognizedInternalTypes(): ProjectType.InternalTypes[] {
+        return Object.values(this.InternalTypes);
+    }
+
     /*
     private static getUserFriendlyType(type: ProjectType.Types): string {
         // For docker projects, return the language
