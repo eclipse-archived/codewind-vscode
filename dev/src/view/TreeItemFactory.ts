@@ -113,21 +113,14 @@ namespace TreeItemFactory {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));
             }
             else {
-                const label = global.isTheia ?
-                    "No Projects" :
-                    "No projects (Click here to create a project)";
+                const label = "No projects (Click here to create a project)";
+                const tooltip = "Click here to create a project";
 
-                const tooltip = global.isTheia ?
-                    "Right click Projects to create a project" :
-                    "Click here to create a project";
-
-                const command = global.isTheia ?
-                    undefined :
-                    {
-                        command: Commands.CREATE_PROJECT,
-                        title: "",
-                        arguments: [connection]
-                    };
+                const command = {
+                    command: Commands.CREATE_PROJECT,
+                    title: "",
+                    arguments: [connection]
+                };
 
                 return [{
                     label,
@@ -173,13 +166,13 @@ function getConnectionTI(connection: Connection): vscode.TreeItem {
 
 function getProjectTI(project: Project): vscode.TreeItem {
     const label = Translator.t(STRING_NS, "projectLabel", { projectName: project.name, state: project.state.toString() });
-    const command = global.isTheia ?
-        undefined :
-        {
-            command: Commands.VSC_REVEAL_EXPLORER,
-            title: "",
-            arguments: [project.localPath]
-        };
+
+    // won't work in theia until https://github.com/eclipse-theia/theia/pull/5590
+    const command = {
+        command: Commands.VSC_REVEAL_EXPLORER,
+        title: "",
+        arguments: [project.localPath]
+    };
 
     return {
         id: project.id,
