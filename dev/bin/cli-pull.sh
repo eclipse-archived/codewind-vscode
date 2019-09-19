@@ -38,10 +38,10 @@ is_cli_upgrade_available () {
     cli_lastbuild=$(extract_property $cli_props_file build_info.url)
     echo "Latest cli $cli_branch build is $cli_lastbuild"
 
-    latest_sha=$(extract_property $cli_props_file build_info.linux.SHA-1)
+    latest_sha=$(extract_property $cli_props_file build_info.macos.SHA-1)
     #rm $cli_props_file
 
-    local test_file="linux/$cli_basename"
+    local test_file="darwin/$cli_basename"
     if [[ ! -f $test_file ]]; then
         return 0;
     fi
