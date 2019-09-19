@@ -195,19 +195,7 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
         };
     });
 
-    let selected: vscode.QuickPickItem | undefined;
-    // https://github.com/theia-ide/theia/issues/5059
-    if (global.isTheia) {
-        selected = await vscode.window.showQuickPick(templateQpis, {
-            matchOnDetail: true,
-            placeHolder: TEMPLATE_QP_PLACEHOLDER,
-            // ignoreFocusOut = true,
-        });
-    }
-    else {
-        // vs code supports a fancier quickpick
-        selected = await displayTemplateQuickpick(templateQpis);
-    }
+    const selected = await showTemplateQuickpick(templateQpis);
 
     if (selected == null) {
         return undefined;
@@ -221,7 +209,7 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
     return selectedProjectType;
 }
 
-async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): Promise<vscode.QuickPickItem | undefined> {
+async function showTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): Promise<vscode.QuickPickItem | undefined> {
     const qp = vscode.window.createQuickPick();
     qp.placeholder = TEMPLATE_QP_PLACEHOLDER;
     qp.matchOnDetail = true;
@@ -230,15 +218,23 @@ async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): P
     qp.step = 1;
     qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
     qp.title = CREATE_PROJECT_WIZARD_TITLE;
-    // qp.ignoreFocusOut = true;
+    qp.ignoreFocusOut = true;
 
     const selected = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
         qp.show();
         qp.onDidHide((_e) => {
             resolve(undefined);
         });
-        qp.onDidAccept((_e) => {
-            resolve(qp.selectedItems);
+
+        // it looks funny to use onDidChangeSelection instead of onDidAccept,
+        // but it behaves the same when there's just one item since we can only make one selection.
+        // this is a workaround for https://github.com/eclipse-theia/theia/issues/6221
+
+        // qp.onDidAccept(() => {
+        //     resolve(selection);
+        // });
+        qp.onDidChangeSelection((selection) => {
+            resolve(selection);
         });
     })
     .finally(() => qp.dispose());
@@ -254,15 +250,6 @@ async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): P
 async function promptForProjectName(template: IMCTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
-
-    // https://github.com/theia-ide/theia/issues/5109
-    if (global.isTheia) {
-        return vscode.window.showInputBox({
-            placeHolder: projNamePlaceholder,
-            prompt: projNamePrompt,
-            validateInput: validateProjectName,
-        });
-    }
 
     const ib = vscode.window.createInputBox();
     ib.title = CREATE_PROJECT_WIZARD_TITLE;
