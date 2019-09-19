@@ -55,7 +55,7 @@ export async function onRegistryNotSet(connection: Connection): Promise<void> {
     const setRegistryBtn = "Set Registry";
     const moreInfoBtn = "More Info";
     const res = await vscode.window.showErrorMessage(
-        "You must set a deployment registry before binding a project. Run the Set Deployment Registry command.",
+        "You must set a deployment registry before creating or adding a project. Run the Set Deployment Registry command.",
         setRegistryBtn, moreInfoBtn
     );
     if (res === setRegistryBtn) {
@@ -137,7 +137,9 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
         });
 
         Log.i("Deployment registry set successfully");
-        vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved to ${configFilePath}`);
+        vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved to ${configFilePath}. ` +
+            `You can now build Codewind projects.`
+        );
         registryIsSet = true;
     }
     catch (err) {
