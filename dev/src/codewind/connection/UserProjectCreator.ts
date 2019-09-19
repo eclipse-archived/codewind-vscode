@@ -56,9 +56,16 @@ namespace UserProjectCreator {
         // abs path on user system under which the project will be created
         const userParentDir = connection.workspacePath;
 
-        // caller must handle errors
         const projectPath = path.join(userParentDir.fsPath, projectName);
-        const creationRes = await InstallerWrapper.createProject(projectPath, template.url);
+
+        const creationRes = await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Creating ${projectName}...`,
+        }, () => {
+            return InstallerWrapper.createProject(projectPath, template.url);
+        });
+
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (creationRes.result as { error: string });
@@ -260,13 +267,13 @@ namespace UserProjectCreator {
     async function requestBind(connection: Connection, projectName: string, dirToBindFsPath: string, language: string, projectType: string)
         : Promise<void> {
 
-        const path = MCUtil.fsPathToContainerPath(dirToBindFsPath);
+        const containerPath = MCUtil.fsPathToContainerPath(dirToBindFsPath);
 
         const bindReq = {
             name: projectName,
             language,
             projectType,
-            path,
+            path: containerPath,
         };
 
         Log.d("Bind request", bindReq);
