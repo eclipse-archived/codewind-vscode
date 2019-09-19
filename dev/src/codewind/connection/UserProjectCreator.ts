@@ -169,7 +169,13 @@ namespace UserProjectCreator {
 
         let projectType: string = projectTypeRes.label;
         let language: string;
-        if (projectType !== OTHER_TYPE_OPTION) {
+        // If the project type selected has a language that it always is, use that language, else have the user select it
+        const typesWithCorrespondingLanguage = ProjectType.getRecognizedInternalTypes()
+            .map((type) => type.toString())
+            // Remove generic type because it can be any language
+            .filter((type) => type !== OTHER_TYPE_OPTION);
+
+        if (typesWithCorrespondingLanguage.includes(projectType)) {
             language = projectTypeRes.language;
         }
         else {
