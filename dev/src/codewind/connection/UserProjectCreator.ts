@@ -146,7 +146,7 @@ namespace UserProjectCreator {
                               Promise<INewProjectInfo | undefined> {
         const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         const projectID = projectInfo.projectID;
-        await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind);
+        await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind, 0);
 
         await requestRemoteBindEnd(connection, projectID);
         return { projectName, projectPath: pathToBind };

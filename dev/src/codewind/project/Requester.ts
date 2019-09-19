@@ -167,10 +167,12 @@ namespace Requester {
             Log.i(`Clearing existing content for ${project.name} from ${project.connection.host}`);
             await requestClear(project);
             Log.i(`Copying updated files from ${localPath} to ${project.connection.host}`);
-            await requestUploadsRecursively(project.connection, project.id, localPath, localPath);
+            await requestUploadsRecursively(project.connection, project.id, localPath, localPath, project._lastSync);
         } else {
             Log.i(`Local build from local file system at ${project.localPath}`);
         }
+        const newTime = new Date().getTime();
+        project._lastSync = newTime;
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
     }
 
@@ -180,7 +182,12 @@ namespace Requester {
     }
 
 
-    export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string): Promise<void> {
+    export async function requestUploadsRecursively(connection: Connection,
+      projectId: any,
+      inputPath: string,
+      parentPath: string,
+      lastSync: number):
+      Promise<void> {
         Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
         const files = fs.readdirSync(inputPath);
 
@@ -190,12 +197,15 @@ namespace Requester {
             const stats = fs.statSync(currentPath);
             if (stats.isFile()) {
                 try {
-                    await remoteUpload(connection, projectId, currentPath, parentPath);
+                    const lastModificationTime = stats.mtimeMs;
+                    if (lastModificationTime > lastSync) {
+                      await remoteUpload(connection, projectId, currentPath, parentPath);
+                    }
                 } catch (err) {
                     Log.d(err);
                 }
             } else if (stats.isDirectory()) {
-                await requestUploadsRecursively(connection, projectId, currentPath, parentPath);
+                await requestUploadsRecursively(connection, projectId, currentPath, parentPath, lastSync);
             }
         }
     }

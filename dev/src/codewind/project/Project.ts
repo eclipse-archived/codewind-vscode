@@ -72,6 +72,7 @@ export default class Project implements vscode.QuickPickItem {
     private readonly _ports: IProjectPorts;
     private _autoBuildEnabled: boolean;
     private _usesHttps: boolean;
+    public _lastSync: number;
     // Dates below will always be set, but might be "invalid date"s
     private _lastBuild: Date;
     private _lastImgBuild: Date;
@@ -116,6 +117,7 @@ export default class Project implements vscode.QuickPickItem {
 
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
         this._autoBuildEnabled = projectInfo.autoBuild;
+        this._lastSync = 0;
         // lastbuild is a number
         this._lastBuild = new Date(projectInfo.lastbuild);
         // appImageLastBuild is a string
