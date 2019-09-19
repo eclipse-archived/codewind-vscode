@@ -164,37 +164,38 @@ namespace Requester {
         const buildMsg = Translator.t(STRING_NS, "build");
         if (project.connection.remote) {
             const localPath = MCUtil.fsPathToContainerPath(project.localPath);
-            Log.i(`Clearing existing content for ${project.name} from ${project.connection.host}`);
-            await requestClear(project);
             Log.i(`Copying updated files from ${localPath} to ${project.connection.host}`);
-            await requestUploadsRecursively(project.connection, project.id, localPath, localPath, project._lastSync);
+            const syncTime = Date.now();
+            const fileList = await requestUploadsRecursively(project.connection, project.id, localPath, localPath, project._lastSync);
+            Log.i(`Clearing old content for ${project.name} from ${project.connection.host}`);
+            await requestClear(project, fileList);
+            project._lastSync = syncTime;
         } else {
             Log.i(`Local build from local file system at ${project.localPath}`);
         }
-        const newTime = new Date().getTime();
-        project._lastSync = newTime;
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
     }
 
-    export async function requestClear(project: Project): Promise<void> {
+    export async function requestClear(project: Project, fileList: string[]): Promise<void> {
         const msg = Translator.t(STRING_NS, "clear");
-        await doProjectRequest(project, ProjectEndpoints.CLEAR, {}, Requester.post, msg, true);
+        const body = {
+            fileList
+        };
+        await doProjectRequest(project, ProjectEndpoints.CLEAR, body, Requester.post, msg, true);
     }
 
 
-    export async function requestUploadsRecursively(connection: Connection,
-      projectId: any,
-      inputPath: string,
-      parentPath: string,
-      lastSync: number):
-      Promise<void> {
+    export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string, lastSync: number):
+      Promise<string[]> {
         Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
-        const files = fs.readdirSync(inputPath);
-
+        const files = await fs.readdir(inputPath);
+        const fileList: string[] = [];
         for (const f of files) {
             const currentPath = `${inputPath}/${f}`;
+            const relativePath = path.relative(parentPath, currentPath);
+            fileList.push(relativePath);
             // Log.i("Uploading " + currentPath);
-            const stats = fs.statSync(currentPath);
+            const stats = await fs.stat(currentPath);
             if (stats.isFile()) {
                 try {
                     const lastModificationTime = stats.mtimeMs;
@@ -205,9 +206,11 @@ namespace Requester {
                     Log.d(err);
                 }
             } else if (stats.isDirectory()) {
-                await requestUploadsRecursively(connection, projectId, currentPath, parentPath, lastSync);
+                const newFiles = await requestUploadsRecursively(connection, projectId, currentPath, parentPath, lastSync);
+                fileList.push(...newFiles);
             }
         }
+        return fileList;
     }
 
     async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {

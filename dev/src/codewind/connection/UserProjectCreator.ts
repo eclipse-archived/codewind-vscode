@@ -146,9 +146,16 @@ namespace UserProjectCreator {
                               Promise<INewProjectInfo | undefined> {
         const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         const projectID = projectInfo.projectID;
+        const thisSyncTime = Date.now();
         await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind, 0);
 
         await requestRemoteBindEnd(connection, projectID);
+        const project = await connection.getProjectByID(projectID);
+        // Set the last sync time on the project so we don't upload
+        // all the files again on the first build.
+        if (project !== undefined) {
+            project._lastSync = thisSyncTime;
+        }
         return { projectName, projectPath: pathToBind };
     }
 
