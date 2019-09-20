@@ -144,9 +144,9 @@ namespace UserProjectCreator {
     async function bindRemote(connection: Connection, projectName: string,
                               pathToBind: string, projectTypeInfo: IProjectTypeInfo):
                               Promise<INewProjectInfo | undefined> {
+        const syncTime = Date.now();
         const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         const projectID = projectInfo.projectID;
-        const thisSyncTime = Date.now();
         await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind, 0);
 
         await requestRemoteBindEnd(connection, projectID);
@@ -154,8 +154,9 @@ namespace UserProjectCreator {
         // Set the last sync time on the project so we don't upload
         // all the files again on the first build.
         if (project !== undefined) {
-            project._lastSync = thisSyncTime;
+            project._lastSync = syncTime;
         }
+        Log.i(`Initial project upload complete for ${projectInfo.name} to ${connection.host} in ${Date.now() - syncTime}ms`);
         return { projectName, projectPath: pathToBind };
     }
 

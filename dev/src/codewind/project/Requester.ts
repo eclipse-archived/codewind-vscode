@@ -169,6 +169,7 @@ namespace Requester {
             const fileList = await requestUploadsRecursively(project.connection, project.id, localPath, localPath, project._lastSync);
             Log.i(`Clearing old content for ${project.name} from ${project.connection.host}`);
             await requestClear(project, fileList);
+            Log.i(`Sync complete for ${project.name} to ${project.connection.host} in ${Date.now() - syncTime}ms`);
             project._lastSync = syncTime;
         } else {
             Log.i(`Local build from local file system at ${project.localPath}`);
