@@ -75,6 +75,9 @@ namespace Requester {
 
     export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get, { qs: { showEnabledOnly: true }});
+        if (result == null) {
+            return [];
+        }
         return result;
     }
 

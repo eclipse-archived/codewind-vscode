@@ -56,9 +56,16 @@ namespace UserProjectCreator {
         // abs path on user system under which the project will be created
         const userParentDir = connection.workspacePath;
 
-        // caller must handle errors
         const projectPath = path.join(userParentDir.fsPath, projectName);
-        const creationRes = await InstallerWrapper.createProject(projectPath, template.url);
+
+        const creationRes = await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Creating ${projectName}...`,
+        }, () => {
+            return InstallerWrapper.createProject(projectPath, template.url);
+        });
+
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (creationRes.result as { error: string });
@@ -205,7 +212,13 @@ namespace UserProjectCreator {
 
         let projectType: string = projectTypeRes.label;
         let language: string;
-        if (projectType !== OTHER_TYPE_OPTION) {
+        // If the project type selected has a language that it always is, use that language, else have the user select it
+        const typesWithCorrespondingLanguage = ProjectType.getRecognizedInternalTypes()
+            .map((type) => type.toString())
+            // Remove generic type because it can be any language
+            .filter((type) => type !== OTHER_TYPE_OPTION);
+
+        if (typesWithCorrespondingLanguage.includes(projectType)) {
             language = projectTypeRes.language;
         }
         else {
@@ -290,13 +303,13 @@ namespace UserProjectCreator {
     async function requestLocalBind(connection: Connection, projectName: string, dirToBindFsPath: string, language: string, projectType: string)
         : Promise<void> {
 
-        const fsPath = MCUtil.fsPathToContainerPath(dirToBindFsPath);
+        const containerPath = MCUtil.fsPathToContainerPath(dirToBindFsPath);
 
         const bindReq = {
             name: projectName,
             language,
             projectType,
-            path: fsPath,
+            path: containerPath,
         };
 
         Log.d("Bind request", bindReq);
