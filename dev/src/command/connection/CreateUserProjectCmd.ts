@@ -26,9 +26,6 @@ const BACK_BTN_MSG = "Back button";
 
 const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
-/**
- * @param create true for Create page, false for Import page
- */
 export default async function createProject(connection: Connection): Promise<void> {
     if (!(await isRegistrySet(connection))) {
         onRegistryNotSet(connection);
@@ -167,12 +164,91 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     return "selected";
 }
 
-const TEMPLATE_QP_PLACEHOLDER = "Select the project type to create";
-
 async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
-    const templates = await Requester.getTemplates(connection);
 
-    if (templates == null) {
+    const qp = vscode.window.createQuickPick();
+    // busy and enabled have no effect in theia https://github.com/eclipse-theia/theia/issues/5059
+    qp.busy = true;
+    qp.enabled = false;
+    qp.placeholder = "Fetching available project templates...";
+
+    qp.matchOnDetail = true;
+    qp.canSelectMany = false;
+    qp.step = 1;
+    qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
+    qp.title = CREATE_PROJECT_WIZARD_TITLE;
+    qp.ignoreFocusOut = true;
+
+    if (!global.isTheia) {
+        // Theia quickpicks misbehave if the quickpick is shown before populating the items
+        // https://github.com/eclipse-theia/theia/issues/6221#issuecomment-533268856
+        // In VS Code, the items are populated after showing, so we can show the quickpick sooner, which looks better.
+        qp.show();
+    }
+
+    const templateQpis = await getTemplateQpis(connection);
+    if (templateQpis == null) {
+        // getTemplateQpis will have shown the error message
+        return undefined;
+    }
+
+    qp.items = templateQpis;
+    qp.placeholder = "Select the project type to create";
+    qp.busy = false;
+    qp.enabled = true;
+
+    if (global.isTheia) {
+        // it wasn't shown above, so show it now
+        qp.show();
+    }
+
+    const qpiSelection = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
+        qp.onDidHide((_e) => {
+            resolve(undefined);
+        });
+
+        // it looks funny to use onDidChangeSelection instead of onDidAccept,
+        // but it behaves the same when there's just one item since we can only make one selection.
+        // this is a workaround for https://github.com/eclipse-theia/theia/issues/6221
+
+        // qp.onDidAccept(() => {
+        //     Log.d("onDidAccept, qp.selectedItems are", qp.selectedItems);
+        //     resolve(qp.selectedItems);
+        // });
+        qp.onDidChangeSelection((selection) => {
+            // Log.d("onDidChangeSelection, qp.selectedItems are", qp.selectedItems);
+            // Log.d("onDidChangeSelection, selection is ", selection);
+            resolve(selection);
+        });
+    })
+    .finally(() => qp.dispose());
+
+    // there are either 1 or 0 items selected because canSelectMany is false
+    if (qpiSelection == null || qpiSelection.length === 0 || qpiSelection[0] == null) {
+        return undefined;
+    }
+    const selected = qpiSelection[0];
+
+    // map the selected QPI back to the template it represents
+    const selectedProjectType = templateQpis.find((type) => selected.label === type.label);
+    if (selectedProjectType == null) {
+        // should never happen
+        throw new Error(`Could not find template ${selected.label}`);
+    }
+    return selectedProjectType;
+}
+
+async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & IMCTemplateData> | undefined>  {
+    const templateQpis = (await Requester.getTemplates(connection))
+        .map((type) => {
+            return {
+                ...type,
+                detail: type.language,
+                extension: type.url,
+            };
+        });
+
+    if (templateQpis.length === 0) {
         // The user has no repos or has disabled all repos
         const manageReposBtn = "Manage Template Sources";
         await vscode.window.showErrorMessage(
@@ -186,83 +262,12 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
 
         return undefined;
     }
-
-    const templateQpis: Array<vscode.QuickPickItem & IMCTemplateData> = templates.map((type) => {
-        return {
-            ...type,
-            detail: type.language,
-            extension: type.url,
-        };
-    });
-
-    let selected: vscode.QuickPickItem | undefined;
-    // https://github.com/theia-ide/theia/issues/5059
-    if (global.isTheia) {
-        selected = await vscode.window.showQuickPick(templateQpis, {
-            matchOnDetail: true,
-            placeHolder: TEMPLATE_QP_PLACEHOLDER,
-            // ignoreFocusOut = true,
-        });
-    }
-    else {
-        // vs code supports a fancier quickpick
-        selected = await displayTemplateQuickpick(templateQpis);
-    }
-
-    if (selected == null) {
-        return undefined;
-    }
-
-    // map the selected QPI back to the template it represents
-    const selectedProjectType = templateQpis.find((type) => selected!.label === type.label);
-    if (selectedProjectType == null) {
-        throw new Error(`Could not find template ${selected.label}`);
-    }
-    return selectedProjectType;
+    return templateQpis;
 }
-
-async function displayTemplateQuickpick(templateQpis: vscode.QuickPickItem[]): Promise<vscode.QuickPickItem | undefined> {
-    const qp = vscode.window.createQuickPick();
-    qp.placeholder = TEMPLATE_QP_PLACEHOLDER;
-    qp.matchOnDetail = true;
-    qp.canSelectMany = false;
-    qp.items = templateQpis;
-    qp.step = 1;
-    qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
-    qp.title = CREATE_PROJECT_WIZARD_TITLE;
-    // qp.ignoreFocusOut = true;
-
-    const selected = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
-        qp.show();
-        qp.onDidHide((_e) => {
-            resolve(undefined);
-        });
-        qp.onDidAccept((_e) => {
-            resolve(qp.selectedItems);
-        });
-    })
-    .finally(() => qp.dispose());
-
-    // there are either 1 or 0 items selected because canSelectMany is false
-    if (selected == null || selected.length === 0) {
-        return undefined;
-    }
-    return selected[0];
-}
-
 
 async function promptForProjectName(template: IMCTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
-
-    // https://github.com/theia-ide/theia/issues/5109
-    if (global.isTheia) {
-        return vscode.window.showInputBox({
-            placeHolder: projNamePlaceholder,
-            prompt: projNamePrompt,
-            validateInput: validateProjectName,
-        });
-    }
 
     const ib = vscode.window.createInputBox();
     ib.title = CREATE_PROJECT_WIZARD_TITLE;

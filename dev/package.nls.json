@@ -52,7 +52,7 @@
     "cmdTitle_openFolder": "Open Codewind Workspace",
 
     "cmdID_addProjToWorkspace": "ext.cw.addProjectToWorkspace",
-    "cmdTitle_addProjToWorkspace": "Add Folder to Workspace",
+    "cmdTitle_addProjToWorkspace": "Add Project to Workspace",
 
     "cmdID_openInBrowser": "ext.cw.openInBrowser",
     "cmdTitle_openInBrowser": "Open App",
