@@ -144,7 +144,7 @@ namespace UserProjectCreator {
         Log.d("Prompting user for project type");
         const projectTypes = await Requester.getProjectTypes(connection);
         const projectSubtypes: { [t: string]: IProjectSubtypesDescriptor } = {};
-        const projectTypeQpis: Array<vscode.QuickPickItem & { language: string }> = [];
+        const projectTypeQpis: string[] = [];
         for (const type of projectTypes) {
 
             if (type.projectType === ProjectType.InternalTypes.DOCKER) {
@@ -156,29 +156,21 @@ namespace UserProjectCreator {
                 projectSubtypes[type.projectType] = type.projectSubtypes;
             }
 
-            projectTypeQpis.push({
-                label: type.projectType,
-                language: "any"
-            });
+            projectTypeQpis.push(type.projectType);
         }
         projectTypeQpis.sort();
         // Add "other" option last
-        projectTypeQpis.push({
-            label: OTHER_TYPE_OPTION,
-            language: "any"             // this will be replaced below
-        });
+        projectTypeQpis.push(OTHER_TYPE_OPTION);
 
-        const projectTypeRes = await vscode.window.showQuickPick(projectTypeQpis, {
+        let language: string = detected.language;
+        const projectType = await vscode.window.showQuickPick(projectTypeQpis, {
             placeHolder: "Select the project type that best fits your project",
             ignoreFocusOut: true,
         });
 
-        if (projectTypeRes == null) {
+        if (projectType == null) {
             return;
         }
-
-        const projectType: string = projectTypeRes.label;
-        let language: string = detected.language;
 
         // If project type selection did not change, there's no need to prompt for language/subtype, consider:
         // 1) changing selection of "liberty" to "liberty", it still maps to 1 language (same applies to all known project types)
@@ -203,8 +195,8 @@ namespace UserProjectCreator {
                 }
             }
 
-            // check if selected value is actually a language
-            if ((Object as any).values(ProjectType.Languages).includes(projectSubtype)) {
+            // if there's no custom prompt, we were choosing language
+            if (!projectSubtypeChoices.prompt) {
                 language = projectSubtype;
                 projectSubtype = undefined;
             }
