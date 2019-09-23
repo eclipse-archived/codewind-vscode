@@ -23,6 +23,7 @@ import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
+import { IProjectTypeDescriptor } from "./ProjectType";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
@@ -130,23 +131,6 @@ namespace Requester {
         }
 
         // Log.d("Repo enablement result", result);
-    }
-
-    interface IProjectSubtype {
-        id: string;
-        version?: string;
-        label: string;
-        description?: string;
-    }
-
-    interface IProjectSubtypesDescriptor {
-        prompt?: string;
-        items: IProjectSubtype[];
-    }
-
-    interface IProjectTypeDescriptor {
-        projectType: string;
-        projectSubtypes: IProjectSubtypesDescriptor[];
     }
 
     export async function getProjectTypes(connection: Connection): Promise<IProjectTypeDescriptor[]> {

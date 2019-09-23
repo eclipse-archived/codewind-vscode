@@ -197,4 +197,21 @@ export namespace ProjectType {
     ];
 }
 
+export interface IProjectSubtype {
+    id: string;
+    version?: string;
+    label: string;
+    description?: string;
+}
+
+export interface IProjectSubtypesDescriptor {
+    prompt?: string;
+    items: IProjectSubtype[];
+}
+
+export interface IProjectTypeDescriptor {
+    projectType: string;
+    projectSubtypes: IProjectSubtypesDescriptor;
+}
+
 export default ProjectType;

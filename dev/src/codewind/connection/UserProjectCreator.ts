@@ -17,7 +17,7 @@ import Connection from "./Connection";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
-import ProjectType from "../project/ProjectType";
+import { ProjectType, IProjectSubtypesDescriptor } from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
 import InstallerWrapper from "./InstallerWrapper";
 
@@ -139,9 +139,12 @@ namespace UserProjectCreator {
     async function promptForProjectType(connection: Connection): Promise<IProjectTypeInfo | undefined> {
         Log.d("Prompting user for project type");
         const projectTypes = await Requester.getProjectTypes(connection);
-
+        const projectSubtypes: { [t: string]: IProjectSubtypesDescriptor } = {};
         const projectTypeQpis: Array<vscode.QuickPickItem & { language: string }> = [];
         for (const type of projectTypes) {
+
+            projectSubtypes[type.projectType] = type.projectSubtypes;
+
             if (type.projectType === ProjectType.InternalTypes.DOCKER) {
                 // this option is handled specially below; Docker type shows up as "Other"
                 continue;
