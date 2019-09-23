@@ -47,6 +47,9 @@ export class ProjectType {
         if (internalType === this.InternalTypes.MICROPROFILE) {
             return ProjectType.Types.MICROPROFILE;
         }
+        else if (internalType === this.InternalTypes.APPSODY) {
+            return ProjectType.Types.EXTENSION;
+        }
         else if (internalType === this.InternalTypes.SPRING) {
             return ProjectType.Types.SPRING;
         }
@@ -166,7 +169,8 @@ export namespace ProjectType {
         SPRING = "spring",
         NODE = "nodejs",
         SWIFT = "swift",
-        DOCKER = "docker"
+        DOCKER = "docker",
+        APPSODY = "appsodyExtension"
     }
 
 
