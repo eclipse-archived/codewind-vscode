@@ -132,6 +132,31 @@ namespace Requester {
         // Log.d("Repo enablement result", result);
     }
 
+    interface IProjectSubtype {
+        id: string;
+        version?: string;
+        label: string;
+        description?: string;
+    }
+
+    interface IProjectSubtypesDescriptor {
+        prompt?: string;
+        items: IProjectSubtype[];
+    }
+
+    interface IProjectTypeDescriptor {
+        projectType: string;
+        projectSubtypes: IProjectSubtypesDescriptor[];
+    }
+
+    export async function getProjectTypes(connection: Connection): Promise<IProjectTypeDescriptor[]> {
+        const result = await doConnectionRequest(connection, MCEndpoints.PROJECT_TYPES, Requester.get);
+        if (result == null) {
+            return [];
+        }
+        return result;
+    }
+
     async function doConnectionRequest(
         connection: Connection, endpoint: MCEndpoints, method: RequestFunc, options?: request.RequestPromiseOptions): Promise<any> {
 

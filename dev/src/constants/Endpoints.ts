@@ -30,6 +30,7 @@ export enum MCEndpoints {
     PREBIND_VALIDATE = "api/v1/validate",
     BIND = "api/v1/projects/bind",
     REGISTRY = "api/v1/registry",
+    PROJECT_TYPES = "api/v1/project-types"
 }
 
 /**
