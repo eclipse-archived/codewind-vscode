@@ -138,26 +138,20 @@ namespace UserProjectCreator {
      */
     async function promptForProjectType(connection: Connection): Promise<IProjectTypeInfo | undefined> {
         Log.d("Prompting user for project type");
-        const templates = await Requester.getTemplates(connection);
+        const projectTypes = await Requester.getProjectTypes(connection);
 
-        let projectTypeQpis: Array<vscode.QuickPickItem & { language: string }> = [];
-        for (const template of templates) {
-            if (template.projectType === ProjectType.InternalTypes.DOCKER) {
+        const projectTypeQpis: Array<vscode.QuickPickItem & { language: string }> = [];
+        for (const type of projectTypes) {
+            if (type.projectType === ProjectType.InternalTypes.DOCKER) {
                 // this option is handled specially below; Docker type shows up as "Other"
-                continue;
-            }
-            if (projectTypeQpis.find((type) => type.label === template.projectType)) {
-                // Skip to avoid adding duplicates
                 continue;
             }
 
             projectTypeQpis.push({
-                label: template.projectType,
-                language: template.language,
+                label: type.projectType,
+                language: "any"
             });
         }
-        // remove duplicates
-        projectTypeQpis = [ ...new Set(projectTypeQpis) ];
         projectTypeQpis.sort();
         // Add "other" option last
         projectTypeQpis.push({
@@ -188,6 +182,7 @@ namespace UserProjectCreator {
         else {
             // map the 'other' back to the docker type
             projectType = ProjectType.InternalTypes.DOCKER;
+            const templates = await Requester.getTemplates(connection);
             const languageRes = await promptForLanguage(templates);
             if (languageRes == null) {
                 return;
