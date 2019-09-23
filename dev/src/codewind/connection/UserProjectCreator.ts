@@ -148,8 +148,8 @@ namespace UserProjectCreator {
         for (const type of projectTypes) {
 
             if (type.projectType === ProjectType.InternalTypes.DOCKER) {
-                // this option is handled specially below; Docker type shows up as "Other"
                 projectSubtypes[OTHER_TYPE_OPTION] = type.projectSubtypes;
+                // this option is handled specially below; Docker type shows up as "Other"
                 continue;
             }
             else {
@@ -180,14 +180,22 @@ namespace UserProjectCreator {
         const projectType: string = projectTypeRes.label;
         let language: string = detected.language;
 
+        // If project type selection did not change, there's no need to prompt for language/subtype, consider:
+        // 1) changing selection of "liberty" to "liberty", it still maps to 1 language (same applies to all known project types)
+        // 2) exception: selection of "other" !== "docker", this should allow for the selection of language
+        // 3) selecting language is not applicable to entension project, unless selection changes from something else,
+        //    in that case we prompt for the subtype
         const projectSubtypeChoices = (projectType !== detected.projectType) ? projectSubtypes[projectType] : null;
         let projectSubtype: string | undefined;
 
+        // have choices to potentially present to user
         if (projectSubtypeChoices) {
 
+            // not really, only 1 choice
             if (projectSubtypeChoices.items.length === 1) {
                 projectSubtype = projectSubtypeChoices.items[0].id;
             }
+            // let's prompt user
             else {
                 const templates = await Requester.getTemplates(connection);
                 projectSubtype = await promptForLanguage(templates);
@@ -196,6 +204,7 @@ namespace UserProjectCreator {
                 }
             }
 
+            // check if selected value is actually a language
             if ((Object as any).values(ProjectType.Languages).includes(projectSubtype)) {
                 language = projectSubtype;
                 projectSubtype = undefined;
@@ -204,6 +213,7 @@ namespace UserProjectCreator {
 
         return {
             language,
+            // map the 'other' back to the docker type
             projectType: projectType === OTHER_TYPE_OPTION ? ProjectType.InternalTypes.DOCKER : projectType,
             projectSubtype
         };
