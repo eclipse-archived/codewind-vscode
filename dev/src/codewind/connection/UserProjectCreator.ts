@@ -197,8 +197,7 @@ namespace UserProjectCreator {
             }
             // let's prompt user
             else {
-                const templates = await Requester.getTemplates(connection);
-                projectSubtype = await promptForLanguage(templates);
+                projectSubtype = await promptForLanguageOrSubtype(projectSubtypeChoices);
                 if (projectSubtype == null) {
                     return;
                 }
@@ -221,24 +220,31 @@ namespace UserProjectCreator {
 
     const OTHER_LANG_BTN = "Other";
 
-    async function promptForLanguage(templates: IMCTemplateData[]): Promise<string | undefined> {
-        Log.d("Prompting user for project language");
-        let languageQpis = templates.map((template) => template.language);
+    async function promptForLanguageOrSubtype(choices: IProjectSubtypesDescriptor): Promise<string | undefined> {
+        Log.d("Prompting user for project language or subtype");
+        const languageQpis: Array<vscode.QuickPickItem & { id: string }> = choices.items.map((choice) => {
+            return {
+                id: choice.id,
+                label: choice.label,
+                description: choice.description
+            };
+        });
         // remove duplicates
-        languageQpis = [ ... new Set(languageQpis) ];
         languageQpis.sort();
-        languageQpis.push(OTHER_LANG_BTN);
+        if (!choices.prompt) {
+            languageQpis.push({ id: "", label: OTHER_LANG_BTN });
+        }
 
-        let language = await vscode.window.showQuickPick(languageQpis, {
-            placeHolder: "Select the language that best fits your project",
+        const language = await vscode.window.showQuickPick(languageQpis, {
+            placeHolder: choices.prompt || "Select the language that best fits your project",
             ignoreFocusOut: true,
         });
 
         if (language == null) {
             return;
         }
-        else if (language === OTHER_LANG_BTN) {
-            language = await vscode.window.showInputBox({
+        else if (language.label === OTHER_LANG_BTN) {
+            return await vscode.window.showInputBox({
                 ignoreFocusOut: true,
                 prompt: "Enter the programming language for your project",
                 validateInput: (input) => {
@@ -251,7 +257,7 @@ namespace UserProjectCreator {
             });
         }
 
-        return language;
+        return language.id;
     }
 
     async function requestValidate(pathToBind: string): Promise<IInitializationResponse> {
