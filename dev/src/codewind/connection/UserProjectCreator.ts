@@ -34,6 +34,10 @@ interface IProjectTypeInfo {
     projectType: string;
 }
 
+interface IProjectTypeExtendedInfo extends IProjectTypeInfo {
+    projectSubtype: string | undefined;
+}
+
 export interface IInitializationResponse {
     status: string;
     result: IProjectTypeInfo | { error: string; };
@@ -120,7 +124,7 @@ namespace UserProjectCreator {
         }
 
         if (detectionFailed) {
-            const userProjectType = await promptForProjectType(connection);
+            const userProjectType = await promptForProjectType(connection, projectTypeInfo);
             if (userProjectType == null) {
                 return;
             }
@@ -136,18 +140,20 @@ namespace UserProjectCreator {
     /**
      * When detection fails, have the user select the project type that fits best.
      */
-    async function promptForProjectType(connection: Connection): Promise<IProjectTypeInfo | undefined> {
+    async function promptForProjectType(connection: Connection, detected: IProjectTypeInfo): Promise<IProjectTypeExtendedInfo | undefined> {
         Log.d("Prompting user for project type");
         const projectTypes = await Requester.getProjectTypes(connection);
         const projectSubtypes: { [t: string]: IProjectSubtypesDescriptor } = {};
         const projectTypeQpis: Array<vscode.QuickPickItem & { language: string }> = [];
         for (const type of projectTypes) {
 
-            projectSubtypes[type.projectType] = type.projectSubtypes;
-
             if (type.projectType === ProjectType.InternalTypes.DOCKER) {
                 // this option is handled specially below; Docker type shows up as "Other"
+                projectSubtypes[OTHER_TYPE_OPTION] = type.projectSubtypes;
                 continue;
+            }
+            else {
+                projectSubtypes[type.projectType] = type.projectSubtypes;
             }
 
             projectTypeQpis.push({
@@ -171,29 +177,36 @@ namespace UserProjectCreator {
             return;
         }
 
-        let projectType: string = projectTypeRes.label;
-        let language: string;
-        // If the project type selected has a language that it always is, use that language, else have the user select it
-        const typesWithCorrespondingLanguage = ProjectType.getRecognizedInternalTypes()
-            .map((type) => type.toString())
-            // Remove generic type because it can be any language
-            .filter((type) => type !== OTHER_TYPE_OPTION);
+        const projectType: string = projectTypeRes.label;
+        let language: string = detected.language;
 
-        if (typesWithCorrespondingLanguage.includes(projectType)) {
-            language = projectTypeRes.language;
-        }
-        else {
-            // map the 'other' back to the docker type
-            projectType = ProjectType.InternalTypes.DOCKER;
-            const templates = await Requester.getTemplates(connection);
-            const languageRes = await promptForLanguage(templates);
-            if (languageRes == null) {
-                return;
+        const projectSubtypeChoices = (projectType !== detected.projectType) ? projectSubtypes[projectType] : null;
+        let projectSubtype: string | undefined;
+
+        if (projectSubtypeChoices) {
+
+            if (projectSubtypeChoices.items.length === 1) {
+                projectSubtype = projectSubtypeChoices.items[0].id;
             }
-            language = languageRes;
+            else {
+                const templates = await Requester.getTemplates(connection);
+                projectSubtype = await promptForLanguage(templates);
+                if (projectSubtype == null) {
+                    return;
+                }
+            }
+
+            if ((Object as any).values(ProjectType.Languages).includes(projectSubtype)) {
+                language = projectSubtype;
+                projectSubtype = undefined;
+            }
         }
 
-        return { projectType, language };
+        return {
+            language,
+            projectType: projectType === OTHER_TYPE_OPTION ? ProjectType.InternalTypes.DOCKER : projectType,
+            projectSubtype
+        };
     }
 
     const OTHER_LANG_BTN = "Other";
