@@ -9,12 +9,17 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-// import * as vscode from "vscode";
+export class CLICommand {
+    constructor(
+        public readonly command: string,
+        public readonly cancellable: boolean,
+        public readonly hasJSONOutput: boolean
+    ) {
 
-import Log from "../Logger";
-import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
-
-export default async function startLocalCodewindCmd(): Promise<void> {
-    Log.i("Start Local Codewind Cmd");
-    await LocalCodewindManager.instance.startCodewind();
+    }
 }
+
+// tslint:disable-next-line: variable-name
+export const CLICommands = {
+    PROJECT: new CLICommand("project", false, true),
+};

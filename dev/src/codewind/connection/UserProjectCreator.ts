@@ -19,7 +19,7 @@ import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
-import InstallerWrapper from "./InstallerWrapper";
+import CLIWrapper from "./CLIWrapper";
 
 export interface IMCTemplateData {
     label: string;
@@ -63,7 +63,7 @@ namespace UserProjectCreator {
             location: vscode.ProgressLocation.Notification,
             title: `Creating ${projectName}...`,
         }, () => {
-            return InstallerWrapper.createProject(projectPath, template.url);
+            return CLIWrapper.createProject(projectPath, template.url);
         });
 
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
@@ -275,7 +275,7 @@ namespace UserProjectCreator {
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
         }, () => {
-            return InstallerWrapper.validateProjectDirectory(pathToBind);
+            return CLIWrapper.validateProjectDirectory(pathToBind);
         });
         Log.d("validate response", validateResponse);
         return validateResponse;

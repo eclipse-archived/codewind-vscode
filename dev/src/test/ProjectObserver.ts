@@ -9,10 +9,10 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import CodewindManager from "../codewind/connection/CodewindManager";
 import Log from "../Logger";
 import ProjectState from "../codewind/project/ProjectState";
 import Connection from "../codewind/connection/Connection";
+import CodewindEventListener from "../codewind/connection/CodewindEventListener";
 
 interface IProjectCreationAwaiting {
     projectName: string;
@@ -45,7 +45,7 @@ export default class ProjectObserver {
     ) {
         Log.t("Initializing ProjectObserver");
         ProjectObserver._instance = this;
-        CodewindManager.instance.addOnChangeListener(this.onChange);
+        CodewindEventListener.addOnChangeListener(this.onChange);
 
         setInterval(() => {
             if (this.projectPendingState != null) {

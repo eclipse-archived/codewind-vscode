@@ -11,7 +11,6 @@
 
 import * as vscode from "vscode";
 
-import CodewindManager from "../../codewind/connection/CodewindManager";
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import CWEnvironment from "../../codewind/connection/CWEnvironment";
@@ -20,19 +19,20 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import { CWConfigurations } from "../../constants/Configurations";
 import MCUtil from "../../MCUtil";
 import openWorkspaceCmd from "../OpenWorkspaceCmd";
+import ConnectionManager from "../../codewind/connection/ConnectionManager";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
-export default async function activateConnection(url: vscode.Uri): Promise<void> {
+export default async function activateConnection(url: vscode.Uri, isLocalConnection: boolean): Promise<Connection> {
     Log.i("Activating connection to " + url);
     const envData = await CWEnvironment.getEnvData(url);
     Log.i("Massaged env data:", envData);
 
-    const connection = await CodewindManager.instance.connect(url, envData);
-    await connection.initFileWatcherPromise;
+    const connection = await ConnectionManager.instance.connect(url, envData, isLocalConnection);
+    await connection.initPromise;
 
     onConnectSuccess(connection);
-    // return connection;
+    return connection;
 }
 
 /**

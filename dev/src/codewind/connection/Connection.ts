@@ -14,7 +14,6 @@ import * as vscode from "vscode";
 import Project from "../project/Project";
 import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
 import MCSocket from "./MCSocket";
-import CodewindManager, { OnChangeCallbackArgs } from "./CodewindManager";
 import Log from "../../Logger";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
@@ -24,6 +23,8 @@ import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
+import LocalCodewindManager from "./local/LocalCodewindManager";
+import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
@@ -35,7 +36,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     public readonly socket: MCSocket;
 
     private fileWatcher: FileWatcher | undefined;
-    public readonly initFileWatcherPromise: Promise<void>;
+    public readonly initPromise: Promise<void>;
 
     private hasConnected: boolean = false;
     // Is this connection CURRENTLY connected
@@ -44,25 +45,25 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
 
-    public readonly remote: boolean;
+    public readonly remote: boolean = true;
 
     constructor(
         public readonly url: vscode.Uri,
         cwEnv: CWEnvData,
+        public readonly isLocalConnection: boolean,
     ) {
         this.socket = new MCSocket(this, cwEnv.socketNamespace);
         this.workspacePath = vscode.Uri.file(cwEnv.workspace);
         this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
         this.host = this.getHost(url);
-        this.remote = true;
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
         if (!this.remote) {
-            this.initFileWatcherPromise = this.initFileWatcher();
+            this.initPromise = this.initFileWatcher();
         } else {
             // Disable file-watcher in remote mode for now.
-            this.initFileWatcherPromise = new Promise<void>((resolve) => (resolve()));
+            this.initPromise = Promise.resolve();
         }
 
         Log.i(`Created new Connection @ ${this}, workspace ${this.workspacePath}`);
@@ -133,7 +134,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             changed = this;
         }
         // Log.d(`Connection ${this.mcUri} changed`);
-        CodewindManager.instance.onChange(changed);
+        CodewindEventListener.onChange(changed);
+        if (this.isLocalConnection) {
+            CodewindEventListener.onChange(LocalCodewindManager.instance);
+        }
     }
 
     public get isConnected(): boolean {

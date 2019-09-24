@@ -29,14 +29,14 @@ import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
 import createProject from "./connection/CreateUserProjectCmd";
 import bindProject from "./connection/BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
-import startCodewindCmd from "./StartCodewindCmd";
-import stopCodewindCmd from "./StopCodewindCmd";
+import startLocalCodewindCmd from "./StartCodewindCmd";
+import stopLocalCodewindCmd from "./StopCodewindCmd";
 import removeImagesCmd from "./RemoveImagesCmd";
 import { setRegistryCmd } from "./connection/SetRegistryCmd";
 import Connection from "../codewind/connection/Connection";
 import Project from "../codewind/project/Project";
 import ProjectState from "../codewind/project/ProjectState";
-import CodewindManager from "../codewind/connection/CodewindManager";
+import ConnectionManager from "../codewind/connection/ConnectionManager";
 import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import containerShellCmd from "./project/ContainerShellCmd";
 import removeProjectCmd from "./project/RemoveProjectCmd";
@@ -54,10 +54,10 @@ export function createCommands(): vscode.Disposable[] {
     return [
         // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
         // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
-        vscode.commands.registerCommand(Commands.START_CODEWIND,      startCodewindCmd),
-        vscode.commands.registerCommand(Commands.START_CODEWIND_2,    startCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND,       stopCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,     stopCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND,      startLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND_2,    startLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND,       stopLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,     stopLocalCodewindCmd),
 
         vscode.commands.registerCommand(Commands.REMOVE_IMAGES,       removeImagesCmd),
 
@@ -180,7 +180,7 @@ async function promptForProject(acceptableStates: ProjectState.AppStates[]): Pro
         acceptableStates.push(ProjectState.AppStates.DEBUG_STARTING);
     }
 
-    const choices: vscode.QuickPickItem[] = (await CodewindManager.instance.allProjects)
+    const choices: vscode.QuickPickItem[] = (await ConnectionManager.instance.allProjects)
         .filter((p) => acceptableStates.includes(p.state.appState));
 
     // If no choices are available, show a popup message
@@ -217,15 +217,15 @@ function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): voi
  * @connectedOnly Only prompt the user with Connected connections
  */
 async function promptForConnection(connectedOnly: boolean): Promise<Connection | undefined> {
-    if (CodewindManager.instance.connections.length === 1) {
-        const onlyConnection = CodewindManager.instance.connections[0];
+    if (ConnectionManager.instance.connections.length === 1) {
+        const onlyConnection = ConnectionManager.instance.connections[0];
         if (onlyConnection.isConnected || !connectedOnly) {
             return onlyConnection;
         }
     }
 
     const choices = [];
-    const connections = CodewindManager.instance.connections;
+    const connections = ConnectionManager.instance.connections;
     if (connectedOnly) {
         choices.push(...(connections.filter((conn) => conn.isConnected)));
     }
@@ -238,7 +238,7 @@ async function promptForConnection(connectedOnly: boolean): Promise<Connection |
         vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn)
         .then((res?: string) => {
             if (res === startCwBtn) {
-                startCodewindCmd();
+                startLocalCodewindCmd();
             }
         });
 
