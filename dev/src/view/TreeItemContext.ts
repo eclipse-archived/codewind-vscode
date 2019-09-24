@@ -13,20 +13,20 @@
 
 import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
-
+import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 
 /**
  * All of these values must match the viewItem regexes in package.nls.json
  */
-export enum TreeContextValues {
-    // base
+enum TreeItemContextValues {
     BASE = "ext.cw",
+
+    ROOT = "root",
     NO_PROJECTS = "noProjects",
 
-    // Codewind status
-    CW_STOPPED = "cwstatus.stopped",
-    // CW_STARTING = "cwstatus.starting",
-    CW_STARTED = "cwstatus.started",
+    // Local Codewind status
+    LOCAL_CW_STOPPED = "local.cwstatus.stopped",
+    LOCAL_CW_STARTED = "local.cwstatus.started",
 
     // Connection
     CONN_CONNECTED = "connection.connected",
@@ -51,57 +51,73 @@ export enum TreeContextValues {
     PROJ_METRICS = "metricsAvailable",
 }
 
-export function getConnectionContext(connection: Connection): string {
-    let contextValue: TreeContextValues;
-    if (connection.isConnected) {
-        contextValue = TreeContextValues.CONN_CONNECTED;
+namespace TreeItemContext {
+    export function getRootContext(): string {
+        return buildContextValue([TreeItemContextValues.ROOT]);
     }
-    else {
-        contextValue = TreeContextValues.CONN_DISCONNECTED;
+
+    export function getLocalCWContext(localCW: LocalCodewindManager): string {
+        const contextValue = localCW.isStarted ? TreeItemContextValues.LOCAL_CW_STARTED : TreeItemContextValues.LOCAL_CW_STOPPED;
+        return buildContextValue([contextValue]);
     }
-    const cv = buildContextValue([contextValue]);
-    // Log.d(`The context value for ${connection} is ${cv}`);
-    return cv;
-}
 
-export function getProjectContext(project: Project): string {
-    const contextValues: TreeContextValues[] = [ TreeContextValues.PROJ_BASE ];
-
-    if (project.state.isEnabled) {
-        contextValues.push(TreeContextValues.PROJ_ENABLED);
-        if (project.state.isStarted) {
-            contextValues.push(TreeContextValues.PROJ_STARTED);
+    export function getConnectionContext(connection: Connection): string {
+        let contextValue: TreeItemContextValues;
+        if (connection.isConnected) {
+            contextValue = TreeItemContextValues.CONN_CONNECTED;
         }
-        if (project.state.isDebuggable) {
-            contextValues.push(TreeContextValues.PROJ_DEBUGGABLE);
+        else {
+            contextValue = TreeItemContextValues.CONN_DISCONNECTED;
         }
-    }
-    else {
-        contextValues.push(TreeContextValues.PROJ_DISABLED);
-    }
-
-    if (project.autoBuildEnabled) {
-        contextValues.push(TreeContextValues.PROJ_AUTOBUILD_ON);
-    }
-    else {
-        contextValues.push(TreeContextValues.PROJ_AUTOBUILD_OFF);
+        const cv = buildContextValue([contextValue]);
+        // Log.d(`The context value for ${connection} is ${cv}`);
+        return cv;
     }
 
-    if (project.capabilities.supportsRestart) {
-        contextValues.push(TreeContextValues.PROJ_RESTARTABLE);
+    export function getNoProjectsContext(): string {
+        return buildContextValue([TreeItemContextValues.NO_PROJECTS]);
     }
 
-    if (project.capabilities.metricsAvailable) {
-        contextValues.push(TreeContextValues.PROJ_METRICS);
+    export function getProjectContext(project: Project): string {
+        const contextValues: TreeItemContextValues[] = [ TreeItemContextValues.PROJ_BASE ];
+
+        if (project.state.isEnabled) {
+            contextValues.push(TreeItemContextValues.PROJ_ENABLED);
+            if (project.state.isStarted) {
+                contextValues.push(TreeItemContextValues.PROJ_STARTED);
+            }
+            if (project.state.isDebuggable) {
+                contextValues.push(TreeItemContextValues.PROJ_DEBUGGABLE);
+            }
+        }
+        else {
+            contextValues.push(TreeItemContextValues.PROJ_DISABLED);
+        }
+
+        if (project.autoBuildEnabled) {
+            contextValues.push(TreeItemContextValues.PROJ_AUTOBUILD_ON);
+        }
+        else {
+            contextValues.push(TreeItemContextValues.PROJ_AUTOBUILD_OFF);
+        }
+
+        if (project.capabilities.supportsRestart) {
+            contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
+        }
+
+        if (project.capabilities.metricsAvailable) {
+            contextValues.push(TreeItemContextValues.PROJ_METRICS);
+        }
+
+        // The final result will look like eg: "ext.cw.project.enabled.autoBuildOn"
+        const cv = buildContextValue(contextValues);
+        // Log.d(`The context value for ${project.name} is ${cv}`);
+        return cv;
     }
 
-    // The final result will look like eg: "ext.cw.project.enabled.autoBuildOn"
-    const cv = buildContextValue(contextValues);
-    // Log.d(`The context value for ${project.name} is ${cv}`);
-    return cv;
+    function buildContextValue(subvalues: string[]): string {
+        return [ TreeItemContextValues.BASE, ...subvalues].join(".");
+    }
 }
 
-// const CONTEXT_SEPARATOR = ".";
-export function buildContextValue(subvalues: string[]): string {
-    return [ TreeContextValues.BASE, ...subvalues].join(".");
-}
+export default TreeItemContext;

@@ -301,58 +301,58 @@
             "view/title": [],
             "view/item/context": [
                 {
-                    "command": "%cmdID_startCodewind%",
-                    "when": "%isStoppedCodewind%",
-                    "group": "ext.cw.cwstatus.a@0"
-                },
-                {
-                    "command": "%cmdID_startCodewind%",
-                    "when": "%isStoppedCodewind%",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "%cmdID_startCodewind2%",
-                    "when": "%isStoppedCodewind%",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "%cmdID_removeImages%",
-                    "when": "%isStoppedCodewind%",
-                    "group": "ext.cw.cwstatus.b@0"
-                },
-                {
-                    "command": "%cmdID_stopCodewind%",
-                    "when": "%isStartedCodewind%",
-                    "group": "ext.cw.cwstatus.a@0"
-                },
-                {
-                    "command": "%cmdID_stopCodewind%",
-                    "when": "%isStartedCodewind%",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "%cmdID_stopCodewind2%",
-                    "when": "%isStartedCodewind%",
-                    "group": "inline@1"
-                },
-                {
                     "command": "%cmdID_newProject%",
-                    "when": "%isActiveConnection%",
+                    "when": "%isTreeRoot%",
                     "group": "ext.cw.conn.a@1"
                 },
                 {
                     "command": "%cmdID_newProject%",
-                    "when": "%isActiveConnection%",
+                    "when": "%isTreeRoot%",
                     "group": "inline@0"
                 },
                 {
                     "command": "%cmdID_bindProject%",
-                    "when": "%isActiveConnection%",
+                    "when": "%isTreeRoot%",
                     "group": "ext.cw.conn.a@2"
                 },
                 {
                     "command": "%cmdID_bindProject%",
-                    "when": "%isActiveConnection%",
+                    "when": "%isTreeRoot%",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "%cmdID_startCodewind%",
+                    "when": "%isStoppedLocalCodewind%",
+                    "group": "ext.cw.cwstatus.a@0"
+                },
+                {
+                    "command": "%cmdID_startCodewind%",
+                    "when": "%isStoppedLocalCodewind%",
+                    "group": "inline@0"
+                },
+                {
+                    "command": "%cmdID_startCodewind2%",
+                    "when": "%isStoppedLocalCodewind%",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "%cmdID_removeImages%",
+                    "when": "%isStoppedLocalCodewind%",
+                    "group": "ext.cw.cwstatus.b@0"
+                },
+                {
+                    "command": "%cmdID_stopCodewind%",
+                    "when": "%isStartedLocalCodewind%",
+                    "group": "ext.cw.cwstatus.a@0"
+                },
+                {
+                    "command": "%cmdID_stopCodewind%",
+                    "when": "%isStartedLocalCodewind%",
+                    "group": "inline@0"
+                },
+                {
+                    "command": "%cmdID_stopCodewind2%",
+                    "when": "%isStartedLocalCodewind%",
                     "group": "inline@1"
                 },
                 {

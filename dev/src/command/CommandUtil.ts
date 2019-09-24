@@ -116,19 +116,19 @@ function registerProjectCommand<T>(
     id: string, executor: (project: Project, params: T) => void, params: T,
     acceptableStates: ProjectState.AppStates[]): vscode.Disposable {
 
-    return vscode.commands.registerCommand(id, async (project: Project | undefined) => {
-        if (!project) {
-            project = await promptForProject(acceptableStates);
-            if (!project) {
+    return vscode.commands.registerCommand(id, async (selection: Project | undefined) => {
+        if (!selection) {
+            selection = await promptForProject(acceptableStates);
+            if (!selection) {
                 return;
             }
         }
         try {
-            executor(project, params);
+            executor(selection, params);
         }
         catch (err) {
             Log.e(`Unexpected error running command ${id}`, err);
-            vscode.window.showErrorMessage(`Error running command ${id}: on project ${project.name} ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Error running command ${id}: on project ${selection.name} ${MCUtil.errToString(err)}`);
         }
     });
 }
@@ -149,19 +149,23 @@ function registerConnectionCommand<T>(
     id: string, executor: (connection: Connection, params: T) => void, params: T,
     connectedOnly: boolean = false): vscode.Disposable {
 
-    return vscode.commands.registerCommand(id, async (connection: Connection | undefined) => {
-        if (!connection) {
-            connection = await promptForConnection(connectedOnly);
-            if (!connection) {
+    // The selection can be a TreeItem if the command was run from the tree root's context menu,
+    // a Connection if the command was run from a Connection's context menu,
+    // or undefined if the command palette
+    return vscode.commands.registerCommand(id, async (selection: vscode.TreeItem | Connection | undefined) => {
+        if (!(selection instanceof Connection)) {
+            selection = await promptForConnection(connectedOnly);
+            // if (selection == null) {
+            if (!(selection instanceof Connection)) {
                 return;
             }
         }
         try {
-            executor(connection, params);
+            executor(selection, params);
         }
         catch (err) {
             Log.e(`Unexpected error running command ${id}`, err);
-            vscode.window.showErrorMessage(`Error running command ${id}: on connection ${connection.url} ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Error running command ${id}: on connection ${selection.url} ${MCUtil.errToString(err)}`);
         }
     });
 }
