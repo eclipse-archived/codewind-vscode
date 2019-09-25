@@ -49,6 +49,11 @@ interface INewProjectInfo {
     projectPath: string;
 }
 
+interface IProjectTypeQuickPickItem extends vscode.QuickPickItem {
+    projectType: string;
+    index: number;
+}
+
 /**
  * Functions to create or import new user projects into Codewind
  */
@@ -143,41 +148,50 @@ namespace UserProjectCreator {
     async function promptForProjectType(connection: Connection, detected: IProjectTypeInfo): Promise<IProjectTypeExtendedInfo | undefined> {
         Log.d("Prompting user for project type");
         const projectTypes = await Requester.getProjectTypes(connection);
-        const projectSubtypes: { [t: string]: IProjectSubtypesDescriptor } = {};
-        const projectTypeQpis: string[] = [];
-        for (const type of projectTypes) {
-
+        const projectTypeQpis: IProjectTypeQuickPickItem[] = [];
+        let dockerType;
+        projectTypes.forEach((type, index) => {
             if (type.projectType === ProjectType.InternalTypes.DOCKER) {
-                projectSubtypes[OTHER_TYPE_OPTION] = type.projectSubtypes;
-                // this option is handled specially below; Docker type shows up as "Other"
-                continue;
+                dockerType = {
+                    label: OTHER_TYPE_OPTION,
+                    projectType: OTHER_TYPE_OPTION,
+                    index: index
+                };
             }
             else {
-                projectSubtypes[type.projectType] = type.projectSubtypes;
+                const oneItem = type.projectSubtypes.items.length === 1;
+                projectTypeQpis.push({
+                    label: oneItem ? type.projectSubtypes.items[0].label : type.projectType,
+                    projectType: type.projectType,
+                    index: index,
+                    description: oneItem ? type.projectSubtypes.items[0].description : undefined
+                });
             }
-
-            projectTypeQpis.push(type.projectType);
-        }
+        });
         projectTypeQpis.sort();
         // Add "other" option last
-        projectTypeQpis.push(OTHER_TYPE_OPTION);
+        if (dockerType) {
+            projectTypeQpis.push(dockerType);
+        }
 
-        let language: string = detected.language;
-        const projectType = await vscode.window.showQuickPick(projectTypeQpis, {
+        const projectTypeRes = await vscode.window.showQuickPick(projectTypeQpis, {
             placeHolder: "Select the project type that best fits your project",
             ignoreFocusOut: true,
         });
 
-        if (projectType == null) {
+        if (projectTypeRes == null) {
             return;
         }
+
+        let language: string = detected.language;
+        const projectType: string = projectTypeRes.projectType;
 
         // If project type selection did not change, there's no need to prompt for language/subtype, consider:
         // 1) changing selection of "liberty" to "liberty", it still maps to 1 language (same applies to all known project types)
         // 2) exception: selection of "other" !== "docker", this should allow for the selection of language
         // 3) selecting language is not applicable to entension project, unless selection changes from something else,
         //    in that case we prompt for the subtype
-        const projectSubtypeChoices = (projectType !== detected.projectType) ? projectSubtypes[projectType] : null;
+        const projectSubtypeChoices = (projectType !== detected.projectType) ? projectTypes[projectTypeRes.index].projectSubtypes : null;
         let projectSubtype: string | undefined;
 
         // have choices to potentially present to user
