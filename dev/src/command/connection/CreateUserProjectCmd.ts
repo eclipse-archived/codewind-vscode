@@ -72,7 +72,23 @@ export default async function createProject(connection: Connection): Promise<voi
             }
         }
 
-        const response = await UserProjectCreator.createProject(connection, template, projectName);
+        // Get the parent directory to create the project under
+        const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
+            vscode.workspace.workspaceFolders[0].uri : undefined;
+
+        const parentDir = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri,
+            openLabel: "Select parent directory",
+        });
+
+        if (parentDir == null) {
+            return undefined;
+        }
+
+        const response = await UserProjectCreator.createProject(connection, template, parentDir[0], projectName);
         if (!response) {
             // user cancelled
             return;

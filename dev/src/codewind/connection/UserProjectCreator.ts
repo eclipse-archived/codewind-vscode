@@ -50,13 +50,10 @@ interface INewProjectInfo {
  */
 namespace UserProjectCreator {
 
-    export async function createProject(connection: Connection, template: IMCTemplateData, projectName: string): Promise<INewProjectInfo> {
+    export async function createProject(
+        connection: Connection, template: IMCTemplateData, parentDir: vscode.Uri, projectName: string): Promise<INewProjectInfo> {
 
-        // right now projects must be created under the codewind workspace so users can't choose the parentDir
-        // abs path on user system under which the project will be created
-        const userParentDir = connection.workspacePath;
-
-        const projectPath = path.join(userParentDir.fsPath, projectName);
+        const projectPath = path.join(parentDir.fsPath, projectName);
 
         const creationRes = await vscode.window.withProgress({
             cancellable: false,
