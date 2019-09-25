@@ -32,15 +32,12 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
     private readonly onTreeDataChangeEmitter: vscode.EventEmitter<CodewindTreeItem> = new vscode.EventEmitter<CodewindTreeItem>();
     public readonly onDidChangeTreeData: vscode.Event<CodewindTreeItem> = this.onTreeDataChangeEmitter.event;
 
-    private readonly root: vscode.TreeItem;
-
     constructor() {
         this.treeView = vscode.window.createTreeView(CodewindTreeDataProvider.VIEW_ID, { treeDataProvider: this });
 
         CodewindEventListener.addOnChangeListener(this.refresh);
         Log.d("Finished constructing ProjectTree");
 
-        this.root = TreeItemFactory.getRoot();
         if (MCUtil.isUserInCwWorkspaceOrProject()) {
             let autoShowEnabled = vscode.workspace.getConfiguration().get(CWConfigurations.AUTO_SHOW_VIEW);
             if (autoShowEnabled == null) {
@@ -48,7 +45,8 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
             }
             if (autoShowEnabled) {
                 Log.d("Auto-expanding the Codewind view");
-                this.treeView.reveal(this.root);
+                // reveal the LocalCodewindManager because it is guaranteed to exist
+                this.treeView.reveal(LocalCodewindManager.instance);
             }
         }
 
@@ -80,9 +78,10 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
 
     public getChildren(node?: CodewindTreeItem): CodewindTreeItem[] | Promise<CodewindTreeItem[]> {
         if (node == null) {
-            // if root needs to be updated, do it here, but it's currently static.
-            // this.root = getRoot();
-            return [ this.root ];
+            return [
+                LocalCodewindManager.instance,
+                ...ConnectionManager.instance.remoteConnections,
+            ];
         }
         else if (node instanceof Connection) {
             return TreeItemFactory.getConnectionChildren(node);
@@ -99,12 +98,6 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
             }
             return this.getChildren(localConnection);
         }
-        else if (node === this.root) {
-            return [
-                LocalCodewindManager.instance,
-                ...ConnectionManager.instance.remoteConnections,
-            ];
-        }
         else {
             Log.e("Cannot get children for unexpected item", node);
             return [];
@@ -115,10 +108,8 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
         if (node instanceof Project) {
             return node.connection;
         }
-        else if (node instanceof Connection) {
-            return this.root;
-        }
-        else if (node === this.root) {
+        else if (node instanceof LocalCodewindManager || node instanceof Connection) {
+            // top-level items
             return undefined;
         }
         Log.e("Unexpected TreeItem!", node);

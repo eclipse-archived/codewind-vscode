@@ -307,38 +307,21 @@
                     "when": "never"
                 }
             ],
-            "view/title": [],
+            "view/title": [
+                {
+                    "command": "%cmdID_newConnection%",
+                    "group": "navigation@0"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "group": "navigation@2"
+                }
+            ],
             "view/item/context": [
-                {
-                    "command": "%cmdID_newConnection%",
-                    "when": "%isTreeRoot%",
-                    "group": "ext.cw.root.a"
-                },
-                {
-                    "command": "%cmdID_newConnection%",
-                    "when": "%isTreeRoot%",
-                    "group": "inline@0"
-                },
-                {
-                    "command": "%cmdID_newProject%",
-                    "when": "%isTreeRoot%",
-                    "group": "ext.cw.root.b@0"
-                },
-                {
-                    "command": "%cmdID_newProject%",
-                    "when": "%isTreeRoot%",
-                    "group": "inline@1"
-                },
-                {
-                    "command": "%cmdID_bindProject%",
-                    "when": "%isTreeRoot%",
-                    "group": "ext.cw.root.b@1"
-                },
-                {
-                    "command": "%cmdID_bindProject%",
-                    "when": "%isTreeRoot%",
-                    "group": "inline@2"
-                },
                 {
                     "command": "%cmdID_startCodewind%",
                     "when": "%isStoppedLocalCodewind%",
