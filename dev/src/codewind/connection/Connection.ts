@@ -15,8 +15,6 @@ import Project from "../project/Project";
 import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
 import MCSocket from "./MCSocket";
 import Log from "../../Logger";
-import Translator from "../../constants/strings/translator";
-import StringNamespaces from "../../constants/strings/StringNamespaces";
 import CWEnvironment, { CWEnvData } from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
@@ -270,6 +268,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     // QuickPickItem
     public get label(): string {
-        return Translator.t(StringNamespaces.TREEVIEW, "connectionLabel", { uri: this.url });
+        return this.userLabel;
+    }
+
+    public get detail(): string {
+        return this.url.toString();
     }
 }

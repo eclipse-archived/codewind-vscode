@@ -104,7 +104,7 @@ export default class Project implements vscode.QuickPickItem {
         const extensionName = (projectInfo.extension) ? projectInfo.extension.name : undefined;
         this.type = new ProjectType(projectInfo.projectType, projectInfo.language, extensionName);
         this.language = projectInfo.language || "Unknown";
-        this.localPath = vscode.Uri.file(path.join(connection.workspacePath.fsPath, projectInfo.directory));
+        this.localPath = vscode.Uri.file(path.join(projectInfo.workspace, projectInfo.directory));
         this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
         this._usesHttps = projectInfo.isHttps === true;
 
@@ -163,7 +163,7 @@ export default class Project implements vscode.QuickPickItem {
 
     // detail used by QuickPickItem
     public get detail(): string {
-        return this.state.toString();
+        return this.connection.url.toString();
     }
 
     /**

@@ -47,7 +47,7 @@ export namespace CLILifecycleWrapper {
      * `installer status` command.
      * This is a separate function because it exits quickly so the progress is not useful, and we have to parse its structured output.
      */
-    async function getInstallerStatus(): Promise<CLIStatus> {
+    async function getLocalCodewindStatus(): Promise<CLIStatus> {
         const executablePath = await CLIWrapper.initialize();
 
         const status = await new Promise<CLIStatus>((resolve, reject) => {
@@ -133,29 +133,43 @@ export namespace CLILifecycleWrapper {
     }
 
     export async function getCodewindUrl(): Promise<vscode.Uri | undefined> {
-        const url = (await getInstallerStatus()).url;
+        const url = (await getLocalCodewindStatus()).url;
         if (!url) {
             return undefined;
         }
         return vscode.Uri.parse(url);
     }
 
-    export async function installAndStart(): Promise<void> {
-        const status = await getInstallerStatus();
+    export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"stopped" | "started-wrong-version" | "started-correct-version"> {
+        if (!status) {
+            status = await getLocalCodewindStatus();
+        }
+        if (status.started.length > 0) {
+            if (status.started.includes(getTag())) {
+                Log.i("The correct version of Codewind is already started");
+                return "started-correct-version";
+            }
+            return "started-wrong-version";
+        }
+        return "stopped";
+    }
 
+    export async function installAndStart(): Promise<void> {
+        const status = await getLocalCodewindStatus();
         const tag = getTag();
         let hadOldVersionRunning = false;
         Log.i(`Ready to install and start Codewind ${tag}`);
-        if (status.started.length > 0) {
-            if (status.started.includes(tag)) {
-                Log.i("The correct version of Codewind is already started");
-                return;
-            }
+
+        const startedStatus = await getCodewindStartedStatus(status);
+        if (startedStatus === "stopped") {
+            Log.i("Codewind is not running");
+        }
+        else if (startedStatus === "started-wrong-version") {
             Log.i(`The wrong version of Codewind ${status.started[0]} is currently started`);
 
             const okBtn = "OK";
             const resp = await vscode.window.showWarningMessage(
-                `The running version of the Codewind backend (${status.started[0]}) is out-of-date, ` +
+                `The locally running version of the Codewind backend (${status.started[0]}) is out-of-date, ` +
                 `and not compatible with this version of the extension. Codewind will now stop and upgrade to the new version.`,
                 { modal: true }, okBtn,
             );
@@ -164,9 +178,6 @@ export namespace CLILifecycleWrapper {
             }
             await stop();
             hadOldVersionRunning = true;
-        }
-        else {
-            Log.i("Codewind is not running");
         }
 
         if (!status["installed-versions"].includes(tag)) {
@@ -285,7 +296,7 @@ export namespace CLILifecycleWrapper {
     }
 
     export async function removeAllImages(): Promise<void> {
-        const installedVersions = (await getInstallerStatus())["installed-versions"];
+        const installedVersions = (await getLocalCodewindStatus())["installed-versions"];
         for (const unwantedVersion of installedVersions) {
             await runLifecycleCmd(CLILifecycleCommands.REMOVE, unwantedVersion);
         }

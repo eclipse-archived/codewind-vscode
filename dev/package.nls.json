@@ -122,14 +122,12 @@
 
     "isTreeRoot": "viewItem == ext.cw.root",
 
-    "isStoppedLocalCodewind": "viewItem == ext.cw.local.cwstatus.stopped",
-    "isStartedLocalCodewind": "viewItem == ext.cw.local.cwstatus.started",
+    "isStoppedLocalCodewind": "viewItem =~ /.*local\\.stopped.*/",
+    "isStartedLocalCodewind": "viewItem =~ /.*local\\.started.*/",
 
-    "isInViewWithNothingSelected": "view == ext.cw.explorer && !viewItem",
-    "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected)/",
-    "isActiveConnection": "viewItem == ext.cw.connection.connected",
-    "isInactiveConnection": "viewItem == ext.cw.connection.disconnected",
-    "isConnectingConnection": "viewItem == ext.cw.connection.connecting",
+    "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/",
+    "isActiveConnection": "viewItem =~ /ext\\.cw\\.connection\\.connected.*/",
+
     "isNoProjects": "viewItem == ext.cw.noProjects",
 
     "isProject":                "viewItem =~ /ext\\.cw\\.project.*/",

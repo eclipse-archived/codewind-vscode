@@ -312,7 +312,7 @@
                 {
                     "command": "%cmdID_newConnection%",
                     "when": "%isTreeRoot%",
-                    "group": "ext.cw.root.a@0"
+                    "group": "ext.cw.root.a"
                 },
                 {
                     "command": "%cmdID_newConnection%",
@@ -322,7 +322,7 @@
                 {
                     "command": "%cmdID_newProject%",
                     "when": "%isTreeRoot%",
-                    "group": "ext.cw.root.a@1"
+                    "group": "ext.cw.root.b@0"
                 },
                 {
                     "command": "%cmdID_newProject%",
@@ -332,7 +332,7 @@
                 {
                     "command": "%cmdID_bindProject%",
                     "when": "%isTreeRoot%",
-                    "group": "ext.cw.root.a@2"
+                    "group": "ext.cw.root.b@1"
                 },
                 {
                     "command": "%cmdID_bindProject%",
@@ -355,11 +355,6 @@
                     "group": "inline@1"
                 },
                 {
-                    "command": "%cmdID_removeImages%",
-                    "when": "%isStoppedLocalCodewind%",
-                    "group": "ext.cw.cwstatus.b@0"
-                },
-                {
                     "command": "%cmdID_stopCodewind%",
                     "when": "%isStartedLocalCodewind%",
                     "group": "ext.cw.cwstatus.a@0"
@@ -373,6 +368,11 @@
                     "command": "%cmdID_stopCodewind2%",
                     "when": "%isStartedLocalCodewind%",
                     "group": "inline@1"
+                },
+                {
+                    "command": "%cmdID_removeImages%",
+                    "when": "%isStoppedLocalCodewind%",
+                    "group": "ext.cw.cwstatus.b@0"
                 },
                 {
                     "command": "%cmdID_manageTemplateRepos%",

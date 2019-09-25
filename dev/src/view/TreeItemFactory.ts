@@ -70,14 +70,15 @@ namespace TreeItemFactory {
             label = Translator.t(STRING_NS, "connectionLabelSimple");
         }
         else {
-            label = Translator.t(STRING_NS, "connectionLabel", { label: connection.userLabel });
+            // label = Translator.t(STRING_NS, "connectionLabel", { label: connection.userLabel });
+            label = connection.userLabel;
         }
         const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 
         return {
             label,
             collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-            tooltip: `${connection.versionStr} • ${connection.workspacePath.fsPath}`,
+            tooltip: `${connection.url}`,
             contextValue: TreeItemContext.getConnectionContext(connection),
             iconPath,
         };

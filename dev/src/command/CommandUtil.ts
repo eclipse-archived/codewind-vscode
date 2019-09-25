@@ -29,21 +29,22 @@ import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
 import createProject from "./connection/CreateUserProjectCmd";
 import bindProject from "./connection/BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
-import startLocalCodewindCmd from "./StartCodewindCmd";
+import connectLocalCodewindCmd from "./StartCodewindCmd";
 import stopLocalCodewindCmd from "./StopCodewindCmd";
 import removeImagesCmd from "./RemoveImagesCmd";
 import { setRegistryCmd } from "./connection/SetRegistryCmd";
 import Connection from "../codewind/connection/Connection";
 import Project from "../codewind/project/Project";
 import ProjectState from "../codewind/project/ProjectState";
-import ConnectionManager from "../codewind/connection/ConnectionManager";
 import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import containerShellCmd from "./project/ContainerShellCmd";
 import removeProjectCmd from "./project/RemoveProjectCmd";
 import addProjectToWorkspaceCmd from "./project/AddToWorkspaceCmd";
 import manageTemplateReposCmd from "./connection/ManageTemplateReposCmd";
 import { openTektonDashboard } from "./connection/OpenTektonCmd";
+import ConnectionManager from "../codewind/connection/ConnectionManager";
 import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
+import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -55,8 +56,8 @@ export function createCommands(): vscode.Disposable[] {
     return [
         // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
         // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
-        vscode.commands.registerCommand(Commands.START_LOCAL_CODEWIND,  startLocalCodewindCmd),
-        vscode.commands.registerCommand(Commands.START_CODEWIND_2,      startLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_LOCAL_CODEWIND,  connectLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND_2,      connectLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.STOP_LOCAL_CODEWIND,   stopLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,       stopLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
@@ -154,7 +155,10 @@ function registerConnectionCommand<T>(
     // The selection can be a TreeItem if the command was run from the tree root's context menu,
     // a Connection if the command was run from a Connection's context menu,
     // or undefined if the command palette
-    return vscode.commands.registerCommand(id, async (selection: vscode.TreeItem | Connection | undefined) => {
+    return vscode.commands.registerCommand(id, async (selection: vscode.TreeItem | LocalCodewindManager | Connection | undefined) => {
+        if (selection instanceof LocalCodewindManager) {
+            selection = LocalCodewindManager.instance.localConnection;
+        }
         if (!(selection instanceof Connection)) {
             selection = await promptForConnection(connectedOnly);
             // if (selection == null) {
@@ -240,11 +244,11 @@ async function promptForConnection(connectedOnly: boolean): Promise<Connection |
     }
 
     if (choices.length === 0) {
-        const startCwBtn = "Start Codewind";
+        const startCwBtn = "Start Local Codewind";
         vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn)
         .then((res?: string) => {
             if (res === startCwBtn) {
-                startLocalCodewindCmd();
+                connectLocalCodewindCmd(true);
             }
         });
 
@@ -253,6 +257,6 @@ async function promptForConnection(connectedOnly: boolean): Promise<Connection |
 
     return /* await */ vscode.window.showQuickPick(choices, {
         canPickMany: false,
-        placeHolder: "Select a Connection to run this command on",
+        placeHolder: "Select a connection to run this command on",
     }) as Promise<Connection>;
 }

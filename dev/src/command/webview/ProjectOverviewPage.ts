@@ -95,7 +95,7 @@ export function generateHtml(project: Project): string {
                 ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow("Project ID", project.id)}
                 ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-                ${buildRow("Location on Disk", project.localPath.fsPath, OpenableTypes.FOLDER)}
+                ${buildRow("Local Path", project.localPath.fsPath, OpenableTypes.FOLDER)}
                 <tr>
                     <td class="info-label">Auto build:</td>
                     <td>
@@ -226,9 +226,13 @@ function normalizeDate(d: Date, fallback: string): string {
 
 function buildDebugSection(project: Project): string {
     if (!project.capabilities.supportsDebug) {
+        let notSupportedMsg = "This project does not support debug.";
+        if (!project.connection.isLocalConnection) {
+            notSupportedMsg = "Remote projects do not support debug.";
+        }
         return `
             </table>
-            ${project.type} projects do not support debug.
+            ${notSupportedMsg}
         `;
     }
 

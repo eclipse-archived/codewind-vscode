@@ -11,7 +11,6 @@
 
 import * as vscode from "vscode";
 
-import ConnectionManager from "../codewind/connection/ConnectionManager";
 // import Commands from "../constants/Commands";
 import Log from "../Logger";
 import Project from "../codewind/project/Project";
@@ -21,6 +20,7 @@ import { CWConfigurations } from "../constants/Configurations";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import CodewindEventListener from "../codewind/connection/CodewindEventListener";
 import TreeItemFactory from "./TreeItemFactory";
+import ConnectionManager from "../codewind/connection/ConnectionManager";
 
 export type CodewindTreeItem = LocalCodewindManager | Connection | Project | vscode.TreeItem;
 
@@ -100,10 +100,9 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
             return this.getChildren(localConnection);
         }
         else if (node === this.root) {
-            const remoteConnections = ConnectionManager.instance.connections.filter((conn) => !conn.isLocalConnection);
             return [
                 LocalCodewindManager.instance,
-                ...remoteConnections,
+                ...ConnectionManager.instance.remoteConnections,
             ];
         }
         else {

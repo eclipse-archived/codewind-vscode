@@ -16,8 +16,10 @@ import Connection from "../codewind/connection/Connection";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 
 /**
- * All of these values must match the viewItem regexes in package.nls.json
+ * The functions in this file generate the TreeItems' contextIDs,
+ * which are checked against the regex in package.nls.json to determine command enablement in context menus.
  */
+
 enum TreeItemContextValues {
     BASE = "ext.cw",
 
@@ -25,8 +27,8 @@ enum TreeItemContextValues {
     NO_PROJECTS = "noProjects",
 
     // Local Codewind status
-    LOCAL_CW_STOPPED = "local.cwstatus.stopped",
-    LOCAL_CW_STARTED = "local.cwstatus.started",
+    LOCAL_CW_STOPPED = "local.stopped",
+    LOCAL_CW_STARTED = "local.started",
 
     // Connection
     CONN_CONNECTED = "connection.connected",
@@ -58,10 +60,13 @@ namespace TreeItemContext {
 
     export function getLocalCWContext(localCW: LocalCodewindManager): string {
         const contextValue = localCW.isStarted ? TreeItemContextValues.LOCAL_CW_STARTED : TreeItemContextValues.LOCAL_CW_STOPPED;
-        return buildContextValue([contextValue]);
+        const connectionContext = localCW.localConnection ? getConnectionContextInner(localCW.localConnection) : [];
+        const cv = buildContextValue([ ...connectionContext, contextValue ]);
+        // Log.d("Local connection context " + cv);
+        return cv;
     }
 
-    export function getConnectionContext(connection: Connection): string {
+    function getConnectionContextInner(connection: Connection): string[] {
         let contextValue: TreeItemContextValues;
         if (connection.isConnected) {
             contextValue = TreeItemContextValues.CONN_CONNECTED;
@@ -69,9 +74,12 @@ namespace TreeItemContext {
         else {
             contextValue = TreeItemContextValues.CONN_DISCONNECTED;
         }
-        const cv = buildContextValue([contextValue]);
+        return [ contextValue ];
+    }
+
+    export function getConnectionContext(connection: Connection): string {
+        return buildContextValue(getConnectionContextInner(connection));
         // Log.d(`The context value for ${connection} is ${cv}`);
-        return cv;
     }
 
     export function getNoProjectsContext(): string {

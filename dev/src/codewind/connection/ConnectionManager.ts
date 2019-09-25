@@ -14,16 +14,10 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
-import { CWEnvData } from "./CWEnvironment";
+import CWEnvironment from "./CWEnvironment";
 import CodewindEventListener from "./CodewindEventListener";
-// import StringNamespaces from "../../constants/strings/StringNamespaces";
-// import Translator from "../../constants/strings/translator";
-
-// interface IConnectionInfo {
-//     readonly cwIngressUrl: vscode.Uri;
-//     readonly userLabel: string;
-//     // readonly username: string;
-// }
+import ConnectionMemento from "./ConnectionMemento";
+import MCUtil from "../../MCUtil";
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;
@@ -32,6 +26,22 @@ export default class ConnectionManager implements vscode.Disposable {
 
     public static get instance(): ConnectionManager {
         return ConnectionManager._instance || (ConnectionManager._instance = new this());
+    }
+
+    public async activate(): Promise<void> {
+        await Promise.all(
+            ConnectionMemento.loadSavedConnections().map(async (connectionInfo) => {
+                try {
+                    const connectionUrl = vscode.Uri.parse(connectionInfo.cwIngressUrl);
+                    await this.connect(connectionUrl, false, connectionInfo.userLabel);
+                }
+                catch (err) {
+                    const errMsg = `Error loading connection ${connectionInfo.userLabel}: ${MCUtil.errToString(err)}`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(err);
+                }
+            })
+        );
     }
 
     public async dispose(): Promise<void> {
@@ -44,26 +54,42 @@ export default class ConnectionManager implements vscode.Disposable {
         return this._connections;
     }
 
-    public async connect(uri: vscode.Uri, cwEnv: CWEnvData, isLocalConnection: boolean, userLabel: string): Promise<Connection> {
-        const existing = this.getExisting(uri);
+    public get remoteConnections(): Connection[] {
+        return this.connections.filter((conn) => !conn.isLocalConnection);
+    }
+
+    public async connect(url: vscode.Uri, isLocalConnection: boolean, userLabel: string): Promise<Connection> {
+        const existing = this.getExisting(url);
         if (existing != null) {
-            Log.e("Connection already exists at " + uri.toString());
+            Log.e("Connection already exists at " + url.toString());
             // const alreadyExists = Translator.t(StringNamespaces.DEFAULT, "connectionAlreadyExists", { uri });
             return existing;
         }
 
-        const newConnection: Connection = new Connection(uri, cwEnv, userLabel, isLocalConnection);
-        this._connections.push(newConnection);
-        Log.i("New Connection @ " + uri);
+        Log.i("Creating connection to " + url);
+        const envData = await CWEnvironment.getEnvData(url);
+        Log.i("Massaged env data:", envData);
 
+        const newConnection: Connection = new Connection(url, envData, userLabel, isLocalConnection);
+        if (isLocalConnection) {
+            // the local connection should always be first.
+            this.connections.unshift(newConnection);
+        }
+        else {
+            this.connections.push(newConnection);
+        }
+        ConnectionMemento.saveConnections(this.remoteConnections);
+        Log.i("New Connection @ " + url);
+
+        await newConnection.initPromise;
         // pass undefined here to refresh the tree from its root
         CodewindEventListener.onChange(undefined);
         return newConnection;
     }
 
-    private getExisting(uri: vscode.Uri): Connection | undefined {
+    private getExisting(url: vscode.Uri): Connection | undefined {
         return this._connections.find((conn) => {
-            return conn.url.toString() === uri.toString();
+            return conn.url.toString() === url.toString();
         });
     }
 
@@ -76,7 +102,7 @@ export default class ConnectionManager implements vscode.Disposable {
         connection.dispose();
         this.connections.splice(indexToRemove, 1);
         Log.i("Removed connection", connection);
-        // ConnectionManager.saveConnections();
+        ConnectionMemento.saveConnections(this.remoteConnections);
         CodewindEventListener.onChange(undefined);
         return true;
     }
@@ -139,32 +165,6 @@ export default class ConnectionManager implements vscode.Disposable {
     //         return false;
     //     }
     // }
-
-    // private static loadConnections(): MCUtil.IConnectionInfo[] {
-    //     const globalState = global.extGlobalState as vscode.Memento;
-    //     const loaded = globalState.get<MCUtil.IConnectionInfo[]>(Settings.CONNECTIONS_KEY) || [];
-    //     return loaded;
-    // }
-
-    // private static async saveConnections(): Promise<void> {
-    //     // We save IConnectionInfo objects since they are simpler and more readable than VSCode URIs.
-    //     // This will likely change with ICP support since we would then have to store protocol too.
-    //     const connectionInfos: MCUtil.IConnectionInfo[] = ConnectionManager.instance.connections
-    //         .map( (connection) => MCUtil.getConnInfoFrom(connection.mcUri));
-
-    //     Log.i("Saving connections", connectionInfos);
-    //     try {
-    //         const globalState = global.extGlobalState as vscode.Memento;
-    //         // connectionInfos must not contain cyclic references (ie, JSON.stringify succeeds)
-    //         await globalState.update(Settings.CONNECTIONS_KEY, connectionInfos);
-    //     }
-    //     catch (err) {
-    //         const msg = Translator.t(StringNamespaces.DEFAULT, "errorSavingConnections", { err: err.toString() });
-    //         Log.e(msg, err);
-    //         vscode.window.showErrorMessage(msg);
-    //     }
-    // }
-
 
     public get allProjects(): Promise<Project[]> {
         return this.connections.reduce(async (allProjects: Promise<Project[]>, connection: Connection): Promise<Project[]> => {

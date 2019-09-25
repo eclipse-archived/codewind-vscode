@@ -20,7 +20,7 @@ import Resources from "../../../constants/Resources";
 import Connection from "../Connection";
 import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
 import CodewindEventListener from "../CodewindEventListener";
-import { createConnection } from "../../../command/connection/NewConnectionCmd";
+import ConnectionManager from "../ConnectionManager";
 
 const CHE_CW_URL = "https://localhost:9090";
 
@@ -56,7 +56,7 @@ export default class LocalCodewindManager {
     ///// Start/Stop Codewind /////
 
     public async startCodewind(): Promise<void> {
-        let cwUrl: vscode.Uri | undefined;
+        let cwUrl: vscode.Uri;
         try {
             cwUrl = await this.startCodewindInner();
         }
@@ -67,12 +67,16 @@ export default class LocalCodewindManager {
             return;
         }
 
+        this.connect(cwUrl);
+    }
+
+    public async connect(cwUrl: vscode.Uri): Promise<void> {
         try {
-            this._localConnection = await createConnection(cwUrl, true, "Local");
+            this._localConnection = await ConnectionManager.instance.connect(cwUrl, true, "Local Codewind");
             this.changeState(CodewindStates.STARTED);
         }
         catch (err) {
-            Log.e("Error connecting to Codewind after it appeared to start", err);
+            Log.e("Error connecting to Codewind after it should have started", err);
             this.changeState(CodewindStates.ERR_CONNECTING);
             vscode.window.showErrorMessage(MCUtil.errToString(err));
         }
