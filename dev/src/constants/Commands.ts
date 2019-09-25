@@ -13,12 +13,13 @@
 
 enum Commands {
     // all of these must match package.nls.json command IDs
+    NEW_CONNECTION = "ext.cw.newConnection",
 
     // ACTIVATE_CONNECTION = "ext.cw.activateConn",
     // DEACTIVATE_CONNECTION = "ext.cw.deactivateConn",
-    START_CODEWIND = "ext.cw.startCodewind",
-    STOP_CODEWIND = "ext.cw.stopCodewind",
-    REMOVE_IMAGES = "ext.cw.removeImages",
+    START_LOCAL_CODEWIND = "ext.cw.startCodewind",
+    STOP_LOCAL_CODEWIND = "ext.cw.stopCodewind",
+    REMOVE_LOCAL_IMAGES = "ext.cw.removeImages",
 
     // These "commands" are the same as START and STOP_CODEWIND,
     // but are registered separately with the "On/Off" icons so we can have the two inline buttons (which do the same thing)

@@ -50,6 +50,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     constructor(
         public readonly url: vscode.Uri,
         cwEnv: CWEnvData,
+        public readonly userLabel: string,
         public readonly isLocalConnection: boolean,
     ) {
         this.socket = new MCSocket(this, cwEnv.socketNamespace);

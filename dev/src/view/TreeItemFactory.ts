@@ -70,8 +70,7 @@ namespace TreeItemFactory {
             label = Translator.t(STRING_NS, "connectionLabelSimple");
         }
         else {
-            // always local for now
-            label = Translator.t(STRING_NS, "connectionLabel", { type: Translator.t(STRING_NS, "connectionTypeLocal") });
+            label = Translator.t(STRING_NS, "connectionLabel", { label: connection.userLabel });
         }
         const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 

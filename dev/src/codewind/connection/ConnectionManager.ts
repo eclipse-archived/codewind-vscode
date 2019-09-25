@@ -16,6 +16,14 @@ import Log from "../../Logger";
 import Project from "../project/Project";
 import { CWEnvData } from "./CWEnvironment";
 import CodewindEventListener from "./CodewindEventListener";
+// import StringNamespaces from "../../constants/strings/StringNamespaces";
+// import Translator from "../../constants/strings/translator";
+
+// interface IConnectionInfo {
+//     readonly cwIngressUrl: vscode.Uri;
+//     readonly userLabel: string;
+//     // readonly username: string;
+// }
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;
@@ -36,7 +44,7 @@ export default class ConnectionManager implements vscode.Disposable {
         return this._connections;
     }
 
-    public async connect(uri: vscode.Uri, cwEnv: CWEnvData, isLocalConnection: boolean): Promise<Connection> {
+    public async connect(uri: vscode.Uri, cwEnv: CWEnvData, isLocalConnection: boolean, userLabel: string): Promise<Connection> {
         const existing = this.getExisting(uri);
         if (existing != null) {
             Log.e("Connection already exists at " + uri.toString());
@@ -44,7 +52,7 @@ export default class ConnectionManager implements vscode.Disposable {
             return existing;
         }
 
-        const newConnection: Connection = new Connection(uri, cwEnv, isLocalConnection);
+        const newConnection: Connection = new Connection(uri, cwEnv, userLabel, isLocalConnection);
         this._connections.push(newConnection);
         Log.i("New Connection @ " + uri);
 

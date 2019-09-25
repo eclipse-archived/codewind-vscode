@@ -20,7 +20,7 @@ import Resources from "../../../constants/Resources";
 import Connection from "../Connection";
 import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
 import CodewindEventListener from "../CodewindEventListener";
-import activateConnection from "../../../command/connection/ActivateConnectionCmd";
+import { createConnection } from "../../../command/connection/NewConnectionCmd";
 
 const CHE_CW_URL = "https://localhost:9090";
 
@@ -68,7 +68,7 @@ export default class LocalCodewindManager {
         }
 
         try {
-            this._localConnection = await activateConnection(cwUrl, true);
+            this._localConnection = await createConnection(cwUrl, true, "Local");
             this.changeState(CodewindStates.STARTED);
         }
         catch (err) {

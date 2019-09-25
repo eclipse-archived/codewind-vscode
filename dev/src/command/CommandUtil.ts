@@ -43,6 +43,7 @@ import removeProjectCmd from "./project/RemoveProjectCmd";
 import addProjectToWorkspaceCmd from "./project/AddToWorkspaceCmd";
 import manageTemplateReposCmd from "./connection/ManageTemplateReposCmd";
 import { openTektonDashboard } from "./connection/OpenTektonCmd";
+import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -54,12 +55,13 @@ export function createCommands(): vscode.Disposable[] {
     return [
         // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
         // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
-        vscode.commands.registerCommand(Commands.START_CODEWIND,      startLocalCodewindCmd),
-        vscode.commands.registerCommand(Commands.START_CODEWIND_2,    startLocalCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND,       stopLocalCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,     stopLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_LOCAL_CODEWIND,  startLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.START_CODEWIND_2,      startLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_LOCAL_CODEWIND,   stopLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,       stopLocalCodewindCmd),
+        vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
 
-        vscode.commands.registerCommand(Commands.REMOVE_IMAGES,       removeImagesCmd),
+        vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
 
         registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined),
         registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined),

@@ -76,6 +76,15 @@
         ],
         "commands": [
             {
+                "command": "%cmdID_newConnection%",
+                "title": "%cmdTitle_newConnection%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/new_cloud.svg",
+                    "dark": "res/img/dark/new_cloud.svg"
+                }
+            },
+            {
                 "command": "%cmdID_startCodewind%",
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
@@ -301,24 +310,34 @@
             "view/title": [],
             "view/item/context": [
                 {
-                    "command": "%cmdID_newProject%",
+                    "command": "%cmdID_newConnection%",
                     "when": "%isTreeRoot%",
-                    "group": "ext.cw.conn.a@1"
+                    "group": "ext.cw.root.a@0"
                 },
                 {
-                    "command": "%cmdID_newProject%",
+                    "command": "%cmdID_newConnection%",
                     "when": "%isTreeRoot%",
                     "group": "inline@0"
                 },
                 {
-                    "command": "%cmdID_bindProject%",
+                    "command": "%cmdID_newProject%",
                     "when": "%isTreeRoot%",
-                    "group": "ext.cw.conn.a@2"
+                    "group": "ext.cw.root.a@1"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isTreeRoot%",
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_bindProject%",
                     "when": "%isTreeRoot%",
-                    "group": "inline@1"
+                    "group": "ext.cw.root.a@2"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isTreeRoot%",
+                    "group": "inline@2"
                 },
                 {
                     "command": "%cmdID_startCodewind%",
@@ -358,7 +377,7 @@
                 {
                     "command": "%cmdID_manageTemplateRepos%",
                     "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.a@3"
+                    "group": "ext.cw.conn.a@0"
                 },
                 {
                     "command": "%cmdID_openFolder%",

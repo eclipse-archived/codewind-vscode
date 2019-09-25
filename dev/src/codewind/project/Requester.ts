@@ -26,6 +26,7 @@ import { ILogResponse } from "../connection/SocketEvents";
 import { IMCTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
+import { StatusCodeError } from "request-promise-native/errors";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
@@ -69,6 +70,25 @@ namespace Requester {
 
     export async function delet(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         return req(request.delete, url, options);
+    }
+
+    export async function ping(url: string | vscode.Uri): Promise<boolean> {
+        if (url instanceof vscode.Uri) {
+            url = url.toString();
+        }
+        try {
+            await request.get(url, { resolveWithFullResponse: true });
+            // It succeeded
+            return true;
+        }
+        catch (err) {
+            if (err instanceof StatusCodeError) {
+                // it was reachable, but returned a bad status
+                return true;
+            }
+            // it was not reachable
+            return false;
+        }
     }
 
     ///// Connection-specific requests

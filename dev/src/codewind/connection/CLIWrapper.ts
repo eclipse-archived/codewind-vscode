@@ -135,12 +135,12 @@ namespace CLIWrapper {
                 child.on("close", (code: number | null) => {
                     if (code == null) {
                         // this happens in SIGTERM case, not sure what else may cause it
-                        Log.d(`Installer command ${cmd} did not exit normally, likely was cancelled`);
+                        Log.d(`Installer command ${cmd.command} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        Log.e(`Error running installer command ${cmd}`, errStr);
+                        Log.e(`Error running installer command ${cmd.command}`, errStr);
                         outStr = outStr || "No output";
-                        errStr = errStr || `Unknown error running command ${cmd}`;
+                        errStr = errStr || `Unknown error running command ${cmd.command}`;
                         writeOutError(cmd, outStr, errStr);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
@@ -166,7 +166,7 @@ namespace CLIWrapper {
     }
 
     async function writeOutError(cmd: CLICommand, outStr: string, errStr: string): Promise<void> {
-        const logDir = path.join(Log.getLogDir, `installer-error-${cmd}-${Date.now()}`);
+        const logDir = path.join(Log.getLogDir, `installer-error-${cmd.command}-${Date.now()}`);
         await promisify(fs.mkdir)(logDir, { recursive: true });
 
         const stdoutLog = path.join(logDir, "installer-output.log");

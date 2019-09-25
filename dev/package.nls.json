@@ -11,12 +11,16 @@
 
     "commandCategory": "Codewind",
     "// Items starting with cmdID are not exposed to user": "",
+    "// All these cmdIDs must match the enum in Commands.ts": "",
 
     "// cmdID_activateConn": "ext.cw.activateConn",
     "// cmdTitle_activateConn": "Activate Connection",
 
     "// cmdID_deactivateConn": "ext.cw.deactivateConn",
     "// cmdTitle_deactivateConn": "Deactivate Connection",
+
+    "cmdID_newConnection": "ext.cw.newConnection",
+    "cmdTitle_newConnection": "New Codewind Connection",
 
     "cmdID_startCodewind": "ext.cw.startCodewind",
     "// See Commands.ts for explanation of the duplicated start/stop": "",
