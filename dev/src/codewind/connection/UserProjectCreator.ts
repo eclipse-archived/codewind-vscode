@@ -159,16 +159,33 @@ namespace UserProjectCreator {
                 };
             }
             else {
-                const oneItem = type.projectSubtypes.items.length === 1;
+                let label;
+                let description;
+
+                // not codewind type if it has a prompt
+                if (type.projectSubtypes.prompt) {
+                    // if only 1 subtype take the label and description of that subtype
+                    if (type.projectSubtypes.items.length === 1) {
+                        label = type.projectSubtypes.items[0].label;
+                        description = type.projectSubtypes.items[0].description;
+                    }
+                    else {
+                        label = type.projectType;
+                    }
+                }
+                else {
+                    label = `Codewind ${type.projectType}`;
+                }
+
                 projectTypeQpis.push({
-                    label: oneItem ? type.projectSubtypes.items[0].label : type.projectType,
+                    label,
                     projectType: type.projectType,
                     index: index,
-                    description: oneItem ? type.projectSubtypes.items[0].description : undefined
+                    description
                 });
             }
         });
-        projectTypeQpis.sort();
+        projectTypeQpis.sort((a, b) => a.label.localeCompare(b.label));
         // Add "other" option last
         if (dockerType) {
             projectTypeQpis.push(dockerType);
@@ -236,7 +253,7 @@ namespace UserProjectCreator {
             };
         });
         // remove duplicates
-        languageQpis.sort();
+        languageQpis.sort((a, b) => a.label.localeCompare(b.label));
         if (!choices.prompt) {
             languageQpis.push({ id: "", label: OTHER_LANG_BTN });
         }
