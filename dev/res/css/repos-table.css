@@ -73,16 +73,16 @@ table {
     background-color: var(--vscode-welcomePage-background);     /* Doesn't work! */
 }
 
+#name-col {
+    width: 20%;
+}
+
 #status-col {
     width: 75px;
 }
 
 #style-col {
-    width: 10%;
-}
-
-#source-col {
-    width: 100px;
+    width: 17%;
 }
 
 #delete-col {
@@ -91,6 +91,8 @@ table {
 
 td {
     padding: 1em;
+    padding-top: 1.25em;
+    padding-bottom: 1.25em;
     border-bottom: 1px solid #444;
 }
 
