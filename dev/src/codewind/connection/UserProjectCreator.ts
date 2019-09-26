@@ -21,7 +21,7 @@ import ProjectType from "../project/ProjectType";
 import MCUtil from "../../MCUtil";
 import InstallerWrapper from "./InstallerWrapper";
 
-export interface IMCTemplateData {
+export interface ICWTemplateData {
     label: string;
     description: string;
     url: string;
@@ -50,7 +50,7 @@ interface INewProjectInfo {
  */
 namespace UserProjectCreator {
 
-    export async function createProject(connection: Connection, template: IMCTemplateData, projectName: string): Promise<INewProjectInfo> {
+    export async function createProject(connection: Connection, template: ICWTemplateData, projectName: string): Promise<INewProjectInfo> {
 
         // right now projects must be created under the codewind workspace so users can't choose the parentDir
         // abs path on user system under which the project will be created
@@ -200,7 +200,7 @@ namespace UserProjectCreator {
 
     const OTHER_LANG_BTN = "Other";
 
-    async function promptForLanguage(templates: IMCTemplateData[]): Promise<string | undefined> {
+    async function promptForLanguage(templates: ICWTemplateData[]): Promise<string | undefined> {
         Log.d("Prompting user for project language");
         let languageQpis = templates.map((template) => template.language);
         // remove duplicates
