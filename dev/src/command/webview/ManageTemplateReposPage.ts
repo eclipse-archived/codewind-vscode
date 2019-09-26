@@ -187,12 +187,12 @@ function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-function getStatusToggleIconSrc(enabled: boolean, escapeBackslash = false): string {
+function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = false): string {
     let toggleIcon = WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
     if (escapeBackslash) {
         // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
         // https://github.com/eclipse/codewind/issues/476
-        toggleIcon = toggleIcon.replace(/\\/g, "\\\\")
+        toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
     }
     return toggleIcon;
 }

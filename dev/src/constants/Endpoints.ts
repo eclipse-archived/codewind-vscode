@@ -54,7 +54,7 @@ export enum ProjectEndpoints {
 export namespace EndpointUtil {
 
     export function isProjectEndpoint(endpoint: Endpoint): boolean {
-        return Object.values(ProjectEndpoints).includes(endpoint);
+        return Object.values(ProjectEndpoints).map((pe) => pe.toString()).includes(endpoint);
     }
 
     export function resolveMCEndpoint(connection: Connection, endpoint: MCEndpoints): string {
