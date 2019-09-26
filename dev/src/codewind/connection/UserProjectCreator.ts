@@ -278,7 +278,7 @@ namespace UserProjectCreator {
         return validateResponse;
     }
 
-    export async function promptForDir(btnLabel: string, defaultUri: vscode.Uri): Promise<vscode.Uri | undefined> {
+    export async function promptForDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {
         // if (!defaultUri && vscode.workspace.workspaceFolders != null) {
         //     defaultUri = vscode.workspace.workspaceFolders[0].uri;
         // }

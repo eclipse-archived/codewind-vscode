@@ -10,9 +10,6 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
-import { promisify } from "util";
-import * as path from "path";
 
 import Log from "../../Logger";
 import Requester from "../project/Requester";
@@ -108,9 +105,11 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
     }
     // if they selected noBtn just continue and write
 
-    const configFilePath = path.join(connection.workspacePath.fsPath, Constants.CW_CONFIG_FILE);
+    // TODO - Doesn't work in hybrid architecture - will time out every time!
+
+    // const configFilePath = path.join(connection.workspacePath.fsPath, Constants.CW_CONFIG_FILE);
     try {
-        await writeRegistry(configFilePath, registry);
+        // await writeRegistry(configFilePath, registry);
 
         Log.i("Waiting for deployment registry to be set...");
         await vscode.window.withProgress({
@@ -137,7 +136,7 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
         });
 
         Log.i("Deployment registry set successfully");
-        vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved to ${configFilePath}. ` +
+        vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved. ` +
             `You can now build Codewind projects.`
         );
         registryIsSet = true;
@@ -150,21 +149,21 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
     return true;
 }
 
-async function writeRegistry(configFilePath: string, registry: string): Promise<void> {
-    let config: { [key: string]: string };
-    try {
-        const configContents = (await promisify(fs.readFile)(configFilePath)).toString();
-        config = JSON.parse(configContents);
-    }
-    catch (err) {
-        config = {};
-    }
-    config.deploymentRegistry = registry;
+// async function writeRegistry(configFilePath: string, registry: string): Promise<void> {
+//     let config: { [key: string]: string };
+//     try {
+//         const configContents = (await promisify(fs.readFile)(configFilePath)).toString();
+//         config = JSON.parse(configContents);
+//     }
+//     catch (err) {
+//         config = {};
+//     }
+//     config.deploymentRegistry = registry;
 
-    const toWrite = JSON.stringify(config, undefined, 2);
-    Log.i(`Saving registry ${registry} to ${configFilePath}`);
-    return promisify(fs.writeFile)(configFilePath, toWrite);
-}
+//     const toWrite = JSON.stringify(config, undefined, 2);
+//     Log.i(`Saving registry ${registry} to ${configFilePath}`);
+//     return promisify(fs.writeFile)(configFilePath, toWrite);
+// }
 
 async function testRegistry(connection: Connection, registry: string): Promise<boolean | "retry"> {
     const testResult: SocketEvents.IRegistryStatusEvent = await vscode.window.withProgress({

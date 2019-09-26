@@ -16,7 +16,6 @@ import Translator from "../constants/strings/translator";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
-import openWorkspaceCmd from "./OpenWorkspaceCmd";
 import restartProjectCmd from "./project/RestartProjectCmd";
 import openAppCmd from "./project/OpenAppCmd";
 import requestBuildCmd from "./project/RequestBuildCmd";
@@ -70,7 +69,6 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined),
 
         registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined),
-        registerConnectionCommand(Commands.OPEN_WS_FOLDER, openWorkspaceCmd, undefined),
         registerConnectionCommand(Commands.MANAGE_TEMPLATE_REPOS, manageTemplateReposCmd, undefined),
 
         registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),

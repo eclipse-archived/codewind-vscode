@@ -17,7 +17,6 @@ import MCUtil from "../../MCUtil";
 import UserProjectCreator, { IMCTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
-import openWorkspaceCmd from "../OpenWorkspaceCmd";
 import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
@@ -94,29 +93,13 @@ export default async function createProject(connection: Connection): Promise<voi
             return;
         }
 
-        const createdMsg = `Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`;
-        if (await MCUtil.isUserInCwWorkspaceOrProject()) {
-            vscode.window.showInformationMessage(createdMsg);
-        }
-        else {
-            showOpenWorkspacePrompt(connection, createdMsg);
-        }
+        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`);
     }
     catch (err) {
         const errMsg = "Error creating new project: ";
         Log.e(errMsg, err);
         vscode.window.showErrorMessage(errMsg + MCUtil.errToString(err));
     }
-}
-
-export async function showOpenWorkspacePrompt(connection: Connection, msg: string): Promise<void> {
-    const openWorkspaceBtn = "Open Workspace";
-    vscode.window.showInformationMessage(msg, openWorkspaceBtn)
-    .then((res) => {
-        if (res === openWorkspaceBtn) {
-            openWorkspaceCmd(connection);
-        }
-    });
 }
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
@@ -205,6 +188,7 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
     const templateQpis = await getTemplateQpis(connection);
     if (templateQpis == null) {
         // getTemplateQpis will have shown the error message
+        qp.hide();
         return undefined;
     }
 

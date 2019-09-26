@@ -28,7 +28,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public readonly host: string;
 
-    public readonly workspacePath: vscode.Uri;
     public readonly version: string;
 
     public readonly socket: MCSocket;
@@ -52,7 +51,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         public readonly isLocalConnection: boolean,
     ) {
         this.socket = new MCSocket(this, cwEnv.socketNamespace);
-        this.workspacePath = vscode.Uri.file(cwEnv.workspace);
         this.version = cwEnv.version;
         this.host = this.getHost(url);
 
@@ -65,7 +63,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             this.initPromise = Promise.resolve();
         }
 
-        Log.i(`Created new Connection @ ${this}, workspace ${this.workspacePath}`);
+        Log.i(`Created new Connection @ ${this}, version ${this.version}`);
     }
 
     public async dispose(): Promise<void> {

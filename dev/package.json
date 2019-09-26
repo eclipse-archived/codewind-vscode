@@ -59,12 +59,6 @@
                         "default": true,
                         "scope": "application"
                     },
-                    "codewind.promptToOpenWorkspace": {
-                        "description": "%configDescr_promptToOpenWorkspace%",
-                        "type": "boolean",
-                        "default": true,
-                        "scope": "application"
-                    },
                     "codewind.openOverviewOnCreation": {
                         "description": "%configDescr_overviewOnCreation%",
                         "type": "boolean",
@@ -175,11 +169,6 @@
                     "light": "res/img/light/tekton.svg",
                     "dark": "res/img/dark/tekton.svg"
                 }
-            },
-            {
-                "command": "%cmdID_openFolder%",
-                "title": "%cmdTitle_openFolder%",
-                "category": "%commandCategory%"
             },
             {
                 "command": "%cmdID_addProjToWorkspace%",
@@ -366,11 +355,6 @@
                     "command": "%cmdID_manageTemplateRepos%",
                     "when": "%isActiveConnection%",
                     "group": "ext.cw.conn.a@0"
-                },
-                {
-                    "command": "%cmdID_openFolder%",
-                    "when": "%isConnection%",
-                    "group": "ext.cw.conn.b"
                 },
                 {
                     "command": "%cmdID_setRegistry%",

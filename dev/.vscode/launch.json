@@ -12,7 +12,7 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                "/Users/tim/programs/codewind/codewind-workspace"
+                // put a workspace (.code-workspace, or folder) path here to launch into it
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/**/*.js"
@@ -30,9 +30,6 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 "--extensionTestsPath=${workspaceFolder}/out/test",
-                // Replace below with your local codewind-workspace
-                "/Users/tim/programs/codewind/codewind-workspace"
-                // "/Users/tim/codewind-workspace/"
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/test/**/*.js"
