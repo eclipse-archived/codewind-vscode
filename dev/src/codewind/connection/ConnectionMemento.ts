@@ -40,7 +40,7 @@ namespace ConnectionMemento {
         .map((connection) => {
             return {
                 cwIngressUrl: connection.url.toString(),
-                userLabel: connection.userLabel
+                userLabel: connection.label,
             };
         });
 

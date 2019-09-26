@@ -71,7 +71,7 @@ namespace TreeItemFactory {
         }
         else {
             // label = Translator.t(STRING_NS, "connectionLabel", { label: connection.userLabel });
-            label = connection.userLabel;
+            label = connection.label;
         }
         const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 

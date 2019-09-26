@@ -15,7 +15,7 @@ import Project from "../project/Project";
 import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
 import MCSocket from "./MCSocket";
 import Log from "../../Logger";
-import CWEnvironment, { CWEnvData } from "./CWEnvironment";
+import { CWEnvData } from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
@@ -29,7 +29,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     public readonly host: string;
 
     public readonly workspacePath: vscode.Uri;
-    public readonly versionStr: string;
+    public readonly version: string;
 
     public readonly socket: MCSocket;
 
@@ -48,12 +48,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     constructor(
         public readonly url: vscode.Uri,
         cwEnv: CWEnvData,
-        public readonly userLabel: string,
+        public readonly label: string,
         public readonly isLocalConnection: boolean,
     ) {
         this.socket = new MCSocket(this, cwEnv.socketNamespace);
         this.workspacePath = vscode.Uri.file(cwEnv.workspace);
-        this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
+        this.version = cwEnv.version;
         this.host = this.getHost(url);
 
         // caller must await on this promise before expecting this connection to function correctly
@@ -81,7 +81,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public toString(): string {
-        return `${this.url} ${this.versionStr}`;
+        return `${this.url} ${this.version}`;
     }
 
     private async initFileWatcher(): Promise<void> {
@@ -264,11 +264,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // refresh whole tree
             this.onChange();
         }
-    }
-
-    // QuickPickItem
-    public get label(): string {
-        return this.userLabel;
     }
 
     public get detail(): string {

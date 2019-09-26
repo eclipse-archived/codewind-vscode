@@ -11,9 +11,10 @@
 
 // non-nls-file
 
+// all of these MUST MATCH package.nls.json command IDs
 enum Commands {
-    // all of these must match package.nls.json command IDs
     NEW_CONNECTION = "ext.cw.newConnection",
+    REMOVE_CONNECTION = "ext.cw.removeConnection",
 
     // ACTIVATE_CONNECTION = "ext.cw.activateConn",
     // DEACTIVATE_CONNECTION = "ext.cw.deactivateConn",

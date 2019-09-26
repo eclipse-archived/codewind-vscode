@@ -85,6 +85,11 @@
                 }
             },
             {
+                "command": "%cmdID_removeConnection%",
+                "title": "%cmdTitle_removeConnection%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_startCodewind%",
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
@@ -381,6 +386,11 @@
                     "command": "%cmdID_refreshConnection%",
                     "when": "%isConnection%",
                     "group": "ext.cw.conn.d@0"
+                },
+                {
+                    "command": "%cmdID_removeConnection%",
+                    "when": "%isRemoteConnection%",
+                    "group": "ext.cw.conn.e@0"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",

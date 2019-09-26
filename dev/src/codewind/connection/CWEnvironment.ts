@@ -39,7 +39,7 @@ interface RawCWEnvData {
 export interface CWEnvData {
     readonly workspace: string;
     readonly socketNamespace: string;
-    readonly version: number;
+    readonly version: string;
     readonly tektonStatus: TektonStatus;
 }
 
@@ -85,7 +85,7 @@ namespace CWEnvironment {
             throw new Error("No workspace information was provided by Codewind.");
         }
         const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
-        const version = CWEnvironment.getVersionNumber(rawEnv);
+        const version = rawEnv.codewind_version || "Unknown";
 
         // normalize namespace so it doesn't start with '/'
         const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;

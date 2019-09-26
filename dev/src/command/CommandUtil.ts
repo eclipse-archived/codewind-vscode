@@ -45,6 +45,7 @@ import { openTektonDashboard } from "./connection/OpenTektonCmd";
 import ConnectionManager from "../codewind/connection/ConnectionManager";
 import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
+import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -63,6 +64,7 @@ export function createCommands(): vscode.Disposable[] {
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
 
         vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
+        registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined),
 
         registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined),
         registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined),

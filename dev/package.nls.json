@@ -25,17 +25,20 @@
     "cmdID_startCodewind": "ext.cw.startCodewind",
     "// See Commands.ts for explanation of the duplicated start/stop": "",
     "cmdID_startCodewind2": "ext.cw.startCodewind2",
-    "cmdTitle_startCodewind": "Start Codewind",
+    "cmdTitle_startCodewind": "Start Local Codewind",
 
     "cmdID_stopCodewind": "ext.cw.stopCodewind",
     "cmdID_stopCodewind2": "ext.cw.stopCodewind2",
-    "cmdTitle_stopCodewind": "Stop Codewind",
+    "cmdTitle_stopCodewind": "Stop Local Codewind",
 
     "cmdID_removeImages": "ext.cw.removeImages",
-    "cmdTitle_removeImages": "Remove Codewind Images",
+    "cmdTitle_removeImages": "Remove Local Codewind Images",
 
     "cmdID_refreshConnection": "ext.cw.refreshConnection",
     "cmdTitle_refreshConnection": "Refresh",
+
+    "cmdID_removeConnection": "ext.cw.removeConnection",
+    "cmdTitle_removeConnection": "Remove Connection",
 
     "cmdID_setRegistry": "ext.cw.setRegistry",
     "cmdTitle_setRegistry": "Set Deployment Registry",
@@ -127,6 +130,7 @@
 
     "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/",
     "isActiveConnection": "viewItem =~ /ext\\.cw\\.connection\\.connected.*/",
+    "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/ && viewItem =~ /^((?!local).)*$/",
 
     "isNoProjects": "viewItem == ext.cw.noProjects",
 
