@@ -101,7 +101,7 @@ namespace UserProjectCreator {
             const failedResult = (validateRes.result as { error: string });
             throw new Error(failedResult.error);
         }
-        let projectTypeInfo = validateRes.result as IProjectTypeInfo;
+        let projectTypeInfo = validateRes.result as IProjectTypeExtendedInfo;
 
         // if the detection returned the fallback type, or if the user says the detection is wrong
         let detectionFailed: boolean = false;
@@ -134,6 +134,12 @@ namespace UserProjectCreator {
                 return;
             }
             projectTypeInfo = userProjectType;
+        }
+
+        // validate once more with detected type and subtype (if defined),
+        // to run any extension defined command involving subtype
+        if (projectTypeInfo.projectSubtype) {
+            await requestValidate(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
         }
 
         await requestBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
@@ -283,13 +289,13 @@ namespace UserProjectCreator {
         return language.id;
     }
 
-    async function requestValidate(pathToBind: string): Promise<IInitializationResponse> {
+    async function requestValidate(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
         const validateResponse = await vscode.window.withProgress({
             title: `Processing ${pathToBind}...`,
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
         }, () => {
-            return InstallerWrapper.validateProjectDirectory(pathToBind);
+            return InstallerWrapper.validateProjectDirectory(pathToBind, desiredType);
         });
         Log.d("validate response", validateResponse);
         return validateResponse;
