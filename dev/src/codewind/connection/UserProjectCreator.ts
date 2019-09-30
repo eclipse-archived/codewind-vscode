@@ -168,8 +168,8 @@ namespace UserProjectCreator {
                 let label;
                 let description;
 
-                // not codewind type if it has a prompt
-                if (type.projectSubtypes.prompt) {
+                // not codewind type if it has a label
+                if (type.projectSubtypes.label) {
                     // if only 1 subtype take the label and description of that subtype
                     if (type.projectSubtypes.items.length === 1) {
                         label = type.projectSubtypes.items[0].label;
@@ -232,8 +232,8 @@ namespace UserProjectCreator {
                 }
             }
 
-            // if there's no custom prompt, we were choosing language
-            if (!projectSubtypeChoices.prompt) {
+            // if there's no custom label, we were choosing language
+            if (!projectSubtypeChoices.label) {
                 language = projectSubtype;
                 projectSubtype = undefined;
             }
@@ -260,12 +260,12 @@ namespace UserProjectCreator {
         });
         // remove duplicates
         languageQpis.sort((a, b) => a.label.localeCompare(b.label));
-        if (!choices.prompt) {
+        if (!choices.label) {
             languageQpis.push({ id: "", label: OTHER_LANG_BTN });
         }
 
         const language = await vscode.window.showQuickPick(languageQpis, {
-            placeHolder: choices.prompt || "Select the language that best fits your project",
+            placeHolder: choices.label ? `Select the ${choices.label}` : "Select the language that best fits your project",
             ignoreFocusOut: true,
         });
 

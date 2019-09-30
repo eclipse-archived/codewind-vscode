@@ -201,7 +201,7 @@ export interface IProjectSubtype {
 }
 
 export interface IProjectSubtypesDescriptor {
-    prompt?: string;
+    label?: string;
     items: IProjectSubtype[];
 }
 
