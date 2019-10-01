@@ -32,8 +32,8 @@ import { IInitializationResponse } from "./UserProjectCreator";
 const STRING_NS = StringNamespaces.STARTUP;
 
 const BIN_DIR = "bin";
-const INSTALLER_EXECUTABLE = "codewind-installer";
-const INSTALLER_EXECUTABLE_WIN = "codewind-installer.exe";
+const INSTALLER_EXECUTABLE = "cwctl";
+const INSTALLER_EXECUTABLE_WIN = "cwctl.exe";
 const INSTALLER_PREREQS: { [s: string]: string[]; } = {
     [INSTALLER_EXECUTABLE]: ["appsody"],
     [INSTALLER_EXECUTABLE_WIN]: ["appsody.exe"]
