@@ -11,7 +11,7 @@ fi
 
 echo "Downloading latest Codewind CLI built from $cli_branch"
 
-cli_basename="codewind-installer"
+cli_basename="cwctl"
 
 download () {
     local url=$1

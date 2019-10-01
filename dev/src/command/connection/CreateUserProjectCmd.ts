@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
-import UserProjectCreator, { IMCTemplateData } from "../../codewind/connection/UserProjectCreator";
+import UserProjectCreator, { ICWTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 import openWorkspaceCmd from "../OpenWorkspaceCmd";
@@ -50,7 +50,7 @@ export default async function createProject(connection: Connection): Promise<voi
     }
 
     try {
-        let template: IMCTemplateData | undefined;
+        let template: ICWTemplateData | undefined;
         let projectName: string | undefined;
         while (!template || !projectName) {
             template = await promptForTemplate(connection);
@@ -164,7 +164,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     return "selected";
 }
 
-async function promptForTemplate(connection: Connection): Promise<IMCTemplateData | undefined> {
+async function promptForTemplate(connection: Connection): Promise<ICWTemplateData | undefined> {
 
     const qp = vscode.window.createQuickPick();
     // busy and enabled have no effect in theia https://github.com/eclipse-theia/theia/issues/5059
@@ -238,7 +238,7 @@ async function promptForTemplate(connection: Connection): Promise<IMCTemplateDat
     return selectedProjectType;
 }
 
-async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & IMCTemplateData> | undefined>  {
+async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & ICWTemplateData> | undefined>  {
     const templateQpis = (await Requester.getTemplates(connection))
         .map((type) => {
             return {
@@ -265,7 +265,7 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
     return templateQpis;
 }
 
-async function promptForProjectName(template: IMCTemplateData): Promise<string | undefined> {
+async function promptForProjectName(template: ICWTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 

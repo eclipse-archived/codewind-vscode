@@ -140,18 +140,17 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
     return `
     <table>
         <colgroup>
-            <col id="descr-col"/>
+            <col id="name-col"/>
             <col id="style-col"/>
-            <col id="source-col"/>
+            <col id="descr-col"/>
             <col id="status-col"/>
             <col id="delete-col"/>
         </colgroup>
         <thead>
             <tr>
-                <!--td>Repo Name</td-->
-                <td>Description</td>
+                <td>Name</td>
                 <td>Style</td>
-                <td>Link</td>
+                <td>Description</td>
                 <td>Enabled</td>
                 <td></td>        <!-- Delete buttons column -->
             </tr>
@@ -164,12 +163,12 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
 }
 
 function buildRepoRow(repo: ITemplateRepo): string {
+    const repoName = repo.name ? repo.name : "No name available";
     return `
     <tr>
-        <!--td class="name-cell">${repo.name}</td-->
-        <td class="descr-cell">${repo.description}</td>
+        <td class="name-cell"><a href="${repo.url}">${repoName}</a></td>
         <td class="style-cell">${repo.projectStyles.join(", ")}</td-->
-        <td class="source-cell"><a href="${repo.url}">Source</a></td>
+        <td class="descr-cell">${repo.description}</td>
         ${getStatusToggleTD(repo)}
         ${getDeleteBtnTD(repo)}
     </tr>
@@ -187,12 +186,12 @@ function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-function getStatusToggleIconSrc(enabled: boolean, escapeBackslash = false): string {
+function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = false): string {
     let toggleIcon = WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
     if (escapeBackslash) {
         // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
         // https://github.com/eclipse/codewind/issues/476
-        toggleIcon = toggleIcon.replace(/\\/g, "\\\\")
+        toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
     }
     return toggleIcon;
 }
