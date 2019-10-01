@@ -157,6 +157,15 @@
                 "category": "%commandCategory%"
             },
             {
+                "command": "%cmdID_connectionOverview%",
+                "title": "%cmdTitle_connectionOverview%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/info.svg",
+                    "dark": "res/img/dark/info.svg"
+                }
+            },
+            {
                 "command": "%cmdID_setRegistry%",
                 "title": "%cmdTitle_setRegistry%",
                 "category": "%commandCategory%"
@@ -352,9 +361,19 @@
                     "group": "ext.cw.cwstatus.b@0"
                 },
                 {
+                    "command": "%cmdID_connectionOverview%",
+                    "when": "%isRemoteConnection%",
+                    "group": "ext.cw.conn.a@0"
+                },
+                {
+                    "command": "%cmdID_connectionOverview%",
+                    "when": "%isRemoteConnection%",
+                    "group": "inline"
+                },
+                {
                     "command": "%cmdID_manageTemplateRepos%",
                     "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.a@0"
+                    "group": "ext.cw.conn.a@1"
                 },
                 {
                     "command": "%cmdID_setRegistry%",

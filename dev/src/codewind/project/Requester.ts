@@ -185,18 +185,14 @@ namespace Requester {
 
         // return doProjectRequest(project, url, body, Requester.post, "Build");
         const buildMsg = Translator.t(STRING_NS, "build");
-        if (project.connection.remote) {
-            const localPath = MCUtil.fsPathToContainerPath(project.localPath);
-            Log.i(`Copying updated files from ${localPath} to ${project.connection.host}`);
-            const syncTime = Date.now();
-            const fileList = await requestUploadsRecursively(project.connection, project.id, localPath, localPath, project._lastSync);
-            Log.i(`Clearing old content for ${project.name} from ${project.connection.host}`);
-            await requestClear(project, fileList);
-            Log.i(`Sync complete for ${project.name} to ${project.connection.host} in ${Date.now() - syncTime}ms`);
-            project._lastSync = syncTime;
-        } else {
-            Log.i(`Local build from local file system at ${project.localPath}`);
-        }
+        const localPath = MCUtil.fsPathToContainerPath(project.localPath);
+        Log.i(`Copying updated files from ${localPath} to ${project.connection.host}`);
+        const syncTime = Date.now();
+        const fileList = await requestUploadsRecursively(project.connection, project.id, localPath, localPath, project._lastSync);
+        Log.i(`Clearing old content for ${project.name} from ${project.connection.host}`);
+        await requestClear(project, fileList);
+        Log.i(`Sync complete for ${project.name} to ${project.connection.host} in ${Date.now() - syncTime}ms`);
+        project._lastSync = syncTime;
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
     }
 

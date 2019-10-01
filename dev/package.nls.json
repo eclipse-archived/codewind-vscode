@@ -54,6 +54,9 @@
     "cmdID_manageTemplateRepos": "ext.cw.manageTemplateRepos",
     "cmdTitle_manageTemplateRepos": "Manage Template Sources",
 
+    "cmdID_connectionOverview": "ext.cw.connectionOverview",
+    "cmdTitle_connectionOverview": "Open Connection Overview",
+
     "cmdID_addProjToWorkspace": "ext.cw.addProjectToWorkspace",
     "cmdTitle_addProjToWorkspace": "Add Project to Workspace",
 

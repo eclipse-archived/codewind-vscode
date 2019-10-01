@@ -102,14 +102,6 @@ export async function refreshManageReposPage(connection: Connection): Promise<vo
         return;
     }
     const html = generateManageReposHtml(await Requester.getTemplateRepos(connection));
-
-    // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
-    // if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
-    //     const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
-    //     fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
-    //         (err) => { if (err) { throw err; } }
-    //     );
-    // }
     manageReposPage.webview.html = html;
 }
 

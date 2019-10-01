@@ -16,31 +16,24 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import Log from "../../Logger";
 import Connection from "./Connection";
+import { IRemoteCodewindInfo } from "./RemoteConnection";
 
-/**
- * Data typed used to save Connections into the extension memory. Must be JSON-stringifiable
- */
-interface ConnectionInfo {
-    readonly cwIngressUrl: string;
-    readonly userLabel: string;
-    // readonly username: string;
-}
 const SAVED_CONNECTIONS_KEY = "savedConnections";
 
 namespace ConnectionMemento {
-    export function loadSavedConnections(): ConnectionInfo[] {
+    export function loadSavedConnections(): IRemoteCodewindInfo[] {
         const globalState = global.extGlobalState as vscode.Memento;
-        const loaded = globalState.get<ConnectionInfo[]>(SAVED_CONNECTIONS_KEY) || [];
+        const loaded = globalState.get<IRemoteCodewindInfo[]>(SAVED_CONNECTIONS_KEY) || [];
         Log.i(`Loaded ${loaded.length} saved remote connections`);
         return loaded;
     }
 
     export async function saveConnections(connections: Connection[]): Promise<void> {
-        const connectionInfos: ConnectionInfo[] = connections
-        .map((connection) => {
+        const connectionInfos: IRemoteCodewindInfo[] = connections
+        .map((connection): IRemoteCodewindInfo => {
             return {
-                cwIngressUrl: connection.url.toString(),
-                userLabel: connection.label,
+                ingressHost: connection.url.authority,
+                label: connection.label,
             };
         });
 

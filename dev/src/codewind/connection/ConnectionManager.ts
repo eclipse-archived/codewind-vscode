@@ -14,10 +14,11 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
-import CWEnvironment from "./CWEnvironment";
+import CWEnvironment, { CWEnvData } from "./CWEnvironment";
 import CodewindEventListener from "./CodewindEventListener";
 import ConnectionMemento from "./ConnectionMemento";
 import MCUtil from "../../MCUtil";
+import RemoteConnection, { IRemoteCodewindInfo } from "./RemoteConnection";
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;
@@ -25,18 +26,22 @@ export default class ConnectionManager implements vscode.Disposable {
     private readonly _connections: Connection[] = [];
 
     public static get instance(): ConnectionManager {
-        return ConnectionManager._instance || (ConnectionManager._instance = new this());
+        return ConnectionManager._instance || (ConnectionManager._instance = new ConnectionManager());
     }
 
     public async activate(): Promise<void> {
         await Promise.all(
             ConnectionMemento.loadSavedConnections().map(async (connectionInfo) => {
                 try {
-                    const connectionUrl = vscode.Uri.parse(connectionInfo.cwIngressUrl);
-                    await this.connect(connectionUrl, false, connectionInfo.userLabel);
+                    if (!connectionInfo.ingressHost) {
+                        // should never happen
+                        throw new Error(`Cannot load connection ${connectionInfo.label} due to missing ingress host`);
+                    }
+                    const connectionUrl = vscode.Uri.parse(RemoteConnection.REMOTE_CODEWIND_PROTOCOL + "://" + connectionInfo.ingressHost);
+                    await this.connectRemote(connectionUrl, { label: connectionInfo.label });
                 }
                 catch (err) {
-                    const errMsg = `Error loading connection ${connectionInfo.userLabel}: ${MCUtil.errToString(err)}`;
+                    const errMsg = `Error loading connection ${connectionInfo.label}: ${MCUtil.errToString(err)}`;
                     Log.e(errMsg, err);
                     vscode.window.showErrorMessage(err);
                 }
@@ -55,36 +60,54 @@ export default class ConnectionManager implements vscode.Disposable {
     }
 
     public get remoteConnections(): Connection[] {
-        return this.connections.filter((conn) => !conn.isLocalConnection);
+        return this.connections.filter((conn) => conn.isRemote);
     }
 
-    public async connect(url: vscode.Uri, isLocalConnection: boolean, userLabel: string): Promise<Connection> {
-        const existing = this.getExisting(url);
-        if (existing != null) {
-            Log.e("Connection already exists at " + url.toString());
-            // const alreadyExists = Translator.t(StringNamespaces.DEFAULT, "connectionAlreadyExists", { uri });
-            return existing;
+    public async connectRemote(ingressUrl: vscode.Uri, remoteInfo: IRemoteCodewindInfo, envData?: CWEnvData): Promise<RemoteConnection> {
+        const existing = this.getExisting(ingressUrl);
+        if (existing) {
+            const alreadyExistsMsg = "Connection already exists at " + ingressUrl.toString();
+            Log.i(alreadyExistsMsg);
+            vscode.window.showWarningMessage(alreadyExistsMsg);
+            return existing as RemoteConnection;
         }
 
+        Log.i("Creating connection to " + ingressUrl);
+        if (!envData) {
+            envData = await CWEnvironment.getEnvData(ingressUrl);
+        }
+        const newConnection = new RemoteConnection(ingressUrl, envData, remoteInfo.label,
+            remoteInfo.username, remoteInfo.registryUrl, remoteInfo.registryUsername);
+
+        await this.saveNewConnection(newConnection);
+        return newConnection;
+    }
+
+    public async connectLocal(url: vscode.Uri): Promise<Connection> {
+        if (this.connections[0] && !this.connections[0].isRemote) {
+            return this.connections[0];
+        }
         Log.i("Creating connection to " + url);
         const envData = await CWEnvironment.getEnvData(url);
-        Log.i("Massaged env data:", envData);
+        const newConnection = new Connection(url, envData, "Local Codewind", false);
+        await this.saveNewConnection(newConnection);
+        return newConnection;
+    }
 
-        const newConnection: Connection = new Connection(url, envData, userLabel, isLocalConnection);
-        if (isLocalConnection) {
+    private async saveNewConnection(newConnection: Connection): Promise<void> {
+        if (newConnection.isRemote) {
+            this.connections.push(newConnection);
+        }
+        else {
             // the local connection should always be first.
             this.connections.unshift(newConnection);
         }
-        else {
-            this.connections.push(newConnection);
-        }
         ConnectionMemento.saveConnections(this.remoteConnections);
-        Log.i("New Connection @ " + url);
+        Log.i("New Connection @ " + newConnection.url);
 
         await newConnection.initPromise;
         // pass undefined here to refresh the tree from its root
         CodewindEventListener.onChange(undefined);
-        return newConnection;
     }
 
     private getExisting(url: vscode.Uri): Connection | undefined {

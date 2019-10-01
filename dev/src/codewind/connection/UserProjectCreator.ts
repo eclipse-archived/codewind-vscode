@@ -18,7 +18,6 @@ import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/End
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
-import MCUtil from "../../MCUtil";
 import CLIWrapper from "./CLIWrapper";
 
 export interface IMCTemplateData {
@@ -36,7 +35,7 @@ interface IProjectTypeInfo {
 
 export interface IInitializationResponse {
     status: string;
-    result: IProjectTypeInfo | { error: string; };
+    result: IProjectTypeInfo | string | { error: string };
     projectPath: string;
 }
 
@@ -65,8 +64,8 @@ namespace UserProjectCreator {
 
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
-            const failedResult = (creationRes.result as { error: string });
-            throw new Error(failedResult.error);
+            const failedResult = (creationRes.result as any).error || creationRes.result as string;
+            throw new Error(failedResult);
         }
 
         const projectTypeInfo = creationRes.result as IProjectTypeInfo;
@@ -130,13 +129,14 @@ namespace UserProjectCreator {
     async function bind(connection: Connection, projectName: string,
                         pathToBind: string, projectTypeInfo: IProjectTypeInfo):
                         Promise<INewProjectInfo | undefined> {
-        if (connection.remote) {
+        // if (connection.remote) {
             return bindRemote(connection, projectName, pathToBind, projectTypeInfo);
-        } else {
-            return bindLocal(connection, projectName, pathToBind, projectTypeInfo);
-        }
+        // } else {
+        // return bindLocal(connection, projectName, pathToBind, projectTypeInfo);
+        // }
     }
 
+    /*
     async function bindLocal(connection: Connection, projectName: string,
                              pathToBind: string, projectTypeInfo: IProjectTypeInfo):
                              Promise<INewProjectInfo | undefined> {
@@ -144,6 +144,7 @@ namespace UserProjectCreator {
         await requestLocalBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         return { projectName, projectPath: pathToBind };
     }
+    */
 
     async function bindRemote(connection: Connection, projectName: string,
                               pathToBind: string, projectTypeInfo: IProjectTypeInfo):
@@ -297,6 +298,7 @@ namespace UserProjectCreator {
         return selectedDirs[0];
     }
 
+    /*
     async function requestLocalBind(connection: Connection, projectName: string, dirToBindFsPath: string, language: string, projectType: string)
         : Promise<void> {
 
@@ -321,6 +323,7 @@ namespace UserProjectCreator {
 
         // return bindRes;
     }
+    */
 
     async function requestRemoteBindStart(connection: Connection, projectName: string,
                                           dirToBindContainerPath: string,

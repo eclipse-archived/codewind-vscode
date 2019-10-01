@@ -10,20 +10,17 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-
-import Log from "../../Logger";
-import { URL } from "url";
-import Requester from "../../codewind/project/Requester";
-import ConnectionManager from "../../codewind/connection/ConnectionManager";
+import ConnectionOverview from "../webview/ConnectionOverview";
 
 const NEW_CONNECTION_TITLE = "New Codewind Connection";
-const NEW_CONNECTION_NO_STEPS = 2;
-const BACK_BTN_MSG = "back-button-msg";
+// const NEW_CONNECTION_NO_STEPS = 2;
+// const BACK_BTN_MSG = "back-button-msg";
 
-const CW_INGRESS_PROTOCOL = "http";         // WILL CHANGE to https
+// const CW_INGRESS_PROTOCOL = "http";         // WILL CHANGE to https
 
 export async function newRemoteConnectionCmd(): Promise<void> {
 
+    /*
     let ingressUrlStr: string | undefined;
     let userLabel: string | undefined;
     while (ingressUrlStr == null || userLabel == null) {
@@ -45,13 +42,49 @@ export async function newRemoteConnectionCmd(): Promise<void> {
             throw err;
         }
     }
+    */
 
-    Log.i(`Creating new remote connection ${userLabel} to ${ingressUrlStr}`);
-    const ingressUrl = vscode.Uri.parse(ingressUrlStr);
-
-    await ConnectionManager.instance.connect(ingressUrl, false, userLabel);
+    const connectionLabel = await getConnectionLabel();
+    if (!connectionLabel) {
+        return;
+    }
+    ConnectionOverview.showForNewConnection(connectionLabel);
 }
 
+async function getConnectionLabel(): Promise<string | undefined> {
+    const labelIb = vscode.window.createInputBox();
+    labelIb.ignoreFocusOut = true;
+    labelIb.placeholder = "My IBM Cloud";
+    labelIb.prompt = `Enter a label for your new remote Codewind connection.`;
+    // labelIb.step = 2;
+    // labelIb.totalSteps = NEW_CONNECTION_NO_STEPS;
+    labelIb.title = NEW_CONNECTION_TITLE;
+    labelIb.onDidChangeValue((input) => {
+        if (!input) {
+            labelIb.validationMessage = "The label cannot be empty.";
+        }
+        else {
+            labelIb.validationMessage = undefined;
+        }
+    });
+    // labelIb.buttons = [ vscode.QuickInputButtons.Back ];
+    labelIb.show();
+
+    return new Promise<string | undefined>((resolve) => {
+        // labelIb.onDidTriggerButton((btn) => {
+        //     if (btn === vscode.QuickInputButtons.Back) {
+        //         reject(BACK_BTN_MSG);
+        //     }
+        // });
+        labelIb.onDidHide(() => resolve(undefined));
+        labelIb.onDidAccept(async () => {
+            resolve(labelIb.value);
+        });
+    })
+    .finally(() => labelIb.hide());
+}
+
+/*
 async function getIngressUrl(previousValue: string | undefined): Promise<string | undefined> {
     const ingressIb = vscode.window.createInputBox();
     ingressIb.ignoreFocusOut = true;
@@ -85,39 +118,6 @@ async function getIngressUrl(previousValue: string | undefined): Promise<string 
     .finally(() => ingressIb.hide());
 }
 
-async function getConnectionLabel(ingressUrl: string): Promise<string | undefined> {
-    const labelIb = vscode.window.createInputBox();
-    labelIb.ignoreFocusOut = true;
-    labelIb.placeholder = "My IBM Cloud";
-    labelIb.prompt = `Enter a label for the connection to ${ingressUrl}.`;
-    labelIb.step = 2;
-    labelIb.totalSteps = NEW_CONNECTION_NO_STEPS;
-    labelIb.title = NEW_CONNECTION_TITLE;
-    labelIb.onDidChangeValue((input) => {
-        if (!input) {
-            labelIb.validationMessage = "The label cannot be empty.";
-        }
-        else {
-            labelIb.validationMessage = undefined;
-        }
-    });
-    labelIb.buttons = [ vscode.QuickInputButtons.Back ];
-    labelIb.show();
-
-    return new Promise<string | undefined>((resolve, reject) => {
-        labelIb.onDidTriggerButton((btn) => {
-            if (btn === vscode.QuickInputButtons.Back) {
-                reject(BACK_BTN_MSG);
-            }
-        });
-        labelIb.onDidHide(() => resolve(undefined));
-        labelIb.onDidAccept(async () => {
-            resolve(labelIb.value);
-        });
-    })
-    .finally(() => labelIb.hide());
-}
-
 function prependProtocol(input: string): string {
     if (!input.startsWith(CW_INGRESS_PROTOCOL)) {
         input = CW_INGRESS_PROTOCOL + "://" + input;
@@ -140,3 +140,4 @@ function validateCwIngress(input: string): string | undefined {
     }
     return undefined;
 }
+*/

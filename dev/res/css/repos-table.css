@@ -1,20 +1,7 @@
 
 body {
-    padding: 2%;
-}
-
-#title {
-    display: inline-flex;
-    align-content: center;
-    align-items: center;
-}
-
-#learn-more-btn {
-    margin-left: auto;
-}
-
-#table-wrapper {
     width: 90%;
+    padding-top: 2%;
     padding-left: 5%;
     padding-right: 5%;
     display: inline-block;
@@ -34,25 +21,8 @@ body {
     padding-bottom: 1em;
 }
 
-.toolbar-btn {
-    padding: 0;
+#toolbar > * > .btn {
     margin-left: 1.5em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.toolbar-btn:not(#add-repo-btn):not(#learn-more-btn) {
-    background-color: var(--vscode-sideBar-background);
-}
-
-.toolbar-btn:not(#add-repo-btn) {
-    color: var(--vscode-sideBar-foreground);
-}
-
-.toolbar-btn > img {
-    padding-left: 1.5em;
-    height: 1.5em;
 }
 
 #toolbar-right-buttons {

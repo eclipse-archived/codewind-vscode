@@ -45,6 +45,7 @@ import ConnectionManager from "../codewind/connection/ConnectionManager";
 import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
+import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -70,6 +71,7 @@ export function createCommands(): vscode.Disposable[] {
 
         registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined),
         registerConnectionCommand(Commands.MANAGE_TEMPLATE_REPOS, manageTemplateReposCmd, undefined),
+        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined),
 
         registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
         registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined),

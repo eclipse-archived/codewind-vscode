@@ -42,13 +42,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
 
-    public readonly remote: boolean = true;
-
     constructor(
         public readonly url: vscode.Uri,
         cwEnv: CWEnvData,
         public readonly label: string,
-        public readonly isLocalConnection: boolean,
+        public readonly isRemote: boolean,
     ) {
         this.socket = new MCSocket(this, cwEnv.socketNamespace);
         this.version = cwEnv.version;
@@ -56,7 +54,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        if (!this.remote) {
+        if (!this.isRemote) {
             this.initPromise = this.initFileWatcher();
         } else {
             // Disable file-watcher in remote mode for now.
@@ -132,7 +130,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
         // Log.d(`Connection ${this.mcUri} changed`);
         CodewindEventListener.onChange(changed);
-        if (this.isLocalConnection) {
+        if (!this.isRemote) {
             CodewindEventListener.onChange(LocalCodewindManager.instance);
         }
     }

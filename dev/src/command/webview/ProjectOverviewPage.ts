@@ -82,11 +82,13 @@ export function generateHtml(project: Project): string {
 
         <div id="main">
             <div id="top-section">
-                <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
-                <h2>Project ${project.name}</h2>
+                <div class="title">
+                    <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+                    <h2>Project ${project.name}</h2>
+                </div>
                 <input id="build-btn" type="button" value="Build"
                     onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"
-                    class="btn btn-w-background ${project.state.isEnabled ? "" : "btn-disabled"}"/>
+                    class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"/>
             </div>
 
             <table>
@@ -132,7 +134,7 @@ export function generateHtml(project: Project): string {
 
             <div id="bottom-section">
                 <input class="btn red-btn" type="button" onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')" class="" value="Remove project"/>
-                <input id="enablement-btn" class="btn btn-w-background" type="button"
+                <input id="enablement-btn" class="btn btn-prominent" type="button"
                     onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
                     value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"/>
             </div>
@@ -227,7 +229,7 @@ function normalizeDate(d: Date, fallback: string): string {
 function buildDebugSection(project: Project): string {
     if (!project.capabilities.supportsDebug) {
         let notSupportedMsg = "This project does not support debug.";
-        if (!project.connection.isLocalConnection) {
+        if (project.connection.isRemote) {
             notSupportedMsg = "Remote projects do not support debug.";
         }
         return `

@@ -43,33 +43,31 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
     </head>
     <body>
 
-    <div id="table-wrapper">
-        <div id="top-section">
-            <div id="title">
-                <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
-                <h1>Template Source Manager</h1>
-            </div>
-            <div tabindex="0" id="learn-more-btn" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
-                Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
-            </div>
+    <div id="top-section">
+        <div class="title">
+            <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+            <h1>Template Source Manager</h1>
         </div>
-
-        <div id="toolbar">
-            <!--div class="btn toolbar-btn" onclick="onEnableAllOrNone(event, true)">
-                Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
-            </div-->
-            <div id="toolbar-right-buttons">
-                <div tabindex="0" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
-                    Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
-                </div>
-                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
-                    Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
-                </div>
-            </div>
+        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
+            Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
         </div>
-
-        ${buildTemplateTable(repos)}
     </div>
+
+    <div id="toolbar">
+        <!--div class="btn" onclick="onEnableAllOrNone(event, true)">
+            Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
+        </div-->
+        <div id="toolbar-right-buttons">
+            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
+            </div>
+            <div tabindex="0" id="add-repo-btn" class="btn btn-prominent" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
+            </div>
+        </div>
+    </div>
+
+    ${buildTemplateTable(repos)}
 
     <script>
         const vscode = acquireVsCodeApi();
@@ -187,12 +185,12 @@ function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-function getStatusToggleIconSrc(enabled: boolean, escapeBackslash = false): string {
+function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = false): string {
     let toggleIcon = WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
     if (escapeBackslash) {
         // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
         // https://github.com/eclipse/codewind/issues/476
-        toggleIcon = toggleIcon.replace(/\\/g, "\\\\")
+        toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
     }
     return toggleIcon;
 }

@@ -72,7 +72,7 @@ export default class LocalCodewindManager {
 
     public async connect(cwUrl: vscode.Uri): Promise<void> {
         try {
-            this._localConnection = await ConnectionManager.instance.connect(cwUrl, true, "Local Codewind");
+            this._localConnection = await ConnectionManager.instance.connectLocal(cwUrl);
             this.changeState(CodewindStates.STARTED);
         }
         catch (err) {
