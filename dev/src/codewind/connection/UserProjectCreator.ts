@@ -153,7 +153,13 @@ namespace UserProjectCreator {
      */
     async function promptForProjectType(connection: Connection, detected: IProjectTypeInfo): Promise<IProjectTypeExtendedInfo | undefined> {
         Log.d("Prompting user for project type");
-        const projectTypes = await Requester.getProjectTypes(connection);
+        const projectTypes = await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Fetching project types...`,
+        }, () => {
+            return Requester.getProjectTypes(connection);
+        });
         const projectTypeQpis: IProjectTypeQuickPickItem[] = [];
         let dockerType;
         projectTypes.forEach((type, index) => {
