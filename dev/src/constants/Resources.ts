@@ -91,6 +91,7 @@ namespace Resources {
 
     export enum Icons {
         Logo = "codewind.svg",
+        Connect = "connect.svg",
         Disconnected = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",
