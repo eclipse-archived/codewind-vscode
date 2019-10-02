@@ -21,7 +21,7 @@ import CodewindManager from "../../codewind/connection/CodewindManager";
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
     try {
-        if (project.appBaseUrl == null) {
+        if (project.appUrl == null) {
             vscode.window.showWarningMessage(`Cannot open application monitor - ${project.name} is not currently running.`);
             return;
         }
