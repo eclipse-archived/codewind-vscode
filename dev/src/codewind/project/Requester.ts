@@ -23,7 +23,7 @@ import Translator from "../../constants/strings/translator";
 import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
 import { ILogResponse } from "../connection/SocketEvents";
-import { IMCTemplateData } from "../connection/UserProjectCreator";
+import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 import { StatusCodeError } from "request-promise-native/errors";
@@ -93,7 +93,7 @@ namespace Requester {
 
     ///// Connection-specific requests
 
-    export async function getTemplates(connection: Connection): Promise<IMCTemplateData[]> {
+    export async function getTemplates(connection: Connection): Promise<ICWTemplateData[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get, { qs: { showEnabledOnly: true }});
         if (result == null) {
             return [];

@@ -18,7 +18,7 @@ import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
 import ProjectObserver from "./ProjectObserver";
 import ProjectState from "../codewind/project/ProjectState";
-import UserProjectCreator, { IMCTemplateData } from "../codewind/connection/UserProjectCreator";
+import UserProjectCreator, { ICWTemplateData } from "../codewind/connection/UserProjectCreator";
 import TestConfig from "./TestConfig";
 
 namespace TestUtil {
@@ -36,7 +36,7 @@ namespace TestUtil {
 
         try {
             // turn our internal project type into a user project type which we can pass to the project creator
-            const typeForCreation: IMCTemplateData = {
+            const typeForCreation: ICWTemplateData = {
                 url: TestConfig.getUrl(type),
                 language: type.language,
                 projectType: type.internalType,

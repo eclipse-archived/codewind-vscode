@@ -20,7 +20,7 @@ import Requester from "../project/Requester";
 import ProjectType from "../project/ProjectType";
 import CLIWrapper from "./CLIWrapper";
 
-export interface IMCTemplateData {
+export interface ICWTemplateData {
     label: string;
     description: string;
     url: string;
@@ -50,7 +50,7 @@ interface INewProjectInfo {
 namespace UserProjectCreator {
 
     export async function createProject(
-        connection: Connection, template: IMCTemplateData, parentDir: vscode.Uri, projectName: string): Promise<INewProjectInfo> {
+        connection: Connection, template: ICWTemplateData, parentDir: vscode.Uri, projectName: string): Promise<INewProjectInfo> {
 
         const projectPath = path.join(parentDir.fsPath, projectName);
 
@@ -234,7 +234,7 @@ namespace UserProjectCreator {
 
     const OTHER_LANG_BTN = "Other";
 
-    async function promptForLanguage(templates: IMCTemplateData[]): Promise<string | undefined> {
+    async function promptForLanguage(templates: ICWTemplateData[]): Promise<string | undefined> {
         Log.d("Prompting user for project language");
         let languageQpis = templates.map((template) => template.language);
         // remove duplicates

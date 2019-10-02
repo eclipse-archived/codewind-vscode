@@ -225,19 +225,5 @@ function validateRepoInput(input: string): string | undefined {
     if (!asUrl || !asUrl.host || !asUrl.protocol.startsWith("http")) {
         return "The repository URL must be a valid http(s) URL.";
     }
-    // I think users will commonly make this error so we can help them out here for common hosting services
-    else if (asUrl.host.includes("github") && !asUrl.host.includes("raw")) {
-        return getRawLinkMsg("GitHub");
-    }
-    else if (asUrl.host.includes("bitbucket") && !asUrl.pathname.includes("raw")) {
-        return getRawLinkMsg("Bitbucket");
-    }
-    else if (asUrl.host.includes("gitlab") && !asUrl.pathname.includes("raw")) {
-        return getRawLinkMsg("GitLab");
-    }
     return undefined;
-}
-
-function getRawLinkMsg(provider: string): string {
-    return `For ${provider} URLs, you must use the raw link.`;
 }
