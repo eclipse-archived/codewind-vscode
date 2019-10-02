@@ -26,7 +26,7 @@ export default async function openAppCmd(project: Project): Promise<void> {
         return;
     }
     else if (project.appUrl == null) {
-        Log.e("Project is started but has no appBaseUrl: " + project.name);
+        Log.e("Project is started but has no app URL: " + project.name);
         vscode.window.showErrorMessage(Translator.t(STRING_NS, "failedDetermineAppUrl", { projectName: project.name }));
         return;
     }
