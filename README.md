@@ -51,7 +51,7 @@ Submit issues and contributions:
 - The [`prebuild`](https://github.com/eclipse/codewind-vscode/blob/master/dev/prebuild.js) script is used in the CI builds to build separate versions of the extension for VS Code and Theia, since each of those has some commands that the other does not. It deletes inapplicable commands from the `package.json`, and does not modify any ts/js code. Run this before `vsce package` to get a closer-to-production build, but be ready to revert the changes.
 
 ## Building Codewind from the source
-1. Clone the `codewind` repository.
+1. Clone the [`codewind`](https://github.com/eclipse/codewind) repository.
 2. Clone the `codewind-vscode` repo.
 3. Run the `./script/build.sh` script to run the Codewind build, or run the `./run.sh` script to build and start Codewind.
 4. Run the plug-in by following the instructions in **Developing**.
