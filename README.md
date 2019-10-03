@@ -53,5 +53,5 @@ Submit issues and contributions:
 ## Building Codewind from the source
 1. Clone the [`codewind`](https://github.com/eclipse/codewind) repository.
 2. Clone the `codewind-vscode` repo.
-3. Run the `codewind/script/build.sh` script to run the Codewind build, or run the `codewind/script/run.sh` script to build and start Codewind.
+3. Run `codewind/script/build.sh` to run the Codewind build, or run `codewind/run.sh` to build and start Codewind.
 4. Run the extension by following the instructions in **Developing**.
