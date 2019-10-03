@@ -32,6 +32,13 @@ Features:</br>
 - [**Toggle auto build**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Toggle project auto build and manually initiate project builds.
 - [**Enable or disable project** and **Show project overview**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Disable, enable, and delete projects.
 
+## Contributing
+Submit issues and contributions:
+- [Submitting issues](https://github.com/eclipse/codewind/issues)
+- [Contributing](CONTRIBUTING.md)
+- [Development Builds](https://download.eclipse.org/codewind/codewind-vscode/)
+- [Jenkins](https://ci.eclipse.org/codewind/job/Codewind/job/codewind-vscode/)
+
 ## Developing
 - To host the extension yourself so you can develop or debug it, clone this repository and run the **Extension** launch in `dev/.vscode/launch.json`. See [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
 - If not run using the **Extension** launch, the tools will pull the latest Codewind release tag, eg. `0.3` (see [`DEFAULT_CW_TAG`](https://github.com/eclipse/codewind-vscode/blob/master/dev/src/codewind/connection/InstallerWrapper.ts)). To run against the latest development version of Codewind:
@@ -48,10 +55,3 @@ Features:</br>
 2. Clone the `codewind-vscode` repo.
 3. Run the `./script/build.sh` script to run the Codewind build, or run the `./run.sh` script to build and start Codewind.
 4. Run the plug-in by following the instructions in **Developing**.
-
-## Contributing
-Submit issues and contributions:
-- [Submitting issues](https://github.com/eclipse/codewind/issues)
-- [Contributing](CONTRIBUTING.md)
-- [Development Builds](https://download.eclipse.org/codewind/codewind-vscode/)
-- [Jenkins](https://ci.eclipse.org/codewind/job/Codewind/job/codewind-vscode/)
