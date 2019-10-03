@@ -82,10 +82,11 @@ namespace Requester {
         return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
     }
 
-    export async function addTemplateRepo(connection: Connection, repoID: string, description: string): Promise<ITemplateRepo[]> {
+    export async function addTemplateRepo(connection: Connection, repoUrl: string, repoName: string, repoDescr?: string): Promise<ITemplateRepo[]> {
         const body = {
-            url: repoID,
-            description,
+            url: repoUrl,
+            name: repoName,
+            description: repoDescr,
         };
         return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.post, { body });
     }

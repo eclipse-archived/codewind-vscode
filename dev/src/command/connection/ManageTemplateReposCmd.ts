@@ -29,8 +29,8 @@ import Constants from "../../constants/Constants";
  */
 export interface ITemplateRepo {
     readonly url: string;
-    readonly name: string;
-    readonly description: string;
+    readonly name?: string;
+    readonly description?: string;
     readonly enabled: boolean;
     readonly projectStyles: string[];
     readonly protected: boolean;
@@ -140,7 +140,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 }
 
                 try {
-                    await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.description);
+                    await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
                     await refreshManageReposPage(connection);
                 }
                 catch (err) {
@@ -195,10 +195,10 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
     }
 }
 
-async function promptForNewRepo(): Promise<{ repoUrl: string, description: string } | undefined> {
-    let repoUrl = await vscode.window.showInputBox({
+async function promptForNewRepo(): Promise<{ repoUrl: string, repoName: string, repoDescr?: string } | undefined> {
+    const repoUrl = await vscode.window.showInputBox({
         ignoreFocusOut: true,
-        placeHolder: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
+        placeHolder: `https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json`,
         prompt: "Enter the URL to your template source's index file.",
         validateInput: validateRepoInput,
     });
@@ -206,19 +206,27 @@ async function promptForNewRepo(): Promise<{ repoUrl: string, description: strin
     if (!repoUrl) {
         return undefined;
     }
-    repoUrl = repoUrl.trim();
 
-    let description = await vscode.window.showInputBox({
+    let repoName = await vscode.window.showInputBox({
         ignoreFocusOut: true,
         placeHolder: "My Templates",
-        prompt: "Enter a description for this template source",
+        prompt: `Enter a name for ${repoUrl}`,
     });
-    if (!description) {
-        description = "(No description)";
+    if (!repoName) {
+        return undefined;
     }
-    description = description.trim();
+    repoName = repoName.trim();
 
-    return { repoUrl, description };
+    let repoDescr = await vscode.window.showInputBox({
+        ignoreFocusOut: true,
+        placeHolder: "Description of My Templates",
+        prompt: `(Optional) Enter a description for ${repoName}`,
+    });
+    if (repoDescr) {
+        repoDescr = repoDescr.trim();
+    }
+
+    return { repoUrl, repoName, repoDescr };
 }
 
 function validateRepoInput(input: string): string | undefined {

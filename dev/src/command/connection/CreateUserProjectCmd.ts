@@ -123,10 +123,13 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     }
 
     const qpis: Array<({ url: string } & vscode.QuickPickItem)> = repos.map((repo) => {
-        // TODO add name, possibly remove url
+        const label = repo.name || repo.description || "No name available";
+        const description = repo.name ? repo.description : undefined;
+
         return {
             url: repo.url,
-            label: repo.description,
+            label,
+            description,
             detail: repo.url,
         };
     });
