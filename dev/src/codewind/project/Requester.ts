@@ -320,31 +320,59 @@ namespace Requester {
         }
     }
 
-    export async function waitForReady(cwBaseUrl: vscode.Uri): Promise<void> {
-        const delay = 1000;
-        let counter = 0;
-        return new Promise<void>((resolve) => {
+    const READY_TIMEOUT = 60000;
+    const READY_DELAY = 1000;
+    const MAX_TRIES = READY_TIMEOUT / READY_DELAY;
+
+    /**
+     * Repeatedly pings the ready endpoint of the given CW url.
+     * Returns true if the ready endpoint returns a good status, or false if it times out before getting a good response.
+     */
+    export async function waitForReady(cwBaseUrl: vscode.Uri): Promise<boolean> {
+        const isCWReadyInitially = await isCodewindReady(cwBaseUrl, false);
+        if (isCWReadyInitially) {
+            Log.i(`${cwBaseUrl} was ready on first ping`);
+            return true;
+        }
+
+        let tries = 0;
+        return new Promise<boolean>((resolve) => {
             const interval = setInterval(async () => {
-                const logStatus = counter % 10 === 0;
+                const logStatus = tries % 10 === 0;
                 if (logStatus) {
-                    Log.d(`Waiting for Codewind to be ready, ${counter * delay / 1000}s have elapsed`);
+                    Log.d(`Waiting for Codewind at ${cwBaseUrl} to be ready, ${tries * READY_DELAY / 1000}s have elapsed`);
                 }
-                try {
-                    // Ping Codewind's 'ready' endpoint
-                    const res = await Requester.get(cwBaseUrl.with({ path: MCEndpoints.READY }));
-                    if (res === true) {
-                        clearInterval(interval);
-                        resolve();
-                    }
+                if (await isCodewindReady(cwBaseUrl, logStatus)) {
+                    clearInterval(interval);
+                    resolve(true);
                 }
-                catch (err) {
-                    if (logStatus) {
-                        Log.d("Error contacting ready endpoint", err);
-                    }
+                if (tries > MAX_TRIES) {
+                    clearInterval(interval);
+                    const errMsg = `Codewind at ${cwBaseUrl} connected, but was not ready after ${READY_TIMEOUT / 1000} seconds`;
+                    Log.e(errMsg);
+                    vscode.window.showErrorMessage(`${errMsg} - Try stopping and starting Codewind again.`);
+                    resolve(false);
                 }
-                counter++;
-            }, delay);
+                tries++;
+            }, READY_DELAY);
         });
+    }
+
+    async function isCodewindReady(cwBaseUrl: vscode.Uri, logStatus: boolean): Promise<boolean> {
+        try {
+            // Ping Codewind's 'ready' endpoint
+            const res = await Requester.get(cwBaseUrl.with({ path: MCEndpoints.READY }));
+
+            if (res === true) {
+                return true;
+            }
+        }
+        catch (err) {
+            if (logStatus) {
+                Log.d("Error contacting ready endpoint", err);
+            }
+        }
+        return false;
     }
 }
 
