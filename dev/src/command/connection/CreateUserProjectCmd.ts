@@ -105,7 +105,7 @@ export async function showOpenWorkspacePrompt(connection: Connection, msg: strin
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
 async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
-    const repos = await Requester.getTemplateRepos(connection);
+    const repos = await Requester.getTemplateSources(connection);
 
     if (repos.length === 0) {
         // Should not be possible because Codewind templates are always present.
@@ -123,10 +123,13 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     }
 
     const qpis: Array<({ url: string } & vscode.QuickPickItem)> = repos.map((repo) => {
-        // TODO add name, possibly remove url
+        const label = repo.name || repo.description || "No name available";
+        const description = repo.name ? repo.description : undefined;
+
         return {
             url: repo.url,
-            label: repo.description,
+            label,
+            description,
             detail: repo.url,
         };
     });
@@ -239,12 +242,22 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
 }
 
 async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & ICWTemplateData> | undefined>  {
-    const templateQpis = (await Requester.getTemplates(connection))
-        .map((type) => {
+    const templates = (await Requester.getTemplates(connection));
+    const noEnabledSources = (await Requester.getTemplateSources(connection)).filter((source) => source.enabled).length;
+
+    if (noEnabledSources > 1) {
+        // Append the source to the label to clarify which template came from where
+        templates.forEach((template) => {
+            const source = template.source || "Unnamed source";
+            template.label += ` (${source})`;
+        });
+    }
+
+    const templateQpis = templates.map((template) => {
             return {
-                ...type,
-                detail: type.language,
-                extension: type.url,
+                ...template,
+                detail: template.language,
+                extension: template.url,
             };
         });
 

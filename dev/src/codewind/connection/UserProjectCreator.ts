@@ -27,6 +27,7 @@ export interface ICWTemplateData {
     url: string;
     language: string;
     projectType: string;
+    source?: string;
 }
 
 interface IProjectTypeInfo {
