@@ -78,7 +78,7 @@ namespace Requester {
         return result;
     }
 
-    export async function getTemplateRepos(connection: Connection): Promise<ITemplateRepo[]> {
+    export async function getTemplateSources(connection: Connection): Promise<ITemplateRepo[]> {
         return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.TEMPLATE_REPOS));
     }
 

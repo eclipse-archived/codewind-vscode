@@ -101,7 +101,7 @@ export async function refreshManageReposPage(connection: Connection): Promise<vo
     if (!manageReposPage) {
         return;
     }
-    const html = generateManageReposHtml(await Requester.getTemplateRepos(connection));
+    const html = generateManageReposHtml(await Requester.getTemplateSources(connection));
 
     // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
     // if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
