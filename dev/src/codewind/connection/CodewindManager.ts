@@ -171,7 +171,7 @@ export default class CodewindManager implements vscode.Disposable {
         const waitingForReadyProm = Requester.waitForReady(baseUrl);
         vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
             `Waiting for Codewind to start...`, waitingForReadyProm);
-        return waitingForReadyProm.then(Promise.resolve);
+        return waitingForReadyProm.then(() => Promise.resolve());
     }
 
     public async connect(uri: vscode.Uri, cwEnv: CWEnvData): Promise<Connection> {
