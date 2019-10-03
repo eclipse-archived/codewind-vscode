@@ -70,6 +70,7 @@ export default class Project implements vscode.QuickPickItem {
     private _containerID: string | undefined;
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
+    private appBaseURL: vscode.Uri | undefined;
     private _autoBuildEnabled: boolean;
     private _usesHttps: boolean;
     // Dates below will always be set, but might be "invalid date"s
@@ -150,7 +151,7 @@ export default class Project implements vscode.QuickPickItem {
 
     // description used by QuickPickItem
     public get description(): string {
-        const appUrl = this.appBaseUrl;
+        const appUrl = this.appUrl;
         if (appUrl != null) {
             return appUrl.toString();
         }
@@ -177,24 +178,22 @@ export default class Project implements vscode.QuickPickItem {
             return this._state;
         }
 
-        // Whether or not this update call has changed the project such that we have to update the UI.
-        let changed: boolean = false;
-
-        changed = this.setContainerID(projectInfo.containerId) || changed;
+        this.setContainerID(projectInfo.containerId);
         // lastbuild is a number while appImageLastBuild is a string
-        changed = this.setLastBuild(projectInfo.lastbuild) || changed;
-        changed = this.setLastImgBuild(Number(projectInfo.appImageLastBuild)) || changed;
-        changed = this.setAutoBuild(projectInfo.autoBuild) || changed;
+        this.setLastBuild(projectInfo.lastbuild);
+        this.setLastImgBuild(Number(projectInfo.appImageLastBuild));
+        this.setAutoBuild(projectInfo.autoBuild);
 
-        if (projectInfo.isHttps && this._usesHttps !== projectInfo.isHttps) {
+        if (projectInfo.isHttps) {
             this._usesHttps = projectInfo.isHttps === true;
-            changed = true;
         }
 
-        if (projectInfo.contextRoot && projectInfo.contextRoot !== this.contextRoot) {
-            // Log.d(`Context root for ${this.name} changed from ${this.contextRoot} to ${projectInfo.contextRoot}`);
+        if (projectInfo.contextRoot) {
             this._contextRoot = projectInfo.contextRoot;
-            changed = true;
+        }
+
+        if (projectInfo.appBaseURL) {
+            this.appBaseURL = vscode.Uri.parse(projectInfo.appBaseURL);
         }
 
         // note oldState can be null if this is the first time update is being invoked.
@@ -202,7 +201,6 @@ export default class Project implements vscode.QuickPickItem {
         this._state = new ProjectState(projectInfo, oldState != null ? oldState : undefined);
 
         if (!this._state.equals(oldState)) {
-            changed = true;
             const startModeMsg = projectInfo.startMode == null ? "" : `, startMode=${projectInfo.startMode}`;
             Log.d(`${this.name} went from ${oldState} to ${this._state}${startModeMsg}`);
 
@@ -219,7 +217,7 @@ export default class Project implements vscode.QuickPickItem {
 
         const ports = projectInfo.ports;
         if (ports != null) {
-            changed = this.updatePorts(ports) || changed;
+            this.updatePorts(ports);
         }
         else if (this._state.isStarted) {
             Log.e("No ports were provided for an app that is supposed to be started");
@@ -229,11 +227,7 @@ export default class Project implements vscode.QuickPickItem {
             this.pendingRestart.onStateChange(this.state.appState);
         }
 
-        // Logger.log(`${this.name} has a new status:`, this._state);
-        if (changed) {
-            // Log.d(`${this.name} has changed`);
-            this.onChange();
-        }
+        this.onChange();
 
         return this._state;
     }
@@ -518,7 +512,14 @@ export default class Project implements vscode.QuickPickItem {
         return this._capabilities;
     }
 
-    public get appBaseUrl(): vscode.Uri | undefined {
+    public get appUrl(): vscode.Uri | undefined {
+        // If the backend has provided us with a baseUrl already, use that
+        if (this.appBaseURL) {
+            return this.appBaseURL.with({
+                path: this._contextRoot,
+            });
+        }
+
         if (this._ports.appPort == null || isNaN(this._ports.appPort)) {
             // app is stopped, disabled, etc.
             return undefined;
@@ -557,10 +558,10 @@ export default class Project implements vscode.QuickPickItem {
         const appMetricsPath = langToPathMap.get(this.type.language);
         const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
         Log.d(`${this.name} supports metrics ? ${supported}`);
-        if (!supported || !this.appBaseUrl) {
+        if (!supported || !this.appUrl) {
             return undefined;
         }
-        let monitorPageUrlStr = this.appBaseUrl.toString();
+        let monitorPageUrlStr = this.appUrl.toString();
         if (!monitorPageUrlStr.endsWith("/")) {
             monitorPageUrlStr += "/";
         }
