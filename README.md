@@ -40,7 +40,6 @@ Submit issues and contributions:
 - [Jenkins](https://ci.eclipse.org/codewind/job/Codewind/job/codewind-vscode/)
 
 ## Developing
-
 - To host the extension yourself so you can develop or debug it, clone this repository and run the **Extension** launch in `dev/.vscode/launch.json`. See [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
 - If not run using the **Extension** launch, the tools will pull the latest Codewind release tag, eg. `0.3` (see [`DEFAULT_CW_TAG`](https://github.com/eclipse/codewind-vscode/blob/master/dev/src/codewind/connection/InstallerWrapper.ts)). To run against the latest development version of Codewind:
     1. Start Codewind using [`run.sh`](https://github.com/eclipse/codewind/blob/master/run.sh) or [`start.sh`](https://github.com/eclipse/codewind/blob/master/start.sh).
@@ -50,3 +49,9 @@ Submit issues and contributions:
 - You can also build the extension `.vsix` yourself by running [`vsce package`](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#packaging-extensions) from `dev/`. Refer to the [`Jenkinsfile`](https://github.com/eclipse/codewind-vscode/blob/master/Jenkinsfile) to see the exact steps the build runs.
 - The extension bundles dependency executables. These are gitignored, but should be kept up-to-date on your local system with the same versions used in the `Jenkinsfile` `parameters` section. Run `dev/bin/pull.sh` to download the dependencies. Also see `dev/bin/README.txt`.
 - The [`prebuild`](https://github.com/eclipse/codewind-vscode/blob/master/dev/prebuild.js) script is used in the CI builds to build separate versions of the extension for VS Code and Theia, since each of those has some commands that the other does not. It deletes inapplicable commands from the `package.json`, and does not modify any ts/js code. Run this before `vsce package` to get a closer-to-production build, but be ready to revert the changes.
+
+## Building Codewind from the source
+1. Clone the [`codewind`](https://github.com/eclipse/codewind) repository.
+2. Clone the `codewind-vscode` repo.
+3. Run `codewind/script/build.sh` to run the Codewind build, or run `codewind/run.sh` to build and start Codewind.
+4. Run the extension by following the instructions in **Developing**.
