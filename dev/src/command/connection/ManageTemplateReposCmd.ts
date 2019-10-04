@@ -145,7 +145,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 }
                 catch (err) {
                     vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`, err);
-                    Log.e(`Error adding new template repo ${repoInfo}`, err);
+                    Log.e(`Error adding new template repo ${JSON.stringify(repoInfo)}`, err);
                 }
                 break;
             }
@@ -238,8 +238,12 @@ function validateRepoInput(input: string): string | undefined {
     catch (err) {
         // not a url
     }
-    if (!asUrl || !asUrl.host || !asUrl.protocol.startsWith("http")) {
-        return "The repository URL must be a valid http(s) URL.";
+
+    if (!asUrl) {
+        return "The repository URL must be a valid URL.";
+    }
+    else if (!(asUrl.protocol.startsWith("http") || asUrl.protocol.startsWith("file"))) {
+        return "The repository URL must be a valid http(s) or file URL.";
     }
     return undefined;
 }
