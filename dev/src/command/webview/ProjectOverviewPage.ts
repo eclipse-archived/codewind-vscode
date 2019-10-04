@@ -225,10 +225,18 @@ function normalizeDate(d: Date, fallback: string): string {
 }
 
 function buildDebugSection(project: Project): string {
-    if (!project.capabilities.supportsDebug) {
+    let noDebugMsg;
+    if (global.isTheia) {
+        noDebugMsg = "Debug is not supported in Che.";
+    }
+    else if (!project.capabilities.supportsDebug) {
+        noDebugMsg = `${project.type} projects do not support debug.`;
+    }
+
+    if (noDebugMsg) {
         return `
             </table>
-            ${project.type} projects do not support debug.
+            ${noDebugMsg}
         `;
     }
 
