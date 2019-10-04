@@ -23,6 +23,7 @@ import { ILogResponse } from "../connection/SocketEvents";
 import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
+import { IProjectTypeDescriptor } from "./ProjectType";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
 
@@ -131,6 +132,14 @@ namespace Requester {
         }
 
         // Log.d("Repo enablement result", result);
+    }
+
+    export async function getProjectTypes(connection: Connection): Promise<IProjectTypeDescriptor[]> {
+        const result = await doConnectionRequest(connection, MCEndpoints.PROJECT_TYPES, Requester.get);
+        if (result == null) {
+            return [];
+        }
+        return result;
     }
 
     async function doConnectionRequest(

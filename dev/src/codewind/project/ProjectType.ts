@@ -120,10 +120,6 @@ export class ProjectType {
         }
     }
 
-    public static getRecognizedInternalTypes(): ProjectType.InternalTypes[] {
-        return Object.values(this.InternalTypes);
-    }
-
     /*
     private static getUserFriendlyType(type: ProjectType.Types): string {
         // For docker projects, return the language
@@ -195,6 +191,23 @@ export namespace ProjectType {
     export const PROJECTS_WITHOUT_BUILDLOGS: ReadonlyArray<ProjectType.Types> = [
         ProjectType.Types.NODE
     ];
+}
+
+export interface IProjectSubtype {
+    id: string;
+    version?: string;
+    label: string;
+    description?: string;
+}
+
+export interface IProjectSubtypesDescriptor {
+    label?: string;
+    items: IProjectSubtype[];
+}
+
+export interface IProjectTypeDescriptor {
+    projectType: string;
+    projectSubtypes: IProjectSubtypesDescriptor;
 }
 
 export default ProjectType;

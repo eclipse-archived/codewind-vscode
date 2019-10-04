@@ -525,11 +525,11 @@ namespace InstallerWrapper {
         return runProjectCommand(projectPath, url);
     }
 
-    export async function validateProjectDirectory(projectPath: string): Promise<IInitializationResponse> {
-        return runProjectCommand(projectPath);
+    export async function validateProjectDirectory(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
+        return runProjectCommand(projectPath, undefined, desiredType);
     }
 
-    async function runProjectCommand(projectPath: string, url?: string ): Promise<IInitializationResponse> {
+    async function runProjectCommand(projectPath: string, url?: string, desiredType?: string): Promise<IInitializationResponse> {
         const executablePath = await initialize();
         const executableDir = path.dirname(executablePath);
 
@@ -537,6 +537,9 @@ namespace InstallerWrapper {
         const args = [cmd, projectPath];
         if (url !== undefined) {
             args.push("--url", url);
+        }
+        else if (desiredType !== undefined) {
+            args.push("--type", desiredType);
         }
 
         return new Promise<any>((resolve, reject) => {
