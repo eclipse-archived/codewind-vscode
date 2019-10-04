@@ -147,7 +147,7 @@ namespace UserProjectCreator {
         return { projectName, projectPath: pathToBind };
     }
 
-    const OTHER_TYPE_OPTION = "Other (Basic Container)";
+    const OTHER_TYPE_OPTION = "Other (Codewind Basic Container)";
 
     /**
      * When detection fails, have the user select the project type that fits best.
