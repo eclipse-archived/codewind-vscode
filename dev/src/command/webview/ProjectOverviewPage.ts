@@ -15,10 +15,13 @@ import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
 import WebviewUtil from "../webview/WebviewUtil";
+import Constants from "../../constants/Constants";
 
 // This file does have a bunch of strings that should be translated,
 // but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.
 // non-nls-file
+
+const PROJECT_SETTINGS_DOCPAGE_URL = `${Constants.CW_SITE_BASEURL}/mdt-vsc-commands-project.html#configuring-project-settings`;
 
 /**
  * These are the messages the WebView can send back to its creator in ProjectInfoCmd
@@ -46,23 +49,25 @@ export interface IWVOpenable {
     value: string;
 }
 
-export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): void {
-    webviewPanel.webview.html = generateHtml(project);
+export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): string {
+    const html = generateHtml(project);
+    webviewPanel.webview.html = html;
+    return html;
 }
 
 const NOT_AVAILABLE = "Not available";
 const NOT_RUNNING = "Not running";
 const NOT_DEBUGGING = "Not debugging";
 
-export function generateHtml(project: Project): string {
+function generateHtml(project: Project): string {
 
-    const emptyRow =
-    `
-    <tr>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-    </tr>
-    `;
+    // const emptyRow =
+    // `
+    // <tr>
+    //     <td>&nbsp;</td>
+    //     <td>&nbsp;</td>
+    // </tr>
+    // `;
 
     return `
         <!DOCTYPE html>
@@ -80,22 +85,38 @@ export function generateHtml(project: Project): string {
         </head>
         <body>
 
-        <div id="main">
-            <div id="top-section">
-                <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
-                <h2>Project ${project.name}</h2>
-                <input id="build-btn" type="button" value="Build"
-                    onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"
-                    class="btn btn-w-background ${project.state.isEnabled ? "" : "btn-disabled"}"/>
-            </div>
+        <div id="title">
+            <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+            <h1>Project ${project.name}</h1>
+        </div>
+        <div id="top-section">
+            <input type="button" value="Build"
+                class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"
+                onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"/>
 
+            <div id="top-right-btns">
+                <input id="enablement-btn" class="btn btn-prominent" type="button"
+                    onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
+                    value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"
+                />
+                <input class="btn btn-red" type="button"
+                    onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')"
+                    value="Remove project"
+                />
+            </div>
+        </div>
+        <div class="section">
+            <h3>Project Information</h3>
             <table>
-                <!--${buildRow("Name", project.name)}-->
                 ${buildRow("Type", project.type.toString())}
                 ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow("Project ID", project.id)}
-                ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-                ${buildRow("Location on Disk", project.localPath.fsPath, OpenableTypes.FOLDER)}
+                ${buildRow("Local Path", project.localPath.fsPath, OpenableTypes.FOLDER)}
+            </table>
+        </div>
+        <div class="section">
+            <h3>Project Status</h3>
+            <table>
                 <tr>
                     <td class="info-label">Auto build:</td>
                     <td>
@@ -106,43 +127,41 @@ export function generateHtml(project: Project): string {
                         />
                     </td>
                 </tr>
-                ${emptyRow}
                 ${buildRow("Application Status", project.state.appState)}
                 ${buildRow("Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
-                ${emptyRow}
                 ${buildRow("Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
                 ${buildRow("Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
             </table>
-
-            <!-- Separate fixed table for the lower part so that the Edit buttons line up in their own column,
-                but also don't appear too far to the right -->
-            <table class="fixed-table">
-                ${emptyRow}
+        </div>
+        <div class="section">
+            <div id="app-info-header-section">
+                <h3>Application Information</h3>
+                <div id="about-project-settings">
+                    <a onclick="vscOpen('${OpenableTypes.WEB}', '${PROJECT_SETTINGS_DOCPAGE_URL}')" title="More Info">More Info</a>
+                </div>
+            </div>
+            <table class="bottom-padded">
+                ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
+            </table>
+            <table>
+                ${buildRow("Application Endpoint",
+                    normalize(project.appUrl, NOT_RUNNING),
+                    (project.appUrl != null ? OpenableTypes.WEB : undefined), true)}
                 ${buildRow("Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
                 ${buildRow("Internal App Port",
                     normalize(project.ports.internalPort, NOT_AVAILABLE),
                     undefined, true)}
-                ${buildRow("Application Endpoint",
-                    normalize(project.appUrl, NOT_RUNNING),
-                    (project.appUrl != null ? OpenableTypes.WEB : undefined), true)}
-                ${emptyRow}
+
                 <!-- buildDebugSection must also close the <table> -->
                 ${buildDebugSection(project)}
             <!-- /table -->
-
-            <div id="bottom-section">
-                <input class="btn red-btn" type="button" onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')" class="" value="Remove project"/>
-                <input id="enablement-btn" class="btn btn-w-background" type="button"
-                    onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
-                    value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"/>
-            </div>
         </div>
 
         <script type="text/javascript">
             const vscode = acquireVsCodeApi();
 
-            function vscOpen(element, type) {
-                sendMsg("${ProjectOverviewWVMessages.OPEN}", { type: type, value: element.textContent });
+            function vscOpen(type, value) {
+                sendMsg("${ProjectOverviewWVMessages.OPEN}", { type, value });
             }
 
             function sendMsg(type, data = undefined) {
@@ -160,30 +179,38 @@ function buildRow(label: string, data: string, openable?: OpenableTypes, editabl
     let secondColTdContents: string = "";
     let thirdColTdContents: string = "";
     if (openable) {
-        secondColTdContents += `<a title="${label}" onclick="vscOpen(this, '${openable}')">${data}</a>`;
+        secondColTdContents += `<a title="${label}" onclick="vscOpen('${openable}', '${data}')">${data}</a>`;
     }
     else {
         secondColTdContents = `${data}`;
     }
 
     if (editable) {
-        const tooltip = `title="Edit"`;
+        const tooltip = `title="Edit Project Settings"`;
         const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}', { type: '${editable}' })"`;
 
         thirdColTdContents = `
-            <img id="edit-${MCUtil.slug(label)}" class="edit-btn clickable" ${tooltip} ${onClick}` +
+            <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick}` +
                 `src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/>
         `;
     }
 
     const secondTd = `<td title="${label}">${secondColTdContents}</td>`;
     const thirdTd = thirdColTdContents ? `<td>${thirdColTdContents}</td>` : "";
+    const fourthTd = openable === OpenableTypes.WEB ?
+        `
+        <td>
+            <input type="image" title="Open" src="${WebviewUtil.getIcon(Resources.Icons.OpenExternal)}"/>
+        </td>
+        `
+        : "";
 
     return `
         <tr class="info-row">
             <td class="info-label">${label}:</td>
             ${secondTd}
             ${thirdTd}
+            ${fourthTd}
         </tr>
     `;
 }
@@ -225,10 +252,18 @@ function normalizeDate(d: Date, fallback: string): string {
 }
 
 function buildDebugSection(project: Project): string {
-    if (!project.capabilities.supportsDebug) {
+    let noDebugMsg;
+    if (global.isTheia) {
+        noDebugMsg = "Debug is not supported in Che.";
+    }
+    else if (!project.capabilities.supportsDebug) {
+        noDebugMsg = `${project.type} projects do not support debug.`;
+    }
+
+    if (noDebugMsg) {
         return `
             </table>
-            ${project.type} projects do not support debug.
+            ${noDebugMsg}
         `;
     }
 

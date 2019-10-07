@@ -98,6 +98,7 @@ namespace Resources {
         Info = "info.svg",
         LocalProjects = "local_projects.svg",
         New = "new.svg",
+        OpenExternal = "launch.svg",
         Play = "play.svg",
         Refresh = "refresh.svg",
         Stop = "stop.svg",

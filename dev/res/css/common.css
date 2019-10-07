@@ -1,14 +1,22 @@
-
-#top-section, #bottom-section {
+#top-section {
     width: 100%;
-
     display: inline-flex;
     align-items: center;
 }
 
 #logo {
-    width: 2.5em;
+    height: 2.5em;
     margin-right: 1em;
+}
+
+#title {
+    display: inline-flex;
+    align-content: center;
+    align-items: center;
+}
+
+#learn-more-btn {
+    margin-left: auto;
 }
 
 .fixed-table {
@@ -24,17 +32,32 @@ input[type="checkbox"]:disabled {
 }
 
 .btn {
-    color: var(--vscode-button-foreground);
     padding: 0.6em;
     padding-left: 1.5em;
     padding-right: 1.5em;
+
     font-size: 110%;
     border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.btn-w-background {
-    background: var(--vscode-button-background);
+.btn > img {
+    padding-left: 1.5em;
+    height: 1.5em;
+}
+
+.btn-prominent {
+    color: var(--vscode-sideBar-foreground);
+    background-color: var(--vscode-button-background);
     border: 1x solid var(--vscode-button-background);
+}
+
+.btn-background {
+    color: var(--vscode-sideBar-foreground);
+    background-color: var(--vscode-sideBar-background);
+    border: 1x solid var(--vscode-sideBar-background);
 }
 
 .btn:hover, a:hover  {
@@ -60,15 +83,8 @@ input[type="checkbox"]:disabled {
     outline: var(--disabled-btn-color) solid 1px;
 }
 
-#bottom-section {
-    margin-top: 2em;
-}
-
-#bottom-section > .btn {
-    margin-right: 15px;
-}
-
-.red-btn {
+.btn-red {
+    color: var(--vscode-button-foreground);
     background: darkred;
     border-color: darkred;
 }
