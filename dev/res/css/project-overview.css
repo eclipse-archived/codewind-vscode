@@ -31,3 +31,12 @@ table {
 #build-btn {
     margin-left: auto;
 }
+
+
+#bottom-section {
+    margin-top: 2em;
+}
+
+#bottom-section > .btn {
+    margin-right: 1.5em;
+}
