@@ -36,7 +36,6 @@
 		"no-require-imports": true,
 		"no-unused-expression": true,
 		"no-unused-variable": true,
-		"no-use-before-declare": true,
 		"no-var-keyword": true,
 		"object-literal-key-quotes": [ true, "as-needed" ],
 		"prefer-const": true,

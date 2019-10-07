@@ -59,10 +59,10 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
                 Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
             </div-->
             <div id="toolbar-right-buttons">
-                <div tabindex="0" class="btn toolbar-btn" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+                <div tabindex="0" class="btn toolbar-btn btn-background" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
                     Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
                 </div>
-                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-w-background" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+                <div tabindex="0" id="add-repo-btn" class="toolbar-btn btn btn-prominent" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
                     Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
                 </div>
             </div>

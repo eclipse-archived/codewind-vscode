@@ -1,17 +1,15 @@
-
-#top-section, #bottom-section {
+#top-section {
     width: 100%;
-
     display: inline-flex;
     align-items: center;
 }
 
 #logo {
-    width: 2.5em;
+    height: 2.5em;
     margin-right: 1em;
 }
 
-.title {
+#title {
     display: inline-flex;
     align-content: center;
     align-items: center;
@@ -85,7 +83,7 @@ input[type="checkbox"]:disabled {
     outline: var(--disabled-btn-color) solid 1px;
 }
 
-.red-btn {
+.btn-red {
     color: var(--vscode-button-foreground);
     background: darkred;
     border-color: darkred;
