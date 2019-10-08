@@ -23,7 +23,7 @@ import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Constants from "../../constants/Constants";
+import Constants, { CWDocs } from "../../constants/Constants";
 import { INSTALLER_COMMANDS, InstallerCommands, getUserActionName, doesUseTag } from "./InstallerCommands";
 import CodewindManager from "./CodewindManager";
 import { CodewindStates } from "./CodewindStates";
@@ -481,7 +481,7 @@ namespace InstallerWrapper {
     }
 
     function onMoreInfo(): void {
-        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}mdt-vsc-installinfo.html`);
+        const moreInfoUrl = CWDocs.getDocLink(CWDocs.INSTALL_INFO);
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 
