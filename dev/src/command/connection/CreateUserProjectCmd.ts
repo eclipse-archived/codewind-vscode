@@ -256,11 +256,11 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
 }
 
 async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & ICWTemplateData> | undefined>  {
-    const templates = (await Requester.getTemplates(connection));
-    const noEnabledSources = (await Requester.getTemplateSources(connection)).filter((source) => source.enabled).length;
+    const templates = await Requester.getTemplates(connection);
+    // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
+    const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
 
-    if (noEnabledSources > 1) {
-        // Append the source to the label to clarify which template came from where
+    if (areMultipleSourcesEnabled) {
         templates.forEach((template) => {
             const source = template.source || "Unnamed source";
             template.label += ` (${source})`;
