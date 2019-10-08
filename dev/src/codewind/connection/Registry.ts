@@ -19,7 +19,7 @@ import Requester from "../project/Requester";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import Connection from "./Connection";
 // import SocketEvents from "./SocketEvents";
-import Constants from "../../constants/Constants";
+import Constants, { CWDocs } from "../../constants/Constants";
 import SocketEvents from "./SocketEvents";
 import { setRegistryCmd } from "../../command/connection/SetRegistryCmd";
 import Commands from "../../constants/Commands";
@@ -62,7 +62,7 @@ export async function onRegistryNotSet(connection: Connection): Promise<void> {
         setRegistryCmd(connection);
     }
     else if (res === moreInfoBtn) {
-        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}dockerregistry.html`);
+        const moreInfoUrl = CWDocs.getDocLink(CWDocs.DOCKER_REGISTRY);
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 }

@@ -19,6 +19,7 @@ import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 import openWorkspaceCmd from "../OpenWorkspaceCmd";
 import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
+import Resources from "../../constants/Resources";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -167,6 +168,8 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     return "selected";
 }
 
+const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
+
 async function promptForTemplate(connection: Connection): Promise<ICWTemplateData | undefined> {
 
     const qp = vscode.window.createQuickPick();
@@ -174,6 +177,10 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     qp.busy = true;
     qp.enabled = false;
     qp.placeholder = "Fetching available project templates...";
+    qp.buttons = [{
+        iconPath: Resources.getIconPaths(Resources.Icons.Edit),
+        tooltip: MANAGE_SOURCES_QP_BTN,
+    }];
 
     qp.matchOnDetail = true;
     qp.canSelectMany = false;
@@ -206,6 +213,13 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     }
 
     const qpiSelection = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
+        qp.onDidTriggerButton((btn) => {
+            if (btn.tooltip === MANAGE_SOURCES_QP_BTN) {
+                manageTemplateReposCmd(connection);
+                resolve(undefined);
+            }
+        });
+
         qp.onDidHide((_e) => {
             resolve(undefined);
         });

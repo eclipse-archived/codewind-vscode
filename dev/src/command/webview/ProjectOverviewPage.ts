@@ -15,13 +15,11 @@ import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
 import WebviewUtil from "../webview/WebviewUtil";
-import Constants from "../../constants/Constants";
+import { CWDocs } from "../../constants/Constants";
 
 // This file does have a bunch of strings that should be translated,
 // but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.
 // non-nls-file
-
-const PROJECT_SETTINGS_DOCPAGE_URL = `${Constants.CW_SITE_BASEURL}/mdt-vsc-commands-project.html#configuring-project-settings`;
 
 /**
  * These are the messages the WebView can send back to its creator in ProjectInfoCmd
@@ -137,7 +135,7 @@ function generateHtml(project: Project): string {
             <div id="app-info-header-section">
                 <h3>Application Information</h3>
                 <div id="about-project-settings">
-                    <a onclick="vscOpen('${OpenableTypes.WEB}', '${PROJECT_SETTINGS_DOCPAGE_URL}')" title="More Info">More Info</a>
+                    <a onclick="vscOpen('${OpenableTypes.WEB}', '${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}')" title="More Info">More Info</a>
                 </div>
             </div>
             <table class="bottom-padded">
