@@ -193,7 +193,11 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         if (projectInfo.appBaseURL) {
-            this.appBaseURL = vscode.Uri.parse(projectInfo.appBaseURL);
+            const asUri = vscode.Uri.parse(projectInfo.appBaseURL);
+            if (!asUri.scheme || !asUri.authority) {
+                Log.e(`Bad appBaseURL "${projectInfo.appBaseURL}" provided; missing scheme or authority`);
+            }
+            this.appBaseURL = asUri;
         }
 
         // note oldState can be null if this is the first time update is being invoked.
