@@ -15,19 +15,15 @@ import Log from "../../Logger";
 import Requester from "../project/Requester";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import Connection from "./Connection";
-// import SocketEvents from "./SocketEvents";
 import Constants from "../../constants/Constants";
-import SocketEvents from "./SocketEvents";
 import { setRegistryCmd } from "../../command/connection/SetRegistryCmd";
 import Commands from "../../constants/Commands";
+import MCUtil from "../../MCUtil";
 
-// let registryIsSet: boolean = global.isTheia;            // no registry required in local case
 let registryIsSet: boolean = false;
 
 export async function isRegistrySet(connection: Connection): Promise<boolean> {
-    if (!global.isTheia || registryIsSet) {
-        // if not in theia, no registry
-        // else it is still set, so we don't have to check
+    if (registryIsSet) {
         return true;
     }
 
@@ -36,16 +32,12 @@ export async function isRegistrySet(connection: Connection): Promise<boolean> {
         cancellable: false,
         title: "Checking deployment registry status..."
     }, () => {
-        return getRegistryStatus(connection);
+        return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
     });
 
     registryIsSet = registryStatus.deploymentRegistry;
     Log.d("Registry is now set ? " + registryIsSet);
     return registryIsSet;
-}
-
-function getRegistryStatus(connection: Connection): Promise<{ deploymentRegistry: boolean }> {
-    return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
 }
 
 export async function onRegistryNotSet(connection: Connection): Promise<void> {
@@ -105,35 +97,8 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
     }
     // if they selected noBtn just continue and write
 
-    // TODO - Doesn't work in hybrid architecture - will time out every time!
-
-    // const configFilePath = path.join(connection.workspacePath.fsPath, Constants.CW_CONFIG_FILE);
     try {
-        // await writeRegistry(configFilePath, registry);
-
-        Log.i("Waiting for deployment registry to be set...");
-        await vscode.window.withProgress({
-            cancellable: false,
-            title: `Setting deployment registry to ${registry}...`,
-            location: vscode.ProgressLocation.Notification,
-        }, () => {
-            return new Promise((resolve, reject) => {
-                const intervalLen = 1000;
-                let count = 0;
-                const interval = setInterval(async () => {
-                    count++;
-                    const regStatus = await getRegistryStatus(connection);
-                    if (regStatus.deploymentRegistry) {
-                        clearInterval(interval);
-                        resolve();
-                    }
-                    else if (count > 10) {
-                        clearInterval(interval);
-                        reject(`Failed to update registry within ${count}s; Please try setting the registry again.`);
-                    }
-                }, intervalLen);
-            });
-        });
+        await Requester.configureRegistry(connection, "set", registry);
 
         Log.i("Deployment registry set successfully");
         vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved. ` +
@@ -149,38 +114,18 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
     return true;
 }
 
-// async function writeRegistry(configFilePath: string, registry: string): Promise<void> {
-//     let config: { [key: string]: string };
-//     try {
-//         const configContents = (await promisify(fs.readFile)(configFilePath)).toString();
-//         config = JSON.parse(configContents);
-//     }
-//     catch (err) {
-//         config = {};
-//     }
-//     config.deploymentRegistry = registry;
-
-//     const toWrite = JSON.stringify(config, undefined, 2);
-//     Log.i(`Saving registry ${registry} to ${configFilePath}`);
-//     return promisify(fs.writeFile)(configFilePath, toWrite);
-// }
-
 async function testRegistry(connection: Connection, registry: string): Promise<boolean | "retry"> {
-    const testResult: SocketEvents.IRegistryStatusEvent = await vscode.window.withProgress({
+    const testResult = await vscode.window.withProgress({
         title: `Pushing a test image to ${registry}...`,
         location: vscode.ProgressLocation.Notification,
         cancellable: false,
     }, (_progress) => {
         try {
-            return Requester.post(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY), {
-                body: {
-                    deploymentRegistry: registry,
-                }
-            });
+            return Requester.configureRegistry(connection, "test", registry);
         }
         catch (err) {
             Log.e("Error testing registry", err);
-            return Promise.resolve({ deploymentRegistryTest: false });
+            return Promise.resolve({ deploymentRegistryTest: false, msg: MCUtil.errToString(err) });
         }
     });
 
@@ -189,6 +134,7 @@ async function testRegistry(connection: Connection, registry: string): Promise<b
         vscode.window.showInformationMessage("Deployment registry test succeeded");
         return true;
     }
+
     const enterNewBtn = "Enter New Registry";
     const tryAgainBtn = "Try Again";
     const overrideBtn = "Set Anyway";

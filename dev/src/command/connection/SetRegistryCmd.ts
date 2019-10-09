@@ -17,11 +17,6 @@ import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 
 export async function setRegistryCmd(connection: Connection): Promise<void> {
-    if (!global.isTheia) {
-        vscode.window.showWarningMessage("This command does not apply to local Codewind.");
-        return;
-    }
-
     try {
         await setRegistry(connection);
     }

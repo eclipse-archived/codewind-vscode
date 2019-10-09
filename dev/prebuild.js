@@ -31,8 +31,7 @@ const theia_cmdsToDelete = [
 ];
 
 const vscode_cmdsToDelete = [
-    "setRegistry",
-    "openTekton",
+    // None at this time!
 ];
 
 const PACKAGE_JSON_PATH = path.join(__dirname, "package.json");

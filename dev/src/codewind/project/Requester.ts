@@ -22,7 +22,7 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
-import { ILogResponse } from "../connection/SocketEvents";
+import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
 import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
@@ -153,6 +153,17 @@ namespace Requester {
         }
 
         // Log.d("Repo enablement result", result);
+    }
+
+    export async function configureRegistry(connection: Connection, operation: "set" | "test", deploymentRegistry: string)
+        : Promise<SocketEvents.IRegistryStatus> {
+
+        const body = {
+            deploymentRegistry,
+            operation,
+        };
+
+        return doConnectionRequest(connection, MCEndpoints.REGISTRY, Requester.post, { body });
     }
 
     async function doConnectionRequest(

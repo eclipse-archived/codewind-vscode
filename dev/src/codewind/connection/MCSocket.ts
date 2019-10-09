@@ -216,15 +216,11 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
-    private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatusEvent): Promise<void> => {
+    private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatus): Promise<void> => {
         // tslint:disable-next-line: no-boolean-literal-compare
         if (payload.deploymentRegistryTest === false) {
-            if (!global.isTheia) {
-                Log.d("Received deployment registry event when not running in Che; ignoring");
-                return;
-            }
             Log.i("Deployment registry is not correctly configured", payload.msg);
-            vscode.window.showErrorMessage(payload.msg);
+            vscode.window.showErrorMessage("Deployment registry error: " + payload.msg);
         }
     }
 
