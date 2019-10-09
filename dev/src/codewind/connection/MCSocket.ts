@@ -78,7 +78,7 @@ export default class MCSocket implements vscode.Disposable {
             .on(SocketEvents.Types.PROJECT_SETTING_CHANGED, this.onProjectSettingsChanged)
             .on(SocketEvents.Types.LOG_UPDATE,              this.onLogUpdate)
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
-            .on(SocketEvents.Types.REGISTRY_STATUS,         this.onRegistryStatus)
+            // .on(SocketEvents.Types.REGISTRY_STATUS,         this.onRegistryStatus)
             ;
     }
 
@@ -216,6 +216,7 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
+    /*
     private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatus): Promise<void> => {
         // tslint:disable-next-line: no-boolean-literal-compare
         if (payload.deploymentRegistryTest === false) {
@@ -223,6 +224,7 @@ export default class MCSocket implements vscode.Disposable {
             vscode.window.showErrorMessage("Deployment registry error: " + payload.msg);
         }
     }
+    */
 
     private readonly getProject = async (payload: { projectID: string }): Promise<Project | undefined> => {
         const projectID = payload.projectID;

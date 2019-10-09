@@ -107,7 +107,7 @@ export async function setRegistry(connection: Connection): Promise<boolean> {
         registryIsSet = true;
     }
     catch (err) {
-        vscode.window.showErrorMessage("Error updating registry: " + err.toString());
+        vscode.window.showErrorMessage(`Error updating registry: ${MCUtil.errToString(err)}`);
         return false;
     }
 
