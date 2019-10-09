@@ -87,15 +87,6 @@ export default class LocalCodewindManager {
      * @returns The URL to the running Codewind instance, or undefined if it did not appear to start successfully.
      */
     private async startCodewindInner(): Promise<vscode.Uri> {
-        if (global.isTheia) {
-            // In the che case, we do not start codewind. we just wait for it to come up
-            this.changeState(CodewindStates.STARTING);
-            const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
-            await this.waitForCodewindToStart(cheCwUrl);
-            this.changeState(CodewindStates.STARTED);
-            return cheCwUrl;
-        }
-
         await CLILifecycleWrapper.installAndStart();
 
         let cwUrl: vscode.Uri | undefined;
@@ -115,17 +106,6 @@ export default class LocalCodewindManager {
         return cwUrl;
     }
 
-    /**
-     * Theia Only -
-     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
-     */
-    private async waitForCodewindToStart(baseUrl: vscode.Uri): Promise<void> {
-        const waitingForReadyProm = Requester.waitForReady(baseUrl);
-        vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
-            `Waiting for Codewind to start...`, waitingForReadyProm);
-        return waitingForReadyProm;
-    }
-
     public async stopCodewind(): Promise<void> {
         await CLILifecycleWrapper.stop();
         this._localConnection = undefined;
@@ -135,5 +115,23 @@ export default class LocalCodewindManager {
         Log.d(`Codewind state changing from ${this._state} to ${newState}`);
         this._state = newState;
         CodewindEventListener.onChange(this);
+    }
+
+    /**
+     * Theia Only -
+     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
+     */
+    public async waitForCodewindToStartTheia(): Promise<void> {
+        // In the che case, we do not start codewind. we just wait for it to come up
+        this.changeState(CodewindStates.STARTING);
+        Log.i(`In theia; waiting for Codewind to come up on ${CHE_CW_URL}`);
+        const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
+
+        const waitingForReadyProm = Requester.waitForReady(cheCwUrl);
+        vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
+            `Waiting for Codewind to start...`, waitingForReadyProm);
+
+        await waitingForReadyProm;
+        await this.connect(cheCwUrl);
     }
 }

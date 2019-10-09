@@ -23,6 +23,12 @@ import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrappe
  */
 export default async function connectLocalCodewindCmd(start: boolean = true): Promise<void> {
     Log.i("Start Local Codewind Cmd");
+
+    if (global.isTheia) {
+        await LocalCodewindManager.instance.waitForCodewindToStartTheia();
+        return;
+    }
+
     const startedStatus = await CLILifecycleWrapper.getCodewindStartedStatus();
 
     if (startedStatus === "started-correct-version") {
