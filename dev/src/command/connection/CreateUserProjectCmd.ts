@@ -18,6 +18,7 @@ import UserProjectCreator, { ICWTemplateData } from "../../codewind/connection/U
 import Requester from "../../codewind/project/Requester";
 import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
+import { CWConfigurations } from "../../constants/Configurations";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -72,22 +73,40 @@ export default async function createProject(connection: Connection): Promise<voi
         }
 
         // Get the parent directory to create the project under
-        const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
-            vscode.workspace.workspaceFolders[0].uri : undefined;
 
-        const parentDir = await vscode.window.showOpenDialog({
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            defaultUri,
-            openLabel: "Select parent directory",
-        });
+        let parentDir: vscode.Uri;
+        if (vscode.workspace.workspaceFolders && vscode.workspace.getConfiguration().get(CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE) === true) {
+            if (vscode.workspace.workspaceFolders.length === 1) {
+                parentDir = vscode.workspace.workspaceFolders[0].uri;
+            }
+            else {
+                const selection = await showWorkspaceFolderSelection();
+                if (!selection) {
+                    return undefined;
+                }
+                parentDir = selection;
+            }
+        }
+        else {
+            // Have the user select the parent dir from anywhere on disk
+            const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
+                vscode.workspace.workspaceFolders[0].uri : undefined;
 
-        if (parentDir == null) {
-            return undefined;
+            const selection = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                defaultUri,
+                openLabel: "Select Parent Directory",
+            });
+
+            if (!selection) {
+                return undefined;
+            }
+            parentDir = selection[0];
         }
 
-        const response = await UserProjectCreator.createProject(connection, template, parentDir[0], projectName);
+        const response = await UserProjectCreator.createProject(connection, template, parentDir, projectName);
         if (!response) {
             // user cancelled
             return;
@@ -100,6 +119,18 @@ export default async function createProject(connection: Connection): Promise<voi
         Log.e(errMsg, err);
         vscode.window.showErrorMessage(errMsg + MCUtil.errToString(err));
     }
+}
+
+async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
+    const selection = await vscode.window.showWorkspaceFolderPick({
+        ignoreFocusOut: true,
+        placeHolder: "Select the parent directory for your new project",
+    });
+
+    if (selection == null) {
+        return undefined;
+    }
+    return selection.uri;
 }
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";

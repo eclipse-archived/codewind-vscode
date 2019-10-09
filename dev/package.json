@@ -64,6 +64,12 @@
                         "type": "boolean",
                         "default": true,
                         "scope": "application"
+                    },
+                    "codewind.alwaysCreateProjectsInWorkspace": {
+                        "description": "%configDescr_alwaysCreateProjectsInWorkspace%",
+                        "type": "boolean",
+                        "default": false,
+                        "scope": "resource"
                     }
                 }
             }

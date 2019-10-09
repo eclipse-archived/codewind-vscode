@@ -12,4 +12,5 @@
 export enum CWConfigurations {
     AUTO_SHOW_VIEW = "codewind.autoShowView",
     OVERVIEW_ON_CREATION = "codewind.openOverviewOnCreation",
+    ALWAYS_CREATE_IN_WORKSPACE = "codewind.alwaysCreateProjectsInWorkspace",
 }
