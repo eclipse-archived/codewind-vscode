@@ -109,7 +109,7 @@ function generateHtml(project: Project): string {
                 ${buildRow("Type", project.type.toString())}
                 ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow("Project ID", project.id)}
-                ${buildRow("Local Path", project.localPath.fsPath, OpenableTypes.FOLDER)}
+                ${buildRow("Local Path", project.localPath.fsPath, global.isTheia ? undefined : OpenableTypes.FOLDER)}
             </table>
         </div>
         <div class="section">
@@ -138,9 +138,13 @@ function generateHtml(project: Project): string {
                     <a onclick="vscOpen('${OpenableTypes.WEB}', '${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}')" title="More Info">More Info</a>
                 </div>
             </div>
-            <table class="bottom-padded">
-                ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-            </table>
+            <!-- Hide Container ID in theia -->
+            ${global.isTheia ? "" : `
+                <table class="bottom-padded">
+                    ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
+                </table>`
+            }
+
             <table>
                 ${buildRow("Application Endpoint",
                     normalize(project.appUrl, NOT_RUNNING),
@@ -198,7 +202,7 @@ function buildRow(label: string, data: string, openable?: OpenableTypes, editabl
     const fourthTd = openable === OpenableTypes.WEB ?
         `
         <td>
-            <input type="image" title="Open" src="${WebviewUtil.getIcon(Resources.Icons.OpenExternal)}"/>
+            <input type="image" title="Open" src="${WebviewUtil.getIcon(Resources.Icons.OpenExternal)}" onclick="vscOpen('${openable}', '${data}')"/>
         </td>
         `
         : "";

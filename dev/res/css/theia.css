@@ -18,6 +18,10 @@
     line-height: 1.5;
 }
 
+a {
+    color: #4f8cc9;
+}
+
 /*
 .vscode-dark {
     --vscode-button-background: #0083ca;
