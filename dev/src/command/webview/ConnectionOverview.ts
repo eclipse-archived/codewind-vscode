@@ -145,7 +145,8 @@ export default class ConnectionOverview {
                         }
                         catch (err) {
                             // the err from createNewConnection is user-friendly
-                            vscode.window.showErrorMessage(err);
+                            Log.e(`Error creating new connection from info: ${JSON.stringify(newInfo)}`);
+                            vscode.window.showErrorMessage(`Error creating new connection: ${MCUtil.errToString(err)}`);
                         }
                     }
                     break;

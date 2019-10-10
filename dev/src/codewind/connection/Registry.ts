@@ -27,15 +27,21 @@ export async function isRegistrySet(connection: Connection): Promise<boolean> {
         return true;
     }
 
-    const registryStatus: { deploymentRegistry: boolean } = await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        cancellable: false,
-        title: "Checking deployment registry status..."
-    }, () => {
-        return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
-    });
+    try {
+        const registryStatus: { deploymentRegistry: boolean } = await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: "Checking deployment registry status..."
+        }, () => {
+            return Requester.get(EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REGISTRY));
+        });
+        registryIsSet = registryStatus.deploymentRegistry;
+    }
+    catch (err) {
+        Log.e("Error checking registry status", err);
+        return false;
+    }
 
-    registryIsSet = registryStatus.deploymentRegistry;
     Log.d("Registry is now set ? " + registryIsSet);
     return registryIsSet;
 }
