@@ -55,7 +55,7 @@ export default async function projectOverviewCmd(project: Project): Promise<void
     };
 
     // const ed = vscode.window.activeTextEditor;
-    webPanel.webview.html = ProjectOverview.generateHtml(project);
+    webPanel.webview.html = ProjectOverview.refreshProjectOverview(webPanel, project);
     webPanel.webview.onDidReceiveMessage(handleWebviewMessage.bind(project));
 }
 

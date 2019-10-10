@@ -19,6 +19,7 @@ import Requester from "../../codewind/project/Requester";
 import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/RegistryUtils";
+import Resources from "../../constants/Resources";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -135,7 +136,7 @@ async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
 async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
-    const repos = await Requester.getTemplateRepos(connection);
+    const repos = await Requester.getTemplateSources(connection);
 
     if (repos.length === 0) {
         // Should not be possible because Codewind templates are always present.
@@ -153,10 +154,13 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     }
 
     const qpis: Array<({ url: string } & vscode.QuickPickItem)> = repos.map((repo) => {
-        // TODO add name, possibly remove url
+        const label = repo.name || repo.description || "No name available";
+        const description = repo.name ? repo.description : undefined;
+
         return {
             url: repo.url,
-            label: repo.description,
+            label,
+            description,
             detail: repo.url,
         };
     });
@@ -194,6 +198,8 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     return "selected";
 }
 
+const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
+
 async function promptForTemplate(connection: Connection): Promise<ICWTemplateData | undefined> {
 
     const qp = vscode.window.createQuickPick();
@@ -201,6 +207,10 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     qp.busy = true;
     qp.enabled = false;
     qp.placeholder = "Fetching available project templates...";
+    qp.buttons = [{
+        iconPath: Resources.getIconPaths(Resources.Icons.Edit),
+        tooltip: MANAGE_SOURCES_QP_BTN,
+    }];
 
     qp.matchOnDetail = true;
     qp.canSelectMany = false;
@@ -234,6 +244,13 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     }
 
     const qpiSelection = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
+        qp.onDidTriggerButton((btn) => {
+            if (btn.tooltip === MANAGE_SOURCES_QP_BTN) {
+                manageTemplateReposCmd(connection);
+                resolve(undefined);
+            }
+        });
+
         qp.onDidHide((_e) => {
             resolve(undefined);
         });
@@ -270,12 +287,22 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
 }
 
 async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & ICWTemplateData> | undefined>  {
-    const templateQpis = (await Requester.getTemplates(connection))
-        .map((type) => {
+    const templates = await Requester.getTemplates(connection);
+    // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
+    const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
+
+    if (areMultipleSourcesEnabled) {
+        templates.forEach((template) => {
+            const source = template.source || "Unnamed source";
+            template.label += ` (${source})`;
+        });
+    }
+
+    const templateQpis = templates.map((template) => {
             return {
-                ...type,
-                detail: type.language,
-                extension: type.url,
+                ...template,
+                detail: template.language,
+                extension: template.url,
             };
         });
 

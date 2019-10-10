@@ -17,8 +17,8 @@ import Connection from "./Connection";
 import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
-import ProjectType from "../project/ProjectType";
 import CLIWrapper from "./CLIWrapper";
+import { ProjectType, IProjectSubtypesDescriptor } from "../project/ProjectType";
 
 export interface ICWTemplateData {
     label: string;
@@ -26,11 +26,16 @@ export interface ICWTemplateData {
     url: string;
     language: string;
     projectType: string;
+    source?: string;
 }
 
 interface IProjectTypeInfo {
     language: string;
     projectType: string;
+}
+
+interface IProjectTypeExtendedInfo extends IProjectTypeInfo {
+    projectSubtype: string | undefined;
 }
 
 export interface IInitializationResponse {
@@ -42,6 +47,11 @@ export interface IInitializationResponse {
 interface INewProjectInfo {
     projectName: string;
     projectPath: string;
+}
+
+interface IProjectTypeQuickPickItem extends vscode.QuickPickItem {
+    projectType: string;
+    index: number;
 }
 
 /**
@@ -88,7 +98,7 @@ namespace UserProjectCreator {
             const failedResult = (validateRes.result as { error: string });
             throw new Error(failedResult.error);
         }
-        let projectTypeInfo = validateRes.result as IProjectTypeInfo;
+        let projectTypeInfo = validateRes.result as IProjectTypeExtendedInfo;
 
         // if the detection returned the fallback type, or if the user says the detection is wrong
         let detectionFailed: boolean = false;
@@ -116,13 +126,18 @@ namespace UserProjectCreator {
         }
 
         if (detectionFailed) {
-            const userProjectType = await promptForProjectType(connection);
+            const userProjectType = await promptForProjectType(connection, projectTypeInfo);
             if (userProjectType == null) {
                 return;
             }
             projectTypeInfo = userProjectType;
         }
 
+        // validate once more with detected type and subtype (if defined),
+        // to run any extension defined command involving subtype
+        if (projectTypeInfo.projectSubtype) {
+            await requestValidate(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
+        }
         return bind(connection, projectName, pathToBind, projectTypeInfo);
     }
 
@@ -165,39 +180,62 @@ namespace UserProjectCreator {
         return { projectName, projectPath: pathToBind };
     }
 
-    const OTHER_TYPE_OPTION = "Other (Basic Container)";
+    const OTHER_TYPE_OPTION = "Other (Codewind Basic Container)";
 
     /**
      * When detection fails, have the user select the project type that fits best.
      */
-    async function promptForProjectType(connection: Connection): Promise<IProjectTypeInfo | undefined> {
+    async function promptForProjectType(connection: Connection, detected: IProjectTypeInfo): Promise<IProjectTypeExtendedInfo | undefined> {
         Log.d("Prompting user for project type");
-        const templates = await Requester.getTemplates(connection);
-
-        let projectTypeQpis: Array<vscode.QuickPickItem & { language: string }> = [];
-        for (const template of templates) {
-            if (template.projectType === ProjectType.InternalTypes.DOCKER) {
-                // this option is handled specially below; Docker type shows up as "Other"
-                continue;
-            }
-            if (projectTypeQpis.find((type) => type.label === template.projectType)) {
-                // Skip to avoid adding duplicates
-                continue;
-            }
-
-            projectTypeQpis.push({
-                label: template.projectType,
-                language: template.language,
-            });
-        }
-        // remove duplicates
-        projectTypeQpis = [ ...new Set(projectTypeQpis) ];
-        projectTypeQpis.sort();
-        // Add "other" option last
-        projectTypeQpis.push({
-            label: OTHER_TYPE_OPTION,
-            language: "any"             // this will be replaced below
+        const projectTypes = await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Fetching project types...`,
+        }, () => {
+            return Requester.getProjectTypes(connection);
         });
+        const projectTypeQpis: IProjectTypeQuickPickItem[] = [];
+        let dockerType;
+        projectTypes.forEach((type, index) => {
+            if (type.projectType === ProjectType.InternalTypes.DOCKER) {
+                dockerType = {
+                    label: OTHER_TYPE_OPTION,
+                    projectType: OTHER_TYPE_OPTION,
+                    index: index
+                };
+            }
+            else {
+                let label;
+                let description;
+
+                // not codewind type if it has a label
+                if (type.projectSubtypes.label) {
+                    // if only 1 subtype take the label and description of that subtype
+                    if (type.projectSubtypes.items.length === 1) {
+                        label = type.projectSubtypes.items[0].label;
+                        description = type.projectSubtypes.items[0].description;
+                    }
+                    else {
+                        label = type.projectType;
+                    }
+                }
+                else {
+                    label = `Codewind ${type.projectType}`;
+                }
+
+                projectTypeQpis.push({
+                    label,
+                    projectType: type.projectType,
+                    index: index,
+                    description
+                });
+            }
+        });
+        projectTypeQpis.sort((a, b) => a.label.localeCompare(b.label));
+        // Add "other" option last
+        if (dockerType) {
+            projectTypeQpis.push(dockerType);
+        }
 
         const projectTypeRes = await vscode.window.showQuickPick(projectTypeQpis, {
             placeHolder: "Select the project type that best fits your project",
@@ -208,50 +246,74 @@ namespace UserProjectCreator {
             return;
         }
 
-        let projectType: string = projectTypeRes.label;
-        let language: string;
-        // If the project type selected has a language that it always is, use that language, else have the user select it
-        const typesWithCorrespondingLanguage = ProjectType.getRecognizedInternalTypes()
-            .map((type) => type.toString())
-            // Remove generic type because it can be any language
-            .filter((type) => type !== OTHER_TYPE_OPTION);
+        let language: string = detected.language;
+        const projectType: string = projectTypeRes.projectType;
 
-        if (typesWithCorrespondingLanguage.includes(projectType)) {
-            language = projectTypeRes.language;
-        }
-        else {
-            // map the 'other' back to the docker type
-            projectType = ProjectType.InternalTypes.DOCKER;
-            const languageRes = await promptForLanguage(templates);
-            if (languageRes == null) {
-                return;
+        // If project type selection did not change, there's no need to prompt for language/subtype, consider:
+        // 1) changing selection of "liberty" to "liberty", it still maps to 1 language (same applies to all known project types)
+        // 2) exception: selection of "other" !== "docker", this should allow for the selection of language
+        // 3) selecting language is not applicable to entension project, unless selection changes from something else,
+        //    in that case we prompt for the subtype
+        const projectSubtypeChoices = (projectType !== detected.projectType) ? projectTypes[projectTypeRes.index].projectSubtypes : null;
+        let projectSubtype: string | undefined;
+
+        // have choices to potentially present to user
+        if (projectSubtypeChoices) {
+
+            // not really, only 1 choice
+            if (projectSubtypeChoices.items.length === 1) {
+                projectSubtype = projectSubtypeChoices.items[0].id;
             }
-            language = languageRes;
+            // let's prompt user
+            else {
+                projectSubtype = await promptForLanguageOrSubtype(projectSubtypeChoices);
+                if (projectSubtype == null) {
+                    return;
+                }
+            }
+
+            // if there's no custom label, we were choosing language
+            if (!projectSubtypeChoices.label) {
+                language = projectSubtype;
+                projectSubtype = undefined;
+            }
         }
 
-        return { projectType, language };
+        return {
+            language,
+            // map the 'other' back to the docker type
+            projectType: projectType === OTHER_TYPE_OPTION ? ProjectType.InternalTypes.DOCKER : projectType,
+            projectSubtype
+        };
     }
 
     const OTHER_LANG_BTN = "Other";
 
-    async function promptForLanguage(templates: ICWTemplateData[]): Promise<string | undefined> {
-        Log.d("Prompting user for project language");
-        let languageQpis = templates.map((template) => template.language);
+    async function promptForLanguageOrSubtype(choices: IProjectSubtypesDescriptor): Promise<string | undefined> {
+        Log.d("Prompting user for project language or subtype");
+        const languageQpis: Array<vscode.QuickPickItem & { id: string }> = choices.items.map((choice) => {
+            return {
+                id: choice.id,
+                label: choice.label,
+                description: choice.description
+            };
+        });
         // remove duplicates
-        languageQpis = [ ... new Set(languageQpis) ];
-        languageQpis.sort();
-        languageQpis.push(OTHER_LANG_BTN);
+        languageQpis.sort((a, b) => a.label.localeCompare(b.label));
+        if (!choices.label) {
+            languageQpis.push({ id: "", label: OTHER_LANG_BTN });
+        }
 
-        let language = await vscode.window.showQuickPick(languageQpis, {
-            placeHolder: "Select the language that best fits your project",
+        const language = await vscode.window.showQuickPick(languageQpis, {
+            placeHolder: choices.label ? `Select the ${choices.label}` : "Select the language that best fits your project",
             ignoreFocusOut: true,
         });
 
         if (language == null) {
             return;
         }
-        else if (language === OTHER_LANG_BTN) {
-            language = await vscode.window.showInputBox({
+        else if (language.label === OTHER_LANG_BTN) {
+            return await vscode.window.showInputBox({
                 ignoreFocusOut: true,
                 prompt: "Enter the programming language for your project",
                 validateInput: (input) => {
@@ -264,16 +326,16 @@ namespace UserProjectCreator {
             });
         }
 
-        return language;
+        return language.id;
     }
 
-    async function requestValidate(pathToBind: string): Promise<IInitializationResponse> {
+    async function requestValidate(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
         const validateResponse = await vscode.window.withProgress({
             title: `Processing ${pathToBind}...`,
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
         }, () => {
-            return CLIWrapper.validateProjectDirectory(pathToBind);
+            return CLIWrapper.validateProjectDirectory(pathToBind, desiredType);
         });
         Log.d("validate response", validateResponse);
         return validateResponse;

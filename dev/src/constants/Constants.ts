@@ -9,7 +9,21 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import { Uri } from "vscode";
 import * as path from "path";
+
+export namespace CWDocs {
+    export function getDocLink(docPath: CWDocs): Uri {
+        return Uri.parse(`https://www.eclipse.org/codewind/${docPath}`);
+    }
+}
+
+export enum CWDocs {
+    TEMPLATE_MANAGEMENT = "mdt-vsc-usingadifferenttemplate.html",
+    INSTALL_INFO = "mdt-vsc-installinfo.html",
+    DOCKER_REGISTRY = "dockerregistry.html",
+    PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",
+}
 
 /**
  * Miscellaneous constants
@@ -26,8 +40,6 @@ namespace Constants {
     export const CW_ENV_DEV = "dev";
     export const CW_ENV_TEST = "test";
     export const CW_ENV_TAG_VAR = "CW_TAG";
-
-    export const CW_SITE_BASEURL = "https://www.eclipse.org/codewind/";
 }
 
 export default Constants;

@@ -1,10 +1,20 @@
 
-#top-section {
-    border-bottom: 2px solid #aaa;
+body {
+    max-width: 700px;
 }
 
-#main {
-    max-width: 700px;
+#top-section {
+    border-bottom: 2px solid #aaa;
+    padding-bottom: 0.75em;
+}
+
+#top-right-btns {
+    margin-left: auto;
+    display: inline-flex;
+}
+
+#top-right-btns > .btn {
+    margin-left: 1em;
 }
 
 #auto-build-toggle {
@@ -13,23 +23,51 @@
     zoom: 1.25;
 }
 
+.section {
+    border-bottom: 1px solid #aaa;
+    padding-top: 1em;
+    padding-bottom: 1em;
+    padding-left: 2em;
+}
+
+.section h3 {
+    padding: 0;
+    padding-bottom: .75em;
+    margin: 0;
+}
+
+#app-info-header-section {
+    width: 100%;
+    display: inline-flex;
+}
+
+#about-project-settings {
+    margin-left: auto;
+}
+
 table {
-    margin-top: 1em;
+    border-spacing: 0;
+}
+
+td {
+    padding: 0;
+    padding-bottom: 0.5em;
 }
 
 .info-label {
     font-weight: bold;
     padding-right: 1em;
-    min-width: 125px;
 }
 
-.edit-btn {
-    height: 1.25em;
-    margin-left: 2em;
+td > input[type="image"] {
+    height: 1.5em;
+    margin: 0;
+    padding: 0;
+    margin-left: 1em;
 }
 
-#build-btn {
-    margin-left: auto;
+.bottom-padded {
+    padding-bottom: 1em;
 }
 
 

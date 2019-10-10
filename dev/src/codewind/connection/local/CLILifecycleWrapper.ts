@@ -19,7 +19,7 @@ import StringNamespaces from "../../../constants/strings/StringNamespaces";
 import Translator from "../../../constants/strings/translator";
 import { CodewindStates } from "./CodewindStates";
 import MCUtil from "../../../MCUtil";
-import Constants from "../../../constants/Constants";
+import Constants, { CWDocs } from "../../../constants/Constants";
 import CLIWrapper from "../CLIWrapper";
 import Commands from "../../../constants/Commands";
 import LocalCodewindManager from "./LocalCodewindManager";
@@ -31,7 +31,7 @@ const TAG_OPTION = "-t";
 const JSON_OPTION = "-j";
 
 // Codewind tag to install if no env vars set
-const DEFAULT_CW_TAG = "0.4.0";
+const DEFAULT_CW_TAG = "0.5.0";
 const TAG_LATEST = "latest";
 
 interface CLIStatus {
@@ -327,7 +327,7 @@ export namespace CLILifecycleWrapper {
     }
 
     function onMoreInfo(): void {
-        const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}mdt-vsc-installinfo.html`);
+        const moreInfoUrl = CWDocs.getDocLink(CWDocs.INSTALL_INFO);
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 

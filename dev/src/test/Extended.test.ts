@@ -25,6 +25,7 @@ import TestUtil from "./TestUtil";
 import Project from "../codewind/project/Project";
 import SocketTestUtil from "./SocketTestUtil";
 import SocketEvents from "../codewind/connection/SocketEvents";
+import { removeProject } from "../command/project/RemoveProjectCmd";
 
 describe(`Extended tests`, async function() {
 
@@ -81,6 +82,10 @@ describe(`Extended tests`, async function() {
         });
 
         it(`${testType.projectType} - should disable and re-enable auto-build`, async function() {
+            if (testType.projectType.internalType === "appsodyExtension") {
+                  this.skip();
+            }
+
             expect(project, "Failed to get test project").to.exist;
             this.timeout(TestUtil.getMinutes(1));
 
@@ -160,6 +165,25 @@ describe(`Extended tests`, async function() {
             }
             expect(diagnostics, "Diagnostic was not removed").to.have.length(existingDiagnostics.length - 1);
         });
+
+        it(`should clean up the test project`, async function() {
+            if (TestConfig.isScopeEnabled("restart")) {
+                this.skip();
+            }
+            if (project != null) {
+                try {
+                    await removeProject(project, false);
+                    ProjectObserver.instance.onDelete(project.id);
+                }
+                catch (err) {
+                    Log.t(`Error deleting project ${project.name}:`, err);
+                }
+            }
+            else {
+                Log.t("Project creation failed; nothing to clean up");
+            }
+        });
+
     }
 });
 

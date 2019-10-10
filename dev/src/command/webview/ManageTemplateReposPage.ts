@@ -161,12 +161,13 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
 }
 
 function buildRepoRow(repo: ITemplateRepo): string {
-    const repoName = repo.name ? repo.name : "No name available";
+    const repoName = repo.name || "No name available";
+    const repoDescr = repo.description || "No description available";
     return `
     <tr>
         <td class="name-cell"><a href="${repo.url}">${repoName}</a></td>
         <td class="style-cell">${repo.projectStyles.join(", ")}</td-->
-        <td class="descr-cell">${repo.description}</td>
+        <td class="descr-cell">${repoDescr}</td>
         ${getStatusToggleTD(repo)}
         ${getDeleteBtnTD(repo)}
     </tr>

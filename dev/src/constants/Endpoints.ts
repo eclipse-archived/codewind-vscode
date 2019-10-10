@@ -32,6 +32,7 @@ export enum MCEndpoints {
     REMOTE_BIND_START = "api/v1/projects/remote-bind/start",
 
     REGISTRY = "api/v1/registry",
+    PROJECT_TYPES = "api/v1/project-types"
 }
 
 /**

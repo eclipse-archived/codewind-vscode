@@ -186,8 +186,12 @@ namespace CLIWrapper {
         return installerExec(CLICommands.PROJECT, [ projectPath, "--url", url ]) as Promise<IInitializationResponse>;
     }
 
-    export async function validateProjectDirectory(projectPath: string): Promise<IInitializationResponse> {
-        return installerExec(CLICommands.PROJECT, [ projectPath ]) as Promise<IInitializationResponse>;
+    export async function validateProjectDirectory(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
+        const args = [ projectPath ];
+        if (desiredType) {
+            args.push("--type", desiredType);
+        }
+        return installerExec(CLICommands.PROJECT, args) as Promise<IInitializationResponse>;
     }
 }
 

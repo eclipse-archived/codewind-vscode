@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import Requester from "../project/Requester";
 import Connection from "./Connection";
-import Constants from "../../constants/Constants";
+import { CWDocs } from "../../constants/Constants";
 import { setRegistryCmd } from "../../command/connection/SetRegistryCmd";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
@@ -31,8 +31,7 @@ namespace RegistryUtils {
             setRegistryCmd(connection);
         }
         else if (res === moreInfoBtn) {
-            const moreInfoUrl = vscode.Uri.parse(`${Constants.CW_SITE_BASEURL}dockerregistry.html`);
-            vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
+            vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.DOCKER_REGISTRY));
         }
     }
 

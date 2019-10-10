@@ -25,13 +25,13 @@ export default async function openAppCmd(project: Project): Promise<void> {
         vscode.window.showWarningMessage(Translator.t(STRING_NS, "canOnlyOpenStartedProjects", { projectName: project.name }));
         return;
     }
-    else if (project.appBaseUrl == null) {
-        Log.e("Project is started but has no appBaseUrl: " + project.name);
+    else if (project.appUrl == null) {
+        Log.e("Project is started but has no app URL: " + project.name);
         vscode.window.showErrorMessage(Translator.t(STRING_NS, "failedDetermineAppUrl", { projectName: project.name }));
         return;
     }
 
-    const uriToOpen = project.appBaseUrl;
+    const uriToOpen = project.appUrl;
 
     Log.i(`Open project ${project.name} in browser at ${uriToOpen}`);
     // vscode.window.showInformationMessage("Opening " + uriToOpen);

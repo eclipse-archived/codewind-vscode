@@ -21,16 +21,15 @@ import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Commands from "../../constants/Commands";
-import Constants from "../../constants/Constants";
-// import Constants from "../../constants/Constants";
+import { CWDocs } from "../../constants/Constants";
 
 /**
  * Template repository/source data as provided by the backend
  */
 export interface ITemplateRepo {
     readonly url: string;
-    readonly name: string;
-    readonly description: string;
+    readonly name?: string;
+    readonly description?: string;
     readonly enabled: boolean;
     readonly projectStyles: string[];
     readonly protected: boolean;
@@ -55,7 +54,6 @@ export interface IRepoEnablement {
 }
 
 const REPOS_PAGE_TITLE = "Template Sources";
-const LEARN_MORE_LINK = Constants.CW_SITE_BASEURL + "mdt-vsc-usingadifferenttemplate.html";
 
 // Only allow one of these for now - This should be moved to be per-connection like how overview is per-project.
 let manageReposPage: vscode.WebviewPanel | undefined;
@@ -101,7 +99,15 @@ export async function refreshManageReposPage(connection: Connection): Promise<vo
     if (!manageReposPage) {
         return;
     }
-    const html = generateManageReposHtml(await Requester.getTemplateRepos(connection));
+    const html = generateManageReposHtml(await Requester.getTemplateSources(connection));
+
+    // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
+    // if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
+    //     const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
+    //     fs.writeFile("/Users/tim/Desktop/manage.html", htmlWithFileProto,
+    //         (err) => { if (err) { throw err; } }
+    //     );
+    // }
     manageReposPage.webview.html = html;
 }
 
@@ -132,12 +138,12 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 }
 
                 try {
-                    await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.description);
+                    await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
                     await refreshManageReposPage(connection);
                 }
                 catch (err) {
                     vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`, err);
-                    Log.e(`Error adding new template repo ${repoInfo}`, err);
+                    Log.e(`Error adding new template repo ${JSON.stringify(repoInfo)}`, err);
                 }
                 break;
             }
@@ -168,7 +174,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 break;
             }
             case ManageReposWVMessages.HELP: {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(LEARN_MORE_LINK));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT));
                 break;
             }
             case ManageReposWVMessages.REFRESH: {
@@ -187,10 +193,10 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
     }
 }
 
-async function promptForNewRepo(): Promise<{ repoUrl: string, description: string } | undefined> {
-    let repoUrl = await vscode.window.showInputBox({
+async function promptForNewRepo(): Promise<{ repoUrl: string, repoName: string, repoDescr?: string } | undefined> {
+    const repoUrl = await vscode.window.showInputBox({
         ignoreFocusOut: true,
-        placeHolder: "https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json",
+        placeHolder: `https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json`,
         prompt: "Enter the URL to your template source's index file.",
         validateInput: validateRepoInput,
     });
@@ -198,19 +204,27 @@ async function promptForNewRepo(): Promise<{ repoUrl: string, description: strin
     if (!repoUrl) {
         return undefined;
     }
-    repoUrl = repoUrl.trim();
 
-    let description = await vscode.window.showInputBox({
+    let repoName = await vscode.window.showInputBox({
         ignoreFocusOut: true,
         placeHolder: "My Templates",
-        prompt: "Enter a description for this template source",
+        prompt: `Enter a name for ${repoUrl}`,
     });
-    if (!description) {
-        description = "(No description)";
+    if (!repoName) {
+        return undefined;
     }
-    description = description.trim();
+    repoName = repoName.trim();
 
-    return { repoUrl, description };
+    let repoDescr = await vscode.window.showInputBox({
+        ignoreFocusOut: true,
+        placeHolder: "Description of My Templates",
+        prompt: `(Optional) Enter a description for ${repoName}`,
+    });
+    if (repoDescr) {
+        repoDescr = repoDescr.trim();
+    }
+
+    return { repoUrl, repoName, repoDescr };
 }
 
 function validateRepoInput(input: string): string | undefined {
@@ -222,8 +236,12 @@ function validateRepoInput(input: string): string | undefined {
     catch (err) {
         // not a url
     }
-    if (!asUrl || !asUrl.host || !asUrl.protocol.startsWith("http")) {
-        return "The repository URL must be a valid http(s) URL.";
+
+    if (!asUrl) {
+        return "The repository URL must be a valid URL.";
+    }
+    else if (!(asUrl.protocol.startsWith("http") || asUrl.protocol.startsWith("file"))) {
+        return "The repository URL must be a valid http(s) or file URL.";
     }
     return undefined;
 }

@@ -12,7 +12,6 @@
 import * as vscode from "vscode";
 
 import Resources from "../../constants/Resources";
-import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import { ProjectOverviewWVMessages, IWVOpenable } from "./ProjectOverviewPage";
 import { ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
@@ -39,7 +38,7 @@ namespace WebviewUtil {
 
     export async function onRequestOpen(msg: WebviewUtil.IWVMessage): Promise<void> {
         const openable = msg.data as IWVOpenable;
-        Log.d("Got msg to open, data is ", msg.data);
+        // Log.d("Got msg to open, data is ", msg.data);
         let uri: vscode.Uri;
         if (openable.type === "file" || openable.type === "folder") {
             uri = vscode.Uri.file(openable.value);
@@ -49,7 +48,7 @@ namespace WebviewUtil {
             uri = vscode.Uri.parse(openable.value);
         }
 
-        Log.i("The uri is:", uri);
+        // Log.i("The uri is:", uri);
         const cmd: string = openable.type === "folder" ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
         vscode.commands.executeCommand(cmd, uri);
     }
