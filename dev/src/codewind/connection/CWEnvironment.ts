@@ -16,7 +16,6 @@ import { Uri } from "vscode";
 import { MCEndpoints } from "../../constants/Endpoints";
 import Requester from "../project/Requester";
 import Log from "../../Logger";
-import MCUtil from "../../MCUtil";
 
 // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
 interface RawCWEnvData {
@@ -26,7 +25,7 @@ interface RawCWEnvData {
     readonly running_in_k8s: boolean;
     readonly socket_namespace?: string;
     readonly user_string?: string;
-    readonly workspace_location?: string;
+    // readonly workspace_location?: string;
     readonly tekton_dashboard: TektonStatus;
 }
 
@@ -34,7 +33,7 @@ interface RawCWEnvData {
  * Massaged env data, which the plugin is actually interested in
  */
 export interface CWEnvData {
-    readonly workspace: string;
+    // readonly workspace: string;
     readonly socketNamespace: string;
     readonly version: string;
     readonly tektonStatus: TektonStatus;
@@ -63,24 +62,23 @@ namespace CWEnvironment {
     }
 
     function massageEnv(rawEnv: RawCWEnvData): CWEnvData {
-        // massage env data
-        const rawWorkspace = rawEnv.workspace_location;
+        // const rawWorkspace = rawEnv.workspace_location;
         const rawSocketNS = rawEnv.socket_namespace || "";
 
         // if (rawVersion == null) {
             // throw new Error("No version information was provided by Codewind.");
         // }
-        if (!rawWorkspace) {
-            throw new Error("No workspace information was provided by Codewind.");
-        }
-        const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
+        // if (!rawWorkspace) {
+            // throw new Error("No workspace information was provided by Codewind.");
+        // }
+        // const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
         const version = rawEnv.codewind_version || "Unknown";
 
         // normalize namespace so it doesn't start with '/'
         const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
 
         return {
-            workspace,
+            // workspace,
             version,
             socketNamespace,
             tektonStatus: rawEnv.tekton_dashboard,
