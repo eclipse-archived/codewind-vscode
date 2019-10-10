@@ -27,20 +27,19 @@ import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventList
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
     public readonly host: string;
-
     public readonly version: string;
-
     public readonly socket: MCSocket;
 
     private fileWatcher: FileWatcher | undefined;
     public readonly initPromise: Promise<void>;
 
     private hasConnected: boolean = false;
-    // Is this connection CURRENTLY connected
     private _isConnected: boolean = false;
 
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
+
+    private _isRegistrySet: boolean = false;
 
     constructor(
         public readonly url: vscode.Uri,
@@ -56,7 +55,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         // it does happen very quickly (< 1s) but be aware of potential race here
         if (!this.isRemote) {
             this.initPromise = this.initFileWatcher();
-        } else {
+        }
+        else {
             // Disable file-watcher in remote mode for now.
             this.initPromise = Promise.resolve();
         }
@@ -260,6 +260,40 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // refresh whole tree
             this.onChange();
         }
+    }
+
+    /**
+     * Check if this connection has a docker registry set. It is not guaranteed to be valid or have valid credentials.
+     * Once this succeeds, it will be cached for the remainder of the VS Code session, so we don't have to check every time we create a project.
+     */
+    public async isRegistrySet(): Promise<boolean> {
+        if (this._isRegistrySet) {
+            return true;
+        }
+
+        let isRegistrySet: boolean = false;
+        if (!this.isRemote && !global.isTheia) {
+            // Local connections outside of Theia do not require a container registry
+            isRegistrySet = true;
+        }
+        else {
+            isRegistrySet = await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                cancellable: false,
+                title: "Checking deployment registry status..."
+            }, () => {
+                return Requester.isRegistrySet(this);
+            });
+        }
+
+        // cache this so we can skip this request for the remainder of the session
+        this._isRegistrySet = isRegistrySet;
+        return this._isRegistrySet;
+    }
+
+    public async setRegistry(registry: string): Promise<void> {
+        await Requester.configureRegistry(this, "set", registry);
+        this._isRegistrySet = true;
     }
 
     public get detail(): string {

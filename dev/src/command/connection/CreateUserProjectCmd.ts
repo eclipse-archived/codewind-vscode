@@ -16,9 +16,9 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import UserProjectCreator, { ICWTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
-import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
 import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
 import { CWConfigurations } from "../../constants/Configurations";
+import RegistryUtils from "../../codewind/connection/RegistryUtils";
 
 const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
@@ -27,8 +27,8 @@ const BACK_BTN_MSG = "Back button";
 const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
 export default async function createProject(connection: Connection): Promise<void> {
-    if (!(await isRegistrySet(connection))) {
-        onRegistryNotSet(connection);
+    if (!(await connection.isRegistrySet())) {
+        RegistryUtils.onRegistryNotSet(connection);
         return;
     }
 

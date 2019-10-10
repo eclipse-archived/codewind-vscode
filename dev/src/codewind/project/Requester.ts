@@ -155,6 +155,17 @@ namespace Requester {
         // Log.d("Repo enablement result", result);
     }
 
+    export async function isRegistrySet(connection: Connection): Promise<boolean> {
+        try {
+            const registryStatus: { deploymentRegistry: boolean } = await doConnectionRequest(connection, MCEndpoints.REGISTRY, Requester.get);
+            return registryStatus.deploymentRegistry;
+        }
+        catch (err) {
+            Log.e("Error checking registry status", err);
+            return false;
+        }
+    }
+
     export async function configureRegistry(connection: Connection, operation: "set" | "test", deploymentRegistry: string)
         : Promise<SocketEvents.IRegistryStatus> {
 

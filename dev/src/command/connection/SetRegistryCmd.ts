@@ -12,13 +12,13 @@
 import * as vscode from "vscode";
 
 import Connection from "../../codewind/connection/Connection";
-import { setRegistry } from "../../codewind/connection/Registry";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
+import RegistryUtils from "../../codewind/connection/RegistryUtils";
 
 export async function setRegistryCmd(connection: Connection): Promise<void> {
     try {
-        await setRegistry(connection);
+        await RegistryUtils.setRegistry(connection);
     }
     catch (err) {
         Log.e("Error doing setRegistryCmd", err);

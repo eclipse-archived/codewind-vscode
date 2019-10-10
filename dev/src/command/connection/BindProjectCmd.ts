@@ -15,14 +15,14 @@ import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import UserProjectCreator from "../../codewind/connection/UserProjectCreator";
-import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
+import RegistryUtils from "../../codewind/connection/RegistryUtils";
 
 /**
  * @param create true for Create page, false for Import page
  */
 export default async function bindProject(connection: Connection): Promise<void> {
-    if (!(await isRegistrySet(connection))) {
-        onRegistryNotSet(connection);
+    if (!(await connection.isRegistrySet())) {
+        RegistryUtils.onRegistryNotSet(connection);
         return;
     }
 
