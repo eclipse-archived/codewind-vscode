@@ -21,7 +21,7 @@ import Log from "../../Logger";
 import { IInitializationResponse } from "./UserProjectCreator";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
 import Commands from "../../constants/Commands";
-import { CLICommand, CLICommands } from "./CLICommands";
+import { CLICommand, CLICommands, ARG_PROJECT_CREATE } from "./CLICommands";
 import { CLILifecycleCommands, CLILifecycleCommand } from "./local/CLILifecycleCommands";
 
 const BIN_DIR = "bin";
@@ -183,11 +183,11 @@ namespace CLIWrapper {
     }
 
     export async function createProject(projectPath: string, url: string): Promise<IInitializationResponse> {
-        return installerExec(CLICommands.PROJECT, [ projectPath, "--url", url ]) as Promise<IInitializationResponse>;
+        return installerExec(CLICommands.PROJECT, [ ARG_PROJECT_CREATE, projectPath, "--url", url ]) as Promise<IInitializationResponse>;
     }
 
     export async function validateProjectDirectory(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
-        const args = [ projectPath ];
+        const args = [ ARG_PROJECT_CREATE, projectPath ];
         if (desiredType) {
             args.push("--type", desiredType);
         }
