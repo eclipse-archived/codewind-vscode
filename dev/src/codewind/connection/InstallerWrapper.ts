@@ -534,7 +534,7 @@ namespace InstallerWrapper {
         const executableDir = path.dirname(executablePath);
 
         const cmd = "project";
-        const args = [cmd, projectPath];
+        const args = [cmd, "create", projectPath];
         if (url !== undefined) {
             args.push("--url", url);
         }
