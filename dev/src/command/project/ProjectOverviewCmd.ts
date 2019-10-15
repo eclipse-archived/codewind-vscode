@@ -10,18 +10,15 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as path from "path";
 
 import Project from "../../codewind/project/Project";
 
 import * as ProjectOverview from "../webview/ProjectOverviewPage";
 import Log from "../../Logger";
-import Commands from "../../constants/Commands";
 import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
 import requestBuildCmd from "./RequestBuildCmd";
 import Resources from "../../constants/Resources";
-import Constants from "../../constants/Constants";
 import { removeProject } from "./RemoveProjectCmd";
 import WebviewUtil from "../webview/WebviewUtil";
 
@@ -85,8 +82,7 @@ function handleWebviewMessage(this: Project, msg: WebviewUtil.IWVMessage): void 
                 break;
             }
             case ProjectOverview.ProjectOverviewWVMessages.EDIT: {
-                const settingsFilePath = vscode.Uri.file(path.join(project.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME));
-                vscode.commands.executeCommand(Commands.VSC_OPEN, settingsFilePath);
+                project.tryOpenSettingsFile();
                 break;
             }
             default: {
