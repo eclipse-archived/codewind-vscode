@@ -23,6 +23,7 @@ import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
 import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
+import CLIWrapper from "./CLIWrapper";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
@@ -53,13 +54,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         // caller must await on this promise before expecting this connection to function correctly
         // it does happen very quickly (< 1s) but be aware of potential race here
-        if (!this.isRemote) {
-            this.initPromise = this.initFileWatcher();
-        }
-        else {
-            // Disable file-watcher in remote mode for now.
-            this.initPromise = Promise.resolve();
-        }
+        this.initPromise = this.initFileWatcher();
 
         Log.i(`Created new Connection @ ${this}, version ${this.version}`);
     }
@@ -87,12 +82,13 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         Log.i("Establishing file watcher");
+        const cliPath = await CLIWrapper.getExecutablePath();
         return vscode.window.withProgress({
             title: "Establishing Codewind file watchers",
             cancellable: false,
             location: vscode.ProgressLocation.Window,
         }, (_progress) => {
-            return CreateFileWatcher(this.url.toString(), Log.getLogDir)
+            return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath)
             .then((fw: FileWatcher) => {
                 this.fileWatcher = fw;
                 FWLogSettings.getInstance().setOutputLogsToScreen(false);

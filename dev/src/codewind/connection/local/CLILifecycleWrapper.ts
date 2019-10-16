@@ -44,7 +44,7 @@ interface CLIStatus {
 export namespace CLILifecycleWrapper {
 
     /**
-     * `installer status` command.
+     * `status` command.
      * This is a separate function because it exits quickly so the progress is not useful, and we have to parse its structured output.
      */
     async function getLocalCodewindStatus(): Promise<CLIStatus> {
@@ -70,8 +70,8 @@ export namespace CLILifecycleWrapper {
                 }
 
                 const statusObj = JSON.parse(stdout);
-                Log.d("Installer status", statusObj);
-                // The installer will leave out these fields if they are empty, but an empty array is easier to deal with.
+                Log.d("CLI status", statusObj);
+                // The CLI will leave out these fields if they are empty, but an empty array is easier to deal with.
                 if (statusObj["installed-versions"] == null) {
                     statusObj["installed-versions"] = [];
                 }
@@ -109,13 +109,13 @@ export namespace CLILifecycleWrapper {
         }
 
         let progressTitle;
-        // For STOP the installer output looks better by itself, so we don't display any extra title
+        // For STOP the CLI output looks better by itself, so we don't display any extra title
         if (cmd !== CLILifecycleCommands.STOP) {
             progressTitle = cmd.getUserActionName(tag);
         }
 
         try {
-            await CLIWrapper.installerExec(cmd, args, progressTitle);
+            await CLIWrapper.cliExec(cmd, args, progressTitle);
         }
         catch (err) {
             if (CLIWrapper.isCancellation(err)) {
@@ -281,7 +281,6 @@ export namespace CLILifecycleWrapper {
         }
         else if (response === moreInfoBtn) {
             onMoreInfo();
-            // throw new Error(InstallerWrapper.INSTALLCMD_CANCELLED);
             return onInstallFailOrReject(true);
         }
         else {
@@ -322,7 +321,7 @@ export namespace CLILifecycleWrapper {
                 onMoreInfo();
                 return onInstallFailOrReject(true);
             }
-            return Promise.reject(CLIWrapper.INSTALLCMD_CANCELLED);
+            return Promise.reject(CLIWrapper.CLI_CMD_CANCELLED);
         });
     }
 
@@ -355,7 +354,7 @@ export namespace CLILifecycleWrapper {
                 lineObj = JSON.parse(line);
             }
             catch (err) {
-                Log.e(`Error parsing JSON from installer output, line was "${line}"`);
+                Log.e(`Error parsing JSON from CLI output, line was "${line}"`);
                 return;
             }
 

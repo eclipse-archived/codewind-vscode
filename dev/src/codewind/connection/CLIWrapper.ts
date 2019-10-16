@@ -25,23 +25,23 @@ import { CLICommand, CLICommands, ARG_PROJECT_CREATE } from "./CLICommands";
 import { CLILifecycleCommands, CLILifecycleCommand } from "./local/CLILifecycleCommands";
 
 const BIN_DIR = "bin";
-const INSTALLER_EXECUTABLE = "cwctl";
-const INSTALLER_EXECUTABLE_WIN = "cwctl.exe";
-const INSTALLER_PREREQS: { [s: string]: string[]; } = {
-    [INSTALLER_EXECUTABLE]: ["appsody"],
-    [INSTALLER_EXECUTABLE_WIN]: ["appsody.exe"]
+const CLI_EXECUTABLE = "cwctl";
+const CLI_EXECUTABLE_WIN = "cwctl.exe";
+const CLI_PREREQS: { [s: string]: string[]; } = {
+    [CLI_EXECUTABLE]: ["appsody"],
+    [CLI_EXECUTABLE_WIN]: ["appsody.exe"]
 };
 
 namespace CLIWrapper {
     // check error against this to see if it's a real error or just a user cancellation
-    export const INSTALLCMD_CANCELLED = "Cancelled";
+    export const CLI_CMD_CANCELLED = "Cancelled";
 
     /**
-     * Returns the location of the executable as within the extension. It cannot be run from this location - see prepare()
+     * Returns the location of the executable as within the extension. It cannot be run from this location - see initialize()
      */
     function getInternalExecutable(): string {
         const platform = MCUtil.getOS();
-        const executable = platform === "windows" ? INSTALLER_EXECUTABLE_WIN : INSTALLER_EXECUTABLE;
+        const executable = platform === "windows" ? CLI_EXECUTABLE_WIN : CLI_EXECUTABLE;
         return path.join(global.__extRoot, BIN_DIR, platform, executable);
     }
 
@@ -49,8 +49,8 @@ namespace CLIWrapper {
     let _executablePath: string;
 
     /**
-     * Copies the installer to somewhere writeable, and sets executableDir and exectablePath.
-     * If these are already set, do nothing.
+     * Copies the CLI to somewhere writeable if not already done, and sets exectablePath.
+     * @returns The path to the CLI executable after moving it to a writeable directory.
      */
     export async function initialize(): Promise<string> {
         if (_executablePath) {
@@ -63,21 +63,28 @@ namespace CLIWrapper {
         _executablePath = path.join(executableDir, executableBasename);
         Log.d(`Copying ${executable} to ${_executablePath}`);
         await promisify(fs.copyFile)(executable, path.join(executableDir, executableBasename));
-        Log.d("Copying installer prerequisites");
-        for (const prereq of INSTALLER_PREREQS[executableBasename]) {
+        Log.d("Copying CLI prerequisites");
+        for (const prereq of CLI_PREREQS[executableBasename]) {
             const source = path.join(executableDirname, prereq);
             const target = path.join(executableDir, prereq);
             Log.d(`Copying ${source} to ${target}`);
             await promisify(fs.copyFile)(source, target);
         }
-        Log.i("Installer copy-out succeeded, to " + _executablePath);
+        Log.i("CLI copy-out succeeded, to " + _executablePath);
         return _executablePath;
+    }
+
+    export async function getExecutablePath(): Promise<string> {
+        if (_executablePath) {
+            return _executablePath;
+        }
+        return initialize();
     }
 
     // serves as a lock, only one operation at a time.
     let currentOperation: CLICommand | undefined;
 
-    export function isInstallerRunning(): boolean {
+    export function isRunning(): boolean {
         return currentOperation !== undefined;
     }
 
@@ -86,17 +93,16 @@ namespace CLIWrapper {
     /**
      * @param tagOverride - If the command should be run against a tag other than the one determined by getTag
      */
-    export async function installerExec(cmd: CLICommand, args: string[], progressPrefix?: string): Promise<void | IInitializationResponse> {
+    export async function cliExec(cmd: CLICommand, args: string[], progressPrefix?: string): Promise<void | IInitializationResponse> {
         const executablePath = await initialize();
-        if (isInstallerRunning()) {
+        if (isRunning()) {
             vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
-            throw new Error(CLIWrapper.INSTALLCMD_CANCELLED);
+            throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
         }
-        // const timeout = isInstallCmd ? undefined : 60000;
 
         args.unshift(cmd.command);
 
-        Log.i(`Running installer command: ${args.join(" ")}`);
+        Log.i(`Running CLI command: ${args.join(" ")}`);
 
         const executableDir = path.dirname(executablePath);
 
@@ -128,16 +134,16 @@ namespace CLIWrapper {
 
                 token.onCancellationRequested((_e) => {
                     child.kill();
-                    return reject(INSTALLCMD_CANCELLED);
+                    return reject(CLI_CMD_CANCELLED);
                 });
 
                 child.on("close", (code: number | null) => {
                     if (code == null) {
                         // this happens in SIGTERM case, not sure what else may cause it
-                        Log.d(`Installer command ${cmd.command} did not exit normally, likely was cancelled`);
+                        Log.d(`CLI command ${cmd.command} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        Log.e(`Error running installer command ${cmd.command}`, errStr);
+                        Log.e(`Error running CLI command ${cmd.command}`, errStr);
                         outStr = outStr || "No output";
                         errStr = errStr || `Unknown error running command ${cmd.command}`;
                         writeOutError(cmd, outStr, errStr);
@@ -146,9 +152,9 @@ namespace CLIWrapper {
                         reject(errStr);
                     }
                     else {
-                        Log.i(`Successfully ran installer command ${cmd.command}`);
+                        Log.i(`Successfully ran CLI command ${cmd.command}`);
                         if (cmd.hasJSONOutput) {
-                            Log.d("Installer object output:", outStr);
+                            Log.d("CLI object output:", outStr);
                             const obj = JSON.parse(outStr);
                             return resolve(obj);
                         }
@@ -161,21 +167,21 @@ namespace CLIWrapper {
     }
 
     export function isCancellation(err: any): boolean {
-        return MCUtil.errToString(err) === INSTALLCMD_CANCELLED;
+        return MCUtil.errToString(err) === CLI_CMD_CANCELLED;
     }
 
     async function writeOutError(cmd: CLICommand, outStr: string, errStr: string): Promise<void> {
-        const logDir = path.join(Log.getLogDir, `installer-error-${cmd.command}-${Date.now()}`);
+        const logDir = path.join(Log.getLogDir, `cli-error-${cmd.command}-${Date.now()}`);
         await promisify(fs.mkdir)(logDir, { recursive: true });
 
-        const stdoutLog = path.join(logDir, "installer-output.log");
-        const stderrLog = path.join(logDir, "installer-error-output.log");
+        const stdoutLog = path.join(logDir, "cli-output.log");
+        const stderrLog = path.join(logDir, "cli-error-output.log");
         await promisify(fs.writeFile)(stdoutLog, outStr);
         await promisify(fs.writeFile)(stderrLog, errStr);
         if (cmd === CLILifecycleCommands.INSTALL) {
             // show user the output in this case because they can't recover
             // I do not like having this, but I don't see an easier way to present the user with the reason for failure
-            // until the installer 'expects' more errors.
+            // until the cli 'expects' more errors.
             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
         }
@@ -183,7 +189,7 @@ namespace CLIWrapper {
     }
 
     export async function createProject(projectPath: string, url: string): Promise<IInitializationResponse> {
-        return installerExec(CLICommands.PROJECT, [ ARG_PROJECT_CREATE, projectPath, "--url", url ]) as Promise<IInitializationResponse>;
+        return cliExec(CLICommands.PROJECT, [ ARG_PROJECT_CREATE, projectPath, "--url", url ]) as Promise<IInitializationResponse>;
     }
 
     export async function validateProjectDirectory(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
@@ -191,7 +197,7 @@ namespace CLIWrapper {
         if (desiredType) {
             args.push("--type", desiredType);
         }
-        return installerExec(CLICommands.PROJECT, args) as Promise<IInitializationResponse>;
+        return cliExec(CLICommands.PROJECT, args) as Promise<IInitializationResponse>;
     }
 }
 

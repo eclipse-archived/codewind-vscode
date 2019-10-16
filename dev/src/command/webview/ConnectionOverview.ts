@@ -140,7 +140,7 @@ export default class ConnectionOverview {
                             const newConnection = await this.createNewConnection(newInfo);
                             this.connection = newConnection;
                             this.connection.onOverviewOpened(this);
-                            vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newInfo.ingressHost}`);
+                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressHost}`);
                             this.refresh(this.connection.getRemoteInfo());
                         }
                         catch (err) {
