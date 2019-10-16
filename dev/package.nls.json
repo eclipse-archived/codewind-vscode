@@ -131,6 +131,7 @@
     "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/",
     "isActiveConnection": "viewItem =~ /ext\\.cw\\.connection\\.connected.*/",
     "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/ && viewItem =~ /^((?!local).)*$/",
+    "isActiveRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.connected.*/ && viewItem =~ /^((?!local).)*$/",
 
     "isNoProjects": "viewItem == ext.cw.noProjects",
 

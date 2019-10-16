@@ -339,12 +339,12 @@
                 {
                     "command": "%cmdID_startCodewind%",
                     "when": "%isStoppedLocalCodewind%",
-                    "group": "inline@0"
+                    "group": "inline@3"
                 },
                 {
                     "command": "%cmdID_startCodewind2%",
                     "when": "%isStoppedLocalCodewind%",
-                    "group": "inline@1"
+                    "group": "inline@4"
                 },
                 {
                     "command": "%cmdID_stopCodewind%",
@@ -354,12 +354,12 @@
                 {
                     "command": "%cmdID_stopCodewind%",
                     "when": "%isStartedLocalCodewind%",
-                    "group": "inline@0"
+                    "group": "inline@3"
                 },
                 {
                     "command": "%cmdID_stopCodewind2%",
                     "when": "%isStartedLocalCodewind%",
-                    "group": "inline@1"
+                    "group": "inline@4"
                 },
                 {
                     "command": "%cmdID_removeImages%",
@@ -374,22 +374,42 @@
                 {
                     "command": "%cmdID_connectionOverview%",
                     "when": "%isRemoteConnection%",
-                    "group": "inline"
+                    "group": "inline@3"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.b@0"
+                },
+                {
+                    "command": "%cmdID_newProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "inline@0"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "ext.cw.conn.b@1"
+                },
+                {
+                    "command": "%cmdID_bindProject%",
+                    "when": "%isActiveConnection%",
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_manageTemplateRepos%",
                     "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.a@1"
+                    "group": "ext.cw.conn.c@0"
                 },
                 {
                     "command": "%cmdID_setRegistry%",
                     "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.c@0"
+                    "group": "ext.cw.conn.c@1"
                 },
                 {
                     "command": "%cmdID_openTekton%",
-                    "when": "%isActiveConnection%",
-                    "group": "ext.cw.conn.c@1"
+                    "when": "%isActiveRemoteConnection%",
+                    "group": "ext.cw.conn.c@2"
                 },
                 {
                     "command": "%cmdID_refreshConnection%",

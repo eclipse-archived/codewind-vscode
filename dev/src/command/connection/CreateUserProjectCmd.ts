@@ -21,7 +21,6 @@ import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/RegistryUtils";
 import Resources from "../../constants/Resources";
 
-const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
 
@@ -59,7 +58,7 @@ export default async function createProject(connection: Connection): Promise<voi
                 return;
             }
             try {
-                projectName = await promptForProjectName(template);
+                projectName = await promptForProjectName(connection, template);
                 if (projectName == null) {
                     return;
                 }
@@ -198,6 +197,10 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     return "selected";
 }
 
+function getWizardTitle(connection: Connection): string {
+    return `[${connection.label}] Create a New Project`;
+}
+
 const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
 
 async function promptForTemplate(connection: Connection): Promise<ICWTemplateData | undefined> {
@@ -216,7 +219,7 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     qp.canSelectMany = false;
     qp.step = 1;
     qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
-    qp.title = CREATE_PROJECT_WIZARD_TITLE;
+    qp.title = getWizardTitle(connection);
     qp.ignoreFocusOut = true;
 
     if (!global.isTheia) {
@@ -323,12 +326,12 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
     return templateQpis;
 }
 
-async function promptForProjectName(template: ICWTemplateData): Promise<string | undefined> {
+async function promptForProjectName(connection: Connection, template: ICWTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 
     const ib = vscode.window.createInputBox();
-    ib.title = CREATE_PROJECT_WIZARD_TITLE;
+    ib.title = getWizardTitle(connection);
     ib.step = 2;
     ib.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
     ib.buttons = [ vscode.QuickInputButtons.Back ];

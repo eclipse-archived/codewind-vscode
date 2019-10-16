@@ -40,7 +40,7 @@ namespace TreeItemFactory {
         const cwState = LocalCodewindManager.instance.state;
         const cwStarted = LocalCodewindManager.instance.isStarted;
 
-        let label = "Local Codewind";
+        let label = "Local";
         // Show state except when started (since it's obvious in that case).
         if (!cwStarted) {
             label += ` (${cwState})`;
