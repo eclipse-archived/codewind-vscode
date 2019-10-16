@@ -23,3 +23,5 @@ export class CLICommand {
 export const CLICommands = {
     PROJECT: new CLICommand("project", false, true),
 };
+
+export const ARG_PROJECT_CREATE = "create";
