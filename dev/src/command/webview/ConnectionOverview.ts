@@ -24,7 +24,7 @@ import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import MCUtil from "../../MCUtil";
 import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
-import CWEnvironment, { CWEnvData } from "../../codewind/connection/CWEnvironment";
+import CWEnvironment from "../../codewind/connection/CWEnvironment";
 import { StatusCodeError } from "request-promise-native/errors";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 
@@ -206,9 +206,10 @@ export default class ConnectionOverview {
             throw new Error(`Failed to contact ${ingressUrl}. Make sure the URL is reachable.`);
         }
 
-        let envData: CWEnvData | undefined;
+        // let envData: CWEnvData | undefined;
         try {
-            envData = await CWEnvironment.getEnvData(ingressUrl);
+            // envData = await CWEnvironment.getEnvData(ingressUrl);
+            await CWEnvironment.getEnvData(ingressUrl);
         }
         catch (err) {
             if (err instanceof StatusCodeError) {
@@ -221,7 +222,7 @@ export default class ConnectionOverview {
 
         // Version check?
 
-        return await ConnectionManager.instance.connectRemote(ingressUrl, { label: this.label, ...info }, envData);
+        return await ConnectionManager.instance.connectRemote(ingressUrl, { label: this.label, ...info });
     }
 
 }

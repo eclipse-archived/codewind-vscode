@@ -13,12 +13,6 @@
     "// Items starting with cmdID are not exposed to user": "",
     "// All these cmdIDs must match the enum in Commands.ts": "",
 
-    "// cmdID_activateConn": "ext.cw.activateConn",
-    "// cmdTitle_activateConn": "Activate Connection",
-
-    "// cmdID_deactivateConn": "ext.cw.deactivateConn",
-    "// cmdTitle_deactivateConn": "Deactivate Connection",
-
     "cmdID_newConnection": "ext.cw.newConnection",
     "cmdTitle_newConnection": "New Codewind Connection",
 
@@ -39,6 +33,12 @@
 
     "cmdID_removeConnection": "ext.cw.removeConnection",
     "cmdTitle_removeConnection": "Remove Connection",
+
+    "cmdID_enableConnection": "ext.cw.enableConnection",
+    "cmdTitle_enableConnection": "Connect",
+
+    "cmdID_disableConnection": "ext.cw.disableConnection",
+    "cmdTitle_disableConnection": "Disconnect",
 
     "cmdID_setRegistry": "ext.cw.setRegistry",
     "cmdTitle_setRegistry": "Set Deployment Registry",
@@ -128,12 +128,12 @@
     "isStoppedLocalCodewind": "viewItem =~ /.*local\\.stopped.*/",
     "isStartedLocalCodewind": "viewItem =~ /.*local\\.started.*/",
 
-    "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/",
-    "isActiveConnection": "viewItem =~ /ext\\.cw\\.connection\\.connected.*/",
-    "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.(connected|disconnected).*/ && viewItem =~ /^((?!local).)*$/",
-    "isActiveRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.connected.*/ && viewItem =~ /^((?!local).)*$/",
-
-    "isNoProjects": "viewItem == ext.cw.noProjects",
+    "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.*/",
+    "isConnectedConnection": "viewItem =~ /ext\\.cw\\.connection\\..*connected.*/",
+    "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote.*/",
+    "isEnabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*/",
+    "isDisabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.disabled.*/",
+    "isConnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled\\.connected.*/",
 
     "isProject":                "viewItem =~ /ext\\.cw\\.project.*/",
     "isEnabledProject":         "viewItem =~ /ext\\.cw\\.project\\.enabled.*/",

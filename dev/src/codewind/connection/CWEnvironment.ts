@@ -46,6 +46,9 @@ export interface TektonStatus {
 }
 
 namespace CWEnvironment {
+
+    export const UNKNOWN_VERSION = "Unknown";
+
     /**
      * Get the environment data for a Codewind instance at the given url.
      * Separate from normal Requester code because we do not yet have a Connection instance at this point.
@@ -72,7 +75,7 @@ namespace CWEnvironment {
             // throw new Error("No workspace information was provided by Codewind.");
         // }
         // const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
-        const version = rawEnv.codewind_version || "Unknown";
+        const version = rawEnv.codewind_version || UNKNOWN_VERSION;
 
         // normalize namespace so it doesn't start with '/'
         const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;

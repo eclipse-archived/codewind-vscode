@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,8 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import { CWEnvData } from "./CWEnvironment";
 import ConnectionOverview from "../../command/webview/ConnectionOverview";
+import { RemoteConnectionStates } from "./ConnectionState";
 
 /**
  * The data that is displayed and editable in the Connection Overview
@@ -38,21 +38,22 @@ export default class RemoteConnection extends Connection {
 
     constructor(
         public readonly url: vscode.Uri,
-        cwEnv: CWEnvData,
         public readonly label: string,
         // TODO username should not be optional
         private _username?: string,
         private _registryUrl?: string,
         private _registryUsername?: string,
     ) {
-        super(url, cwEnv, label, true);
+        super(url, label, true);
     }
 
-    public async dispose(): Promise<void> {
-        if (this._activeOverviewPage) {
-            this._activeOverviewPage.dispose();
-        }
-        await super.dispose();
+    public async enable(): Promise<void> {
+        await super.enable();
+    }
+
+    public async disable(): Promise<void> {
+        await super.disable();
+        this._state = RemoteConnectionStates.DISABLED;
     }
 
     public set username(username: string | undefined) {

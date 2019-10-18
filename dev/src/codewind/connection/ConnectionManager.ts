@@ -14,7 +14,6 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
-import CWEnvironment, { CWEnvData } from "./CWEnvironment";
 import CodewindEventListener from "./CodewindEventListener";
 import ConnectionMemento from "./ConnectionMemento";
 import MCUtil from "../../MCUtil";
@@ -63,7 +62,7 @@ export default class ConnectionManager implements vscode.Disposable {
         return this.connections.filter((conn) => conn.isRemote);
     }
 
-    public async connectRemote(ingressUrl: vscode.Uri, remoteInfo: IRemoteCodewindInfo, envData?: CWEnvData): Promise<RemoteConnection> {
+    public async connectRemote(ingressUrl: vscode.Uri, remoteInfo: IRemoteCodewindInfo): Promise<RemoteConnection> {
         const existing = this.getExisting(ingressUrl);
         if (existing) {
             const alreadyExistsMsg = "Connection already exists at " + ingressUrl.toString();
@@ -73,10 +72,7 @@ export default class ConnectionManager implements vscode.Disposable {
         }
 
         Log.i("Creating connection to " + ingressUrl);
-        if (!envData) {
-            envData = await CWEnvironment.getEnvData(ingressUrl);
-        }
-        const newConnection = new RemoteConnection(ingressUrl, envData, remoteInfo.label,
+        const newConnection = new RemoteConnection(ingressUrl, remoteInfo.label,
             remoteInfo.username, remoteInfo.registryUrl, remoteInfo.registryUsername);
 
         await this.saveNewConnection(newConnection);
@@ -88,8 +84,7 @@ export default class ConnectionManager implements vscode.Disposable {
             return this.connections[0];
         }
         Log.i("Creating connection to " + url);
-        const envData = await CWEnvironment.getEnvData(url);
-        const newConnection = new Connection(url, envData, "Local Codewind", false);
+        const newConnection = new Connection(url, "Local Codewind", false);
         await this.saveNewConnection(newConnection);
         return newConnection;
     }

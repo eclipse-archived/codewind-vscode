@@ -15,9 +15,9 @@
 enum Commands {
     NEW_CONNECTION = "ext.cw.newConnection",
     REMOVE_CONNECTION = "ext.cw.removeConnection",
+    ENABLE_CONNECTION = "ext.cw.enableConnection",
+    DISABLE_CONNECTION = "ext.cw.disableConnection",
 
-    // ACTIVATE_CONNECTION = "ext.cw.activateConn",
-    // DEACTIVATE_CONNECTION = "ext.cw.deactivateConn",
     START_LOCAL_CODEWIND = "ext.cw.startCodewind",
     STOP_LOCAL_CODEWIND = "ext.cw.stopCodewind",
     REMOVE_LOCAL_IMAGES = "ext.cw.removeImages",

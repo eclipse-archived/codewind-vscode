@@ -109,7 +109,7 @@ describe("Codewind for VSCode basic test", async function() {
 
     it("should have a test socket connection", async function() {
         expect(testConnection, "No Codewind connection").to.exist;
-        const socketUri = testConnection.socket.uri;
+        const socketUri = testConnection.socketURI!;
         const testSocket = await SocketTestUtil.createTestSocket(socketUri);
         expect(testSocket.connected, "Socket did not connect").to.be.true;
     });

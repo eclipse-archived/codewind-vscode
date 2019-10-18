@@ -44,8 +44,9 @@ import { openTektonDashboard } from "./connection/OpenTektonCmd";
 import ConnectionManager from "../codewind/connection/ConnectionManager";
 import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
-import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
+import removeConnectionCmd from "./connection/RemoveConnectionCmd";
+import toggleConnectionEnablement from "./connection/ToggleConnectionEnablement";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -64,17 +65,19 @@ export function createCommands(): vscode.Disposable[] {
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
 
         vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
-        registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined),
+        registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined, false, true),
+        registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablement, true, false, true),
+        registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablement, false, false, true),
 
-        registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined),
-        registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined),
+        registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined, true, false),
+        registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined, true, false),
 
-        registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined),
-        registerConnectionCommand(Commands.MANAGE_TEMPLATE_REPOS, manageTemplateReposCmd, undefined),
-        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined),
+        registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined, false, false),
+        registerConnectionCommand(Commands.MANAGE_TEMPLATE_REPOS, manageTemplateReposCmd, undefined, false, false),
+        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined, false, true),
 
-        registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined),
-        registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined),
+        registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined, true, false),
+        registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined, true, true),
 
         registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),
         registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),
@@ -152,7 +155,7 @@ function registerProjectCommand<T>(
  */
 function registerConnectionCommand<T>(
     id: string, executor: (connection: Connection, params: T) => void, params: T,
-    connectedOnly: boolean = false): vscode.Disposable {
+    connectedOnly: boolean, remoteOnly: boolean): vscode.Disposable {
 
     // The selection can be a TreeItem if the command was run from the tree root's context menu,
     // a Connection if the command was run from a Connection's context menu,
@@ -162,7 +165,7 @@ function registerConnectionCommand<T>(
             selection = LocalCodewindManager.instance.localConnection;
         }
         if (!(selection instanceof Connection)) {
-            selection = await promptForConnection(connectedOnly);
+            selection = await promptForConnection(connectedOnly, remoteOnly);
             // if (selection == null) {
             if (!(selection instanceof Connection)) {
                 return;
@@ -228,7 +231,7 @@ function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): voi
  * If the user runs a Connection command through the Command Palette, have them pick the connection to run the cmd on
  * @connectedOnly Only prompt the user with Connected connections
  */
-async function promptForConnection(connectedOnly: boolean): Promise<Connection | undefined> {
+async function promptForConnection(connectedOnly: boolean, remoteOnly: boolean): Promise<Connection | undefined> {
     if (ConnectionManager.instance.connections.length === 1) {
         const onlyConnection = ConnectionManager.instance.connections[0];
         if (onlyConnection.isConnected || !connectedOnly) {
@@ -236,21 +239,26 @@ async function promptForConnection(connectedOnly: boolean): Promise<Connection |
         }
     }
 
-    const choices = [];
-    const connections = ConnectionManager.instance.connections;
-    if (connectedOnly) {
-        choices.push(...(connections.filter((conn) => conn.isConnected)));
-    }
-    else {
-        choices.push(...connections);
-    }
+    const choices = ConnectionManager.instance.connections.filter((conn) => {
+        if (connectedOnly && !conn.isConnected) {
+            return false;
+        }
+        if (remoteOnly && !conn.isRemote) {
+            return false;
+        }
+        return true;
+    });
 
     if (choices.length === 0) {
         const startCwBtn = "Start Local Codewind";
-        vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn)
-        .then((res?: string) => {
+        const newConnectionBtn = "New Connection";
+        vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn, newConnectionBtn)
+        .then((res) => {
             if (res === startCwBtn) {
                 connectLocalCodewindCmd(true);
+            }
+            else if (res === newConnectionBtn) {
+                newRemoteConnectionCmd();
             }
         });
 

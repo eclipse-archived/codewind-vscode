@@ -88,6 +88,7 @@ export default class MCSocket implements vscode.Disposable {
      * the callbacks will be fired multiple times for the same event, which will lead to serious misbehaviour.
      */
     public async dispose(): Promise<void> {
+        this.connection.onDisconnect();
         this.socket.disconnect();
     }
 
