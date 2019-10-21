@@ -224,7 +224,7 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         const ports = projectInfo.ports;
-        if (ports != null) {
+        if (ports) {
             this.updatePorts(ports);
         }
         else if (this._state.isStarted) {
@@ -596,8 +596,10 @@ export default class Project implements vscode.QuickPickItem {
         }
         else if (currentPort !== newPortNumber) {
             if (isNaN(newPortNumber)) {
+                if (this._ports[portType]) {
+                    Log.d(`Unset ${portType} for ${this.name}`);
+                }
                 this._ports[portType] = undefined;
-                // Log.d(`Unset ${portType} for ${this.name}`);
             }
             else if (newPortNumber !== currentPort) {
                 Log.d(`New ${portType} for ${this.name} is ${newPortNumber}`);
