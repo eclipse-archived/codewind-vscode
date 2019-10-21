@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Connection from "./Connection";
 import ConnectionOverview from "../../command/webview/ConnectionOverview";
-import { RemoteConnectionStates } from "./ConnectionState";
+import { ConnectionStates } from "./ConnectionState";
 
 /**
  * The data that is displayed and editable in the Connection Overview
@@ -53,7 +53,7 @@ export default class RemoteConnection extends Connection {
 
     public async disable(): Promise<void> {
         await super.disable();
-        this._state = RemoteConnectionStates.DISABLED;
+        this._state = ConnectionStates.DISABLED;
     }
 
     public set username(username: string | undefined) {

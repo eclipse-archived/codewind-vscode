@@ -20,7 +20,7 @@ import Translator from "../constants/strings/translator";
 import { CodewindTreeItem } from "./CodewindTree";
 import Commands from "../constants/Commands";
 import Project from "../codewind/project/Project";
-import { RemoteConnectionStates } from "../codewind/connection/ConnectionState";
+import { ConnectionStates } from "../codewind/connection/ConnectionState";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -78,7 +78,9 @@ namespace TreeItemFactory {
 
         return {
             label,
-            collapsibleState: connection.isConnected ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
+            // change ID so it refreshes the collapsiblestate
+            id: `${connection.label}.${connection.state.hasChildrenInTree ? "connected" : "disconnected"}`,
+            collapsibleState: connection.state.hasChildrenInTree ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
             tooltip: `${connection.enabled ? "" : "[Disabled] "}${connection.url}`,
             contextValue: TreeItemContext.getConnectionContext(connection),
             iconPath,
@@ -86,7 +88,27 @@ namespace TreeItemFactory {
     }
 
     export function getConnectionChildren(connection: Connection): CodewindTreeItem[] {
-        if (connection.isConnected) {
+        if (connection.state === ConnectionStates.AUTH_ERROR) {
+            return [{
+                label: "Authentication error",
+                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                tooltip: "Click here to open the Connection Overview",
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+                command: {
+                    command: Commands.CONNECTION_OVERVIEW,
+                    title: "",
+                    arguments: [connection]
+                }
+            }];
+        }
+        else if (connection.state === ConnectionStates.NETWORK_ERROR) {
+            return [{
+                label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
+                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+            }];
+        }
+        else if (connection.isConnected) {
             if (connection.projects.length > 0) {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));
             }
@@ -102,27 +124,8 @@ namespace TreeItemFactory {
                 }
             }];
         }
-        else if (connection.state === RemoteConnectionStates.AUTH_ERROR) {
-            return [{
-                label: "Authentication error",
-                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
-                tooltip: "Click here to open the Connection Overview",
-                collapsibleState: vscode.TreeItemCollapsibleState.None,
-                command: {
-                    command: Commands.CONNECTION_OVERVIEW,
-                    title: "",
-                    arguments: [connection]
-                }
-            }];
-        }
-        else if (connection.state === RemoteConnectionStates.DISCONNECTED) {
-            return [{
-                label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
-                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
-                collapsibleState: vscode.TreeItemCollapsibleState.None,
-            }];
-        }
 
+        // it is disabled
         return [];
     }
 

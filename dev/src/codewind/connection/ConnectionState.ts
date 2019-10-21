@@ -12,6 +12,7 @@
 export class ConnectionState {
     constructor(
         public readonly isConnected: boolean,
+        public readonly hasChildrenInTree: boolean,
     ) {
 
     }
@@ -19,14 +20,10 @@ export class ConnectionState {
 
 // tslint:disable-next-line: variable-name
 export const ConnectionStates = {
-    CONNECTED:      new ConnectionState(true),
-    DISCONNECTED:   new ConnectionState(false),
-};
-
-// The RemoteConnectionStates are a superset of ConnectionStates
-// tslint:disable-next-line: variable-name
-export const RemoteConnectionStates = Object.assign(ConnectionStates, {
-    DISABLED:       new ConnectionState(false),
+    CONNECTED:      new ConnectionState(true, true),
+    NETWORK_ERROR:   new ConnectionState(false, true),
+    // Explicitly disabled by user - only applies to remote connections
+    DISABLED:       new ConnectionState(false, false),
     // REGISTRY_ERROR: new ConnectionState(true, "Registry error"),
-    AUTH_ERROR:     new ConnectionState(false),
-});
+    AUTH_ERROR:     new ConnectionState(false, true),
+};

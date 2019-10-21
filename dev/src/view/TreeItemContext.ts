@@ -14,7 +14,6 @@
 import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
-import Log from "../Logger";
 
 /**
  * The functions in this file generate the TreeItems' contextIDs,
@@ -66,7 +65,7 @@ namespace TreeItemContext {
         const contextValue = localCW.isStarted ? TreeItemContextValues.LOCAL_CW_STARTED : TreeItemContextValues.LOCAL_CW_STOPPED;
         const connectionContext = localCW.localConnection ? getConnectionContextInner(localCW.localConnection) : [];
         const cv = buildContextValue([ ...connectionContext, contextValue ]);
-        Log.d("Local connection context " + cv);
+        // Log.d("Local connection context " + cv);
         return cv;
     }
 
@@ -90,7 +89,7 @@ namespace TreeItemContext {
 
     export function getConnectionContext(connection: Connection): string {
         const cv = buildContextValue(getConnectionContextInner(connection));
-        Log.d(`The context value for ${connection} is ${cv}`);
+        // Log.d(`The context value for ${connection} is ${cv}`);
         return cv;
     }
 

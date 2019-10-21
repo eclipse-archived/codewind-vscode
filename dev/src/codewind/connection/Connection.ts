@@ -25,6 +25,7 @@ import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
+import * as requestErrors from "request-promise-native/errors";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
@@ -49,7 +50,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         public readonly label: string,
         public readonly isRemote: boolean,
     ) {
-        this._state = ConnectionStates.DISCONNECTED;
+        this._state = ConnectionStates.NETWORK_ERROR;
         this.host = this.getHost(url);
         // caller must await on this promise before expecting this connection to function correctly
         this.initPromise = this.enable();
@@ -68,21 +69,39 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     protected async enable(): Promise<void> {
-        Log.i(`Activate connection ${this.url}`);
+        Log.i(`Enable connection ${this.url}`);
+
+        try {
+            const envData = await CWEnvironment.getEnvData(this.url);
+            this.cwVersion = envData.version;
+            // onConnect will be called on initial socket connect,
+            // which does the initial projects population and sets the state to Connected
+            this._socket = new MCSocket(this, envData.socketNamespace);
+            Log.d(`${this.url} has env data`, envData);
+        }
+        catch (err) {
+            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
+            // so the user sees the connection has to be re-connected by hand after fixing the problem
+            // This should only apply to remote connections
+            this._state = ConnectionStates.DISABLED;
+
+            if (err instanceof requestErrors.StatusCodeError) {
+                let errMsg: string = err.message;
+                if (err.statusCode === 404) {
+                    errMsg = `Codewind API was not found. Does "${this.url}" point to a running Codewind instance?`;
+                }
+                throw new Error(`Received status ${err.statusCode}: ${errMsg}`);
+            }
+            throw err;
+        }
+
         const initFWProm = this.initFileWatcher();
-
-        const envData = await CWEnvironment.getEnvData(this.url);
-        // onConnect will be called on initial socket connect,
-        // which does the initial projects population and sets the state to Connected
-        this._socket = new MCSocket(this, envData.socketNamespace);
-        this.cwVersion = envData.version;
-        Log.d(`${this.url} has env data`, envData);
-
         await initFWProm;
+        this.onChange(this);
     }
 
     protected async disable(): Promise<void> {
-        Log.d("Deactivate connection " + this);
+        Log.d("Disable connection " + this);
 
         const fwDisposeProm = new Promise((resolve) => {
             if (this.fileWatcher) {
@@ -100,6 +119,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this._socket = undefined;
         this.fileWatcher = undefined;
         this._projects = [];
+        this.onChange(this);
     }
 
     public async dispose(): Promise<void> {
@@ -193,11 +213,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public onDisconnect = async (): Promise<void> => {
         Log.d(`${this} onDisconnect`);
-        if (this._state === ConnectionStates.DISCONNECTED) {
+        if (this._state === ConnectionStates.NETWORK_ERROR) {
             // we already know we're disconnected, nothing to do until we reconnect
             return;
         }
-        this._state = ConnectionStates.DISCONNECTED;
+        this._state = ConnectionStates.NETWORK_ERROR;
 
         this._projects.forEach((p) => p.onConnectionDisconnect());
         this._projects = [];

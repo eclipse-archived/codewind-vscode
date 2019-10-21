@@ -31,18 +31,33 @@ export default class ConnectionManager implements vscode.Disposable {
     public async activate(): Promise<void> {
         await Promise.all(
             ConnectionMemento.loadSavedConnections().map(async (connectionInfo) => {
+                let connectionUrl: vscode.Uri;
                 try {
                     if (!connectionInfo.ingressHost) {
-                        // should never happen
                         throw new Error(`Cannot load connection ${connectionInfo.label} due to missing ingress host`);
                     }
-                    const connectionUrl = vscode.Uri.parse(RemoteConnection.REMOTE_CODEWIND_PROTOCOL + "://" + connectionInfo.ingressHost);
+                    connectionUrl = vscode.Uri.parse(RemoteConnection.REMOTE_CODEWIND_PROTOCOL + "://" + connectionInfo.ingressHost);
+                }
+                catch (err) {
+                    // should never happen
+                    Log.e("Bad connectionInfo", connectionInfo, err);
+                    vscode.window.showErrorMessage(`Error reading connection info ${JSON.stringify(connectionInfo)}`);
+                    return;
+                }
+
+                try {
                     await this.connectRemote(connectionUrl, { label: connectionInfo.label });
                 }
                 catch (err) {
-                    const errMsg = `Error loading connection ${connectionInfo.label}: ${MCUtil.errToString(err)}`;
+                    const errMsg = `Error loading connection ${connectionInfo.label}. ${MCUtil.errToString(err)}`;
                     Log.e(errMsg, err);
-                    vscode.window.showErrorMessage(err);
+                    const retryBtn = "Retry";
+                    vscode.window.showErrorMessage(errMsg, retryBtn)
+                    .then((res) => {
+                        if (res === retryBtn) {
+                            this.connectRemote(connectionUrl, { label: connectionInfo.label });
+                        }
+                    });
                 }
             })
         );
