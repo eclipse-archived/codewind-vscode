@@ -236,7 +236,6 @@ namespace Requester {
         await doProjectRequest(project, ProjectEndpoints.CLEAR, body, Requester.post, msg, true);
     }
 
-
     export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string, lastSync: number):
       Promise<string[]> {
         Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
@@ -265,7 +264,7 @@ namespace Requester {
         return fileList;
     }
 
-    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<any> {
+    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<void> {
 
         const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
         const strBuffer = zlib.deflateSync(fileContent);
@@ -285,9 +284,9 @@ namespace Requester {
             body: body,
         });
 
-        Log.i("Remote upload response", remoteBindRes);
-
-        return remoteBindRes;
+        if (remoteBindRes !== "OK") {
+            Log.e("Unexpected remote upload response", remoteBindRes);
+        }
     }
 
     export async function requestToggleAutoBuild(project: Project): Promise<void> {

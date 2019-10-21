@@ -389,7 +389,7 @@ namespace UserProjectCreator {
 
     async function requestRemoteBindStart(connection: Connection, projectName: string,
                                           dirToBindContainerPath: string,
-                                          language: string, projectType: string): Promise<any> {
+                                          language: string, projectType: string): Promise<{ projectID: string, name: string }> {
 
         const bindReq = {
             name: projectName,
@@ -406,6 +406,7 @@ namespace UserProjectCreator {
             body: bindReq,
         });
 
+        // the response is the full project info object
         Log.i("Remote Bind response", remoteBindRes);
 
         return remoteBindRes;

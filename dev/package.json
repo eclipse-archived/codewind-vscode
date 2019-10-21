@@ -330,14 +330,6 @@
                 {
                     "command": "%cmdID_newConnection%",
                     "group": "navigation@0"
-                },
-                {
-                    "command": "%cmdID_newProject%",
-                    "group": "navigation@1"
-                },
-                {
-                    "command": "%cmdID_bindProject%",
-                    "group": "navigation@2"
                 }
             ],
             "view/item/context": [

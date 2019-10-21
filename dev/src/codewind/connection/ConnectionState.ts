@@ -21,9 +21,9 @@ export class ConnectionState {
 // tslint:disable-next-line: variable-name
 export const ConnectionStates = {
     CONNECTED:      new ConnectionState(true, true),
-    NETWORK_ERROR:   new ConnectionState(false, true),
+    NETWORK_ERROR:  new ConnectionState(false, true),
     // Explicitly disabled by user - only applies to remote connections
     DISABLED:       new ConnectionState(false, false),
-    // REGISTRY_ERROR: new ConnectionState(true, "Registry error"),
+    // REGISTRY_ERROR: new ConnectionState(true, true),
     AUTH_ERROR:     new ConnectionState(false, true),
 };
