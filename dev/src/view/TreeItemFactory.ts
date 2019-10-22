@@ -42,6 +42,10 @@ namespace TreeItemFactory {
         const cwStarted = LocalCodewindManager.instance.isStarted;
 
         let label = "Local";
+        if (global.isTheia) {
+            // it's confusing to say "local" in Theia
+            label = "Projects";
+        }
         // Show state except when started (since it's obvious in that case).
         if (!cwStarted) {
             label += ` (${cwState})`;
@@ -65,22 +69,15 @@ namespace TreeItemFactory {
     }
 
     export function getConnectionTI(connection: Connection): vscode.TreeItem {
-        let label;
-        if (global.isTheia) {
-            // it's confusing to say "local" in the theia case
-            label = Translator.t(STRING_NS, "connectionLabelSimple");
-        }
-        else {
-            // label = Translator.t(STRING_NS, "connectionLabel", { label: connection.userLabel });
-            label = connection.label;
-        }
+        const collapsibleState = connection.state.hasChildrenInTree ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+        // change ID so it refreshes the collapsiblestate
+        const id = `${connection.label}.${connection.state.hasChildrenInTree ? "connected" : "disconnected"}`;
         const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
 
         return {
-            label,
-            // change ID so it refreshes the collapsiblestate
-            id: `${connection.label}.${connection.state.hasChildrenInTree ? "connected" : "disconnected"}`,
-            collapsibleState: connection.state.hasChildrenInTree ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None,
+            label: connection.label,
+            collapsibleState,
+            id,
             tooltip: `${connection.enabled ? "" : "[Disabled] "}${connection.url}`,
             contextValue: TreeItemContext.getConnectionContext(connection),
             iconPath,
