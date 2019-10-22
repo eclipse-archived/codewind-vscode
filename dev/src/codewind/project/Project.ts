@@ -11,6 +11,8 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
+import * as fs from "fs";
+import { promisify } from "util";
 
 import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
@@ -28,6 +30,8 @@ import Validator from "./Validator";
 import Requester from "./Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPage";
+import Constants from "../../constants/Constants";
+import Commands from "../../constants/Commands";
 
 /**
  * Used to determine App Monitor URL
@@ -222,7 +226,7 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         const ports = projectInfo.ports;
-        if (ports != null) {
+        if (ports) {
             this.updatePorts(ports);
         }
         else if (this._state.isStarted) {
@@ -594,8 +598,10 @@ export default class Project implements vscode.QuickPickItem {
         }
         else if (currentPort !== newPortNumber) {
             if (isNaN(newPortNumber)) {
+                if (this._ports[portType]) {
+                    Log.d(`Unset ${portType} for ${this.name}`);
+                }
                 this._ports[portType] = undefined;
-                // Log.d(`Unset ${portType} for ${this.name}`);
             }
             else if (newPortNumber !== currentPort) {
                 Log.d(`New ${portType} for ${this.name} is ${newPortNumber}`);
@@ -666,5 +672,30 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         return changed;
+    }
+
+    public async tryOpenSettingsFile(): Promise<void> {
+        const settingsFilePath = path.join(this.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME);
+        let settingsFileExists: boolean;
+        try {
+            await promisify(fs.access)(settingsFilePath);
+            settingsFileExists = true;
+        }
+        catch (err) {
+            settingsFileExists = false;
+        }
+
+
+        if (settingsFileExists) {
+            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(settingsFilePath));
+        }
+        else if (this.type.type === ProjectType.Types.EXTENSION) {
+            // this is expected; https://github.com/eclipse/codewind/issues/649
+            vscode.window.showWarningMessage(`Application settings cannot be configured for ${this.type.toString()} projects.`);
+        }
+        else {
+            // fall-back in case the user deleted the file, or something.
+            vscode.window.showWarningMessage(`${settingsFilePath} does not exist or was not readable.`);
+        }
     }
 }

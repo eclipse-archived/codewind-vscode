@@ -65,8 +65,9 @@ export default class MCSocket implements vscode.Disposable {
             .on("connect",      this.connection.onConnect)      // non-nls
             .on("disconnect",   this.connection.onDisconnect)   // non-nls
 
-            // .on(SocketEvents.Types.PROJECT_CREATED,         this.onProjectCreated)
-            .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectCreated)
+            .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectBound)
+
+            .on(SocketEvents.Types.PROJECT_CREATED,         this.onProjectCreation)
             .on(SocketEvents.Types.PROJECT_CHANGED,         this.onProjectChanged)
             .on(SocketEvents.Types.PROJECT_STATUS_CHANGED,  this.onProjectStatusChanged)
             .on(SocketEvents.Types.PROJECT_CLOSED,          this.onProjectClosed)
@@ -92,7 +93,7 @@ export default class MCSocket implements vscode.Disposable {
         this.socket.disconnect();
     }
 
-    private readonly onProjectCreated = async (payload: { success: boolean; projectID?: string; error?: string; }): Promise<void> => {
+    private readonly onProjectBound = async (payload: { success: boolean; projectID?: string; error?: string; }): Promise<void> => {
         await this.connection.forceUpdateProjectList();
 
         if (payload.projectID) {
@@ -121,9 +122,15 @@ export default class MCSocket implements vscode.Disposable {
         }
     }
 
+    private readonly onProjectCreation = async (payload: any): Promise<void> => {
+        // https://github.com/eclipse/codewind/issues/720#issuecomment-543801321
+        // creation event is now, apparently, the same as changed event
+        this.onProjectChanged(payload);
+    }
+
     private readonly onProjectStatusChanged = async (payload: { projectID: string }): Promise<void> => {
         // Log.d("onProjectStatusChanged", payload);
-        // I don't see any reason why these should be handled differently
+        // portal emits the entire inf file with a statusChanged event, so we can treat this the same as projectChanged
         this.onProjectChanged(payload);
     }
 

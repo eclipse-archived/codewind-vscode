@@ -15,6 +15,7 @@ import { promisify } from "util";
 import * as fs from "fs";
 
 import Log from "./Logger";
+import Constants from "./constants/Constants";
 
 namespace MCUtil {
 
@@ -174,7 +175,7 @@ namespace MCUtil {
         ".projects",
         ".extensions",
         // project files
-        ".cw-settings",
+        Constants.PROJ_SETTINGS_FILE_NAME,
     ];
 
     /**
