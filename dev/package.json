@@ -94,30 +94,12 @@
                 }
             },
             {
-                "command": "%cmdID_startCodewind2%",
-                "title": "%cmdTitle_startCodewind%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/light/toggle_off_txt.svg",
-                    "dark": "res/img/dark/toggle_off_txt.svg"
-                }
-            },
-            {
                 "command": "%cmdID_stopCodewind%",
                 "title": "%cmdTitle_stopCodewind%",
                 "category": "%commandCategory%",
                 "icon": {
                     "light": "res/img/themeless/toggle_on.svg",
                     "dark": "res/img/themeless/toggle_on.svg"
-                }
-            },
-            {
-                "command": "%cmdID_stopCodewind2%",
-                "title": "%cmdTitle_stopCodewind%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/light/toggle_on_txt.svg",
-                    "dark": "res/img/dark/toggle_on_txt.svg"
                 }
             },
             {
@@ -137,12 +119,29 @@
             {
                 "command": "%cmdID_enableConnection%",
                 "title": "%cmdTitle_enableConnection%",
-                "category": "%commandCategory%"
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/themeless/toggle_off.svg",
+                    "dark": "res/img/themeless/toggle_off.svg"
+                }
             },
             {
                 "command": "%cmdID_disableConnection%",
                 "title": "%cmdTitle_disableConnection%",
-                "category": "%commandCategory%"
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/themeless/toggle_on.svg",
+                    "dark": "res/img/themeless/toggle_on.svg"
+                }
+            },
+            {
+                "command": "%cmdID_separator%",
+                "title": "%cmdTitle_separator%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/separator.svg",
+                    "dark": "res/img/dark/separator.svg"
+                }
             },
             {
                 "command": "%cmdID_removeConnection%",
@@ -163,8 +162,8 @@
                 "title": "%cmdTitle_bindProject%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/link.svg",
-                    "dark": "res/img/dark/link.svg"
+                    "light": "res/img/light/bind.svg",
+                    "dark": "res/img/dark/bind.svg"
                 }
             },
             {
@@ -177,8 +176,8 @@
                 "title": "%cmdTitle_connectionOverview%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/info.svg",
-                    "dark": "res/img/dark/info.svg"
+                    "light": "res/img/light/settings.svg",
+                    "dark": "res/img/dark/settings.svg"
                 }
             },
             {
@@ -189,11 +188,7 @@
             {
                 "command": "%cmdID_openTekton%",
                 "title": "%cmdTitle_openTekton%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/light/tekton.svg",
-                    "dark": "res/img/dark/tekton.svg"
-                }
+                "category": "%commandCategory%"
             },
             {
                 "command": "%cmdID_addProjToWorkspace%",
@@ -318,11 +313,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "%cmdID_startCodewind2%",
-                    "when": "never"
-                },
-                {
-                    "command": "%cmdID_stopCodewind2%",
+                    "command": "%cmdID_separator%",
                     "when": "never"
                 }
             ],
@@ -341,12 +332,7 @@
                 {
                     "command": "%cmdID_startCodewind%",
                     "when": "%isStoppedLocalCodewind%",
-                    "group": "inline@3"
-                },
-                {
-                    "command": "%cmdID_startCodewind2%",
-                    "when": "%isStoppedLocalCodewind%",
-                    "group": "inline@4"
+                    "group": "inline@9"
                 },
                 {
                     "command": "%cmdID_stopCodewind%",
@@ -356,17 +342,7 @@
                 {
                     "command": "%cmdID_stopCodewind%",
                     "when": "%isStartedLocalCodewind%",
-                    "group": "inline@3"
-                },
-                {
-                    "command": "%cmdID_stopCodewind2%",
-                    "when": "%isStartedLocalCodewind%",
-                    "group": "inline@4"
-                },
-                {
-                    "command": "%cmdID_removeImages%",
-                    "when": "%isStoppedLocalCodewind%",
-                    "group": "ext.cw.cwstatus.b@0"
+                    "group": "inline@9"
                 },
                 {
                     "command": "%cmdID_enableConnection%",
@@ -374,9 +350,29 @@
                     "group": "ext.cw.conn.a@0"
                 },
                 {
+                    "command": "%cmdID_enableConnection%",
+                    "when": "%isDisabledRemoteConnection%",
+                    "group": "inline@9"
+                },
+                {
                     "command": "%cmdID_disableConnection%",
                     "when": "%isEnabledRemoteConnection%",
                     "group": "ext.cw.conn.a@0"
+                },
+                {
+                    "command": "%cmdID_disableConnection%",
+                    "when": "%isEnabledRemoteConnection%",
+                    "group": "inline@9"
+                },
+                {
+                    "command": "%cmdID_separator%",
+                    "when": "%isConnection%",
+                    "group": "inline@8"
+                },
+                {
+                    "command": "%cmdID_removeImages%",
+                    "when": "%isStoppedLocalCodewind%",
+                    "group": "ext.cw.cwstatus.b@0"
                 },
                 {
                     "command": "%cmdID_newProject%",

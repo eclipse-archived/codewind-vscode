@@ -40,6 +40,10 @@
     "cmdID_disableConnection": "ext.cw.disableConnection",
     "cmdTitle_disableConnection": "Disconnect",
 
+    "// The separator is a fake command just used for display purposes. Clicking should have no effect" : "",
+    "cmdID_separator": "ext.cw.separator",
+    "cmdTitle_separator": "Separator",
+
     "cmdID_setRegistry": "ext.cw.setRegistry",
     "cmdTitle_setRegistry": "Set Deployment Registry",
 

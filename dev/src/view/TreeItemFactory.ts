@@ -72,15 +72,17 @@ namespace TreeItemFactory {
         const collapsibleState = connection.state.hasChildrenInTree ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
         // change ID so it refreshes the collapsiblestate
         const id = `${connection.label}.${connection.state.hasChildrenInTree ? "connected" : "disconnected"}`;
-        const iconPath = Resources.getIconPaths(Resources.Icons.LocalProjects);
+
+        const icon = connection.isConnected ? Resources.Icons.ConnectionConnected : Resources.Icons.ConnectionDisconnected;
+        const iconPath = Resources.getIconPaths(icon);
 
         return {
-            label: connection.label,
             collapsibleState,
-            id,
-            tooltip: `${connection.enabled ? "" : "[Disabled] "}${connection.url}`,
             contextValue: TreeItemContext.getConnectionContext(connection),
             iconPath,
+            id,
+            label: connection.label,
+            tooltip: `${connection.enabled ? "" : "[Disabled] "}${connection.url}`,
         };
     }
 

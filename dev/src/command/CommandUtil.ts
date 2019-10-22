@@ -56,13 +56,13 @@ export function createCommands(): vscode.Disposable[] {
     // - undefined (if run from command palette)
     // - or the user's selected TreeView object (if run from the context menu) -> IE either a Project or Connection
     return [
-        // vscode.commands.registerCommand(Commands.ACTIVATE_CONNECTION, () => activateConnectionCmd()),
-        // vscode.commands.registerCommand(Commands.DEACTIVATE_CONNECTION, (selection) => deactivateConnectionCmd(selection)),
         vscode.commands.registerCommand(Commands.START_LOCAL_CODEWIND,  connectLocalCodewindCmd),
-        vscode.commands.registerCommand(Commands.START_CODEWIND_2,      connectLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.STOP_LOCAL_CODEWIND,   stopLocalCodewindCmd),
-        vscode.commands.registerCommand(Commands.STOP_CODEWIND_2,       stopLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
+
+        // the separator is just for display purposes and has no command bound to it
+        // tslint:disable-next-line: no-empty
+        vscode.commands.registerCommand(Commands.SEPARATOR, () => {}),
 
         vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
         registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined, false, true),

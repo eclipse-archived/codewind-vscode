@@ -17,15 +17,11 @@ enum Commands {
     REMOVE_CONNECTION = "ext.cw.removeConnection",
     ENABLE_CONNECTION = "ext.cw.enableConnection",
     DISABLE_CONNECTION = "ext.cw.disableConnection",
+    SEPARATOR = "ext.cw.separator",
 
     START_LOCAL_CODEWIND = "ext.cw.startCodewind",
     STOP_LOCAL_CODEWIND = "ext.cw.stopCodewind",
     REMOVE_LOCAL_IMAGES = "ext.cw.removeImages",
-
-    // These "commands" are the same as START and STOP_CODEWIND,
-    // but are registered separately with the "On/Off" icons so we can have the two inline buttons (which do the same thing)
-    START_CODEWIND_2 = "ext.cw.startCodewind2",
-    STOP_CODEWIND_2 = "ext.cw.stopCodewind2",
 
     REFRESH_CONNECTION = "ext.cw.refreshConnection",
     SET_REGISTRY = "ext.cw.setRegistry",
