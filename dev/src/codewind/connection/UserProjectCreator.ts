@@ -29,29 +29,21 @@ export interface ICWTemplateData {
     source?: string;
 }
 
-interface IProjectTypeInfo {
+interface IDetectedProjectType {
     language: string;
     projectType: string;
-}
-
-interface IProjectTypeExtendedInfo extends IProjectTypeInfo {
-    projectSubtype: string | undefined;
+    projectSubtype?: string;
 }
 
 export interface IInitializationResponse {
     status: string;
-    result: IProjectTypeInfo | string | { error: string };
+    result: IDetectedProjectType | string | { error: string };
     projectPath: string;
 }
 
 interface INewProjectInfo {
     projectName: string;
     projectPath: string;
-}
-
-interface IProjectTypeQuickPickItem extends vscode.QuickPickItem {
-    projectType: string;
-    index: number;
 }
 
 /**
@@ -63,14 +55,7 @@ namespace UserProjectCreator {
         connection: Connection, template: ICWTemplateData, parentDir: vscode.Uri, projectName: string): Promise<INewProjectInfo> {
 
         const projectPath = path.join(parentDir.fsPath, projectName);
-
-        const creationRes = await vscode.window.withProgress({
-            cancellable: false,
-            location: vscode.ProgressLocation.Notification,
-            title: `Creating ${projectName}...`,
-        }, () => {
-            return CLIWrapper.createProject(projectPath, template.url);
-        });
+        const creationRes = await CLIWrapper.createProject(projectPath, projectName, template.url);
 
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
@@ -78,7 +63,7 @@ namespace UserProjectCreator {
             throw new Error(failedResult);
         }
 
-        const projectTypeInfo = creationRes.result as IProjectTypeInfo;
+        const projectTypeInfo = creationRes.result as IDetectedProjectType;
         // const targetDir = vscode.Uri.file(creationRes.projectPath);
         const targetDir = creationRes.projectPath;
 
@@ -87,18 +72,18 @@ namespace UserProjectCreator {
         return { projectName, projectPath: creationRes.projectPath };
     }
 
-    export async function validateAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
+    export async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
         const pathToBind = pathToBindUri.fsPath;
         Log.i("Binding to", pathToBind);
 
         const projectName = path.basename(pathToBind);
-        const validateRes = await requestValidate(pathToBind);
+        const validateRes = await detectProjectType(pathToBind);
         if (validateRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (validateRes.result as { error: string });
             throw new Error(failedResult.error);
         }
-        let projectTypeInfo = validateRes.result as IProjectTypeExtendedInfo;
+        let projectTypeInfo = validateRes.result as IDetectedProjectType;
 
         // if the detection returned the fallback type, or if the user says the detection is wrong
         let detectionFailed: boolean = false;
@@ -136,34 +121,16 @@ namespace UserProjectCreator {
         // validate once more with detected type and subtype (if defined),
         // to run any extension defined command involving subtype
         if (projectTypeInfo.projectSubtype) {
-            await requestValidate(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
+            await detectProjectType(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
         }
         return bind(connection, projectName, pathToBind, projectTypeInfo);
     }
 
     async function bind(connection: Connection, projectName: string,
-                        pathToBind: string, projectTypeInfo: IProjectTypeInfo):
+                        pathToBind: string, projectTypeInfo: IDetectedProjectType):
                         Promise<INewProjectInfo | undefined> {
-        // if (connection.remote) {
-            return bindRemote(connection, projectName, pathToBind, projectTypeInfo);
-        // } else {
-        // return bindLocal(connection, projectName, pathToBind, projectTypeInfo);
-        // }
-    }
 
-    /*
-    async function bindLocal(connection: Connection, projectName: string,
-                             pathToBind: string, projectTypeInfo: IProjectTypeInfo):
-                             Promise<INewProjectInfo | undefined> {
-
-        await requestLocalBind(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
-        return { projectName, projectPath: pathToBind };
-    }
-    */
-
-    async function bindRemote(connection: Connection, projectName: string,
-                              pathToBind: string, projectTypeInfo: IProjectTypeInfo):
-                              Promise<INewProjectInfo | undefined> {
+        // All of this has to be removed and replaced wth CLIWrapper.bind
         const syncTime = Date.now();
         const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         const projectID = projectInfo.projectID;
@@ -174,7 +141,7 @@ namespace UserProjectCreator {
         // Set the last sync time on the project so we don't upload
         // all the files again on the first build.
         if (project !== undefined) {
-            project._lastSync = syncTime;
+            await project.sync();
         }
         Log.i(`Initial project upload complete for ${projectInfo.name} to ${connection.host} in ${Date.now() - syncTime}ms`);
         return { projectName, projectPath: pathToBind };
@@ -185,7 +152,7 @@ namespace UserProjectCreator {
     /**
      * When detection fails, have the user select the project type that fits best.
      */
-    async function promptForProjectType(connection: Connection, detected: IProjectTypeInfo): Promise<IProjectTypeExtendedInfo | undefined> {
+    async function promptForProjectType(connection: Connection, detected: IDetectedProjectType): Promise<IDetectedProjectType | undefined> {
         Log.d("Prompting user for project type");
         const projectTypes = await vscode.window.withProgress({
             cancellable: false,
@@ -194,7 +161,9 @@ namespace UserProjectCreator {
         }, () => {
             return Requester.getProjectTypes(connection);
         });
-        const projectTypeQpis: IProjectTypeQuickPickItem[] = [];
+
+        const projectTypeQpis: Array<vscode.QuickPickItem & { projectType: string; index: number; }> = [];
+
         let dockerType;
         projectTypes.forEach((type, index) => {
             if (type.projectType === ProjectType.InternalTypes.DOCKER) {
@@ -329,16 +298,10 @@ namespace UserProjectCreator {
         return language.id;
     }
 
-    async function requestValidate(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
-        const validateResponse = await vscode.window.withProgress({
-            title: `Processing ${pathToBind}...`,
-            location: vscode.ProgressLocation.Notification,
-            cancellable: false,
-        }, () => {
-            return CLIWrapper.validateProjectDirectory(pathToBind, desiredType);
-        });
-        Log.d("validate response", validateResponse);
-        return validateResponse;
+    async function detectProjectType(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
+        const detectResponse = await CLIWrapper.detectProjectType(pathToBind, desiredType);
+        Log.d("Detection response", detectResponse);
+        return detectResponse;
     }
 
     export async function promptForDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {

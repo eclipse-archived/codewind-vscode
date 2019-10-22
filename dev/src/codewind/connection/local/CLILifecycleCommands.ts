@@ -16,10 +16,13 @@ const TAG_PLACEHOLDER = `$tag$`;
 
 export class CLILifecycleCommand extends CLICommand {
     constructor(
-        public readonly command: string,
+        public readonly command: string[],
         public readonly cancellable: boolean,
         public readonly userActionName: string,
         public readonly usesTag: boolean,
+        /**
+         * The states that the Codewind tree item goes through when this command runs
+         */
         public readonly transitionStates?: {
             during?: CodewindStates | undefined,
             after?: CodewindStates | undefined,
@@ -42,22 +45,22 @@ export class CLILifecycleCommand extends CLICommand {
 // tslint:disable-next-line: variable-name
 export const CLILifecycleCommands = {
     INSTALL:
-        new CLILifecycleCommand("install", true, `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`, true, {
+        new CLILifecycleCommand([ "install" ], true, `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`, true, {
             during: CodewindStates.INSTALLING,
             onError: CodewindStates.ERR_INSTALLING,
         }),
     START:
-        new CLILifecycleCommand("start", true, `Starting Codewind ${TAG_PLACEHOLDER}`, true, {
+        new CLILifecycleCommand([ "start" ], true, `Starting Codewind ${TAG_PLACEHOLDER}`, true, {
             during: CodewindStates.STARTING,
             onError: CodewindStates.ERR_STARTING,
             after: CodewindStates.STARTED,
         }),
     STOP:
-        new CLILifecycleCommand("stop-all", true, "Stopping Codewind", false, {
+        new CLILifecycleCommand([ "stop-all" ], true, "Stopping Codewind", false, {
             during: CodewindStates.STOPPING,
             onError: CodewindStates.STARTED,
             after: CodewindStates.STOPPED,
         }),
     REMOVE:
-        new CLILifecycleCommand("remove", true, `Removing Codewind ${TAG_PLACEHOLDER} and project images`, true),
+        new CLILifecycleCommand([ "remove" ], true, `Removing Codewind ${TAG_PLACEHOLDER} and project images`, true),
 };

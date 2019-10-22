@@ -21,8 +21,9 @@ import Log from "../../Logger";
 import { IInitializationResponse } from "./UserProjectCreator";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
 import Commands from "../../constants/Commands";
-import { CLICommand, CLICommands, ARG_PROJECT_CREATE } from "./CLICommands";
+import { CLICommand, CLICommands } from "./CLICommands";
 import { CLILifecycleCommands, CLILifecycleCommand } from "./local/CLILifecycleCommands";
+import Project from "../project/Project";
 
 const BIN_DIR = "bin";
 const CLI_EXECUTABLE = "cwctl";
@@ -33,6 +34,41 @@ const CLI_PREREQS: { [s: string]: string[]; } = {
 };
 
 namespace CLIWrapper {
+
+    export async function createProject(projectPath: string, projectName: string, url: string): Promise<IInitializationResponse> {
+        return cliExec(CLICommands.CREATE, [ projectPath, "--url", url ], `Creating ${projectName}...`) as Promise<IInitializationResponse>;
+    }
+
+    export async function detectProjectType(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
+        const args = [ projectPath ];
+        if (desiredType) {
+            args.push("--type", desiredType);
+        }
+        return cliExec(CLICommands.CREATE, args, `Processing ${projectPath}...`) as Promise<IInitializationResponse>;
+    }
+
+    export async function sync(project: Project): Promise<void> {
+        await cliExec(CLICommands.SYNC, [
+            "--path", project.localPath.fsPath,
+            "--id", project.id,
+            "--time", project.lastSync.toString()
+        ]);
+    }
+
+    /*
+    export async function bind(projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<string> {
+        const bindRes = await cliExec(CLICommands.BIND, [
+            "--name", projectName,
+            "--language", detectedType.language,
+            "--type", detectedType.projectType,
+            "--path", projectPath,
+        ]);
+
+        return bindRes.projectID;
+    }
+    */
+
+
     // check error against this to see if it's a real error or just a user cancellation
     export const CLI_CMD_CANCELLED = "Cancelled";
 
@@ -81,26 +117,10 @@ namespace CLIWrapper {
         return initialize();
     }
 
-    // serves as a lock, only one operation at a time.
-    let currentOperation: CLICommand | undefined;
-
-    export function isRunning(): boolean {
-        return currentOperation !== undefined;
-    }
-
-    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
-
-    /**
-     * @param tagOverride - If the command should be run against a tag other than the one determined by getTag
-     */
-    export async function cliExec(cmd: CLICommand, args: string[], progressPrefix?: string): Promise<void | IInitializationResponse> {
+    export async function cliExec(cmd: CLICommand, args: string[], progressPrefix?: string): Promise<any> {
         const executablePath = await initialize();
-        if (isRunning()) {
-            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
-            throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
-        }
 
-        args.unshift(cmd.command);
+        args = cmd.command.concat(args);
 
         Log.i(`Running CLI command: ${args.join(" ")}`);
 
@@ -112,13 +132,11 @@ namespace CLIWrapper {
             title: progressPrefix,
         }, (progress, token) => {
             return new Promise<any>((resolve, reject) => {
-                currentOperation = cmd;
-
                 const child = child_process.spawn(executablePath, args, {
                     cwd: executableDir
                 });
 
-                // only lifecycle commands show progress, for now
+                // only lifecycle commands show updating progress, for now
                 if (cmd instanceof CLILifecycleCommand) {
                     CLILifecycleWrapper.updateProgress(cmd, child.stdout, progress);
                 }
@@ -152,7 +170,7 @@ namespace CLIWrapper {
                         reject(errStr);
                     }
                     else {
-                        Log.i(`Successfully ran CLI command ${cmd.command}`);
+                        Log.i(`Successfully ran CLI command ${cmd.command.join(" ")}`);
                         if (cmd.hasJSONOutput) {
                             Log.d("CLI object output:", outStr);
                             const obj = JSON.parse(outStr);
@@ -161,8 +179,7 @@ namespace CLIWrapper {
                         return resolve(outStr);
                     }
                 });
-            })
-            .finally(() => currentOperation = undefined);
+            });
         });
     }
 
@@ -186,18 +203,6 @@ namespace CLIWrapper {
             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
         }
         Log.e("Wrote failed command output to " + logDir);
-    }
-
-    export async function createProject(projectPath: string, url: string): Promise<IInitializationResponse> {
-        return cliExec(CLICommands.PROJECT, [ ARG_PROJECT_CREATE, projectPath, "--url", url ]) as Promise<IInitializationResponse>;
-    }
-
-    export async function validateProjectDirectory(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
-        const args = [ ARG_PROJECT_CREATE, projectPath ];
-        if (desiredType) {
-            args.push("--type", desiredType);
-        }
-        return cliExec(CLICommands.PROJECT, args) as Promise<IInitializationResponse>;
     }
 }
 

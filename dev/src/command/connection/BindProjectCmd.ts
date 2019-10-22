@@ -33,7 +33,7 @@ export default async function bindProject(connection: Connection): Promise<void>
             return;
         }
 
-        const response = await UserProjectCreator.validateAndBind(connection, dirToBindUri);
+        const response = await UserProjectCreator.detectAndBind(connection, dirToBindUri);
         if (response == null) {
             return;
         }

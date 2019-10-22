@@ -11,7 +11,7 @@
 
 export class CLICommand {
     constructor(
-        public readonly command: string,
+        public readonly command: string[],
         public readonly cancellable: boolean,
         public readonly hasJSONOutput: boolean
     ) {
@@ -21,7 +21,9 @@ export class CLICommand {
 
 // tslint:disable-next-line: variable-name
 export const CLICommands = {
-    PROJECT: new CLICommand("project", false, true),
+    CREATE: new CLICommand([ "project", "create" ], false, true),
+    SYNC: new CLICommand([ "project", "sync" ], false, false),
+    BIND: new CLICommand([ "project", "bind" ], false, true)
 };
 
 export const ARG_PROJECT_CREATE = "create";

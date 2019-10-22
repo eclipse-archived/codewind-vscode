@@ -46,7 +46,7 @@ export default class LocalCodewindManager {
     }
 
     public get isStarted(): boolean {
-        return this._state === CodewindStates.STARTED;
+        return this._state === CodewindStates.STARTED || this._state === CodewindStates.STOPPING;
     }
 
     public get state(): CodewindStates {

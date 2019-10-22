@@ -89,7 +89,21 @@ export namespace CLILifecycleWrapper {
         return status;
     }
 
+    // serves as a lock, only one operation at a time.
+    let currentOperation: CLILifecycleCommand | undefined;
+
+    export function isRunning(): boolean {
+        return currentOperation !== undefined;
+    }
+
+    const ALREADY_RUNNING_WARNING = "Please wait for the current operation to finish.";
+
     async function runLifecycleCmd(cmd: CLILifecycleCommand, tagOverride?: string): Promise<void> {
+        if (currentOperation) {
+            vscode.window.showWarningMessage(ALREADY_RUNNING_WARNING);
+            throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
+        }
+
         const args = [];
         const tag = tagOverride || getTag();
         if (tagOverride || cmd.usesTag) {
@@ -115,6 +129,7 @@ export namespace CLILifecycleWrapper {
         }
 
         try {
+            currentOperation = cmd;
             await CLIWrapper.cliExec(cmd, args, progressTitle);
         }
         catch (err) {
@@ -125,11 +140,13 @@ export namespace CLILifecycleWrapper {
             else if (transitionStates && transitionStates.onError) {
                 LocalCodewindManager.instance.changeState(transitionStates.onError);
             }
+            currentOperation = undefined;
             throw err;
         }
         if (transitionStates && transitionStates.after) {
             LocalCodewindManager.instance.changeState(transitionStates.after);
         }
+        currentOperation = undefined;
     }
 
     export async function getCodewindUrl(): Promise<vscode.Uri | undefined> {
