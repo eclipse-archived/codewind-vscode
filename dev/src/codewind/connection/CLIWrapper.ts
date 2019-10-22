@@ -172,6 +172,10 @@ namespace CLIWrapper {
                     else {
                         Log.i(`Successfully ran CLI command ${cmd.command.join(" ")}`);
                         if (cmd.hasJSONOutput) {
+                            if (!outStr) {
+                                Log.e(`Missing expected output from CLI command, output was "${outStr}"`);
+                                return resolve({});
+                            }
                             Log.d("CLI object output:", outStr);
                             const obj = JSON.parse(outStr);
                             return resolve(obj);

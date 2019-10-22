@@ -38,7 +38,7 @@ interface IDetectedProjectType {
 export interface IInitializationResponse {
     status: string;
     result: IDetectedProjectType | string | { error: string };
-    projectPath: string;
+    projectPath?: string;
 }
 
 interface INewProjectInfo {
@@ -59,17 +59,21 @@ namespace UserProjectCreator {
 
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
-            const failedResult = (creationRes.result as any).error || creationRes.result as string;
-            throw new Error(failedResult);
+            let failedReason = `Unknown error creating ${projectName} at ${projectPath}`;
+            try {
+                failedReason = (creationRes.result as any).error || creationRes.result as string;
+            }
+            // tslint:disable-next-line: no-empty
+            catch (err) {}
+            throw new Error(failedReason);
         }
 
         const projectTypeInfo = creationRes.result as IDetectedProjectType;
         // const targetDir = vscode.Uri.file(creationRes.projectPath);
-        const targetDir = creationRes.projectPath;
 
         // create succeeded, now we bind
-        await bind(connection, projectName, targetDir, projectTypeInfo);
-        return { projectName, projectPath: creationRes.projectPath };
+        await bind(connection, projectName, projectPath, projectTypeInfo);
+        return { projectName, projectPath };
     }
 
     export async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri): Promise<INewProjectInfo | undefined> {
