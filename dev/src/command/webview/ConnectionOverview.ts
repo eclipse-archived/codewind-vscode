@@ -145,7 +145,7 @@ export default class ConnectionOverview {
                         }
                         catch (err) {
                             // the err from createNewConnection is user-friendly
-                            Log.e(`Error creating new connection from info: ${JSON.stringify(newInfo)}`);
+                            Log.e(`Error creating new connection from info: ${JSON.stringify(newInfo)}`, err);
                             vscode.window.showErrorMessage(`Error creating new connection: ${MCUtil.errToString(err)}`);
                         }
                     }
@@ -185,9 +185,10 @@ export default class ConnectionOverview {
         }
     }
 
+
     /**
      * Tries to create a new connection from the given info.
-     * Throws user-friendly error message if it fails, or returns the new Connection if it succeeds.
+     * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
     private async createNewConnection(info: IConnectionInfoFields): Promise<RemoteConnection> {
         // TODO change to https
@@ -201,28 +202,44 @@ export default class ConnectionOverview {
         }
 
         const ingressUrl = vscode.Uri.parse(withProtocol);
-        const canPing = await Requester.ping(ingressUrl);
-        if (!canPing) {
-            throw new Error(`Failed to contact ${ingressUrl}. Make sure the URL is reachable.`);
-        }
 
-        // let envData: CWEnvData | undefined;
-        try {
-            // envData = await CWEnvironment.getEnvData(ingressUrl);
-            await CWEnvironment.getEnvData(ingressUrl);
-        }
-        catch (err) {
-            if (err instanceof StatusCodeError) {
-                if (err.statusCode === 404) {
-                    throw new Error(`Received 404 error; ${ingressUrl} does not appear to point to a Codewind instance.`);
-                }
+        await vscode.window.withProgress(({
+            cancellable: true,
+            location: vscode.ProgressLocation.Notification,
+            title: `Connecting to ${ingressUrl}...`
+        }), async (): Promise<void> => {
+
+            const canPing = await Requester.ping(ingressUrl);
+
+            if (!canPing) {
+                throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
             }
-            // Other errors to anticipate?
-        }
 
-        // Version check?
+            // let envData: CWEnvData | undefined;
+            try {
+                // envData = await CWEnvironment.getEnvData(ingressUrl);
+                await CWEnvironment.getEnvData(ingressUrl);
+            }
+            catch (err) {
+                if (err instanceof StatusCodeError) {
+                    if (err.statusCode === 404) {
+                        throw new Error(`Received 404 error; ${ingressUrl} does not appear to point to a Codewind instance.`);
+                    }
+                }
+                // Other errors to anticipate?
+            }
 
-        return await ConnectionManager.instance.connectRemote(ingressUrl, { label: this.label, ...info });
+            // Version check?
+        });
+
+
+        return vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Creating new connection...`,
+        }, () => {
+            return ConnectionManager.instance.connectRemote(ingressUrl, { label: this.label, ...info });
+        });
     }
 
 }

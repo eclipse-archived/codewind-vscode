@@ -78,7 +78,7 @@ namespace Requester {
             url = url.toString();
         }
         try {
-            await request.get(url, { resolveWithFullResponse: true });
+            await request.get(url, { resolveWithFullResponse: true, timeout: 10000 });
             // It succeeded
             return true;
         }
