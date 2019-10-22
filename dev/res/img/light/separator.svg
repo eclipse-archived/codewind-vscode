@@ -8,5 +8,5 @@
     height="8px" viewBox="0 0 8 8" preserveAspectRatio="xMidYMid meet" id="svg_document">
     <title id="svg_document_title">separator.svg</title>
     <defs id="svg_document_defs"></defs>
-    <line stroke="#222222" id="line1" stroke-width=".25px" x1="4px" y1="0px" x2="4px" y2="8px" transform=""></line>
+    <line stroke="#000" id="line1" stroke-width=".25px" x1="4px" y1="0px" x2="4px" y2="8px" transform=""></line>
 </svg>
