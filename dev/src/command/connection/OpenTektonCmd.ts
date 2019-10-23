@@ -18,11 +18,6 @@ import Commands from "../../constants/Commands";
 import CWEnvironment from "../../codewind/connection/CWEnvironment";
 
 export async function openTektonDashboard(connection: Connection): Promise<void> {
-    if (!global.isTheia) {
-        vscode.window.showWarningMessage("This command does not apply to local Codewind.");
-        return;
-    }
-
     try {
         const tektonStatus = (await CWEnvironment.getEnvData(connection.url)).tektonStatus;
 

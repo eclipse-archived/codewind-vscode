@@ -14,7 +14,8 @@ import * as vscode from "vscode";
 import Resources from "../../constants/Resources";
 import Commands from "../../constants/Commands";
 import { ProjectOverviewWVMessages, IWVOpenable } from "./ProjectOverviewPage";
-import { ManageReposWVMessages, IRepoEnablement } from "../connection/ManageTemplateReposCmd";
+import { ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
+import { ConnectionOverviewWVMessages } from "./ConnectionOverview";
 
 const RESOURCE_SCHEME = "vscode-resource:";
 
@@ -31,11 +32,8 @@ namespace WebviewUtil {
     }
 
     export interface IWVMessage {
-        type: ProjectOverviewWVMessages | ManageReposWVMessages;
-        data:
-            IWVOpenable |           // used by project overview
-            IRepoEnablement |  // used by repo management
-            string;
+        type: ProjectOverviewWVMessages | ManageReposWVMessages | ConnectionOverviewWVMessages;
+        data: any;
     }
 
     export async function onRequestOpen(msg: WebviewUtil.IWVMessage): Promise<void> {

@@ -14,66 +14,120 @@ import * as vscode from "vscode";
 import Project from "../project/Project";
 import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
 import MCSocket from "./MCSocket";
-import CodewindManager, { OnChangeCallbackArgs } from "./CodewindManager";
 import Log from "../../Logger";
-import Translator from "../../constants/strings/translator";
-import StringNamespaces from "../../constants/strings/StringNamespaces";
-import CWEnvironment, { CWEnvData } from "./CWEnvironment";
+import CWEnvironment from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
 import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
+import LocalCodewindManager from "./local/LocalCodewindManager";
+import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
+import CLIWrapper from "./CLIWrapper";
+import { ConnectionStates, ConnectionState } from "./ConnectionState";
+import * as requestErrors from "request-promise-native/errors";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
     public readonly host: string;
 
-    public readonly workspacePath: vscode.Uri;
-    public readonly versionStr: string;
-
-    public readonly socket: MCSocket;
+    protected cwVersion: string = CWEnvironment.UNKNOWN_VERSION;
+    protected _state: ConnectionState;
+    protected _socket: MCSocket | undefined;
 
     private fileWatcher: FileWatcher | undefined;
-    public readonly initFileWatcherPromise: Promise<void>;
+    public readonly initPromise: Promise<void>;
 
     private hasConnected: boolean = false;
-    // Is this connection CURRENTLY connected
-    private _isConnected: boolean = false;
 
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
 
+    private _isRegistrySet: boolean = false;
+
     constructor(
         public readonly url: vscode.Uri,
-        cwEnv: CWEnvData,
+        public readonly label: string,
+        public readonly isRemote: boolean,
     ) {
-        this.socket = new MCSocket(this, cwEnv.socketNamespace);
-        this.workspacePath = vscode.Uri.file(cwEnv.workspace);
-        this.versionStr = CWEnvironment.getVersionAsString(cwEnv.version);
+        this._state = ConnectionStates.NETWORK_ERROR;
         this.host = this.getHost(url);
-
         // caller must await on this promise before expecting this connection to function correctly
-        // it does happen very quickly (< 1s) but be aware of potential race here
-        this.initFileWatcherPromise = this.initFileWatcher();
+        this.initPromise = this.enable();
+    }
 
-        Log.i(`Created new Connection @ ${this}, workspace ${this.workspacePath}`);
+    public get enabled(): boolean {
+        return this._socket != null;
+    }
+
+    public get state(): ConnectionState {
+        return this._state;
+    }
+
+    public get isConnected(): boolean {
+        return this._state.isConnected;
+    }
+
+    protected async enable(): Promise<void> {
+        Log.i(`Enable connection ${this.url}`);
+
+        try {
+            const envData = await CWEnvironment.getEnvData(this.url);
+            this.cwVersion = envData.version;
+            // onConnect will be called on initial socket connect,
+            // which does the initial projects population and sets the state to Connected
+            this._socket = new MCSocket(this, envData.socketNamespace);
+            Log.d(`${this.url} has env data`, envData);
+        }
+        catch (err) {
+            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
+            // so the user sees the connection has to be re-connected by hand after fixing the problem
+            // This should only apply to remote connections
+            this._state = ConnectionStates.DISABLED;
+
+            if (err instanceof requestErrors.StatusCodeError) {
+                let errMsg: string = err.message;
+                if (err.statusCode === 404) {
+                    errMsg = `Codewind API was not found. Does "${this.url}" point to a running Codewind instance?`;
+                }
+                throw new Error(`Received status ${err.statusCode}: ${errMsg}`);
+            }
+            throw err;
+        }
+
+        const initFWProm = this.initFileWatcher();
+        await initFWProm;
+        this.onChange(this);
+    }
+
+    protected async disable(): Promise<void> {
+        Log.d("Disable connection " + this);
+
+        const fwDisposeProm = new Promise((resolve) => {
+            if (this.fileWatcher) {
+                this.fileWatcher.dispose();
+            }
+            resolve();
+        });
+
+        await Promise.all([
+            fwDisposeProm,
+            // disposing the socket will result in onDisconnect being called
+            this._socket ? this._socket.dispose() : Promise.resolve(),
+            this._projects.map((p) => p.dispose()),
+        ]);
+        this._socket = undefined;
+        this.fileWatcher = undefined;
+        this._projects = [];
+        this.onChange(this);
     }
 
     public async dispose(): Promise<void> {
-        Log.d("Destroy connection " + this);
-        if (this.fileWatcher) {
-            this.fileWatcher.dispose();
-            this.fileWatcher = undefined;
-        }
-        await Promise.all([
-            this.socket.dispose(),
-            this._projects.map((p) => p.dispose()),
-        ]);
+        return this.disable();
     }
 
     public toString(): string {
-        return `${this.url} ${this.versionStr}`;
+        return `${this.url} ${this.cwVersion}`;
     }
 
     private async initFileWatcher(): Promise<void> {
@@ -83,12 +137,13 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         Log.i("Establishing file watcher");
+        const cliPath = await CLIWrapper.getExecutablePath();
         return vscode.window.withProgress({
             title: "Establishing Codewind file watchers",
             cancellable: false,
             location: vscode.ProgressLocation.Window,
         }, (_progress) => {
-            return CreateFileWatcher(this.url.toString(), Log.getLogDir)
+            return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath)
             .then((fw: FileWatcher) => {
                 this.fileWatcher = fw;
                 FWLogSettings.getInstance().setOutputLogsToScreen(false);
@@ -125,25 +180,18 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             changed = this;
         }
         // Log.d(`Connection ${this.mcUri} changed`);
-        CodewindManager.instance.onChange(changed);
-    }
-
-    public get isConnected(): boolean {
-        return this._isConnected;
+        CodewindEventListener.onChange(changed);
+        if (!this.isRemote) {
+            CodewindEventListener.onChange(LocalCodewindManager.instance);
+        }
     }
 
     public onConnect = async (): Promise<void> => {
         Log.d(`${this} onConnect`);
-        if (this._isConnected) {
+        if (this.isConnected) {
             // we already know we're connected, nothing to do until we disconnect
             return;
         }
-
-        // if (!(await ConnectionManager.instance.verifyReconnect(this))) {
-        //     Log.i(`Connection has changed on reconnect! ${this} is no longer a valid Connection`);
-        //     // this connection gets destroyed
-        //     return;
-        // }
 
         if (this.hasConnected) {
             // things to do on reconnect, but not initial connect, go here
@@ -151,7 +199,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
         await Requester.waitForReady(this.url);
         this.hasConnected = true;
-        this._isConnected = true;
+        this._state = ConnectionStates.CONNECTED;
         Log.d(`${this} is now connected`);
         try {
             await this.forceUpdateProjectList();
@@ -165,11 +213,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public onDisconnect = async (): Promise<void> => {
         Log.d(`${this} onDisconnect`);
-        if (!this._isConnected) {
+        if (this._state === ConnectionStates.NETWORK_ERROR) {
             // we already know we're disconnected, nothing to do until we reconnect
             return;
         }
-        this._isConnected = false;
+        this._state = ConnectionStates.NETWORK_ERROR;
 
         this._projects.forEach((p) => p.onConnectionDisconnect());
         this._projects = [];
@@ -255,8 +303,45 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
     }
 
-    // QuickPickItem
-    public get label(): string {
-        return Translator.t(StringNamespaces.TREEVIEW, "connectionLabel", { uri: this.url });
+    /**
+     * Check if this connection has a docker registry set. It is not guaranteed to be valid or have valid credentials.
+     * Once this succeeds, it will be cached for the remainder of the VS Code session, so we don't have to check every time we create a project.
+     */
+    public async isRegistrySet(): Promise<boolean> {
+        if (this._isRegistrySet) {
+            return true;
+        }
+
+        let isRegistrySet: boolean = false;
+        if (!this.isRemote && !global.isTheia) {
+            // Local connections outside of Theia do not require a container registry
+            isRegistrySet = true;
+        }
+        else {
+            isRegistrySet = await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                cancellable: false,
+                title: "Checking deployment registry status..."
+            }, () => {
+                return Requester.isRegistrySet(this);
+            });
+        }
+
+        // cache this so we can skip this request for the remainder of the session
+        this._isRegistrySet = isRegistrySet;
+        return this._isRegistrySet;
+    }
+
+    public async setRegistry(registry: string): Promise<void> {
+        await Requester.configureRegistry(this, "set", registry);
+        this._isRegistrySet = true;
+    }
+
+    public get detail(): string {
+        return this.url.toString();
+    }
+
+    public get socketURI(): string | undefined {
+        return this._socket ? this._socket.uri : undefined;
     }
 }

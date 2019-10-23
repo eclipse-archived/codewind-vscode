@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 
 import Log from "../Logger";
-import CodewindManager from "../codewind/connection/CodewindManager";
+import ConnectionManager from "../codewind/connection/ConnectionManager";
 
 import SocketTestUtil from "./SocketTestUtil";
 import ProjectObserver from "./ProjectObserver";
@@ -22,6 +22,7 @@ import TestConfig from "./TestConfig";
 import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
 import TestUtil from "./TestUtil";
+import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 
 const extensionID = "IBM.codewind";
 Log.t(`Starting ${extensionID} tests`);
@@ -86,7 +87,7 @@ describe("Codewind for VSCode basic test", async function() {
         // await CodewindManager.instance.initPromise;
         await new Promise<void>((resolve) => {
             const interval = setInterval(() => {
-                if (CodewindManager.instance.isStarted) {
+                if (LocalCodewindManager.instance.isStarted) {
                     clearInterval(interval);
                     resolve();
                 }
@@ -96,7 +97,7 @@ describe("Codewind for VSCode basic test", async function() {
 
     it("should connect to the backend", async function() {
         this.timeout(10 * 1000);
-        const connMan = CodewindManager.instance;
+        const connMan = ConnectionManager.instance;
 
         expect(connMan.connections.length).to.eq(1, "No connection exists");
 
@@ -108,7 +109,7 @@ describe("Codewind for VSCode basic test", async function() {
 
     it("should have a test socket connection", async function() {
         expect(testConnection, "No Codewind connection").to.exist;
-        const socketUri = testConnection.socket.uri;
+        const socketUri = testConnection.socketURI!;
         const testSocket = await SocketTestUtil.createTestSocket(socketUri);
         expect(testSocket.connected, "Socket did not connect").to.be.true;
     });

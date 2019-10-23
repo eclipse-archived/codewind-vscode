@@ -11,18 +11,19 @@
 
 import * as vscode from "vscode";
 
-import InstallerWrapper from "../codewind/connection/InstallerWrapper";
+import CLIWrapper from "../codewind/connection/CLIWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
-import CodewindManager from "../codewind/connection/CodewindManager";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Translator from "../constants/strings/translator";
+import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
+import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrapper";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
 export default async function removeImagesCmd(): Promise<void> {
     try {
-        if (CodewindManager.instance.isStarted) {
+        if (LocalCodewindManager.instance.isStarted) {
             vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesBlockedStillRunning"));
             return;
         }
@@ -37,10 +38,10 @@ export default async function removeImagesCmd(): Promise<void> {
         }
 
         Log.i("Removing Codewind images");
-        await InstallerWrapper.removeAllImages();
+        await CLILifecycleWrapper.removeAllImages();
     }
     catch (err) {
-        if (!InstallerWrapper.isCancellation(err)) {
+        if (!CLIWrapper.isCancellation(err)) {
             Log.e("Error removing images", err);
             vscode.window.showErrorMessage("Error removing images: " + MCUtil.errToString(err));
         }

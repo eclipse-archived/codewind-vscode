@@ -15,46 +15,30 @@ import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import UserProjectCreator from "../../codewind/connection/UserProjectCreator";
-import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
-import { showOpenWorkspacePrompt } from "./CreateUserProjectCmd";
+import RegistryUtils from "../../codewind/connection/RegistryUtils";
 
 /**
  * @param create true for Create page, false for Import page
  */
 export default async function bindProject(connection: Connection): Promise<void> {
-    if (!(await isRegistrySet(connection))) {
-        onRegistryNotSet(connection);
+    if (!(await connection.isRegistrySet())) {
+        RegistryUtils.onRegistryNotSet(connection);
         return;
     }
 
     try {
-        const dirToBindUri = await UserProjectCreator.promptForDir("Add to Codewind", connection.workspacePath);
+        const defaultPath = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
+        const dirToBindUri = await UserProjectCreator.promptForDir("Add to Codewind", defaultPath);
         if (dirToBindUri == null) {
             return;
         }
-        if (dirToBindUri.fsPath === connection.workspacePath.fsPath) {
-            Log.d("User tried to bind entire workspace");
-            vscode.window.showErrorMessage(`You must select a project under the workspace; not the entire workspace.`);
-            return;
-        }
-        else if (!dirToBindUri.fsPath.startsWith(connection.workspacePath.fsPath)) {
-            Log.d(`${dirToBindUri.fsPath} is not under workspace ${connection.workspacePath.fsPath}`);
-            vscode.window.showErrorMessage(
-                `Currently, projects to be imported must be located under the workspace at ${connection.workspacePath.fsPath}`);
-            return;
-        }
-        const response = await UserProjectCreator.validateAndBind(connection, dirToBindUri);
+
+        const response = await UserProjectCreator.detectAndBind(connection, dirToBindUri);
         if (response == null) {
             return;
         }
 
-        const addedMsg = `Added ${MCUtil.containerPathToFsPath(response.projectPath)} as ${response.projectName}`;
-        if (await MCUtil.isUserInCwWorkspaceOrProject()) {
-            vscode.window.showInformationMessage(addedMsg);
-        }
-        else {
-            showOpenWorkspacePrompt(connection, addedMsg);
-        }
+        vscode.window.showInformationMessage(`Added ${MCUtil.containerPathToFsPath(response.projectPath)} as ${response.projectName}`);
     }
     catch (err) {
         const errMsg = "Error importing project: ";

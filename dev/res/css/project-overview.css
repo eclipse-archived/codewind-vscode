@@ -69,3 +69,12 @@ td > input[type="image"] {
 .bottom-padded {
     padding-bottom: 1em;
 }
+
+
+#bottom-section {
+    margin-top: 2em;
+}
+
+#bottom-section > .btn {
+    margin-right: 1.5em;
+}

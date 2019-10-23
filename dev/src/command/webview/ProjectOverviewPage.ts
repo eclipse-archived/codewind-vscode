@@ -83,7 +83,7 @@ function generateHtml(project: Project): string {
         </head>
         <body>
 
-        <div id="title">
+        <div class="title">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
             <h1>Project ${project.name}</h1>
         </div>
@@ -261,7 +261,10 @@ function buildDebugSection(project: Project): string {
     }
 
     let noDebugMsg;
-    if (!project.capabilities.supportsDebug) {
+    if (project.connection.isRemote) {
+        noDebugMsg = "Remote projects do not support debug.";
+    }
+    else if (!project.capabilities.supportsDebug) {
         noDebugMsg = `${project.type} projects do not support debug.`;
     }
 

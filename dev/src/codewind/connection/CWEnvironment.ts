@@ -12,14 +12,10 @@
  *******************************************************************************/
 
 import { Uri } from "vscode";
-import * as reqErrors from "request-promise-native/errors";
 
 import { MCEndpoints } from "../../constants/Endpoints";
 import Requester from "../project/Requester";
 import Log from "../../Logger";
-import Translator from "../../constants/strings/translator";
-import StringNamespaces from "../../constants/strings/StringNamespaces";
-import MCUtil from "../../MCUtil";
 
 // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
 interface RawCWEnvData {
@@ -29,7 +25,7 @@ interface RawCWEnvData {
     readonly running_in_k8s: boolean;
     readonly socket_namespace?: string;
     readonly user_string?: string;
-    readonly workspace_location?: string;
+    // readonly workspace_location?: string;
     readonly tekton_dashboard: TektonStatus;
 }
 
@@ -37,9 +33,9 @@ interface RawCWEnvData {
  * Massaged env data, which the plugin is actually interested in
  */
 export interface CWEnvData {
-    readonly workspace: string;
+    // readonly workspace: string;
     readonly socketNamespace: string;
-    readonly version: number;
+    readonly version: string;
     readonly tektonStatus: TektonStatus;
 }
 
@@ -50,6 +46,9 @@ export interface TektonStatus {
 }
 
 namespace CWEnvironment {
+
+    export const UNKNOWN_VERSION = "Unknown";
+
     /**
      * Get the environment data for a Codewind instance at the given url.
      * Separate from normal Requester code because we do not yet have a Connection instance at this point.
@@ -58,40 +57,31 @@ namespace CWEnvironment {
         const envUri: Uri = url.with({ path: MCEndpoints.ENVIRONMENT });
         const connectTimeout = 2500;
 
-        try {
-            const result = await Requester.get(envUri.toString(), { timeout: connectTimeout });
-            Log.d("Raw env data:", result);
-            return massageEnv(result);
-        }
-        catch (err) {
-            Log.i(`Connection ENV Request fail - ${err}`);
-            // With the new install/start being abstracted away from the user, they should not have to see this message.
-            if (err instanceof reqErrors.RequestError) {
-                throw new Error(Translator.t(StringNamespaces.DEFAULT, "connectFailed", { uri: url }));
-            }
-            throw err;
-        }
+        const result = await Requester.get(envUri.toString(), { timeout: connectTimeout });
+        Log.d("Raw env data:", result);
+        const massaged = massageEnv(result);
+        Log.i("Massaged ENV data", massaged);
+        return massaged;
     }
 
     function massageEnv(rawEnv: RawCWEnvData): CWEnvData {
-        // massage env data
-        const rawWorkspace = rawEnv.workspace_location;
+        // const rawWorkspace = rawEnv.workspace_location;
         const rawSocketNS = rawEnv.socket_namespace || "";
 
         // if (rawVersion == null) {
             // throw new Error("No version information was provided by Codewind.");
         // }
-        if (!rawWorkspace) {
-            throw new Error("No workspace information was provided by Codewind.");
-        }
-        const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
-        const version = CWEnvironment.getVersionNumber(rawEnv);
+        // if (!rawWorkspace) {
+            // throw new Error("No workspace information was provided by Codewind.");
+        // }
+        // const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
+        const version = rawEnv.codewind_version || UNKNOWN_VERSION;
 
         // normalize namespace so it doesn't start with '/'
         const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
 
         return {
-            workspace,
+            // workspace,
             version,
             socketNamespace,
             tektonStatus: rawEnv.tekton_dashboard,

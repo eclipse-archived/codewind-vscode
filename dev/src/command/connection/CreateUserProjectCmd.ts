@@ -16,20 +16,19 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import UserProjectCreator, { ICWTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
-import { isRegistrySet, onRegistryNotSet } from "../../codewind/connection/Registry";
-import openWorkspaceCmd from "../OpenWorkspaceCmd";
 import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
+import { CWConfigurations } from "../../constants/Configurations";
+import RegistryUtils from "../../codewind/connection/RegistryUtils";
 import Resources from "../../constants/Resources";
 
-const CREATE_PROJECT_WIZARD_TITLE = "Create a New Project";
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
 
 const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
 export default async function createProject(connection: Connection): Promise<void> {
-    if (!(await isRegistrySet(connection))) {
-        onRegistryNotSet(connection);
+    if (!(await connection.isRegistrySet())) {
+        RegistryUtils.onRegistryNotSet(connection);
         return;
     }
 
@@ -59,7 +58,7 @@ export default async function createProject(connection: Connection): Promise<voi
                 return;
             }
             try {
-                projectName = await promptForProjectName(template);
+                projectName = await promptForProjectName(connection, template);
                 if (projectName == null) {
                     return;
                 }
@@ -73,19 +72,47 @@ export default async function createProject(connection: Connection): Promise<voi
             }
         }
 
-        const response = await UserProjectCreator.createProject(connection, template, projectName);
+        // Get the parent directory to create the project under
+
+        let parentDir: vscode.Uri;
+        if (vscode.workspace.workspaceFolders && vscode.workspace.getConfiguration().get(CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE) === true) {
+            if (vscode.workspace.workspaceFolders.length === 1) {
+                parentDir = vscode.workspace.workspaceFolders[0].uri;
+            }
+            else {
+                const selection = await showWorkspaceFolderSelection();
+                if (!selection) {
+                    return undefined;
+                }
+                parentDir = selection;
+            }
+        }
+        else {
+            // Have the user select the parent dir from anywhere on disk
+            const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
+                vscode.workspace.workspaceFolders[0].uri : undefined;
+
+            const selection = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                defaultUri,
+                openLabel: "Select Parent Directory",
+            });
+
+            if (!selection) {
+                return undefined;
+            }
+            parentDir = selection[0];
+        }
+
+        const response = await UserProjectCreator.createProject(connection, template, parentDir, projectName);
         if (!response) {
             // user cancelled
             return;
         }
 
-        const createdMsg = `Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`;
-        if (await MCUtil.isUserInCwWorkspaceOrProject()) {
-            vscode.window.showInformationMessage(createdMsg);
-        }
-        else {
-            showOpenWorkspacePrompt(connection, createdMsg);
-        }
+        vscode.window.showInformationMessage(`Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`);
     }
     catch (err) {
         const errMsg = "Error creating new project: ";
@@ -94,14 +121,16 @@ export default async function createProject(connection: Connection): Promise<voi
     }
 }
 
-export async function showOpenWorkspacePrompt(connection: Connection, msg: string): Promise<void> {
-    const openWorkspaceBtn = "Open Workspace";
-    vscode.window.showInformationMessage(msg, openWorkspaceBtn)
-    .then((res) => {
-        if (res === openWorkspaceBtn) {
-            openWorkspaceCmd(connection);
-        }
+async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
+    const selection = await vscode.window.showWorkspaceFolderPick({
+        ignoreFocusOut: true,
+        placeHolder: "Select the parent directory for your new project",
     });
+
+    if (selection == null) {
+        return undefined;
+    }
+    return selection.uri;
 }
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
@@ -168,6 +197,10 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     return "selected";
 }
 
+function getWizardTitle(connection: Connection): string {
+    return `[${connection.label}] Create a New Project`;
+}
+
 const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
 
 async function promptForTemplate(connection: Connection): Promise<ICWTemplateData | undefined> {
@@ -186,7 +219,7 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     qp.canSelectMany = false;
     qp.step = 1;
     qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
-    qp.title = CREATE_PROJECT_WIZARD_TITLE;
+    qp.title = getWizardTitle(connection);
     qp.ignoreFocusOut = true;
 
     if (!global.isTheia) {
@@ -199,6 +232,7 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     const templateQpis = await getTemplateQpis(connection);
     if (templateQpis == null) {
         // getTemplateQpis will have shown the error message
+        qp.hide();
         return undefined;
     }
 
@@ -292,12 +326,12 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
     return templateQpis;
 }
 
-async function promptForProjectName(template: ICWTemplateData): Promise<string | undefined> {
+async function promptForProjectName(connection: Connection, template: ICWTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 
     const ib = vscode.window.createInputBox();
-    ib.title = CREATE_PROJECT_WIZARD_TITLE;
+    ib.title = getWizardTitle(connection);
     ib.step = 2;
     ib.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
     ib.buttons = [ vscode.QuickInputButtons.Back ];

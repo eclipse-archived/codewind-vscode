@@ -91,7 +91,10 @@ namespace Resources {
 
     export enum Icons {
         Logo = "codewind.svg",
-        Disconnected = "server_error.svg",
+        Connect = "connect.svg",
+        ConnectionConnected = "connection_connected.svg",
+        ConnectionDisconnected = "connection_disconnected.svg",
+        ServerError = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",
         Help = "help.svg",
@@ -105,6 +108,7 @@ namespace Resources {
         ToggleOnThin = "toggle_on_thin.svg",
         ToggleOffThin = "toggle_off_thin.svg",
         Trash = "trash.svg",
+        Warning = "warning.svg",
 
         Generic      = "project-types/cloud.svg",
         Go           = "project-types/go.svg",

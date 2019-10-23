@@ -23,7 +23,7 @@
         "dontDeleteDirBtn": "Don't Delete",
         "alwaysDeleteDirBtn": "Always",
         "neverDeleteDirBtn": "Never",
-        "refreshedConnection": "Refreshed Projects list.",
+        "refreshedConnection": "Refreshed {{ label }}",
         "projectAlreadyBuilding": "{{ projectName }} is already building. Build request cancelled.",
         "explicitBuildNotNecessary": "{{ projectName }} has auto-build enabled. There is no need to request a build.",
         "seeProblemsView": "See the Problems view for details.",
@@ -38,7 +38,7 @@
         "noProjToRunOnWithStates":
             "There is no {{ states }} Codewind project to run this command on.",
         "noConnToRunOn":
-            "The tools have not yet connected to Codewind. Ensure Codewind is started.",
+            "The tools have not yet connected to Codewind. Start Local Codewind, or connect to a remote instance.",
         "noConnOrProjToRunOn":
             "There is no Codewind connection or project to run this command on.",
         "noConnOrProjToRunOnWithStates":
@@ -131,8 +131,7 @@
 
     "treeView": {
         "connectionLabelSimple": "Projects",
-        "connectionLabel": "Projects ({{ type }})",
-        "connectionTypeLocal": "Local",
+        "connectionLabel": "Projects ({{ label }})",
         "notStartedConnectionLabel": "Codewind is stopped (Click to start)",
         "disconnectedConnectionLabel": "Disconnected",
         "projectLabel": "{{ projectName }} {{- state }}"

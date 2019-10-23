@@ -26,19 +26,6 @@ export default async function addProjectToWorkspaceCmd(project: Project): Promis
         return;
     }
 
-    // handle the case where the project folder is not a workspace root, but the project's connection is
-    if (wsFolders.some((wsf) => wsf.uri.fsPath === project.connection.workspacePath.fsPath)) {
-        const addAnywayButton = "Add Anyway";
-        const res = await vscode.window.showWarningMessage(
-            `${project.name} is already in your workspace under ${project.connection.workspacePath.fsPath}.`,
-            addAnywayButton
-        );
-
-        if (res !== addAnywayButton) {
-            return;
-        }
-    }
-
     const newWsFolder = {
         uri: project.localPath,
         index: wsFolders.length,

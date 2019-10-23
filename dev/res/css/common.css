@@ -9,7 +9,7 @@
     margin-right: 1em;
 }
 
-#title {
+.title {
     display: inline-flex;
     align-content: center;
     align-items: center;

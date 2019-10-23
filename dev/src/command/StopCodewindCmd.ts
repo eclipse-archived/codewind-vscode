@@ -11,18 +11,18 @@
 
 import * as vscode from "vscode";
 
-import InstallerWrapper from "../codewind/connection/InstallerWrapper";
+import CLIWrapper from "../codewind/connection/CLIWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
-import CodewindManager from "../codewind/connection/CodewindManager";
+import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 
-export default async function stopCodewindCmd(): Promise<void> {
+export default async function stopLocalCodewindCmd(): Promise<void> {
     try {
-        Log.i("Stopping Codewind");
-        await CodewindManager.instance.stopCodewind();
+        Log.i("Stopping Local Codewind");
+        await LocalCodewindManager.instance.stopCodewind();
     }
     catch (err) {
-        if (!InstallerWrapper.isCancellation(err)) {
+        if (!CLIWrapper.isCancellation(err)) {
             Log.e("Error stopping codewind", err);
             vscode.window.showErrorMessage("Error stopping Codewind: " + MCUtil.errToString(err));
         }

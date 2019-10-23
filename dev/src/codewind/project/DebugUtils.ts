@@ -14,7 +14,6 @@ import * as vscode from "vscode";
 import Project from "./Project";
 import Log from "../../Logger";
 import ProjectType from "./ProjectType";
-import Connection from "../connection/Connection";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 
@@ -86,7 +85,7 @@ export default class DebugUtils {
      * Returns a promise that resolves to whether or not a matching launch config was found and deleted.
      */
     public static async removeDebugLaunchConfigFor(project: Project): Promise<boolean> {
-        const workspaceConfig = this.getWorkspaceConfigFor(project.connection);
+        const workspaceConfig = this.getWorkspaceLaunchConfig(project);
         const launchConfigs = this.getLaunchConfigurationsFrom(workspaceConfig);
 
         const debugName = this.getDebugName(project);
@@ -138,8 +137,13 @@ export default class DebugUtils {
     private static readonly LAUNCH: string = "launch";                      // non-nls
     private static readonly CONFIGURATIONS: string = "configurations";      // non-nls
 
-    private static getWorkspaceConfigFor(connection: Connection): vscode.WorkspaceConfiguration {
-        return vscode.workspace.getConfiguration(DebugUtils.LAUNCH, connection.workspacePath);
+    private static getWorkspaceLaunchConfig(project: Project): vscode.WorkspaceConfiguration {
+        // Prefer the project's workspace folder if it exists, otherwise fall back to whatever is open
+        let workspaceFolder = vscode.workspace.getWorkspaceFolder(project.localPath);
+        if (!workspaceFolder) {
+            workspaceFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
+        }
+        return vscode.workspace.getConfiguration(DebugUtils.LAUNCH, workspaceFolder ? workspaceFolder.uri : undefined);
     }
 
     private static getLaunchConfigurationsFrom(workspaceConfig: vscode.WorkspaceConfiguration): vscode.DebugConfiguration[] {
@@ -170,7 +174,7 @@ export default class DebugUtils {
 
         let launchToWrite: vscode.DebugConfiguration | undefined;
 
-        const workspaceConfig = this.getWorkspaceConfigFor(project.connection);
+        const workspaceConfig = this.getWorkspaceLaunchConfig(project);
         const launchConfigs = this.getLaunchConfigurationsFrom(workspaceConfig);
 
         // See if we already have a debug launch for this project, so we can replace it

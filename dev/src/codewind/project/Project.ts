@@ -32,6 +32,7 @@ import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPage";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
+import CLIWrapper from "../connection/CLIWrapper";
 
 /**
  * Used to determine App Monitor URL
@@ -77,6 +78,7 @@ export default class Project implements vscode.QuickPickItem {
     private appBaseURL: vscode.Uri | undefined;
     private _autoBuildEnabled: boolean;
     private _usesHttps: boolean;
+    private _lastSync: number;
     // Dates below will always be set, but might be "invalid date"s
     private _lastBuild: Date;
     private _lastImgBuild: Date;
@@ -108,7 +110,7 @@ export default class Project implements vscode.QuickPickItem {
         const extensionName = (projectInfo.extension) ? projectInfo.extension.name : undefined;
         this.type = new ProjectType(projectInfo.projectType, projectInfo.language, extensionName);
         this.language = projectInfo.language || "Unknown";
-        this.localPath = vscode.Uri.file(path.join(connection.workspacePath.fsPath, projectInfo.directory));
+        this.localPath = vscode.Uri.file(projectInfo.locOnDisk);
         this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
         this._usesHttps = projectInfo.isHttps === true;
 
@@ -121,6 +123,7 @@ export default class Project implements vscode.QuickPickItem {
 
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
         this._autoBuildEnabled = projectInfo.autoBuild;
+        this._lastSync = 0;
         // lastbuild is a number
         this._lastBuild = new Date(projectInfo.lastbuild);
         // appImageLastBuild is a string
@@ -146,27 +149,6 @@ export default class Project implements vscode.QuickPickItem {
         });
 
         Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
-    }
-
-    // QuickPickItem field getters
-    public get label(): string {
-        return Translator.t(STRING_NS, "quickPickLabel", { projectName: this.name, projectType: this.type.toString() });
-    }
-
-    // description used by QuickPickItem
-    public get description(): string {
-        const appUrl = this.appUrl;
-        if (appUrl != null) {
-            return appUrl.toString();
-        }
-        else {
-            return Translator.t(STRING_NS, "quickPickNotRunning");
-        }
-    }
-
-    // detail used by QuickPickItem
-    public get detail(): string {
-        return this.state.toString();
     }
 
     /**
@@ -488,6 +470,27 @@ export default class Project implements vscode.QuickPickItem {
 
     ///// Getters
 
+    // QuickPickItem
+    public get label(): string {
+        return Translator.t(STRING_NS, "quickPickLabel", { projectName: this.name, projectType: this.type.toString() });
+    }
+
+    // QuickPickItem
+    public get description(): string {
+        const appUrl = this.appUrl;
+        if (appUrl != null) {
+            return appUrl.toString();
+        }
+        else {
+            return Translator.t(STRING_NS, "quickPickNotRunning");
+        }
+    }
+
+    // QuickPickItem
+    public get detail(): string {
+        return this.connection.url.toString();
+    }
+
     public get isRestarting(): boolean {
         return this.pendingRestart != null;
     }
@@ -574,6 +577,10 @@ export default class Project implements vscode.QuickPickItem {
             monitorPageUrlStr += "/";
         }
         return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
+    }
+
+    public get lastSync(): number {
+        return this._lastSync;
     }
 
     ///// Setters
@@ -672,6 +679,14 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
+    public async sync(): Promise<void> {
+        Log.d(`Starting sync of ${this.name}`);
+        const startTime = Date.now();
+        await CLIWrapper.sync(this);
+        this._lastSync = startTime;
+        Log.d(`Synced ${this.name} in ${Date.now() - startTime}ms`);
+    }
+
     public async tryOpenSettingsFile(): Promise<void> {
         const settingsFilePath = path.join(this.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME);
         let settingsFileExists: boolean;
@@ -682,7 +697,6 @@ export default class Project implements vscode.QuickPickItem {
         catch (err) {
             settingsFileExists = false;
         }
-
 
         if (settingsFileExists) {
             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(settingsFilePath));

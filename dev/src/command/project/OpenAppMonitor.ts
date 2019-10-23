@@ -17,7 +17,7 @@ import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
 import ProjectType from "../../codewind/project/ProjectType";
 import Requester from "../../codewind/project/Requester";
-import CodewindManager from "../../codewind/connection/CodewindManager";
+import CodewindEventListener from "../../codewind/connection/CodewindEventListener";
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
     try {
@@ -65,7 +65,7 @@ export async function testPingAppMonitor(project: Project): Promise<boolean> {
         // cache this so we don't have to do this test every time.
         project.capabilities.metricsAvailable = false;
         // Notify the treeview that this project has changed so it can hide these context actions
-        CodewindManager.instance.onChange(project);
+        CodewindEventListener.onChange(project);
         return false;
     }
 }

@@ -1,0 +1,35 @@
+
+body {
+    width: 90%;
+    padding-top: 2%;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+#description {
+    display: "inline";
+}
+
+#edit-description {
+    height: 1em;
+    margin-left: 1em;
+    vertical-align: middle;
+}
+
+#main {
+    width: 100%;
+    display: inline-block;
+}
+
+#submit-btn {
+    max-width: 5em;
+}
+
+.section {
+    margin-left: 5%;
+    border: 1px solid #bbb;
+}
+
+.section:first-child {
+    margin-left: 0;
+}

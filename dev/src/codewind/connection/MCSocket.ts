@@ -79,7 +79,7 @@ export default class MCSocket implements vscode.Disposable {
             .on(SocketEvents.Types.PROJECT_SETTING_CHANGED, this.onProjectSettingsChanged)
             .on(SocketEvents.Types.LOG_UPDATE,              this.onLogUpdate)
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
-            .on(SocketEvents.Types.REGISTRY_STATUS,         this.onRegistryStatus)
+            // .on(SocketEvents.Types.REGISTRY_STATUS,         this.onRegistryStatus)
             ;
     }
 
@@ -89,6 +89,7 @@ export default class MCSocket implements vscode.Disposable {
      * the callbacks will be fired multiple times for the same event, which will lead to serious misbehaviour.
      */
     public async dispose(): Promise<void> {
+        this.connection.onDisconnect();
         this.socket.disconnect();
     }
 
@@ -223,17 +224,15 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
-    private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatusEvent): Promise<void> => {
+    /*
+    private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatus): Promise<void> => {
         // tslint:disable-next-line: no-boolean-literal-compare
         if (payload.deploymentRegistryTest === false) {
-            if (!global.isTheia) {
-                Log.d("Received deployment registry event when not running in Che; ignoring");
-                return;
-            }
             Log.i("Deployment registry is not correctly configured", payload.msg);
-            vscode.window.showErrorMessage(payload.msg);
+            vscode.window.showErrorMessage("Deployment registry error: " + payload.msg);
         }
     }
+    */
 
     private readonly getProject = async (payload: { projectID: string }): Promise<Project | undefined> => {
         const projectID = payload.projectID;

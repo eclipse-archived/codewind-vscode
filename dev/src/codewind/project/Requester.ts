@@ -11,6 +11,9 @@
 
 import * as vscode from "vscode";
 import * as request from "request-promise-native";
+import * as path from "path";
+import * as fs from "fs-extra";
+import * as zlib from "zlib";
 
 import Project from "./Project";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
@@ -19,10 +22,11 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
-import { ILogResponse } from "../connection/SocketEvents";
+import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
 import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
 import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
+import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
 
 type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
@@ -67,6 +71,25 @@ namespace Requester {
 
     export async function delet(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
         return req(request.delete, url, options);
+    }
+
+    export async function ping(url: string | vscode.Uri): Promise<boolean> {
+        if (url instanceof vscode.Uri) {
+            url = url.toString();
+        }
+        try {
+            await request.get(url, { resolveWithFullResponse: true, timeout: 10000 });
+            // It succeeded
+            return true;
+        }
+        catch (err) {
+            if (err instanceof StatusCodeError) {
+                // it was reachable, but returned a bad status
+                return true;
+            }
+            // it was not reachable
+            return false;
+        }
     }
 
     ///// Connection-specific requests
@@ -134,6 +157,28 @@ namespace Requester {
         // Log.d("Repo enablement result", result);
     }
 
+    export async function isRegistrySet(connection: Connection): Promise<boolean> {
+        try {
+            const registryStatus: { deploymentRegistry: boolean } = await doConnectionRequest(connection, MCEndpoints.REGISTRY, Requester.get);
+            return registryStatus.deploymentRegistry;
+        }
+        catch (err) {
+            Log.e("Error checking registry status", err);
+            return false;
+        }
+    }
+
+    export async function configureRegistry(connection: Connection, operation: "set" | "test", deploymentRegistry: string)
+        : Promise<SocketEvents.IRegistryStatus> {
+
+        const body = {
+            deploymentRegistry,
+            operation,
+        };
+
+        return doConnectionRequest(connection, MCEndpoints.REGISTRY, Requester.post, { body });
+    }
+
     export async function getProjectTypes(connection: Connection): Promise<IProjectTypeDescriptor[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.PROJECT_TYPES, Requester.get);
         if (result == null) {
@@ -173,7 +218,60 @@ namespace Requester {
         // return doProjectRequest(project, url, body, Requester.post, "Build");
         const buildMsg = Translator.t(STRING_NS, "build");
         await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
-        // await requestValidate(project, true);
+    }
+
+    export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string, lastSync: number):
+        Promise<string[]> {
+
+        Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
+        const files = await fs.readdir(inputPath);
+        const fileList: string[] = [];
+        for (const f of files) {
+            const currentPath = `${inputPath}/${f}`;
+            const relativePath = path.relative(parentPath, currentPath);
+            fileList.push(relativePath);
+            // Log.i("Uploading " + currentPath);
+            const stats = await fs.stat(currentPath);
+            if (stats.isFile()) {
+                try {
+                    const lastModificationTime = stats.mtimeMs;
+                    if (lastModificationTime > lastSync) {
+                        await remoteUpload(connection, projectId, currentPath, parentPath);
+                    }
+                } catch (err) {
+                    Log.d(err);
+                }
+            } else if (stats.isDirectory()) {
+                const newFiles = await requestUploadsRecursively(connection, projectId, currentPath, parentPath, lastSync);
+                fileList.push(...newFiles);
+            }
+        }
+        return fileList;
+    }
+
+    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<void> {
+
+        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
+        const strBuffer = zlib.deflateSync(fileContent);
+        const base64Compressed = strBuffer.toString("base64");
+        const relativePath = path.relative(parentPath, filePath);
+
+        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
+        const body = {
+            directory: false,
+            path: relativePath,
+            timestamp: Date.now(),
+            msg: base64Compressed,
+        };
+
+        const remoteBindRes = await Requester.put(remoteBindUpload, {
+            json: true,
+            body: body,
+        });
+
+        if (remoteBindRes !== "OK") {
+            Log.e("Unexpected remote upload response", remoteBindRes);
+        }
     }
 
     export async function requestToggleAutoBuild(project: Project): Promise<void> {
