@@ -200,7 +200,7 @@ export default class ConnectionOverview {
         }
 
         if (!testIngressUrl.protocol.startsWith("http")) {
-            throw new Error(`"${info.ingressUrl} must be a an HTTP or HTTPS URL`);
+            throw new Error(`"${info.ingressUrl}" must be a an HTTP or HTTPS URL`);
         }
 
         const ingressUrl = vscode.Uri.parse(info.ingressUrl);
