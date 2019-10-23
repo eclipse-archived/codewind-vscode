@@ -78,11 +78,12 @@ namespace Requester {
             url = url.toString();
         }
         try {
-            await request.get(url, { resolveWithFullResponse: true, timeout: 10000 });
+            await get(url, { resolveWithFullResponse: true, timeout: 10000 });
             // It succeeded
             return true;
         }
         catch (err) {
+            Log.e(`Error pinging ${url}`, err);
             if (err instanceof StatusCodeError) {
                 // it was reachable, but returned a bad status
                 return true;

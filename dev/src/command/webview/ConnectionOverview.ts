@@ -39,7 +39,7 @@ export enum ConnectionOverviewWVMessages {
  * The editable textfields in the Connection (left half) part of the overview
  */
 interface IConnectionInfoFields {
-    readonly ingressHost: string;
+    readonly ingressUrl: string;
     readonly username?: string;
     readonly password?: string;
 }
@@ -128,7 +128,7 @@ export default class ConnectionOverview {
                     const newInfo: IConnectionInfoFields = msg.data;
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Updating info for ${this.connection.label} to ${JSON.stringify(newInfo)}`);
-                        if (newInfo.ingressHost !== this.connection.getRemoteInfo().ingressHost) {
+                        if (newInfo.ingressUrl !== this.connection.getRemoteInfo().ingressUrl) {
                             vscode.window.showWarningMessage("Changing ingress is not implemented, yet");
                         }
                         this.connection.username = newInfo.username;
@@ -140,7 +140,7 @@ export default class ConnectionOverview {
                             const newConnection = await this.createNewConnection(newInfo);
                             this.connection = newConnection;
                             this.connection.onOverviewOpened(this);
-                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressHost}`);
+                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressUrl}`);
                             this.refresh(this.connection.getRemoteInfo());
                         }
                         catch (err) {
@@ -191,17 +191,19 @@ export default class ConnectionOverview {
      * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
     private async createNewConnection(info: IConnectionInfoFields): Promise<RemoteConnection> {
-        // TODO change to https
-        const withProtocol = `http://${info.ingressHost}`;
+        let testIngressUrl;
         try {
-            // tslint:disable-next-line: no-unused-expression
-            new URL(withProtocol);
+            testIngressUrl = new URL(info.ingressUrl);
         }
         catch (err) {
-            throw new Error(`"${info.ingressHost}" is not a valid host.`);
+            throw new Error(`"${info.ingressUrl}" is not a valid URL.`);
         }
 
-        const ingressUrl = vscode.Uri.parse(withProtocol);
+        if (!testIngressUrl.protocol.startsWith("http")) {
+            throw new Error(`"${info.ingressUrl}" must be a an HTTP or HTTPS URL`);
+        }
+
+        const ingressUrl = vscode.Uri.parse(info.ingressUrl);
 
         await vscode.window.withProgress(({
             cancellable: true,

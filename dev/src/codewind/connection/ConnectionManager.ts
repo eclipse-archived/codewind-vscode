@@ -33,10 +33,10 @@ export default class ConnectionManager implements vscode.Disposable {
             ConnectionMemento.loadSavedConnections().map(async (connectionInfo) => {
                 let connectionUrl: vscode.Uri;
                 try {
-                    if (!connectionInfo.ingressHost) {
+                    if (!connectionInfo.ingressUrl) {
                         throw new Error(`Cannot load connection ${connectionInfo.label} due to missing ingress host`);
                     }
-                    connectionUrl = vscode.Uri.parse(RemoteConnection.REMOTE_CODEWIND_PROTOCOL + "://" + connectionInfo.ingressHost);
+                    connectionUrl = vscode.Uri.parse(connectionInfo.ingressUrl);
                 }
                 catch (err) {
                     // should never happen
