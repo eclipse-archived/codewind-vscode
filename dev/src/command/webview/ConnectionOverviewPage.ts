@@ -56,10 +56,10 @@ export default function getConnectionInfoPage(connectionInfo: IRemoteCodewindInf
         </p>
     </div>
     <div id="main">
-        <label for="ingress-input">Ingress Hostname:</label>
+        <label for="ingress-input">Ingress URL:</label>
         <input type="text" id="ingress-input" name="ingress-input" size="96"
-            placeholder="${connectionInfo.ingressHost ? "" : "codewind-workspace-mycluster.nip.io"}"
-            value="${connectionInfo.ingressHost ? connectionInfo.ingressHost : ""}"
+            placeholder="${connectionInfo.ingressUrl ? "" : "https://codewind-workspace-mycluster.nip.io"}"
+            value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"
         />
         <div id="submit-btn" class="btn btn-prominent" onclick="submitNewConnection()">Submit</div>
     </div>
@@ -70,7 +70,7 @@ export default function getConnectionInfoPage(connectionInfo: IRemoteCodewindInf
         function submitNewConnection() {
             const ingressInput = document.querySelector("#ingress-input");
             // Data body is IConnectionInfoFields
-            sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", { ingressHost: ingressInput.value });
+            sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", { ingressUrl: ingressInput.value });
         }
 
         function sendMsg(type, data = undefined) {

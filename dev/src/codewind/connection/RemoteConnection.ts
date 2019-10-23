@@ -20,7 +20,7 @@ import { ConnectionStates } from "./ConnectionState";
  */
 export interface IRemoteCodewindInfo {
     readonly label: string;
-    readonly ingressHost?: string;
+    readonly ingressUrl?: string;
     readonly username?: string;
     readonly registryUrl?: string;
     readonly registryUsername?: string;
@@ -31,8 +31,6 @@ export interface IRemoteCodewindInfo {
  * plus some extra data fields and functions to modify those.
  */
 export default class RemoteConnection extends Connection {
-
-    public static readonly REMOTE_CODEWIND_PROTOCOL: string = "http";
 
     private _activeOverviewPage: ConnectionOverview | undefined;
 
@@ -89,7 +87,7 @@ export default class RemoteConnection extends Connection {
             label: this.label,
             registryUrl: this.registryUrl,
             registryUsername: this.registryUsername,
-            ingressHost: this.url.authority,
+            ingressUrl: this.url.authority,
             username: this.username,
         };
     }

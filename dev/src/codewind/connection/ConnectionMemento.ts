@@ -32,7 +32,7 @@ namespace ConnectionMemento {
         const connectionInfos: IRemoteCodewindInfo[] = connections
         .map((connection): IRemoteCodewindInfo => {
             return {
-                ingressHost: connection.url.authority,
+                ingressUrl: connection.url.toString(),
                 label: connection.label,
             };
         });
