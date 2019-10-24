@@ -81,20 +81,23 @@ export class ProjectState {
     }
 
     public toString(): string {
-        const appState = this.appState.toString();
+        if (!this.isEnabled) {
+            // Just show Disabled for disabled projects
+            return `[${this.appState}]`;
+        }
 
-        if (this.isEnabled) {
-            let result = `[${appState}]`;               // non-nls
-
-            const buildStr = this.getBuildString();
-            if (buildStr != null && buildStr.length > 0) {
-                result += ` [${buildStr}]`;             // non-nls
+        const buildStatusStr = this.getBuildString();
+        if (this.appState === ProjectState.AppStates.UNKNOWN) {
+            if (!buildStatusStr) {
+                Log.e("Both app status and build status are unknown");
+                return "";
             }
-            return result;
+            // Return only the build status if app status is unknown
+            return `[${buildStatusStr}]`;
         }
         else {
-            // don't show build detail for disabled projects
-            return `[${appState}]`;                     // non-nls
+            // Return both statuses
+            return `[${this.appState}] [${this.buildState}]`;
         }
     }
 
