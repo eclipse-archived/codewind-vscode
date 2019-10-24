@@ -253,7 +253,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
                 continue;
             }
 
-            let project: Project;
+            let project: Project | undefined;
 
             // If we already have a Project object for this project, just update it, don't make a new object
             const existing = oldProjects.find( (p) => p.id === projectInfo.projectID);
@@ -264,11 +264,19 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
                 // Log.d("Reuse project " + project.name);
             }
             else {
-                project = new Project(projectInfo, this);
-                initPromises.push(project.initPromise);
-                Log.d("New project " + project.name);
+                try {
+                    project = new Project(projectInfo, this);
+                    initPromises.push(project.initPromise);
+                    Log.d("New project " + project.name);
+                }
+                catch (err) {
+                    Log.e(`Error creating new project with ID ${projectInfo.id} name ${projectInfo.name}`, err);
+                    vscode.window.showErrorMessage(`Error with new project ${projectInfo.name}: ${MCUtil.errToString(err)}`);
+                }
             }
-            this._projects.push(project);
+            if (project) {
+                this._projects.push(project);
+            }
         }
 
         // Log.d("Awaiting init promises " + Date.now());
