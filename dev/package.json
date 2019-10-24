@@ -226,7 +226,11 @@
             {
                 "command": "%cmdID_requestBuild%",
                 "title": "%cmdTitle_requestBuild%",
-                "category": "%commandCategory%"
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/build.svg",
+                    "dark": "res/img/dark/build.svg"
+                }
             },
             {
                 "command": "%cmdID_manageLogs%",
@@ -437,7 +441,7 @@
                 {
                     "command": "%cmdID_openInBrowser%",
                     "when": "%isStartedProject%",
-                    "group": "inline"
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_projectOverview%",
@@ -447,7 +451,7 @@
                 {
                     "command": "%cmdID_projectOverview%",
                     "when": "%isProject%",
-                    "group": "inline"
+                    "group": "inline@2"
                 },
                 {
                     "command": "%cmdID_containerShell%",
@@ -502,12 +506,17 @@
                 {
                     "command": "%cmdID_attachDebugger%",
                     "when": "%isDebuggableProject%",
-                    "group": "inline"
+                    "group": "inline@1"
                 },
                 {
                     "command": "%cmdID_requestBuild%",
                     "when": "%isEnabledProject%",
                     "group": "ext.cw.e@0"
+                },
+                {
+                    "command": "%cmdID_requestBuild%",
+                    "when": "%isEnabledAutoBuildOff%",
+                    "group": "inline@0"
                 },
                 {
                     "command": "%cmdID_enableAutoBuild%",
@@ -532,7 +541,7 @@
                 {
                     "command": "%cmdID_enable%",
                     "when": "%isDisabledProject%",
-                    "group": "inline"
+                    "group": "inline@0"
                 },
                 {
                     "command": "%cmdID_removeProject%",
