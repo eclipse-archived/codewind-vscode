@@ -111,6 +111,17 @@ export default class LocalCodewindManager {
         this._localConnection = undefined;
     }
 
+    public async refresh(): Promise<boolean> {
+        const cwUrl = await CLILifecycleWrapper.getCodewindUrl();
+        if (this.localConnection && cwUrl && cwUrl !== this.localConnection.url) {
+            // If the URL has changed, dispose of the old connection, and connect to the new PFE.
+            await ConnectionManager.instance.removeConnection(this.localConnection);
+            await this.startCodewind();
+            return true;
+        }
+        return false;
+    }
+
     public changeState(newState: CodewindStates): void {
         Log.d(`Codewind state changing from ${this._state} to ${newState}`);
         this._state = newState;
