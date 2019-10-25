@@ -116,7 +116,7 @@ export default class LocalCodewindManager {
         if (this.localConnection && cwUrl && cwUrl !== this.localConnection.url) {
             // If the URL has changed, dispose of the old connection, and connect to the new PFE.
             await ConnectionManager.instance.removeConnection(this.localConnection);
-            await this.startCodewind();
+            await this.connect(cwUrl);
             return true;
         }
         return false;
