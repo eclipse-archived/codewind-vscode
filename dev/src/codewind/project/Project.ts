@@ -32,7 +32,7 @@ import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPage";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
-import CLIWrapper from "../connection/CLIWrapper";
+import { CLICommandRunner } from "../connection/CLICommands";
 
 /**
  * Used to determine App Monitor URL
@@ -682,7 +682,7 @@ export default class Project implements vscode.QuickPickItem {
     public async sync(): Promise<void> {
         Log.d(`Starting sync of ${this.name}`);
         const startTime = Date.now();
-        await CLIWrapper.sync(this);
+        await CLICommandRunner.sync(this);
         this._lastSync = startTime;
         Log.d(`Synced ${this.name} in ${Date.now() - startTime}ms`);
     }

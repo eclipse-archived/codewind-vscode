@@ -17,8 +17,8 @@ import Connection from "./Connection";
 import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
-import CLIWrapper from "./CLIWrapper";
 import { ProjectType, IProjectSubtypesDescriptor } from "../project/ProjectType";
+import { CLICommandRunner } from "./CLICommands";
 
 export interface ICWTemplateData {
     label: string;
@@ -55,7 +55,7 @@ namespace UserProjectCreator {
         connection: Connection, template: ICWTemplateData, parentDir: vscode.Uri, projectName: string): Promise<INewProjectInfo> {
 
         const projectPath = path.join(parentDir.fsPath, projectName);
-        const creationRes = await CLIWrapper.createProject(projectPath, projectName, template.url);
+        const creationRes = await CLICommandRunner.createProject(projectPath, projectName, template.url);
 
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
@@ -303,7 +303,7 @@ namespace UserProjectCreator {
     }
 
     async function detectProjectType(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
-        const detectResponse = await CLIWrapper.detectProjectType(pathToBind, desiredType);
+        const detectResponse = await CLICommandRunner.detectProjectType(pathToBind, desiredType);
         Log.d("Detection response", detectResponse);
         return detectResponse;
     }

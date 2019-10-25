@@ -18,12 +18,10 @@ import { promisify } from "util";
 
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
-import { IInitializationResponse } from "./UserProjectCreator";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
 import Commands from "../../constants/Commands";
-import { CLICommand, CLICommands } from "./CLICommands";
 import { CLILifecycleCommands, CLILifecycleCommand } from "./local/CLILifecycleCommands";
-import Project from "../project/Project";
+import { CLICommand } from "./CLICommands";
 
 const BIN_DIR = "bin";
 const CLI_EXECUTABLE = "cwctl";
@@ -34,40 +32,6 @@ const CLI_PREREQS: { [s: string]: string[]; } = {
 };
 
 namespace CLIWrapper {
-
-    export async function createProject(projectPath: string, projectName: string, url: string): Promise<IInitializationResponse> {
-        return cliExec(CLICommands.CREATE, [ projectPath, "--url", url ], `Creating ${projectName}...`) as Promise<IInitializationResponse>;
-    }
-
-    export async function detectProjectType(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
-        const args = [ projectPath ];
-        if (desiredType) {
-            args.push("--type", desiredType);
-        }
-        return cliExec(CLICommands.CREATE, args, `Processing ${projectPath}...`) as Promise<IInitializationResponse>;
-    }
-
-    export async function sync(project: Project): Promise<void> {
-        await cliExec(CLICommands.SYNC, [
-            "--path", project.localPath.fsPath,
-            "--id", project.id,
-            "--time", project.lastSync.toString()
-        ]);
-    }
-
-    /*
-    export async function bind(projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<string> {
-        const bindRes = await cliExec(CLICommands.BIND, [
-            "--name", projectName,
-            "--language", detectedType.language,
-            "--type", detectedType.projectType,
-            "--path", projectPath,
-        ]);
-
-        return bindRes.projectID;
-    }
-    */
-
 
     // check error against this to see if it's a real error or just a user cancellation
     export const CLI_CMD_CANCELLED = "Cancelled";

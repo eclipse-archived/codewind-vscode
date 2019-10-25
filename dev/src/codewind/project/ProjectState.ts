@@ -218,7 +218,7 @@ export namespace ProjectState {
         else if (appStatus === "stopped" || appStatus === AppStates.STOPPED) {                          // non-nls
             return ProjectState.AppStates.STOPPED;
         }
-        else if (appStatus === "unknown" || appStatus === "" || appStatus === AppStates.UNKNOWN) {      // non-nls
+        else if (!appStatus || appStatus === "unknown" || appStatus === AppStates.UNKNOWN) {      // non-nls
             return ProjectState.AppStates.UNKNOWN;
         }
         else {
