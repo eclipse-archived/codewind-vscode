@@ -72,6 +72,8 @@ export default class ConnectionManager implements vscode.Disposable {
                 }
             })
         );
+
+        CodewindEventListener.onChange(undefined);
     }
 
     public async dispose(): Promise<void> {

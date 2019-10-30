@@ -99,7 +99,8 @@ namespace Resources {
         Edit = "edit.svg",
         Help = "help.svg",
         Info = "info.svg",
-        LocalProjects = "local_projects.svg",
+        LocalConnected = "local_connected.svg",
+        LocalDisconnected = "local_disconnected.svg",
         New = "new.svg",
         OpenExternal = "launch.svg",
         Play = "play.svg",
@@ -110,7 +111,7 @@ namespace Resources {
         Trash = "trash.svg",
         Warning = "warning.svg",
 
-        Generic      = "project-types/cloud.svg",
+        Generic      = "project-types/generic.svg",
         Go           = "project-types/go.svg",
         Java         = "project-types/java.svg",
         Microprofile = "project-types/microprofile.svg",
