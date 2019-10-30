@@ -94,6 +94,8 @@ namespace Resources {
         Connect = "connect.svg",
         ConnectionConnected = "connection_connected.svg",
         ConnectionDisconnected = "connection_disconnected.svg",
+        ConnectionSucessful = "ConnectionSuccessful.svg",
+        ConnectionFailed = "ConnectionFail.svg",
         ServerError = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",

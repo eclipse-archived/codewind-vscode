@@ -104,7 +104,7 @@ export default class ConnectionOverview {
         const html = getConnectionInfoPage(connectionInfo);
         if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
             const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
-            fs.writeFile("/Users/tim/Desktop/connectionOverview.html", htmlWithFileProto,
+            fs.writeFile("/Users/laven.s@ibm.com/desktop/connectionOverview.html", htmlWithFileProto,
                 (err) => { if (err) { Log.e("Error writing out test connection overview", err); } }
             );
         }

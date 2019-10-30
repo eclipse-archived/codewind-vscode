@@ -1,28 +1,153 @@
 
 body {
     width: 90%;
-    padding-top: 2%;
-    padding-left: 5%;
+    padding-top: 3%;
+    padding-left: 6%;
     padding-right: 5%;
 }
 
 #description {
-    display: "inline";
+    display: "inline-block";
 }
 
 #edit-description {
     height: 1em;
-    margin-left: 1em;
     vertical-align: middle;
-}
-
-#main {
-    width: 100%;
     display: inline-block;
 }
 
-#submit-btn {
-    max-width: 5em;
+#description-text {
+    display: inline-block;
+}
+
+#main {
+    display: inline-block;
+}
+
+#connection-logo {
+    height: 4.5em;
+    margin-right: 1em;
+}
+
+#deployment-box {
+    width: 500px;
+    height: 340px;
+    display: inline-block;
+    background-color: #161616;
+}
+
+#deployment-box p {
+    color: white;
+}
+#deployment-box label {
+    color: white;
+}
+
+#deployment-box h3 {
+    background: #262626;
+    color: #fff;
+    font-size: 20px;
+    width: 100%;
+    margin-top: 0px;
+    height: 40px;
+    text-indent: 15px;
+    padding-top: 12px;
+}
+
+#deployment-box h3 img {
+    width: 30px;
+    float: right;
+    margin-right: 15px;
+    margin-top: 3px;
+
+}
+
+#deployment-box .input {
+    padding: 20px;
+    padding-top: 0px;
+}
+
+#deployment-box .input-url {
+    width: 100%;
+    height: 2.5rem;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    background-color:black;
+    border: 0;
+    text-indent: 1rem;
+    color: #fff;
+}
+
+#deployment-box .input-username {
+    width: 90%;
+    height: 2.5rem;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    background-color: black;
+    border: 0;
+    text-indent: 1rem;
+    color: #fff;
+}
+
+#deployment-box .input-password {
+    width: 100%;
+    height: 2.5rem;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    background-color: black;
+    border: 0;
+    text-indent: 1rem;
+    color: #fff;
+}
+
+#cancel-btn {
+    color: #fff;
+    background: #262626;
+    font-size: .875rem;
+    font-weight: 400;
+    line-height: 1.125rem;
+    width: 160px;
+    border-radius: 0;
+    float: right;
+    margin-right: 30px;
+ }
+
+#save-btn {
+    background-color: var(--vscode-button-background);
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 400;
+    line-height: 1.125rem;
+    width: 160px;
+    border-radius: 0;
+    float: right;
+}
+
+#delete-btn {
+    background-color: #dc222b;
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 400;
+    line-height: 1.125rem;
+    width: 160px;
+    border-radius: 0;
+    margin-top: 30px;
+}
+
+#test-btn {
+    background-color: transparent;
+    border: 1px solid #c6c6c6;
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 400;
+    line-height: 1.125rem;
+    width: 100px;
+    border-radius: 0;
+    float: right;
+    margin-top: 20px;
 }
 
 .section {
@@ -32,4 +157,30 @@ body {
 
 .section:first-child {
     margin-left: 0;
+}
+
+.bx--text-input {
+    background-color: #161616;
+    height: 50px;
+    padding: 0 1rem;
+    color: #fff;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    font-size: 40px;
+    padding-top: 10px;
+    width: 390px;
+    padding-top: 0px;
+}
+
+.bx--text-input-description {
+    margin-bottom: 40px;
+    margin-top: 10px;
+    background-color: #161616;
+    height: 30px;
+    padding: 0 1rem;
+    color: #fff;
+    border: none;
+    border-bottom: 1px solid #8d8d8d;
+    font-size: 13px;
+    width: 466px;
 }
