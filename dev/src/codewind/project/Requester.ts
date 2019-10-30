@@ -35,6 +35,8 @@ const STRING_NS = StringNamespaces.REQUESTS;
 
 namespace Requester {
 
+    export const ERR_LOGIN_PAGE = "Authentication required";
+
     // These wrappers are exported because this class should be the only one that needs to import request.
     // By enforcing this and using these to forward all Codewind requests to the 'req' function,
     // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
@@ -46,11 +48,20 @@ namespace Requester {
         if (!options) {
             options = {};
         }
-        // options.resolveWithFullResponse = true;
         options.json = true;
-        // TODO :)
+        // TODO ...
         options.rejectUnauthorized = false;
-        return method(url, options);
+
+        const response = await method(url, { ...options, resolveWithFullResponse: true }) as request.FullResponse;
+        if (response.request.path.startsWith("/auth/")) {
+            throw new Error(ERR_LOGIN_PAGE);
+        }
+
+        if (!options.resolveWithFullResponse) {
+            // resolve with full response only if the original options requested it
+            return response.body;
+        }
+        return response;
     }
 
     export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {

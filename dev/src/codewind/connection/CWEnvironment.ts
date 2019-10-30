@@ -66,7 +66,6 @@ namespace CWEnvironment {
 
     function massageEnv(rawEnv: RawCWEnvData): CWEnvData {
         // const rawWorkspace = rawEnv.workspace_location;
-        const rawSocketNS = rawEnv.socket_namespace || "";
 
         // if (rawVersion == null) {
             // throw new Error("No version information was provided by Codewind.");
@@ -76,7 +75,14 @@ namespace CWEnvironment {
         // }
         // const workspace = MCUtil.containerPathToFsPath(rawWorkspace);
         const version = rawEnv.codewind_version || UNKNOWN_VERSION;
+        if (version === UNKNOWN_VERSION) {
+            Log.e(`Environment data was missing Codewind version`);
+        }
 
+        const rawSocketNS = rawEnv.socket_namespace || "";
+        if (!rawSocketNS) {
+            Log.e(`Environment data was missing socket namespace`);
+        }
         // normalize namespace so it doesn't start with '/'
         const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
 

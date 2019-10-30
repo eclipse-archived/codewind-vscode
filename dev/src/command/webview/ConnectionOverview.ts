@@ -128,7 +128,7 @@ export default class ConnectionOverview {
                     const newInfo: IConnectionInfoFields = msg.data;
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Updating info for ${this.connection.label} to ${JSON.stringify(newInfo)}`);
-                        if (newInfo.ingressUrl !== this.connection.getRemoteInfo().ingressUrl) {
+                        if (newInfo.ingressUrl !== this.connection.getRemoteInfo().url) {
                             vscode.window.showWarningMessage("Changing ingress is not implemented, yet");
                         }
                         this.connection.username = newInfo.username;
