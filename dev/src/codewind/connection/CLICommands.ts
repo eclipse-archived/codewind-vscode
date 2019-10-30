@@ -78,7 +78,10 @@ export namespace CLICommandRunner {
             "--path", projectPath,
         ]);
 
-        if (!bindRes.projectID) {
+        if (bindRes.error_description) {
+            throw new Error(bindRes.error_description);
+        }
+        else if (!bindRes.projectID) {
             // should never happen
             throw new Error(`Failed to bind ${projectName}; no project ID was returned.`);
         }
