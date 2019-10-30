@@ -195,7 +195,7 @@ export namespace ProjectState {
         // Logger.log(`Convert - appStatus=${appStatus}, closedState=${closedState}, startMode=${startMode}`);
 
         // First, check if the project is closed (aka Disabled)
-        if (closedState === "closed" || appStatus === AppStates.DISABLED) {                                                     // non-nls
+        if (closedState === "closed") {                                                                                         // non-nls
             return ProjectState.AppStates.DISABLED;
         }
         // Now, check the app states. Compare against both the value we expect from MC,
