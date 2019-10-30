@@ -58,8 +58,8 @@ export default function getConnectionInfoPage(connectionInfo: IRemoteCodewindInf
     <div id="main">
         <label for="ingress-input">Ingress URL:</label>
         <input type="text" id="ingress-input" name="ingress-input" size="96"
-            placeholder="${connectionInfo.ingressUrl ? "" : "https://codewind-workspace-mycluster.nip.io"}"
-            value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"
+            placeholder="${connectionInfo.url ? "" : "https://codewind-workspace-mycluster.nip.io"}"
+            value="${connectionInfo.url ? connectionInfo.url : ""}"
         />
         <div id="submit-btn" class="btn btn-prominent" onclick="submitNewConnection()">Submit</div>
     </div>

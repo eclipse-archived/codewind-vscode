@@ -29,7 +29,7 @@ export interface ICWTemplateData {
     source?: string;
 }
 
-interface IDetectedProjectType {
+export interface IDetectedProjectType {
     language: string;
     projectType: string;
     projectSubtype?: string;
@@ -135,19 +135,20 @@ namespace UserProjectCreator {
                         Promise<INewProjectInfo | undefined> {
 
         // All of this has to be removed and replaced wth CLIWrapper.bind
-        const syncTime = Date.now();
         const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
         const projectID = projectInfo.projectID;
         await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind, 0);
 
         await requestRemoteBindEnd(connection, projectID);
         const project = await connection.getProjectByID(projectID);
-        // Set the last sync time on the project so we don't upload
-        // all the files again on the first build.
         if (project !== undefined) {
-            await project.sync();
+            project.setLastSync();
+            await CLICommandRunner.sync(pathToBind, projectID, project.lastSync);
         }
-        Log.i(`Initial project upload complete for ${projectInfo.name} to ${connection.host} in ${Date.now() - syncTime}ms`);
+        else {
+            throw new Error(`Could not retrieve project with ID ${projectID} that should have been created`);
+        }
+        Log.i(`Initial project upload complete for ${projectInfo.name} to ${connection.host} in ${Date.now() - project.lastSync}ms`);
         return { projectName, projectPath: pathToBind };
     }
 

@@ -11,20 +11,15 @@
 
 import CLIWrapper from "./CLIWrapper";
 import { IInitializationResponse } from "./UserProjectCreator";
-import Project from "../project/Project";
 
 interface CLIConnectionData {
-    readonly active: string;
-    readonly deployments: [{
-        readonly id: string,
-        readonly label: string,
-        readonly url: string,
-        readonly auth: string,
-        readonly realm: string,
-        readonly clientid: string
-    }];
+    readonly id: string;
+    readonly label: string;
+    readonly url: string;
+    readonly auth: string;
+    readonly realm: string;
+    readonly clientid: string;
 }
-
 
 export class CLICommand {
     constructor(
@@ -41,14 +36,14 @@ export const ProjectCommands = {
     CREATE: new CLICommand([ "project", "create" ]),
     SYNC:   new CLICommand([ "project", "sync" ]),
     BIND:   new CLICommand([ "project", "bind" ]),
-    MANAGE_CONNECTION: new CLICommand([ "project", "deployments" ]),
+    MANAGE_CONN: new CLICommand([ "project", "connection" ]),
 };
 
 // tslint:disable-next-line: variable-name
 export const ConnectionCommands = {
-    ADD:    new CLICommand([ "deployments add" ]),
-    LIST:   new CLICommand([ "deployments list" ]),
-    REMOVE: new CLICommand([ "deployments remove" ]),
+    ADD:    new CLICommand([ "connections", "add" ]),
+    LIST:   new CLICommand([ "connections", "list" ]),
+    REMOVE: new CLICommand([ "connections", "remove" ]),
 };
 
 export namespace CLICommandRunner {
@@ -65,43 +60,55 @@ export namespace CLICommandRunner {
         return CLIWrapper.cliExec(ProjectCommands.CREATE, args, `Processing ${projectPath}...`);
     }
 
-    /*
-    export async function bindProject(
-        connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<string> {
+    /**
+     * @returns The newly created project's ID.
+     */
+    // export async function bindProject(
+    //     connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<string> {
 
-        const bindRes = await cliExec("bind", [
-            "--depid", connectionID,
-            "--name", projectName,
-            "--language", detectedType.language,
-            "--type", detectedType.projectType,
-            "--path", projectPath,
-        ]);
+    //     const bindRes = await CLIWrapper.cliExec(ProjectCommands.BIND, [
+    //         "--conid", connectionID,
+    //         "--name", projectName,
+    //         "--language", detectedType.language,
+    //         "--type", detectedType.projectType,
+    //         "--path", projectPath,
+    //     ]);
 
-        return bindRes.projectID;
-    }
-    */
-
-    export async function sync(project: Project): Promise<void> {
-        await CLIWrapper.cliExec(ProjectCommands.SYNC, [
-            "--path", project.localPath.fsPath,
-            "--id", project.id,
-            "--time", project.lastSync.toString()
-        ]);
-    }
-
-    // export async function setActiveConnection(id: string): Promise<CLIConnectionData> {
-    //     return CLIWrapper.cliExec(CLICommands.CONNECTIONS, [ "target", id ]);
+    //     return bindRes.projectID;
     // }
 
-    export async function addConnection(id: string, label: string, url: string): Promise<CLIConnectionData> {
-        return CLIWrapper.cliExec(ConnectionCommands.ADD, [ id, "--label", label, "--url", url ]);
+    export async function sync(path: string, projectID: string, lastSync: number): Promise<void> {
+        await CLIWrapper.cliExec(ProjectCommands.SYNC, [
+            "--path", path,
+            "--id", projectID,
+            "--time", lastSync.toString(),
+        ]);
     }
 
-    export async function getConnections(): Promise<CLIConnectionData> {
-        return CLIWrapper.cliExec(ConnectionCommands.LIST, []);
+    /**
+     * @returns The data for the new Connection
+     */
+    export async function addConnection(label: string, url: string): Promise<CLIConnectionData> {
+        return await CLIWrapper.cliExec(ConnectionCommands.ADD, [ "--label", label, "--url", url ]);
     }
 
-    export async function removeConnection(id: string): Promise<CLIConnectionData> {
-        return CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--depid", id ]);
+    /**
+     * @returns The data for all current connections, except Local
+     */
+    export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
+        return processConnectionList(await CLIWrapper.cliExec(ConnectionCommands.LIST, []));
+    }
+
+    /**
+     *
+     * @returns The data for all current connections, after removal.
+     */
+    export async function removeConnection(id: string): Promise<CLIConnectionData[]> {
+        return processConnectionList(await CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--conid", id ]));
+    }
+
+    function processConnectionList(connectionList: any): Promise<CLIConnectionData[]> {
+        // TODO the local connection is not useful
+        return connectionList.connections.filter((conn: CLIConnectionData) => conn.id !== "local");
     }
 }

@@ -19,8 +19,7 @@ import { promisify } from "util";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
-import Commands from "../../constants/Commands";
-import { CLILifecycleCommands, CLILifecycleCommand } from "./local/CLILifecycleCommands";
+import { CLILifecycleCommand } from "./local/CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
 
 const BIN_DIR = "bin";
@@ -85,8 +84,12 @@ namespace CLIWrapper {
         const executablePath = await initialize();
 
         args = cmd.command.concat(args);
+        if (!(cmd instanceof CLILifecycleCommand)) {
+            args.unshift("--insecure");
+        }
 
-        Log.i(`Running CLI command: ${args.join(" ")}`);
+        const cmdStr = args.join(" ");
+        Log.i(`Running CLI command: ${cmdStr}`);
 
         const executableDir = path.dirname(executablePath);
 
@@ -125,16 +128,16 @@ namespace CLIWrapper {
                         Log.d(`CLI command ${cmd.command} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        Log.e(`Error running CLI command ${cmd.command}`, errStr);
+                        Log.e(`Error running CLI command ${cmdStr}:`, errStr);
                         outStr = outStr || "No output";
-                        errStr = errStr || `Unknown error running command ${cmd.command}`;
-                        writeOutError(cmd, outStr, errStr);
+                        errStr = errStr || `Output:\n${outStr}`;
+                        writeOutError(outStr, errStr);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
-                        reject(errStr);
+                        reject(`Error running ${path.basename(executablePath)} command "${cmdStr}": ${errStr}`);
                     }
                     else {
-                        Log.i(`Successfully ran CLI command ${cmd.command.join(" ")}`);
+                        Log.i(`Successfully ran CLI command ${cmdStr}`);
                         if (cmd.hasJSONOutput) {
                             if (!outStr) {
                                 Log.e(`Missing expected output from CLI command, output was "${outStr}"`);
@@ -155,21 +158,14 @@ namespace CLIWrapper {
         return MCUtil.errToString(err) === CLI_CMD_CANCELLED;
     }
 
-    async function writeOutError(cmd: CLICommand, outStr: string, errStr: string): Promise<void> {
-        const logDir = path.join(Log.getLogDir, `cli-error-${cmd.command}-${Date.now()}`);
+    async function writeOutError(outStr: string, errStr: string): Promise<void> {
+        const logDir = path.join(Log.getLogDir, `cli-error-${Date.now()}`);
         await promisify(fs.mkdir)(logDir, { recursive: true });
 
         const stdoutLog = path.join(logDir, "cli-output.log");
         const stderrLog = path.join(logDir, "cli-error-output.log");
         await promisify(fs.writeFile)(stdoutLog, outStr);
         await promisify(fs.writeFile)(stderrLog, errStr);
-        if (cmd === CLILifecycleCommands.INSTALL) {
-            // show user the output in this case because they can't recover
-            // I do not like having this, but I don't see an easier way to present the user with the reason for failure
-            // until the cli 'expects' more errors.
-            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stdoutLog));
-            vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(stderrLog));
-        }
         Log.e("Wrote failed command output to " + logDir);
     }
 }

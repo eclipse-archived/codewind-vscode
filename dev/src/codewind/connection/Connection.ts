@@ -27,6 +27,8 @@ import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import * as requestErrors from "request-promise-native/errors";
 
+export const LOCAL_CONNECTION_ID = "local";
+
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
     public readonly host: string;
@@ -46,7 +48,17 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _isRegistrySet: boolean = false;
 
     constructor(
+        /**
+         * Connection ID as returned by `cwctl connections add`
+         */
+        public readonly id: string,
+        /**
+         * URL as returned by `cwctl status` in local, or to Codewind Gatekeeper for remote
+         */
         public readonly url: vscode.Uri,
+        /**
+         * User-provided label, or hard-coded local label
+         */
         public readonly label: string,
         public readonly isRemote: boolean,
     ) {

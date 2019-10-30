@@ -11,13 +11,14 @@
 
 import * as vscode from "vscode";
 
-import Connection from "./Connection";
+import Connection, { LOCAL_CONNECTION_ID } from "./Connection";
 import Log from "../../Logger";
 import Project from "../project/Project";
 import CodewindEventListener from "./CodewindEventListener";
-import ConnectionMemento from "./ConnectionMemento";
 import MCUtil from "../../MCUtil";
 import RemoteConnection, { IRemoteCodewindInfo } from "./RemoteConnection";
+import ConnectionMemento from "./ConnectionMemento";
+import { CLICommandRunner } from "./CLICommands";
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;
@@ -29,14 +30,24 @@ export default class ConnectionManager implements vscode.Disposable {
     }
 
     public async activate(): Promise<void> {
+        let loadedConnections;
+        try {
+            loadedConnections = await ConnectionMemento.loadSavedConnections();
+        }
+        catch (err) {
+            Log.e(`Error loading remote connections`, err);
+            vscode.window.showErrorMessage(`Error loading remote connections: ${MCUtil.errToString(err)}`);
+            return;
+        }
+
         await Promise.all(
-            ConnectionMemento.loadSavedConnections().map(async (connectionInfo) => {
+            loadedConnections.map(async (connectionInfo) => {
                 let connectionUrl: vscode.Uri;
                 try {
-                    if (!connectionInfo.ingressUrl) {
+                    if (!connectionInfo.url) {
                         throw new Error(`Cannot load connection ${connectionInfo.label} due to missing ingress host`);
                     }
-                    connectionUrl = vscode.Uri.parse(connectionInfo.ingressUrl);
+                    connectionUrl = vscode.Uri.parse(connectionInfo.url);
                 }
                 catch (err) {
                     // should never happen
@@ -49,7 +60,7 @@ export default class ConnectionManager implements vscode.Disposable {
                     await this.connectRemote(connectionUrl, { label: connectionInfo.label });
                 }
                 catch (err) {
-                    const errMsg = `Error loading connection ${connectionInfo.label}. ${MCUtil.errToString(err)}`;
+                    const errMsg = `Error loading connection ${connectionInfo.label}: ${MCUtil.errToString(err)}`;
                     Log.e(errMsg, err);
                     const retryBtn = "Retry";
                     vscode.window.showErrorMessage(errMsg, retryBtn)
@@ -87,10 +98,12 @@ export default class ConnectionManager implements vscode.Disposable {
         }
 
         Log.i("Creating connection to " + ingressUrl);
-        const newConnection = new RemoteConnection(ingressUrl, remoteInfo.label,
+
+        const newConnectionData = await CLICommandRunner.addConnection(remoteInfo.label, ingressUrl.toString());
+        const newConnection = new RemoteConnection(newConnectionData.id, ingressUrl, remoteInfo.label,
             remoteInfo.username, remoteInfo.registryUrl, remoteInfo.registryUsername);
 
-        await this.saveNewConnection(newConnection);
+        await this.onNewConnection(newConnection);
         return newConnection;
     }
 
@@ -99,12 +112,12 @@ export default class ConnectionManager implements vscode.Disposable {
             return this.connections[0];
         }
         Log.i("Creating connection to " + url);
-        const newConnection = new Connection(url, "Local Codewind", false);
-        await this.saveNewConnection(newConnection);
+        const newConnection = new Connection(LOCAL_CONNECTION_ID, url, "Local Codewind", false);
+        this.onNewConnection(newConnection);
         return newConnection;
     }
 
-    private async saveNewConnection(newConnection: Connection): Promise<void> {
+    private async onNewConnection(newConnection: Connection): Promise<void> {
         if (newConnection.isRemote) {
             this.connections.push(newConnection);
         }
@@ -112,7 +125,6 @@ export default class ConnectionManager implements vscode.Disposable {
             // the local connection should always be first.
             this.connections.unshift(newConnection);
         }
-        ConnectionMemento.saveConnections(this.remoteConnections);
         Log.i("New Connection @ " + newConnection.url);
 
         await newConnection.initPromise;
@@ -132,10 +144,10 @@ export default class ConnectionManager implements vscode.Disposable {
             Log.e(`Request to remove connection ${connection} but it doesn't exist!`);
             return false;
         }
+        await CLICommandRunner.removeConnection(connection.id);
         connection.dispose();
         this.connections.splice(indexToRemove, 1);
         Log.i("Removed connection", connection);
-        await ConnectionMemento.saveConnections(this.remoteConnections);
         CodewindEventListener.onChange(undefined);
         return true;
     }
