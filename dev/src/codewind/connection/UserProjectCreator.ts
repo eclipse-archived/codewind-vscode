@@ -14,7 +14,6 @@ import * as path from "path";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
-import EndpointUtil, { MCEndpoints, ProjectEndpoints } from "../../constants/Endpoints";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import { ProjectType, IProjectSubtypesDescriptor } from "../project/ProjectType";
@@ -72,7 +71,7 @@ namespace UserProjectCreator {
         // const targetDir = vscode.Uri.file(creationRes.projectPath);
 
         // create succeeded, now we bind
-        await bind(connection, projectName, projectPath, projectTypeInfo);
+        await CLICommandRunner.bindProject(connection.id, projectName, projectPath, projectTypeInfo);
         return { projectName, projectPath };
     }
 
@@ -127,28 +126,7 @@ namespace UserProjectCreator {
         if (projectTypeInfo.projectSubtype) {
             await detectProjectType(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
         }
-        return bind(connection, projectName, pathToBind, projectTypeInfo);
-    }
-
-    async function bind(connection: Connection, projectName: string,
-                        pathToBind: string, projectTypeInfo: IDetectedProjectType):
-                        Promise<INewProjectInfo | undefined> {
-
-        // All of this has to be removed and replaced wth CLIWrapper.bind
-        const projectInfo = await requestRemoteBindStart(connection, projectName, pathToBind, projectTypeInfo.language, projectTypeInfo.projectType);
-        const projectID = projectInfo.projectID;
-        await Requester.requestUploadsRecursively(connection, projectID, pathToBind, pathToBind, 0);
-
-        await requestRemoteBindEnd(connection, projectID);
-        const project = await connection.getProjectByID(projectID);
-        if (project !== undefined) {
-            project.setLastSync();
-            await CLICommandRunner.sync(pathToBind, projectID, project.lastSync);
-        }
-        else {
-            throw new Error(`Could not retrieve project with ID ${projectID} that should have been created`);
-        }
-        Log.i(`Initial project upload complete for ${projectInfo.name} to ${connection.host} in ${Date.now() - project.lastSync}ms`);
+        await CLICommandRunner.bindProject(connection.id, projectName, pathToBind, projectTypeInfo);
         return { projectName, projectPath: pathToBind };
     }
 
@@ -327,69 +305,6 @@ namespace UserProjectCreator {
         // canSelectMany is false
         return selectedDirs[0];
     }
-
-    /*
-    async function requestLocalBind(connection: Connection, projectName: string, dirToBindFsPath: string, language: string, projectType: string)
-        : Promise<void> {
-
-        const containerPath = MCUtil.fsPathToContainerPath(dirToBindFsPath);
-
-        const bindReq = {
-            name: projectName,
-            language,
-            projectType,
-            path: containerPath,
-        };
-
-        Log.d("Bind request", bindReq);
-
-        const bindEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.BIND);
-        const bindRes = await Requester.post(bindEndpoint, {
-            json: true,
-            body: bindReq,
-        });
-
-        Log.d("Bind response", bindRes);
-
-        // return bindRes;
-    }
-    */
-
-    async function requestRemoteBindStart(connection: Connection, projectName: string,
-                                          dirToBindContainerPath: string,
-                                          language: string, projectType: string): Promise<{ projectID: string, name: string }> {
-
-        const bindReq = {
-            name: projectName,
-            language,
-            projectType,
-            path: dirToBindContainerPath,
-        };
-
-        Log.d("Remote Bind request", bindReq);
-
-        const remoteBindStartEndpoint = EndpointUtil.resolveMCEndpoint(connection, MCEndpoints.REMOTE_BIND_START);
-        const remoteBindRes = await Requester.post(remoteBindStartEndpoint, {
-            json: true,
-            body: bindReq,
-        });
-
-        // the response is the full project info object
-        Log.i("Remote Bind response", remoteBindRes);
-
-        return remoteBindRes;
-    }
-
-    async function requestRemoteBindEnd(connection: Connection, projectID: string): Promise<void> {
-
-        Log.i(`Remote Bind End request for ${projectID}`);
-
-        const remoteBindStartEndpoint = EndpointUtil.resolveProjectEndpoint(connection, projectID, ProjectEndpoints.REMOTE_BIND_END);
-        const remoteBindRes = await Requester.post(remoteBindStartEndpoint);
-
-        Log.i("Remote Bind response", remoteBindRes);
-    }
-
 }
 
 export default UserProjectCreator;

@@ -84,7 +84,13 @@ export default class MCLogManager {
      */
     public async toggleLogStreaming(enable: boolean): Promise<void> {
         Log.d(`${this.managerName} log streaming now ${enable}`);
-        await Requester.requestToggleLogs(this.project, enable);
+        try {
+            await Requester.requestToggleLogs(this.project, enable);
+        }
+        catch (err) {
+            const errMsg = `Error toggling logs ${enable ? "on" : "off"} for ${this.project.name}`;
+            Log.e(errMsg, err);
+        }
     }
 
     public onNewLogs(event: SocketEvents.ILogUpdateEvent): void {

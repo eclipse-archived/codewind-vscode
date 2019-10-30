@@ -87,8 +87,11 @@ namespace CLIWrapper {
         if (!(cmd instanceof CLILifecycleCommand)) {
             args.unshift("--insecure");
         }
+        args.unshift("--json");
 
-        const cmdStr = args.join(" ");
+        // cmdStr will be the full command, eg `cwctl --insecure project create <path> --url <url>`
+        // is generally only used for debugging
+        const cmdStr = [path.basename(executablePath), ...args].join(" ");
         Log.i(`Running CLI command: ${cmdStr}`);
 
         const executableDir = path.dirname(executablePath);
@@ -125,16 +128,16 @@ namespace CLIWrapper {
                 child.on("close", (code: number | null) => {
                     if (code == null) {
                         // this happens in SIGTERM case, not sure what else may cause it
-                        Log.d(`CLI command ${cmd.command} did not exit normally, likely was cancelled`);
+                        Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        Log.e(`Error running CLI command ${cmdStr}:`, errStr);
+                        Log.e(`Error running ${cmdStr}:`, errStr);
                         outStr = outStr || "No output";
                         errStr = errStr || `Output:\n${outStr}`;
                         writeOutError(outStr, errStr);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
-                        reject(`Error running ${path.basename(executablePath)} command "${cmdStr}": ${errStr}`);
+                        reject(`Error running "${cmdStr}": ${errStr}`);
                     }
                     else {
                         Log.i(`Successfully ran CLI command ${cmdStr}`);

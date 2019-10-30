@@ -28,7 +28,6 @@ import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommand
 const STRING_NS = StringNamespaces.STARTUP;
 
 const TAG_OPTION = "-t";
-const JSON_OPTION = "-j";
 
 // Codewind tag to install if no env vars set
 const DEFAULT_CW_TAG = "0.5.0";
@@ -51,7 +50,7 @@ export namespace CLILifecycleWrapper {
         const executablePath = await CLIWrapper.initialize();
 
         const status = await new Promise<CLIStatus>((resolve, reject) => {
-            const child = child_process.execFile(executablePath, [ "--insecure", "status", JSON_OPTION ], {
+            const child = child_process.execFile(executablePath, [ "--insecure", "--json", "status" ], {
                 timeout: 10000,
             }, (err, stdout_, stderr_) => {
                 const stdout = stdout_.toString();
@@ -108,12 +107,6 @@ export namespace CLILifecycleWrapper {
         const tag = tagOverride || getTag();
         if (tagOverride || cmd.usesTag) {
             args.push(TAG_OPTION, tag);
-        }
-
-        const isInstallCmd = cmd === CLILifecycleCommands.INSTALL;
-        if (isInstallCmd) {
-            // request JSON output
-            args.push(JSON_OPTION);
         }
 
         const beforeCmdState = LocalCodewindManager.instance.state;

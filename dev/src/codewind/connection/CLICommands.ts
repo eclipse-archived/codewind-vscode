@@ -10,7 +10,8 @@
  *******************************************************************************/
 
 import CLIWrapper from "./CLIWrapper";
-import { IInitializationResponse } from "./UserProjectCreator";
+import { IInitializationResponse, IDetectedProjectType } from "./UserProjectCreator";
+import Log from "../../Logger";
 
 interface CLIConnectionData {
     readonly id: string;
@@ -52,8 +53,11 @@ export namespace CLICommandRunner {
         return CLIWrapper.cliExec(ProjectCommands.CREATE, [ projectPath, "--url", url ], `Creating ${projectName}...`);
     }
 
+    /**
+     * Test the path given to determine the project type Codewind should use.
+     */
     export async function detectProjectType(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
-        const args = [ "create", projectPath ];
+        const args = [ projectPath ];
         if (desiredType) {
             args.push("--type", desiredType);
         }
@@ -61,29 +65,36 @@ export namespace CLICommandRunner {
     }
 
     /**
-     * @returns The newly created project's ID.
+     * @returns The newly created project's inf content.
      */
-    // export async function bindProject(
-    //     connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<string> {
+    export async function bindProject(
+        connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<any> {
 
-    //     const bindRes = await CLIWrapper.cliExec(ProjectCommands.BIND, [
-    //         "--conid", connectionID,
-    //         "--name", projectName,
-    //         "--language", detectedType.language,
-    //         "--type", detectedType.projectType,
-    //         "--path", projectPath,
-    //     ]);
+        const bindRes = await CLIWrapper.cliExec(ProjectCommands.BIND, [
+            "--conid", connectionID,
+            "--name", projectName,
+            "--language", detectedType.language,
+            "--type", detectedType.projectType,
+            "--path", projectPath,
+        ]);
 
-    //     return bindRes.projectID;
-    // }
+        if (!bindRes.projectID) {
+            // should never happen
+            throw new Error(`Failed to bind ${projectName}; no project ID was returned.`);
+        }
+        Log.i(`Bound new project ${projectName} with ID ${bindRes.projectID}`);
 
+        return bindRes;
+    }
+
+    /*
     export async function sync(path: string, projectID: string, lastSync: number): Promise<void> {
         await CLIWrapper.cliExec(ProjectCommands.SYNC, [
             "--path", path,
             "--id", projectID,
             "--time", lastSync.toString(),
         ]);
-    }
+    }*/
 
     /**
      * @returns The data for the new Connection
