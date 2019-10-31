@@ -138,6 +138,8 @@
     "isEnabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*/",
     "isDisabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.disabled.*/",
     "isConnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled\\.connected.*/",
+    "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*\\.registry.*/",
+    "isConnectionWithTekton": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*\\.tekton.*/",
 
     "isProject":                "viewItem =~ /ext\\.cw\\.project.*/",
     "isEnabledProject":         "viewItem =~ /ext\\.cw\\.project\\.enabled.*/",

@@ -37,6 +37,9 @@ enum TreeItemContextValues {
     REMOTECONN_ENABLED = "remote.enabled",
     REMOTECONN_DISABLED = "remote.disabled",
 
+    CONN_WITH_REGISTRY = "registry",
+    CONN_WITH_TEKTON = "tekton",
+
     // Project
     PROJ_BASE = "project",
 
@@ -82,6 +85,13 @@ namespace TreeItemContext {
                 contextValues.push(TreeItemContextValues.REMOTECONN_DISABLED);
             }
         }
+
+        if (connection.isRemote || global.isTheia) {
+            // The local connection has these features ONLY in Theia.
+            contextValues.push(TreeItemContextValues.CONN_WITH_TEKTON);
+            contextValues.push(TreeItemContextValues.CONN_WITH_REGISTRY);
+        }
+
         if (connection.isConnected) {
             contextValues.push(TreeItemContextValues.CONN_CONNECTED);
         }
