@@ -405,12 +405,12 @@
                 },
                 {
                     "command": "%cmdID_setRegistry%",
-                    "when": "%isConnectedConnection%",
+                    "when": "%isConnectionWithRegistry%",
                     "group": "ext.cw.conn.c@1"
                 },
                 {
                     "command": "%cmdID_openTekton%",
-                    "when": "%isConnectedRemoteConnection%",
+                    "when": "%isConnectionWithTekton%",
                     "group": "ext.cw.conn.c@2"
                 },
                 {

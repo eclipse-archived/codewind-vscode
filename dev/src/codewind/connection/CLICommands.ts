@@ -117,8 +117,8 @@ export namespace CLICommandRunner {
      *
      * @returns The data for all current connections, after removal.
      */
-    export async function removeConnection(id: string): Promise<CLIConnectionData[]> {
-        return processConnectionList(await CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--conid", id ]));
+    export async function removeConnection(id: string): Promise<void> {
+        await CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--conid", id ]);
     }
 
     function processConnectionList(connectionList: any): Promise<CLIConnectionData[]> {
