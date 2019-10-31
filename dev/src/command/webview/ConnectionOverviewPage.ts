@@ -57,8 +57,8 @@ export default function getConnectionInfoPage(connectionInfo: IRemoteCodewindInf
             <div id="deployment-box">
                 
                 <h3>Codewind Connection
-                    ${connectionInfo.url? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionSucessful)}"/>` : 
-                    `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionFailed)}"/>`}
+                    ${connectionInfo.url? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnected)}"/>` : 
+                    `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>`}
                 </h3>
  
                 <div class="input">
@@ -120,13 +120,13 @@ export default function getConnectionInfoPage(connectionInfo: IRemoteCodewindInf
             </div>
 
             <div>
-            ${connectionInfo.url? `<div type="button" id="save-btn" class="btn btn-prominent" onclick="()">Edit</div>
-                                            <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="deleteConnection()">Disconnect</div>`
+            ${connectionInfo.url? `<div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()">Delete Connection</div>
+                                   <div type="button" id="save-btn" class="btn btn-prominent" onclick="()">Edit</div>
+                                   <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="">Disconnect</div>`
                 :
 
                 `<div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()">Save</div>
-                <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="()">Cancel</div>
-                <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()">Delete Connection</div>`}
+                <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="()">Cancel</div>`}
             </div>
 
     </div>

@@ -32,7 +32,7 @@ body {
 #deployment-box {
     width: 500px;
     height: 340px;
-    display: inline-block;
+    display: inline-table;
     background-color: #161616;
 }
 
@@ -113,6 +113,7 @@ body {
     border-radius: 0;
     float: right;
     margin-right: 30px;
+    margin-top: 30px;
  }
 
 #save-btn {
@@ -124,6 +125,7 @@ body {
     width: 160px;
     border-radius: 0;
     float: right;
+    margin-top: 30px;
 }
 
 #delete-btn {
@@ -135,6 +137,7 @@ body {
     width: 160px;
     border-radius: 0;
     margin-top: 30px;
+    display: inline-block;
 }
 
 #test-btn {
