@@ -455,53 +455,53 @@
                 },
                 {
                     "command": "%cmdID_containerShell%",
-                    "when": "%isEnabledProject%",
+                    "when": "%isShellableProject%",
                     "group": "ext.cw.a@2"
                 },
                 {
                     "command": "%cmdID_openAppMonitor%",
                     "when": "%isProjectWithMetrics%",
-                    "group": "ext.cw.a@3"
+                    "group": "ext.cw.b@3"
                 },
                 {
                     "command": "%cmdID_openPerfDashboard%",
                     "when": "%isProjectWithMetrics%",
-                    "group": "ext.cw.a@4"
+                    "group": "ext.cw.b@4"
                 },
                 {
                     "command": "%cmdID_addProjToWorkspace%",
                     "when": "%isProject%",
-                    "group": "ext.cw.b@0"
+                    "group": "ext.cw.c@0"
                 },
                 {
                     "command": "%cmdID_showAllLogs%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.c@1"
+                    "group": "ext.cw.d@1"
                 },
                 {
                     "command": "%cmdID_hideAllLogs%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.c@2"
+                    "group": "ext.cw.d@2"
                 },
                 {
                     "command": "%cmdID_manageLogs%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.c@3"
+                    "group": "ext.cw.d@3"
                 },
                 {
                     "command": "%cmdID_restartRun%",
                     "when": "%isRestartableProject%",
-                    "group": "ext.cw.d@0"
+                    "group": "ext.cw.e@0"
                 },
                 {
                     "command": "%cmdID_restartDebug%",
                     "when": "%isRestartableProject%",
-                    "group": "ext.cw.d@1"
+                    "group": "ext.cw.e@1"
                 },
                 {
                     "command": "%cmdID_attachDebugger%",
                     "when": "%isDebuggableProject%",
-                    "group": "ext.cw.d@2"
+                    "group": "ext.cw.e@2"
                 },
                 {
                     "command": "%cmdID_attachDebugger%",
@@ -511,7 +511,7 @@
                 {
                     "command": "%cmdID_requestBuild%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.e@0"
+                    "group": "ext.cw.f@0"
                 },
                 {
                     "command": "%cmdID_requestBuild%",
@@ -521,12 +521,12 @@
                 {
                     "command": "%cmdID_enableAutoBuild%",
                     "when": "%isEnabledAutoBuildOff%",
-                    "group": "ext.cw.e@2"
+                    "group": "ext.cw.f@2"
                 },
                 {
                     "command": "%cmdID_disableAutoBuild%",
                     "when": "%isEnabledAutoBuildOn%",
-                    "group": "ext.cw.e@2"
+                    "group": "ext.cw.f@2"
                 },
                 {
                     "command": "%cmdID_disable%",

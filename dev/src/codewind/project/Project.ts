@@ -582,6 +582,10 @@ export default class Project implements vscode.QuickPickItem {
         return this._lastSync;
     }
 
+    public get canContainerShell(): boolean {
+        return !this.connection.isRemote; // && !!this.containerID;
+    }
+
     ///// Setters
 
     /**
