@@ -22,6 +22,7 @@ import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Commands from "../../constants/Commands";
 import { CWDocs } from "../../constants/Constants";
+import { CLICommandRunner } from "../../codewind/connection/CLICommands";
 
 /**
  * Template repository/source data as provided by the backend
@@ -99,7 +100,7 @@ export async function refreshManageReposPage(connection: Connection): Promise<vo
     if (!manageReposPage) {
         return;
     }
-    const html = generateManageReposHtml(await Requester.getTemplateSources(connection));
+    const html = generateManageReposHtml(await CLICommandRunner.getTemplateSources(connection.id));
 
     // For debugging in the browser, write out the html to an html file on disk and point to the resources on disk
     // if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
@@ -138,7 +139,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 }
 
                 try {
-                    await Requester.addTemplateRepo(connection, repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
+                    await CLICommandRunner.addTemplateSource(connection.id, repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
                     await refreshManageReposPage(connection);
                 }
                 catch (err) {
@@ -164,7 +165,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
                 }
 
                 try {
-                    await Requester.removeTemplateRepo(connection, repoUrl);
+                    await CLICommandRunner.removeTemplateSource(connection.id, repoUrl);
                     await refreshManageReposPage(connection);
                 }
                 catch (err) {

@@ -80,7 +80,7 @@ namespace CLIWrapper {
         return initialize();
     }
 
-    export async function cliExec(cmd: CLICommand, args: string[], progressPrefix?: string): Promise<any> {
+    export async function cliExec(cmd: CLICommand, args: string[] = [], progressPrefix?: string): Promise<any> {
         const executablePath = await initialize();
 
         args = cmd.command.concat(args);

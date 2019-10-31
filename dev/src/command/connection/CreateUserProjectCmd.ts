@@ -20,6 +20,7 @@ import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplate
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/RegistryUtils";
 import Resources from "../../constants/Resources";
+import { CLICommandRunner } from "../../codewind/connection/CLICommands";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
@@ -135,7 +136,7 @@ async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
 async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
-    const repos = await Requester.getTemplateSources(connection);
+    const repos = await CLICommandRunner.getTemplateSources(connection.id);
 
     if (repos.length === 0) {
         // Should not be possible because Codewind templates are always present.
