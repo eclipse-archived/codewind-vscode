@@ -55,13 +55,14 @@ namespace TreeItemFactory {
         // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand after it starts
         const id = cwStarted ?  CW_STARTED_NODE_ID : CW_STOPPED_NODE_ID;
         const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+        const icon = cwStarted ? Resources.Icons.LocalConnected : Resources.Icons.LocalDisconnected;
 
         const cwStatusItem: vscode.TreeItem = {
             id,
             label,
             tooltip,
             collapsibleState,
-            iconPath: Resources.getIconPaths(Resources.Icons.LocalProjects),
+            iconPath: Resources.getIconPaths(icon),
             contextValue: TreeItemContext.getLocalCWContext(LocalCodewindManager.instance),
         };
 
