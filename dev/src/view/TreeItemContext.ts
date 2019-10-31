@@ -54,6 +54,8 @@ enum TreeItemContextValues {
 
     PROJ_RESTARTABLE = "restartable",
     PROJ_METRICS = "metricsAvailable",
+
+    PROJ_SHELLABLE = "shellable",
 }
 
 namespace TreeItemContext {
@@ -122,6 +124,10 @@ namespace TreeItemContext {
 
         if (project.capabilities.metricsAvailable) {
             contextValues.push(TreeItemContextValues.PROJ_METRICS);
+        }
+
+        if (project.canContainerShell) {
+            contextValues.push(TreeItemContextValues.PROJ_SHELLABLE);
         }
 
         // The final result will look like eg: "ext.cw.project.enabled.autoBuildOn"

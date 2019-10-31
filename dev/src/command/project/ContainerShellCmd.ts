@@ -16,7 +16,8 @@ import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function containerShellCmd(project: Project): Promise<void> {
-    if (project.containerID == null || project.containerID === "") {
+    const containerID = project.containerID;
+    if (!containerID) {
         vscode.window.showWarningMessage(Translator.t(StringNamespaces.CMD_MISC, "noContainerForShell", { projectName: project.name }));
         return;
     }
@@ -35,7 +36,7 @@ export default async function containerShellCmd(project: Project): Promise<void>
     };
 
     const term: vscode.Terminal = vscode.window.createTerminal(options);
-    term.sendText(`docker exec -it ${project.containerID} /usr/bin/env ${toExec}`);     // non-nls
+    term.sendText(`docker exec -it ${containerID} /usr/bin/env ${toExec}`);     // non-nls
     term.show();
 }
 

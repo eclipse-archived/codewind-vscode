@@ -146,6 +146,7 @@
     "isDebuggableProject":      "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.debuggable.*/",
     "isProjectWithMetrics":     "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.metricsAvailable.*/",
     "isRestartableProject":     "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.restartable.*/",
+    "isShellableProject":       "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.shellable.*/",
     "isEnabledAutoBuildOn":     "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOn/",
     "isEnabledAutoBuildOff":    "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOff/"
 }
