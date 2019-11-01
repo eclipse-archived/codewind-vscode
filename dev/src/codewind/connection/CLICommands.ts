@@ -12,6 +12,7 @@
 import CLIWrapper from "./CLIWrapper";
 import { IInitializationResponse, IDetectedProjectType } from "./UserProjectCreator";
 import Log from "../../Logger";
+import { ITemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
 
 interface CLIConnectionData {
     readonly id: string;
@@ -33,7 +34,7 @@ export class CLICommand {
 }
 
 // tslint:disable-next-line: variable-name
-export const ProjectCommands = {
+const ProjectCommands = {
     CREATE: new CLICommand([ "project", "create" ]),
     SYNC:   new CLICommand([ "project", "sync" ]),
     BIND:   new CLICommand([ "project", "bind" ]),
@@ -41,10 +42,17 @@ export const ProjectCommands = {
 };
 
 // tslint:disable-next-line: variable-name
-export const ConnectionCommands = {
+const ConnectionCommands = {
     ADD:    new CLICommand([ "connections", "add" ]),
     LIST:   new CLICommand([ "connections", "list" ]),
     REMOVE: new CLICommand([ "connections", "remove" ]),
+};
+
+// tslint:disable-next-line: variable-name
+const TemplateRepoCommands = {
+    ADD: new CLICommand([ "templates", "repos", "add" ]),
+    LIST: new CLICommand([ "templates", "repos", "list" ]),
+    REMOVE: new CLICommand([ "templates", "repos", "remove" ]),
 };
 
 export namespace CLICommandRunner {
@@ -110,7 +118,7 @@ export namespace CLICommandRunner {
      * @returns The data for all current connections, except Local
      */
     export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
-        return processConnectionList(await CLIWrapper.cliExec(ConnectionCommands.LIST, []));
+        return processConnectionList(await CLIWrapper.cliExec(ConnectionCommands.LIST));
     }
 
     /**
@@ -124,5 +132,29 @@ export namespace CLICommandRunner {
     function processConnectionList(connectionList: any): Promise<CLIConnectionData[]> {
         // TODO the local connection is not useful
         return connectionList.connections.filter((conn: CLIConnectionData) => conn.id !== "local");
+    }
+
+    // https://github.com/eclipse/codewind/issues/941
+    export async function addTemplateSource(_connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateRepo[]> {
+        const args = [
+            "--url", url,
+            "--name", name,
+        ];
+
+        if (descr) {
+            args.push("--description", descr);
+        }
+
+        return CLIWrapper.cliExec(TemplateRepoCommands.ADD, args);
+    }
+
+    export async function getTemplateSources(_connectionID: string): Promise<ITemplateRepo[]> {
+        return CLIWrapper.cliExec(TemplateRepoCommands.LIST);
+    }
+
+    export async function removeTemplateSource(_connectionID: string, url: string): Promise<ITemplateRepo[]> {
+        return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
+            "--url", url
+        ]);
     }
 }

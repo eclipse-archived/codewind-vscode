@@ -25,7 +25,7 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
 import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { ITemplateRepo, IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
+import { IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
 
@@ -112,26 +112,6 @@ namespace Requester {
             return [];
         }
         return result;
-    }
-
-    export async function getTemplateSources(connection: Connection): Promise<ITemplateRepo[]> {
-        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.get);
-    }
-
-    export async function addTemplateRepo(connection: Connection, repoUrl: string, repoName: string, repoDescr?: string): Promise<ITemplateRepo[]> {
-        const body = {
-            url: repoUrl,
-            name: repoName,
-            description: repoDescr,
-        };
-        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.post, { body });
-    }
-
-    export async function removeTemplateRepo(connection: Connection, repoID: string): Promise<ITemplateRepo[]> {
-        const body = {
-            url: repoID,
-        };
-        return doConnectionRequest(connection, MCEndpoints.TEMPLATE_REPOS, Requester.delet, { body });
     }
 
     interface IRepoEnablementReq {
