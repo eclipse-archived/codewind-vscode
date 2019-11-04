@@ -76,7 +76,9 @@ export default async function createProject(connection: Connection): Promise<voi
         // Get the parent directory to create the project under
 
         let parentDir: vscode.Uri;
-        if (vscode.workspace.workspaceFolders && vscode.workspace.getConfiguration().get(CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE) === true) {
+        if (vscode.workspace.workspaceFolders
+            && (global.isTheia || vscode.workspace.getConfiguration().get(CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE) === true)) {
+
             if (vscode.workspace.workspaceFolders.length === 1) {
                 parentDir = vscode.workspace.workspaceFolders[0].uri;
             }
