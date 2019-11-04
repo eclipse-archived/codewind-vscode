@@ -3,6 +3,8 @@
 set -e
 set -o pipefail
 
+jenkinsfile_url="https://raw.githubusercontent.com/eclipse/codewind-vscode/master/Jenkinsfile"
+
 appsody_version=${APPSODY_VERSION}
 
 if [[ -z $appsody_version ]]; then
@@ -10,11 +12,14 @@ if [[ -z $appsody_version ]]; then
 fi
 
 if [[ -z $appsody_version ]]; then
-    echo "\$APPSODY_VERSION needs to be set in the environment or in \$1"
-    exit 1
+    echo "\$APPSODY_VERSION not set in the environment or in \$1, using version from Jenkinsfile"
+
+    appsody_param_line=$(curl -fsSL "$jenkinsfile_url" | grep "APPSODY_VERSION" | grep "name")
+    appsody_version=$(echo ${appsody_param_line#*defaultValue: } | cut -d \" -f2)
+    echo "Appsody version from $jenkinsfile_url is $appsody_version"
 fi
 
-echo "Downloading Appsody version ${appsody_version}"
+echo "Downloading Appsody version \"${appsody_version}\""
 
 download () {
     local url=$1
