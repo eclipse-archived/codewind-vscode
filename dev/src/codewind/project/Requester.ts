@@ -418,15 +418,13 @@ namespace Requester {
         }
     }
 
-    const READY_TIMEOUT = 60000;
-    const READY_DELAY = 1000;
-    const MAX_TRIES = READY_TIMEOUT / READY_DELAY;
+    const READY_DELAY_S = 1;
 
     /**
      * Repeatedly pings the ready endpoint of the given CW url.
      * Returns true if the ready endpoint returns a good status, or false if it times out before getting a good response.
      */
-    export async function waitForReady(cwBaseUrl: vscode.Uri): Promise<boolean> {
+    export async function waitForReady(cwBaseUrl: vscode.Uri, timeoutS: number): Promise<boolean> {
         const isCWReadyInitially = await isCodewindReady(cwBaseUrl, false);
         if (isCWReadyInitially) {
             Log.i(`${cwBaseUrl} was ready on first ping`);
@@ -434,25 +432,25 @@ namespace Requester {
         }
 
         let tries = 0;
+        const maxTries = timeoutS / READY_DELAY_S;
         return new Promise<boolean>((resolve) => {
             const interval = setInterval(async () => {
                 const logStatus = tries % 10 === 0;
                 if (logStatus) {
-                    Log.d(`Waiting for Codewind at ${cwBaseUrl} to be ready, ${tries * READY_DELAY / 1000}s have elapsed`);
+                    Log.d(`Waiting for Codewind at ${cwBaseUrl} to be ready, ${tries * READY_DELAY_S / 1000}s have elapsed`);
                 }
                 if (await isCodewindReady(cwBaseUrl, logStatus)) {
                     clearInterval(interval);
+                    Log.i(`Codewind is ready after ${tries} tries`);
                     resolve(true);
                 }
-                if (tries > MAX_TRIES) {
+                if (tries > maxTries) {
                     clearInterval(interval);
-                    const errMsg = `Codewind at ${cwBaseUrl} connected, but was not ready after ${READY_TIMEOUT / 1000} seconds`;
-                    Log.e(errMsg);
-                    vscode.window.showErrorMessage(`${errMsg} - Try stopping and starting Codewind again.`);
+                    Log.i(`Codewind is NOT ready after ${tries} tries`);
                     resolve(false);
                 }
                 tries++;
-            }, READY_DELAY);
+            }, READY_DELAY_S * 1000);
         });
     }
 
