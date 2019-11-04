@@ -148,7 +148,9 @@ export default class LocalCodewindManager {
         const ready = await waitingForReadyProm;
         if (!ready) {
             const helpBtn = "Help";
-            const errMsg = `Codewind failed to come up after ${timeoutS} seconds. Check the status of the Codewind pod, and click ${helpBtn} to open our documentation.`;
+            const errMsg = `Codewind failed to come up after ${timeoutS} seconds.
+                Check the status of the Codewind pod, and click ${helpBtn} to open our documentation. Refresh the page to try to connect again.`;
+
             vscode.window.showErrorMessage(errMsg, helpBtn)
             .then((res) => {
                 if (res === helpBtn) {
