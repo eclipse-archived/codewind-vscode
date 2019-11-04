@@ -13,6 +13,7 @@ import CLIWrapper from "./CLIWrapper";
 import { IInitializationResponse, IDetectedProjectType } from "./UserProjectCreator";
 import Log from "../../Logger";
 import { ITemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
+import MCUtil from "../../MCUtil";
 
 interface CLIConnectionData {
     readonly id: string;
@@ -21,6 +22,13 @@ interface CLIConnectionData {
     readonly auth: string;
     readonly realm: string;
     readonly clientid: string;
+}
+
+export interface CLIStatus {
+    // status: "uninstalled" | "stopped" | "started";
+    "installed-versions": string[];
+    started: string[];
+    url?: string;   // only set when started
 }
 
 export class CLICommand {
@@ -32,6 +40,9 @@ export class CLICommand {
 
     }
 }
+
+const STATUS = new CLICommand([ "status" ], false, true);
+const UPGRADE = new CLICommand([ "upgrade" ], false, false);
 
 // tslint:disable-next-line: variable-name
 const ProjectCommands = {
@@ -56,6 +67,18 @@ const TemplateRepoCommands = {
 };
 
 export namespace CLICommandRunner {
+
+    export async function status(): Promise<CLIStatus> {
+        const statusObj = await CLIWrapper.cliExec(STATUS);
+        // The CLI will leave out these fields if they are empty, but an empty array is easier to deal with.
+        if (statusObj["installed-versions"] == null) {
+            statusObj["installed-versions"] = [];
+        }
+        if (statusObj.started == null) {
+            statusObj.started = [];
+        }
+        return statusObj;
+    }
 
     export async function createProject(projectPath: string, projectName: string, url: string): Promise<IInitializationResponse> {
         return CLIWrapper.cliExec(ProjectCommands.CREATE, [ projectPath, "--url", url ], `Creating ${projectName}...`);
@@ -96,6 +119,12 @@ export namespace CLICommandRunner {
         Log.i(`Bound new project ${projectName} with ID ${bindRes.projectID}`);
 
         return bindRes;
+    }
+
+    export async function upgrade(): Promise<void> {
+        await CLIWrapper.cliExec(UPGRADE, [
+            "--ws", MCUtil.getCWWorkspacePath(),
+        ], "Performing workspace migration...");
     }
 
     /*

@@ -71,7 +71,7 @@
         "moreInfoBtn": "More Info",
         "removeImagesBlockedStillRunning": "You cannot remove images if Codewind is still running. Stop Codewind, and try again.",
         "removeImagesModalWarning": "Are you sure you want to remove all Codewind Docker images? You will have to download them again before you can start Codewind again.",
-        "backendUpgradeRequired": "You cannot use the extension without installing version {{ tag }} of the Codewind backend."
+        "backendUpgradeRequired": "You cannot use Codewind without installing version {{ tag }} of the Codewind backend."
     },
 
     "logs": {

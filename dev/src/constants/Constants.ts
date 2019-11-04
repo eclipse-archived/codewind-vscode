@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import { Uri } from "vscode";
-import * as path from "path";
 
 export namespace CWDocs {
     export function getDocLink(docPath: CWDocs): Uri {
@@ -30,8 +29,6 @@ export enum CWDocs {
  */
 namespace Constants {
     export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
-    export const CW_CONFIG_DIR = ".config";
-    export const CW_CONFIG_FILE = path.join(CW_CONFIG_DIR, "settings.json");
 
     export const CHE_WORKSPACEID_ENVVAR = "CHE_WORKSPACE_ID";
     export const CHE_API_EXTERNAL_ENVVAR = "CHE_API_EXTERNAL";
