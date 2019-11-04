@@ -67,11 +67,9 @@ namespace UserProjectCreator {
             throw new Error(failedReason);
         }
 
-        const projectTypeInfo = creationRes.result as IDetectedProjectType;
-        // const targetDir = vscode.Uri.file(creationRes.projectPath);
-
         // create succeeded, now we bind
-        await CLICommandRunner.bindProject(connection.id, projectName, projectPath, projectTypeInfo);
+        const projectType = { projectType: template.projectType, language: template.language };
+        await CLICommandRunner.bindProject(connection.id, projectName, projectPath, projectType);
         return { projectName, projectPath };
     }
 
