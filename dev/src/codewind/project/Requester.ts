@@ -418,14 +418,14 @@ namespace Requester {
         }
     }
 
-    const READY_DELAY_S = 1;
+    const READY_DELAY_S = 2;
 
     /**
      * Repeatedly pings the ready endpoint of the given CW url.
      * Returns true if the ready endpoint returns a good status, or false if it times out before getting a good response.
      */
     export async function waitForReady(cwBaseUrl: vscode.Uri, timeoutS: number): Promise<boolean> {
-        const isCWReadyInitially = await isCodewindReady(cwBaseUrl, false);
+        const isCWReadyInitially = await isCodewindReady(cwBaseUrl, false, READY_DELAY_S);
         if (isCWReadyInitially) {
             Log.i(`${cwBaseUrl} was ready on first ping`);
             return true;
@@ -437,27 +437,34 @@ namespace Requester {
             const interval = setInterval(async () => {
                 const logStatus = tries % 10 === 0;
                 if (logStatus) {
-                    Log.d(`Waiting for Codewind at ${cwBaseUrl} to be ready, ${tries * READY_DELAY_S / 1000}s have elapsed`);
+                    Log.d(`Waiting for Codewind at ${cwBaseUrl} to be ready, ${tries * READY_DELAY_S}s have elapsed`);
                 }
-                if (await isCodewindReady(cwBaseUrl, logStatus)) {
+                const ready = await isCodewindReady(cwBaseUrl, logStatus, READY_DELAY_S);
+                tries++;
+                if (ready) {
                     clearInterval(interval);
-                    Log.i(`Codewind is ready after ${tries} tries`);
                     resolve(true);
                 }
-                if (tries > maxTries) {
+                else if (tries > maxTries) {
                     clearInterval(interval);
-                    Log.i(`Codewind is NOT ready after ${tries} tries`);
                     resolve(false);
                 }
-                tries++;
             }, READY_DELAY_S * 1000);
+        }).then((result) => {
+            if (result) {
+                Log.i(`Codewind was ready after ${tries} tries`);
+            }
+            else {
+                Log.i(`Codewind was NOT ready after ${tries} tries`);
+            }
+            return result;
         });
     }
 
-    async function isCodewindReady(cwBaseUrl: vscode.Uri, logStatus: boolean): Promise<boolean> {
+    async function isCodewindReady(cwBaseUrl: vscode.Uri, logStatus: boolean, timeoutS: number): Promise<boolean> {
         try {
             // Ping Codewind's 'ready' endpoint
-            const res = await Requester.get(cwBaseUrl.with({ path: MCEndpoints.READY }));
+            const res = await Requester.get(cwBaseUrl.with({ path: MCEndpoints.READY }), { timeout: timeoutS * 1000});
 
             if (res === true) {
                 return true;
