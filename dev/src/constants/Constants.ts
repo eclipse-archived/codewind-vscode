@@ -22,6 +22,7 @@ export enum CWDocs {
     INSTALL_INFO = "mdt-vsc-installinfo.html",
     DOCKER_REGISTRY = "dockerregistry.html",
     PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",
+    INSTALL_ON_CLOUD = "installoncloud.html",
 }
 
 /**

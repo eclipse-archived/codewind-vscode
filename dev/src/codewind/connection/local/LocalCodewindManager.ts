@@ -21,6 +21,8 @@ import Connection from "../Connection";
 import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
 import CodewindEventListener from "../CodewindEventListener";
 import ConnectionManager from "../ConnectionManager";
+import Commands from "../../../constants/Commands";
+import { CWDocs } from "../../../constants/Constants";
 
 const CHE_CW_URL = "https://localhost:9090";
 
@@ -138,11 +140,24 @@ export default class LocalCodewindManager {
         Log.i(`In theia; waiting for Codewind to come up on ${CHE_CW_URL}`);
         const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
 
-        const waitingForReadyProm = Requester.waitForReady(cheCwUrl);
+        const timeoutS = 180;
+        const waitingForReadyProm = Requester.waitForReady(cheCwUrl, timeoutS);
         vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
             `Waiting for Codewind to start...`, waitingForReadyProm);
 
-        await waitingForReadyProm;
+        const ready = await waitingForReadyProm;
+        if (!ready) {
+            const helpBtn = "Help";
+            const errMsg = `Codewind failed to come up after ${timeoutS} seconds.
+                Check the status of the Codewind pod, and click ${helpBtn} to open our documentation. Refresh the page to try to connect again.`;
+
+            vscode.window.showErrorMessage(errMsg, helpBtn)
+            .then((res) => {
+                if (res === helpBtn) {
+                    vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.INSTALL_ON_CLOUD));
+                }
+            });
+        }
         await this.connect(cheCwUrl);
     }
 }

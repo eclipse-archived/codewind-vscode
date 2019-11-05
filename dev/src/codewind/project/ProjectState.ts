@@ -97,7 +97,7 @@ export class ProjectState {
         }
         else {
             // Return both statuses
-            return `[${this.appState}] [${this.buildState}]`;
+            return `[${this.appState}] [${buildStatusStr}]`;
         }
     }
 

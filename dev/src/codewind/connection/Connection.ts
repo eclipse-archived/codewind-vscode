@@ -209,7 +209,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // things to do on reconnect, but not initial connect, go here
             this._projects.forEach((p) => p.onConnectionReconnect());
         }
-        await Requester.waitForReady(this.url);
+
+        const readyTimeoutS = 60;
+        const ready = await Requester.waitForReady(this.url, readyTimeoutS);
+        if (!ready) {
+            const errMsg = `Codewind at ${this.url} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
+            Log.e(errMsg);
+            vscode.window.showErrorMessage(errMsg);
+            return;
+        }
         this.hasConnected = true;
         this._state = ConnectionStates.CONNECTED;
         Log.d(`${this} is now connected`);
