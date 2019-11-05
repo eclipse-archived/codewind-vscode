@@ -10,24 +10,15 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as path from "path";
 import { promisify } from "util";
 import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 import Log from "./Logger";
 import Constants from "./constants/Constants";
 
 namespace MCUtil {
-
-    /**
-     * Returns the last segment of the given path, with no starting slash.
-     * Trailing slash is kept if present.
-     *
-     * lastPathSegment("/home/tim/test/dir/") -> "dir/"
-     */
-    export function lastPathSegment(p: string): string {
-        return p.substr(p.lastIndexOf(path.sep) + 1);
-    }
 
     export function uppercaseFirstChar(input: string): string {
         return input.charAt(0).toUpperCase() + input.slice(1);
@@ -194,6 +185,13 @@ namespace MCUtil {
     async function isCwWorkspaceOrProject(dirPath: string): Promise<boolean> {
         return (await promisify(fs.readdir)(dirPath))
             .some((file) => CW_FILES.includes(file.toString()));
+    }
+
+    export function getCWWorkspacePath(): string {
+        if (MCUtil.getOS() === "windows") {
+            return "C:\\codewind-workspace";
+        }
+        return path.join(os.homedir(), "codewind-workspace");
     }
 }
 

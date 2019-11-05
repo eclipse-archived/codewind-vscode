@@ -11,8 +11,8 @@
 
 import * as vscode from "vscode";
 import { Readable } from "stream";
-import * as child_process from "child_process";
 import * as readline from "readline";
+import * as fs from "fs";
 
 import Log from "../../../Logger";
 import StringNamespaces from "../../../constants/strings/StringNamespaces";
@@ -24,6 +24,8 @@ import CLIWrapper from "../CLIWrapper";
 import Commands from "../../../constants/Commands";
 import LocalCodewindManager from "./LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
+import { CLICommandRunner, CLIStatus } from "../CLICommands";
+import { promisify } from "util";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -33,60 +35,8 @@ const TAG_OPTION = "-t";
 const DEFAULT_CW_TAG = "0.5.0";
 const TAG_LATEST = "latest";
 
-interface CLIStatus {
-    // status: "uninstalled" | "stopped" | "started";
-    "installed-versions": string[];
-    started: string[];
-    url?: string;   // only set when started
-}
 
 export namespace CLILifecycleWrapper {
-
-    /**
-     * `status` command.
-     * This is a separate function because it exits quickly so the progress is not useful, and we have to parse its structured output.
-     */
-    async function getLocalCodewindStatus(): Promise<CLIStatus> {
-        const executablePath = await CLIWrapper.initialize();
-
-        const status = await new Promise<CLIStatus>((resolve, reject) => {
-            const child = child_process.execFile(executablePath, [ "--insecure", "--json", "status" ], {
-                timeout: 10000,
-            }, (err, stdout_, stderr_) => {
-                const stdout = stdout_.toString();
-                const stderr = stderr_.toString();
-
-                if (err) {
-                    Log.e("Error checking status", err);
-                    Log.e("Error checking status, stdout:", stderr);
-                    Log.e("Error checking status, stderr:", stdout);
-                    if (stderr) {
-                        return reject(stderr);
-                    }
-                    else {
-                        return reject(stdout);
-                    }
-                }
-
-                const statusObj = JSON.parse(stdout);
-                Log.d("CLI status", statusObj);
-                // The CLI will leave out these fields if they are empty, but an empty array is easier to deal with.
-                if (statusObj["installed-versions"] == null) {
-                    statusObj["installed-versions"] = [];
-                }
-                if (statusObj.started == null) {
-                    statusObj.started = [];
-                }
-                return resolve(statusObj);
-            });
-
-            child.on("error", (err) => {
-                return reject(err);
-            });
-        })
-        .catch((err) => { throw err; });
-        return status;
-    }
 
     // serves as a lock, only one operation at a time.
     let currentOperation: CLILifecycleCommand | undefined;
@@ -143,7 +93,7 @@ export namespace CLILifecycleWrapper {
     }
 
     export async function getCodewindUrl(): Promise<vscode.Uri | undefined> {
-        const url = (await getLocalCodewindStatus()).url;
+        const url = (await CLICommandRunner.status()).url;
         if (!url) {
             return undefined;
         }
@@ -152,7 +102,7 @@ export namespace CLILifecycleWrapper {
 
     export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"stopped" | "started-wrong-version" | "started-correct-version"> {
         if (!status) {
-            status = await getLocalCodewindStatus();
+            status = await CLICommandRunner.status();
         }
         if (status.started.length > 0) {
             if (status.started.includes(getTag())) {
@@ -165,7 +115,7 @@ export namespace CLILifecycleWrapper {
     }
 
     export async function installAndStart(): Promise<void> {
-        const status = await getLocalCodewindStatus();
+        const status = await CLICommandRunner.status();
         const tag = getTag();
         let hadOldVersionRunning = false;
         Log.i(`Ready to install and start Codewind ${tag}`);
@@ -184,14 +134,16 @@ export namespace CLILifecycleWrapper {
                 { modal: true }, okBtn,
             );
             if (resp !== okBtn) {
-                throw new Error(Translator.t(STRING_NS, "backendUpgradeRequired", { tag }));
+                Log.i("User rejected backend upgrade with CW started");
+                vscode.window.showWarningMessage(Translator.t(STRING_NS, "backendUpgradeRequired", { tag }));
+                throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
             }
             await stop();
             hadOldVersionRunning = true;
         }
 
         if (!status["installed-versions"].includes(tag)) {
-            Log.i(`Codewind ${tag} is NOT installed`);
+            Log.i(`Codewind ${tag} is NOT installed, installed versions are ${status["installed-versions"].join(", ")}`);
 
             // If they had an old version running, they have already agreed to update to the new version
             let promptForInstall = !hadOldVersionRunning;
@@ -229,13 +181,44 @@ export namespace CLILifecycleWrapper {
             Log.e("Error starting codewind", err);
             throw new Error("Error starting Codewind: " + MCUtil.errToString(err));
         }
+
+        if (await isWorkspaceMigrationReqd(status["installed-versions"])) {
+            await CLICommandRunner.upgrade();
+            vscode.window.showInformationMessage(`Workspace migration completed - Codewind projects are no longer required to be under the codewind-workspace.`);
+        }
+    }
+
+    /**
+     * We have to do a cwctl upgrade (workspace migration) if the old version was older than 0.6
+     */
+    async function isWorkspaceMigrationReqd(installedVersions: string[]): Promise<boolean> {
+        try {
+            await promisify(fs.access)(MCUtil.getCWWorkspacePath());
+        }
+        catch (err) {
+            // no workspace -> no upgrade required
+            return false;
+        }
+
+        if (installedVersions.length === 0) {
+            // if they have a workspace but no installed verisons, we have to assume it was created by an old version
+            return true;
+        }
+
+        const newestInstalledVersion = installedVersions.sort()[installedVersions.length - 1];
+        const upgradeReqd = [
+            "0.1", "0.2", "0.3", "0.4", "0.5"
+        ].some((oldVersion) => newestInstalledVersion.startsWith(oldVersion));
+
+        Log.i(`The newest installed version ${newestInstalledVersion} requires workspace migration ? ${upgradeReqd}`);
+        return upgradeReqd;
     }
 
     async function onWrongVersionInstalled(installedVersions: string[], requiredTag: string): Promise<void> {
         // Generate a user-friendly string like "0.2, 0.3, and 0.4"
-        let installedVersionsStr = installedVersions.join(", ");
+        let installedVersionsStr = installedVersions.join(" ");
         if (installedVersions.length > 1) {
-            const lastInstalledVersion = installedVersionsStr[installedVersions.length - 1];
+            const lastInstalledVersion = installedVersions[installedVersions.length - 1];
             installedVersionsStr = installedVersionsStr.replace(lastInstalledVersion, "and " + lastInstalledVersion);
         }
 
@@ -246,8 +229,11 @@ export namespace CLILifecycleWrapper {
             { modal: true }, yesBtn
         );
         if (resp !== yesBtn) {
-            throw new Error(Translator.t(STRING_NS, "backendUpgradeRequired", { tag: requiredTag }));
+            Log.i("User rejected backend upgrade");
+            vscode.window.showWarningMessage(Translator.t(STRING_NS, "backendUpgradeRequired", { tag: requiredTag }));
+            throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
         }
+
         // Remove unwanted versions (ie all versions that are installed, since none of them are the required version)
         await removeAllImages();
     }
@@ -285,7 +271,7 @@ export namespace CLILifecycleWrapper {
                 }
                 Log.e("Install failed", err);
                 LocalCodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
-                vscode.window.showErrorMessage(MCUtil.errToString(err));
+                CLIWrapper.showCLIError(MCUtil.errToString(err));
                 return onInstallFailOrReject(false);
             }
         }
@@ -305,7 +291,7 @@ export namespace CLILifecycleWrapper {
     }
 
     export async function removeAllImages(): Promise<void> {
-        const installedVersions = (await getLocalCodewindStatus())["installed-versions"];
+        const installedVersions = (await CLICommandRunner.status())["installed-versions"];
         for (const unwantedVersion of installedVersions) {
             await runLifecycleCmd(CLILifecycleCommands.REMOVE, unwantedVersion);
         }

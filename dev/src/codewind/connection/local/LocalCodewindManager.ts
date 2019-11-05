@@ -62,7 +62,7 @@ export default class LocalCodewindManager {
         }
         catch (err) {
             if (!CLIWrapper.isCancellation(err)) {
-                vscode.window.showErrorMessage(MCUtil.errToString(err));
+                CLIWrapper.showCLIError(MCUtil.errToString(err));
             }
             return;
         }

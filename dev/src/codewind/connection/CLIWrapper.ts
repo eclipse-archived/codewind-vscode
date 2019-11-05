@@ -19,7 +19,7 @@ import { promisify } from "util";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
-import { CLILifecycleCommand } from "./local/CLILifecycleCommands";
+import { CLILifecycleCommand, CLILifecycleCommands } from "./local/CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
 
 const BIN_DIR = "bin";
@@ -29,6 +29,8 @@ const CLI_PREREQS: { [s: string]: string[]; } = {
     [CLI_EXECUTABLE]: ["appsody"],
     [CLI_EXECUTABLE_WIN]: ["appsody.exe"]
 };
+
+const cliOutputChannel = vscode.window.createOutputChannel("Codewind");
 
 namespace CLIWrapper {
 
@@ -70,6 +72,7 @@ namespace CLIWrapper {
             await promisify(fs.copyFile)(source, target);
         }
         Log.i("CLI copy-out succeeded, to " + _executablePath);
+        // cliOutputChannel.appendLine(`cwctl is available at ${_executablePath}`);
         return _executablePath;
     }
 
@@ -91,8 +94,12 @@ namespace CLIWrapper {
 
         // cmdStr will be the full command, eg `cwctl --insecure project create <path> --url <url>`
         // is generally only used for debugging
-        const cmdStr = [path.basename(executablePath), ...args].join(" ");
+        const cmdStr = [ path.basename(executablePath), ...args ].join(" ");
         Log.i(`Running CLI command: ${cmdStr}`);
+
+        // CLI output and err are echoed to a user-visible outputchannel. We hide install output because it's thousands of lines of a progress bar.
+        const echoOutputToChannel = cmd !== CLILifecycleCommands.INSTALL;
+        cliOutputChannel.appendLine(`==> Run ${cmdStr}`);
 
         const executableDir = path.dirname(executablePath);
 
@@ -117,8 +124,18 @@ namespace CLIWrapper {
 
                 let outStr = "";
                 let errStr = "";
-                child.stdout.on("data", (chunk) => { outStr += chunk.toString(); });
-                child.stderr.on("data", (chunk) => { errStr += chunk.toString(); });
+                child.stdout.on("data", (chunk) => {
+                    const str = chunk.toString();
+                    if (echoOutputToChannel) {
+                        cliOutputChannel.append(str);
+                    }
+                    outStr += str;
+                });
+                child.stderr.on("data", (chunk) => {
+                    const str = chunk.toString();
+                    cliOutputChannel.append(str);
+                    errStr += str;
+                });
 
                 token.onCancellationRequested((_e) => {
                     child.kill();
@@ -131,19 +148,17 @@ namespace CLIWrapper {
                         Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        Log.e(`Error running ${cmdStr}:`, errStr);
-                        outStr = outStr || "No output";
-                        errStr = errStr || `Output:\n${outStr}`;
-                        writeOutError(outStr, errStr);
+                        const errMsg = `Error running "${cmdStr}"`;
+                        Log.e(errMsg);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
-                        reject(`Error running "${cmdStr}": ${errStr}`);
+                        reject(errMsg);
                     }
                     else {
-                        Log.i(`Successfully ran CLI command ${cmdStr}`);
+                        Log.d(`Successfully ran CLI command ${cmdStr}, output was: `, outStr);
                         if (cmd.hasJSONOutput) {
-                            if (!outStr) {
-                                Log.e(`Missing expected output from CLI command, output was "${outStr}"`);
+                            if (!outStr || !(outStr.startsWith("{") || outStr.startsWith("["))) {
+                                Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
                                 return resolve({});
                             }
                             Log.d("CLI object output:", outStr);
@@ -153,6 +168,8 @@ namespace CLIWrapper {
                         return resolve(outStr);
                     }
                 });
+            }).finally(() => {
+                cliOutputChannel.appendLine(`==> End ${cmdStr}`);
             });
         });
     }
@@ -161,15 +178,14 @@ namespace CLIWrapper {
         return MCUtil.errToString(err) === CLI_CMD_CANCELLED;
     }
 
-    async function writeOutError(outStr: string, errStr: string): Promise<void> {
-        const logDir = path.join(Log.getLogDir, `cli-error-${Date.now()}`);
-        await promisify(fs.mkdir)(logDir, { recursive: true });
-
-        const stdoutLog = path.join(logDir, "cli-output.log");
-        const stderrLog = path.join(logDir, "cli-error-output.log");
-        await promisify(fs.writeFile)(stdoutLog, outStr);
-        await promisify(fs.writeFile)(stderrLog, errStr);
-        Log.e("Wrote failed command output to " + logDir);
+    export function showCLIError(errMsg: string): void {
+        const viewErrBtn = "View Output";
+        vscode.window.showErrorMessage(errMsg, viewErrBtn)
+        .then((res) => {
+            if (res === viewErrBtn) {
+                cliOutputChannel.show();
+            }
+        });
     }
 }
 

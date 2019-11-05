@@ -15,6 +15,7 @@ import Log from "../Logger";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrapper";
 import MCUtil from "../MCUtil";
+import CLIWrapper from "../codewind/connection/CLIWrapper";
 
 /**
  *
@@ -54,6 +55,6 @@ export default async function connectLocalCodewindCmd(start: boolean = true): Pr
     }
     catch (err) {
         Log.e("StartCodewindCmd error", err);
-        vscode.window.showErrorMessage(`Error initializing Codewind: ${MCUtil.errToString(err)}`);
+        CLIWrapper.showCLIError(`Error initializing Codewind: ${MCUtil.errToString(err)}`);
     }
 }
