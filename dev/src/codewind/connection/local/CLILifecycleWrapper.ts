@@ -32,7 +32,7 @@ const STRING_NS = StringNamespaces.STARTUP;
 const TAG_OPTION = "-t";
 
 // Codewind tag to install if no env vars set
-const DEFAULT_CW_TAG = "0.5.0";
+const DEFAULT_CW_TAG = "0.6.0";
 const TAG_LATEST = "latest";
 
 
