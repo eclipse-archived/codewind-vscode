@@ -33,14 +33,6 @@ import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPag
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 
-/**
- * Used to determine App Monitor URL
- */
-const langToPathMap = new Map<string, string>();
-langToPathMap.set("java", "javametrics-dash");
-langToPathMap.set("nodejs", "appmetrics-dash");
-langToPathMap.set("swift", "swiftmetrics-dash");
-
 const STRING_NS = StringNamespaces.PROJECT;
 
 /**
@@ -565,17 +557,16 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public get appMonitorUrl(): string | undefined {
-        const appMetricsPath = langToPathMap.get(this.type.language);
-        const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
+        const isSupportedLanguage = ['nodejs'].includes(this.type.language);
+        const supported = isSupportedLanguage && this.capabilities.metricsAvailable;
         Log.d(`${this.name} supports metrics ? ${supported}`);
         if (!supported || !this.appUrl) {
             return undefined;
         }
-        let monitorPageUrlStr = this.appUrl.toString();
-        if (!monitorPageUrlStr.endsWith("/")) {
-            monitorPageUrlStr += "/";
-        }
-        return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
+        const pfeOrigin = this.detail;
+        const dashboardPath = `performance/codewind-metrics/dashboard/${this.type.language}`;
+        const appMonitorUrl = `${pfeOrigin}${dashboardPath}?theme=dark&projectID=${this.id}`;
+        return appMonitorUrl;
     }
 
     public get lastSync(): number {
