@@ -564,7 +564,7 @@ export default class Project implements vscode.QuickPickItem {
             return undefined;
         }
         const pfeOrigin = this.detail;
-        const dashboardPath = `performance/codewind-metrics/dashboard/${this.type.language}`;
+        const dashboardPath = `performance/monitor/dashboard/${this.type.language}`;
         const appMonitorUrl = `${pfeOrigin}${dashboardPath}?theme=dark&projectID=${this.id}`;
         return appMonitorUrl;
     }
