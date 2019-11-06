@@ -563,7 +563,7 @@ export default class Project implements vscode.QuickPickItem {
         if (!supported || !this.appUrl) {
             return undefined;
         }
-        const pfeOrigin = this.detail;
+        const pfeOrigin = this.connection.url.toString();
         const dashboardPath = `performance/monitor/dashboard/${this.type.language}`;
         const appMonitorUrl = `${pfeOrigin}${dashboardPath}?theme=dark&projectID=${this.id}`;
         return appMonitorUrl;
