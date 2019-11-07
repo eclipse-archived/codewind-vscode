@@ -76,15 +76,6 @@
         ],
         "commands": [
             {
-                "command": "%cmdID_newConnection%",
-                "title": "%cmdTitle_newConnection%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/light/new_cloud.svg",
-                    "dark": "res/img/dark/new_cloud.svg"
-                }
-            },
-            {
                 "command": "%cmdID_startCodewind%",
                 "title": "%cmdTitle_startCodewind%",
                 "category": "%commandCategory%",
@@ -117,24 +108,6 @@
                 }
             },
             {
-                "command": "%cmdID_enableConnection%",
-                "title": "%cmdTitle_enableConnection%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/themeless/toggle_off.svg",
-                    "dark": "res/img/themeless/toggle_off.svg"
-                }
-            },
-            {
-                "command": "%cmdID_disableConnection%",
-                "title": "%cmdTitle_disableConnection%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/themeless/toggle_on.svg",
-                    "dark": "res/img/themeless/toggle_on.svg"
-                }
-            },
-            {
                 "command": "%cmdID_separator%",
                 "title": "%cmdTitle_separator%",
                 "category": "%commandCategory%",
@@ -142,11 +115,6 @@
                     "light": "res/img/light/separator.svg",
                     "dark": "res/img/dark/separator.svg"
                 }
-            },
-            {
-                "command": "%cmdID_removeConnection%",
-                "title": "%cmdTitle_removeConnection%",
-                "category": "%commandCategory%"
             },
             {
                 "command": "%cmdID_newProject%",
@@ -170,15 +138,6 @@
                 "command": "%cmdID_manageTemplateRepos%",
                 "title": "%cmdTitle_manageTemplateRepos%",
                 "category": "%commandCategory%"
-            },
-            {
-                "command": "%cmdID_connectionOverview%",
-                "title": "%cmdTitle_connectionOverview%",
-                "category": "%commandCategory%",
-                "icon": {
-                    "light": "res/img/light/settings.svg",
-                    "dark": "res/img/dark/settings.svg"
-                }
             },
             {
                 "command": "%cmdID_setRegistry%",
@@ -321,12 +280,7 @@
                     "when": "never"
                 }
             ],
-            "view/title": [
-                {
-                    "command": "%cmdID_newConnection%",
-                    "group": "navigation@0"
-                }
-            ],
+            "view/title": [],
             "view/item/context": [
                 {
                     "command": "%cmdID_startCodewind%",
@@ -346,26 +300,6 @@
                 {
                     "command": "%cmdID_stopCodewind%",
                     "when": "%isStartedLocalCodewind%",
-                    "group": "inline@9"
-                },
-                {
-                    "command": "%cmdID_enableConnection%",
-                    "when": "%isDisabledRemoteConnection%",
-                    "group": "ext.cw.conn.a@0"
-                },
-                {
-                    "command": "%cmdID_enableConnection%",
-                    "when": "%isDisabledRemoteConnection%",
-                    "group": "inline@9"
-                },
-                {
-                    "command": "%cmdID_disableConnection%",
-                    "when": "%isEnabledRemoteConnection%",
-                    "group": "ext.cw.conn.a@0"
-                },
-                {
-                    "command": "%cmdID_disableConnection%",
-                    "when": "%isEnabledRemoteConnection%",
                     "group": "inline@9"
                 },
                 {
@@ -414,24 +348,9 @@
                     "group": "ext.cw.conn.c@2"
                 },
                 {
-                    "command": "%cmdID_connectionOverview%",
-                    "when": "%isRemoteConnection%",
-                    "group": "ext.cw.conn.d@0"
-                },
-                {
-                    "command": "%cmdID_connectionOverview%",
-                    "when": "%isRemoteConnection%",
-                    "group": "inline@3"
-                },
-                {
                     "command": "%cmdID_refreshConnection%",
                     "when": "%isConnection%",
                     "group": "ext.cw.conn.e@0"
-                },
-                {
-                    "command": "%cmdID_removeConnection%",
-                    "when": "%isRemoteConnection%",
-                    "group": "ext.cw.conn.f@0"
                 },
                 {
                     "command": "%cmdID_openInBrowser%",
