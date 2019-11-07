@@ -584,7 +584,7 @@
     },
     "dependencies": {
         "circular-json": "^0.5.9",
-        "codewind-filewatcher": "https://download.eclipse.org/codewind/codewind-filewatcher-ts/master/latest/filewatcherd-node_latest.tar.gz",
+        "codewind-filewatcher": "http://download.eclipse.org/codewind/codewind-filewatcher-ts/master/8/filewatcherd-node_0.6.0.tar.gz",
         "fs-extra": "^8.1.0",
         "i18next": "^8.3.0",
         "i18next-node-fs-backend": "^2.1.3",
