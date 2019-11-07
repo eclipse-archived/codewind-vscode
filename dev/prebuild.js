@@ -14,7 +14,7 @@
 const path = require("path");
 const fs = require("fs");
 const util = require("util");
-const rimraf = require("rimraf");
+const { exec } = require("child_process");
 
 const theia_cmdsToDelete = [
     "startCodewind",
@@ -104,13 +104,14 @@ async function prebuildTheia(pj) {
     const BIN_DIR = "bin";
     const winInstaller = path.join(BIN_DIR, "windows");
     const macInstaller = path.join(BIN_DIR, "darwin");
-    await util.promisify(rimraf)(winInstaller);
-    console.log(`Deleted ${winInstaller}`);
-    await util.promisify(rimraf)(macInstaller);
-    console.log(`Deleted ${macInstaller}`);
-
-
+    await rmrf(winInstaller);
+    await rmrf(macInstaller);
     return pj;
+}
+
+async function rmrf(path) {
+    await util.promisify(exec)(`rm -rfv ${path}`);
+    console.log(`Deleted ${path}`);
 }
 
 async function prebuildVSCode(pj) {
