@@ -148,7 +148,10 @@ namespace CLIWrapper {
                         Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        const errMsg = `Error running "${cmdStr}"`;
+                        let errMsg = `Error running "${cmdStr}"`;
+                        if (errStr) {
+                            errMsg += `: ${errStr}`;
+                        }
                         Log.e(errMsg);
                         Log.e("Stdout:", outStr);
                         Log.e("Stderr:", errStr);
