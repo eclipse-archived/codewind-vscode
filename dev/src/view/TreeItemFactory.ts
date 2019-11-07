@@ -41,7 +41,7 @@ namespace TreeItemFactory {
         const cwState = LocalCodewindManager.instance.state;
         const cwStarted = LocalCodewindManager.instance.isStarted;
 
-        let label = "Local";
+        let label = "Local Codewind";
         if (global.isTheia) {
             // it's confusing to say "local" in Theia
             label = "Projects";
