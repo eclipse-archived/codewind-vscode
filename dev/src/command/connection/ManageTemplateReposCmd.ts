@@ -241,8 +241,8 @@ function validateRepoInput(input: string): string | undefined {
     if (!asUrl) {
         return "The repository URL must be a valid URL.";
     }
-    else if (!(asUrl.protocol.startsWith("http") || asUrl.protocol.startsWith("file"))) {
-        return "The repository URL must be a valid http(s) or file URL.";
+    else if (!asUrl.protocol.startsWith("http")) {
+        return "The repository URL must be a valid http(s) URL.";
     }
     return undefined;
 }
