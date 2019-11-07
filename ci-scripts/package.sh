@@ -8,7 +8,6 @@ set -ex
 
 cd $(dirname $0)/../dev
 
-npm i rimraf
 if [[ $is_theia ]]; then
     echo "Building for Theia"
     ./prebuild.js theia
@@ -18,6 +17,7 @@ else
 fi
 
 # Test compilation to catch any errors
+npm ci
 npm run vscode:prepublish
 
 # Package for prod

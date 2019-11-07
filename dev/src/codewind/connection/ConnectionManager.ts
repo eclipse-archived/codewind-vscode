@@ -146,7 +146,9 @@ export default class ConnectionManager implements vscode.Disposable {
             Log.e(`Request to remove connection ${connection} but it doesn't exist!`);
             return false;
         }
-        await CLICommandRunner.removeConnection(connection.id);
+        if (connection.isRemote) {
+            await CLICommandRunner.removeConnection(connection.id);
+        }
         connection.dispose();
         this.connections.splice(indexToRemove, 1);
         Log.i("Removed connection", connection);
