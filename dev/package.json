@@ -563,13 +563,13 @@
         "copy-license": "cp -v ../LICENSE ../README.md ."
     },
     "devDependencies": {
-        "@types/chai": "^4.1.7",
+        "@types/chai": "^4.2.4",
         "@types/circular-json": "^0.4.0",
         "@types/fs-extra": "^8.0.0",
         "@types/i18next": "^11.9.3",
         "@types/i18next-node-fs-backend": "0.0.30",
         "@types/mocha": "^2.2.42",
-        "@types/node": "^10.12.1",
+        "@types/node": "^10.17.4",
         "@types/request": "^2.47.1",
         "@types/request-promise-native": "^1.0.15",
         "@types/rimraf": "^2.0.2",
@@ -578,9 +578,8 @@
         "@types/stack-trace": "0.0.29",
         "chai": "^4.2.0",
         "socketio-wildcard": "^2.0.0",
-        "ts-node": "^7.0.1",
-        "tslint": "^5.18.0",
-        "typescript": "^3.6.2",
+        "tslint": "^5.20.1",
+        "typescript": "^3.7.2",
         "vscode": "^1.1.36"
     },
     "dependencies": {
