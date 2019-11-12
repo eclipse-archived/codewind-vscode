@@ -4,15 +4,22 @@
 [![Chat](https://img.shields.io/static/v1.svg?label=chat&message=mattermost&color=145dbf)](https://mattermost.eclipse.org/eclipse/channels/eclipse-codewind)
 
 # Codewind for VS Code
-Codewind for VS Code provides tools to help build cloud-native, containerized web applications from VS Code, regardless of which IDE or language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
+Codewind for VS Code provides tools to help build cloud-native, containerized applications from VS Code, regardless of which language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
+
+## Why use Codewind?
+- Work on your desktop then run and debug on Kubernetes.
+- Get started quickly with templates or samples.
+- Use the tools, runtimes, and languages that you're already familiar with.
+- Pull in existing applications and get them ready for the cloud.
+- Enjoy quick, iterative development and fast feedback.
+- Learn as you go.
 
 ## Features
 - Create new containerized projects or add existing ones.
 - View your containerized projects, including the application and build status.
-- Debug Microprofile/Java EE and Spring applications.
-- Set up a debug session in a Chromium-based browser for Node.js applications.
-- View application and build logs in the Console view.
-- Integrate validation errors into the Markers view.
+- Debug Microprofile/Java EE, Node.js, and Spring applications.
+- View application and build logs in the Output view.
+- See validation errors in the Problems view.
 - Open a shell session into an application container.
 - Toggle the project auto build setting and manually initiate project builds.
 - Open your application or the application monitor in a browser.
