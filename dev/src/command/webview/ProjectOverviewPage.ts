@@ -15,7 +15,7 @@ import Resources from "../../constants/Resources";
 import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
 import WebviewUtil from "../webview/WebviewUtil";
-import { CWDocs } from "../../constants/Constants";
+import CWDocs from "../../constants/CWDocs";
 
 // This file does have a bunch of strings that should be translated,
 // but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.

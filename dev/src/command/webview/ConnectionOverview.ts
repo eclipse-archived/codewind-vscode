@@ -14,7 +14,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
 
-import RemoteConnection, { IRemoteCodewindInfo } from "../../codewind/connection/RemoteConnection";
+import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import Resources from "../../constants/Resources";
 import getConnectionInfoPage from "./ConnectionOverviewPage";
 import Constants from "../../constants/Constants";
@@ -24,8 +24,6 @@ import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import MCUtil from "../../MCUtil";
 import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
-import CWEnvironment from "../../codewind/connection/CWEnvironment";
-import { StatusCodeError } from "request-promise-native/errors";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 
 export enum ConnectionOverviewWVMessages {
@@ -38,11 +36,22 @@ export enum ConnectionOverviewWVMessages {
 /**
  * The editable textfields in the Connection (left half) part of the overview
  */
-interface IConnectionInfoFields {
-    readonly ingressUrl: string;
+interface ConnectionInfoFields {
+    readonly url?: string;
     readonly username?: string;
     readonly password?: string;
 }
+
+/**
+ * The editable textfields in the Container Registry (right half) part of the overview
+ */
+interface RegistryInfoFields {
+    readonly registryUrl?: string;
+    readonly registryUsername?: string;
+    readonly registryPassword?: string;
+}
+
+export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields & RegistryInfoFields;
 
 export default class ConnectionOverview {
 
@@ -61,11 +70,11 @@ export default class ConnectionOverview {
         if (connection.activeOverviewPage) {
             return connection.activeOverviewPage;
         }
-        return new ConnectionOverview(connection.getRemoteInfo(), connection);
+        return new ConnectionOverview(connection.memento, connection);
     }
 
     private constructor(
-        connectionInfo: IRemoteCodewindInfo,
+        connectionInfo: ConnectionOverviewFields,
         connection?: RemoteConnection,
     ) {
         this.label = connectionInfo.label;
@@ -100,7 +109,7 @@ export default class ConnectionOverview {
         this.webPanel.webview.onDidReceiveMessage(this.handleWebviewMessage);
     }
 
-    public refresh(connectionInfo: IRemoteCodewindInfo): void {
+    public refresh(connectionInfo: ConnectionOverviewFields): void {
         const html = getConnectionInfoPage(connectionInfo);
         if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
             const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
@@ -125,43 +134,45 @@ export default class ConnectionOverview {
                     break;
                 }
                 case ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO: {
-                    const newInfo: IConnectionInfoFields = msg.data;
+                    const newInfo: ConnectionOverviewFields = msg.data;
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Updating info for ${this.connection.label} to ${JSON.stringify(newInfo)}`);
-                        if (newInfo.ingressUrl !== this.connection.getRemoteInfo().url) {
-                            vscode.window.showWarningMessage("Changing ingress is not implemented, yet");
+                        if (newInfo.url !== this.connection.memento.ingressUrl) {
+                            vscode.window.showErrorMessage("Changing ingress is not allowed");
                         }
-                        this.connection.username = newInfo.username;
-                        // test auth w/ password
-                        this.refresh(this.connection.getRemoteInfo());
+                        else if (!newInfo.username) {
+                            vscode.window.showErrorMessage(`Enter a username`);
+                        }
+                        else if (!newInfo.password) {
+                            vscode.window.showErrorMessage(`Enter a password`);
+                        }
+                        else {
+                            this.connection.updateCredentials(newInfo.username, newInfo.password);
+                            this.refresh(this.connection.memento);
+                        }
                     }
                     else {
                         try {
                             const newConnection = await this.createNewConnection(newInfo);
                             this.connection = newConnection;
                             this.connection.onOverviewOpened(this);
-                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressUrl}`);
-                            this.refresh(this.connection.getRemoteInfo());
+                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.url}`);
+                            if (newInfo.registryUrl) {
+                                await this.updateRegistry(newInfo, false);
+                            }
+                            this.refresh(this.connection.memento);
                         }
                         catch (err) {
                             // the err from createNewConnection is user-friendly
-                            Log.e(`Error creating new connection from info: ${JSON.stringify(newInfo)}`, err);
-                            vscode.window.showErrorMessage(`Error creating new connection: ${MCUtil.errToString(err)}`);
+                            Log.w(`Error creating new connection to ${newInfo.url}`, err);
+                            vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
                         }
                     }
                     break;
                 }
                 case ConnectionOverviewWVMessages.SAVE_REGISTRY: {
-                    if (this.connection) {
-                        const newRegistryInfo: { registryUrl: string; registryUsername: string; registryPassword: string } = msg.data;
-                        vscode.window.showInformationMessage(
-                            `Updating registry info for ${this.connection.label} to ${JSON.stringify(newRegistryInfo)}`
-                        );
-                        this.connection.registryUrl = newRegistryInfo.registryUrl;
-                        this.connection.registryUsername = newRegistryInfo.registryUsername;
-                        // test registry auth w/ password
-                        this.refresh(this.connection.getRemoteInfo());
-                    }
+                    const registryData = msg.data;
+                    await this.updateRegistry(registryData, true);
                     break;
                 }
                 case ConnectionOverviewWVMessages.DELETE: {
@@ -185,25 +196,41 @@ export default class ConnectionOverview {
         }
     }
 
-
     /**
      * Tries to create a new connection from the given info.
      * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
-    private async createNewConnection(info: IConnectionInfoFields): Promise<RemoteConnection> {
-        let testIngressUrl;
+    private async createNewConnection(newConnectionInfo: ConnectionInfoFields): Promise<RemoteConnection> {
+        if (!newConnectionInfo.url) {
+            throw new Error("Enter a Codewind Gatekeeper ingress host");
+        }
+        Log.d("Ingress host is", newConnectionInfo.url);
+
+        let ingressUrlStr = newConnectionInfo.url.trim();
         try {
-            testIngressUrl = new URL(info.ingressUrl);
+            // tslint:disable-next-line: no-unused-expression
+            if (!ingressUrlStr.includes("://")) {
+                Log.d(`No protocol; assuming https`);
+                ingressUrlStr = `https://${ingressUrlStr}`;
+            }
+
+            const ingressAsUrl = new URL(ingressUrlStr);
+            if (!ingressAsUrl.protocol.startsWith("https")) {
+                throw new Error(`Protocol must be https, or omitted.`);
+            }
         }
         catch (err) {
-            throw new Error(`"${info.ingressUrl}" is not a valid URL.`);
+            throw new Error(`"${ingressUrlStr}" is not a valid URL: ${MCUtil.errToString(err)}`);
         }
 
-        if (!testIngressUrl.protocol.startsWith("http")) {
-            throw new Error(`"${info.ingressUrl}" must be a an HTTP or HTTPS URL`);
+        if (!newConnectionInfo.username) {
+            throw new Error(`Enter a username for ${ingressUrlStr}`);
+        }
+        else if (!newConnectionInfo.password) {
+            throw new Error(`Enter a password for ${ingressUrlStr}`);
         }
 
-        const ingressUrl = vscode.Uri.parse(info.ingressUrl);
+        const ingressUrl = vscode.Uri.parse(ingressUrlStr);
 
         await vscode.window.withProgress(({
             cancellable: true,
@@ -217,31 +244,50 @@ export default class ConnectionOverview {
                 throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
             }
 
-            // let envData: CWEnvData | undefined;
-            try {
-                // envData = await CWEnvironment.getEnvData(ingressUrl);
-                await CWEnvironment.getEnvData(ingressUrl);
-            }
-            catch (err) {
-                if (err instanceof StatusCodeError) {
-                    if (err.statusCode === 404) {
-                        throw new Error(`Received 404 error; ${ingressUrl} does not appear to point to a Codewind instance.`);
-                    }
-                }
-                // Other errors to anticipate?
-            }
-
-            // Version check?
+            // Auth check? Version check?
         });
 
+        const username = newConnectionInfo.username;
+        const password = newConnectionInfo.password;
 
         return vscode.window.withProgress({
             cancellable: false,
             location: vscode.ProgressLocation.Notification,
             title: `Creating new connection...`,
-        }, () => {
-            return ConnectionManager.instance.connectRemote(ingressUrl, { label: this.label, ...info });
+        }, async () => {
+            const newConnection = await ConnectionManager.instance.createRemoteConnection(ingressUrl, this.label, username, password);
+            return newConnection;
         });
+    }
+
+    private async updateRegistry(registryInfo: RegistryInfoFields, isUpdate: boolean): Promise<void> {
+        if (!this.connection) {
+            Log.e("Requested to update registry but connection is undefined");
+            return;
+        }
+
+        if (!registryInfo.registryUrl) {
+            vscode.window.showErrorMessage(`Enter a container registry URL`);
+            return;
+        }
+        else if (!registryInfo.registryUsername) {
+            vscode.window.showErrorMessage(`Enter a container registry username`);
+            return;
+        }
+        else if (!registryInfo.registryPassword) {
+            vscode.window.showErrorMessage(`Enter a container registry password`);
+            return;
+        }
+        await this.connection.updateRegistry(
+            registryInfo.registryUrl, registryInfo.registryUsername, registryInfo.registryPassword
+        );
+        this.refresh(this.connection.memento);
+
+        if (isUpdate) {
+            vscode.window.showInformationMessage(
+                `Updating registry info for ${this.connection.label} to ${JSON.stringify(registryInfo)}`
+            );
+        }
     }
 
 }

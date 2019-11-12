@@ -21,8 +21,8 @@ import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Commands from "../../constants/Commands";
-import { CWDocs } from "../../constants/Constants";
-import { CLICommandRunner } from "../../codewind/connection/CLICommands";
+import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
+import CWDocs from "../../constants/CWDocs";
 
 /**
  * Template repository/source data as provided by the backend

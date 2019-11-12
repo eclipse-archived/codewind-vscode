@@ -9,19 +9,20 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-/**
- * Miscellaneous constants
- */
-namespace Constants {
-    export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
+import { Uri } from "vscode";
 
-    export const CHE_WORKSPACEID_ENVVAR = "CHE_WORKSPACE_ID";
-    export const CHE_API_EXTERNAL_ENVVAR = "CHE_API_EXTERNAL";
-
-    export const CW_ENV_VAR = "CW_ENV";
-    export const CW_ENV_DEV = "dev";
-    export const CW_ENV_TEST = "test";
-    export const CW_ENV_TAG_VAR = "CW_TAG";
+export namespace CWDocs {
+    export function getDocLink(docPath: CWDocs): Uri {
+        return Uri.parse(`https://www.eclipse.org/codewind/${docPath}`);
+    }
 }
 
-export default Constants;
+export enum CWDocs {
+    TEMPLATE_MANAGEMENT = "mdt-vsc-usingadifferenttemplate.html",
+    INSTALL_INFO = "mdt-vsc-installinfo.html",
+    DOCKER_REGISTRY = "dockerregistry.html",
+    PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",
+    INSTALL_ON_CLOUD = "installoncloud.html",
+}
+
+export default CWDocs;

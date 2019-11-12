@@ -86,8 +86,7 @@ namespace TreeItemContext {
             }
         }
 
-        if (connection.isRemote || global.isTheia) {
-            // The local connection has these features ONLY in Theia.
+        if (connection.isKubeConnection) {
             contextValues.push(TreeItemContextValues.CONN_WITH_TEKTON);
             contextValues.push(TreeItemContextValues.CONN_WITH_REGISTRY);
         }

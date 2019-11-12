@@ -11,9 +11,6 @@
 
 import * as vscode from "vscode";
 import * as request from "request-promise-native";
-import * as path from "path";
-import * as fs from "fs-extra";
-import * as zlib from "zlib";
 
 import Project from "./Project";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
@@ -28,86 +25,34 @@ import Connection from "../connection/Connection";
 import { IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
+import { RawCWEnvData } from "../connection/CWEnvironment";
+import RemoteConnection from "../connection/RemoteConnection";
 
-type RequestFunc = (uri: string, options: request.RequestPromiseOptions) => request.RequestPromise<any> | Promise<any>;
+// tslint:disable-next-line: variable-name
+const HttpVerbs = {
+    GET: request.get,
+    POST: request.post,
+    PUT: request.put,
+    PATCH: request.patch,
+    DELETE: request.delete,
+} as const;
 
 const STRING_NS = StringNamespaces.REQUESTS;
 
 namespace Requester {
 
-    export const ERR_LOGIN_PAGE = "Authentication required";
-
-    // These wrappers are exported because this class should be the only one that needs to import request.
-    // By enforcing this and using these to forward all Codewind requests to the 'req' function,
-    // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
-
-    async function req(method: RequestFunc, url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        if (url instanceof vscode.Uri) {
-            url = url.toString();
-        }
-        if (!options) {
-            options = {};
-        }
-        options.json = true;
-        // TODO ...
-        options.rejectUnauthorized = false;
-
-        const response = await method(url, { ...options, resolveWithFullResponse: true }) as request.FullResponse;
-        if (response.request.path.startsWith("/auth/")) {
-            throw new Error(ERR_LOGIN_PAGE);
-        }
-
-        if (!options.resolveWithFullResponse) {
-            // resolve with full response only if the original options requested it
-            return response.body;
-        }
-        return response;
-    }
-
-    export async function get(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.get, url, options);
-    }
-
-    export async function post(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.post, url, options);
-    }
-
-    export async function put(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.put, url, options);
-    }
-
-    export async function patch(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.patch, url, options);
-    }
-
-    export async function delet(url: string | vscode.Uri, options?: request.RequestPromiseOptions): Promise<any> {
-        return req(request.delete, url, options);
-    }
-
-    export async function ping(url: string | vscode.Uri): Promise<boolean> {
-        if (url instanceof vscode.Uri) {
-            url = url.toString();
-        }
-        try {
-            await get(url, { resolveWithFullResponse: true, timeout: 10000 });
-            // It succeeded
-            return true;
-        }
-        catch (err) {
-            Log.e(`Error pinging ${url}`, err);
-            if (err instanceof StatusCodeError) {
-                // it was reachable, but returned a bad status
-                return true;
-            }
-            // it was not reachable
-            return false;
-        }
-    }
-
     ///// Connection-specific requests
 
+    export async function getProjects(connection: Connection): Promise<any[]> {
+        return doConnectionRequest(connection, MCEndpoints.PROJECTS, "GET");
+    }
+
+    export async function getRawEnvironment(connection: Connection): Promise<RawCWEnvData> {
+        return doConnectionRequest(connection, MCEndpoints.ENVIRONMENT, "GET");
+    }
+
     export async function getTemplates(connection: Connection): Promise<ICWTemplateData[]> {
-        const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, Requester.get, { qs: { showEnabledOnly: true }});
+        const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, "GET", { qs: { showEnabledOnly: true }});
         if (result == null) {
             return [];
         }
@@ -133,7 +78,7 @@ namespace Requester {
         const result: [{
             status: number,
             requestedOperation: IRepoEnablementReq,
-        }] = await doConnectionRequest(connection, MCEndpoints.BATCH_TEMPLATE_REPOS, Requester.patch, { body });
+        }] = await doConnectionRequest(connection, MCEndpoints.BATCH_TEMPLATE_REPOS, "PATCH", { body });
 
         const failures = result.filter((opResult) => opResult.status !== 200);
         if (failures.length > 0) {
@@ -151,7 +96,7 @@ namespace Requester {
 
     export async function isRegistrySet(connection: Connection): Promise<boolean> {
         try {
-            const registryStatus: { deploymentRegistry: boolean } = await doConnectionRequest(connection, MCEndpoints.REGISTRY, Requester.get);
+            const registryStatus: { deploymentRegistry: boolean } = await doConnectionRequest(connection, MCEndpoints.REGISTRY, "GET");
             return registryStatus.deploymentRegistry;
         }
         catch (err) {
@@ -168,27 +113,15 @@ namespace Requester {
             operation,
         };
 
-        return doConnectionRequest(connection, MCEndpoints.REGISTRY, Requester.post, { body });
+        return doConnectionRequest(connection, MCEndpoints.REGISTRY, "POST", { body });
     }
 
     export async function getProjectTypes(connection: Connection): Promise<IProjectTypeDescriptor[]> {
-        const result = await doConnectionRequest(connection, MCEndpoints.PROJECT_TYPES, Requester.get);
+        const result = await doConnectionRequest(connection, MCEndpoints.PROJECT_TYPES, "GET");
         if (result == null) {
             return [];
         }
         return result;
-    }
-
-    async function doConnectionRequest(
-        connection: Connection, endpoint: MCEndpoints, method: RequestFunc, options?: request.RequestPromiseOptions): Promise<any> {
-
-        if (!connection.isConnected) {
-            throw new Error("Codewind is disconnected.");
-        }
-
-        const url = EndpointUtil.resolveMCEndpoint(connection, endpoint);
-        Log.d(`Doing ${method.name} request to ${url}`);
-        return req(method, url, options);
     }
 
     // Project-specific requests
@@ -199,7 +132,7 @@ namespace Requester {
         };
 
         const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode) });
-        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, Requester.post, restartMsg, false, true);
+        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, "POST", restartMsg, false, true);
     }
 
     export async function requestBuild(project: Project): Promise<void> {
@@ -207,63 +140,9 @@ namespace Requester {
             action: "build"         // non-nls
         };
 
-        // return doProjectRequest(project, url, body, Requester.post, "Build");
+        // return doProjectRequest(project, url, body, post, "Build");
         const buildMsg = Translator.t(STRING_NS, "build");
-        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, buildMsg);
-    }
-
-    export async function requestUploadsRecursively(connection: Connection, projectId: any, inputPath: string, parentPath: string, lastSync: number):
-        Promise<string[]> {
-
-        Log.i(`requestUploadsRecursively for ${projectId} at ${inputPath}`);
-        const files = await fs.readdir(inputPath);
-        const fileList: string[] = [];
-        for (const f of files) {
-            const currentPath = `${inputPath}/${f}`;
-            const relativePath = path.relative(parentPath, currentPath);
-            fileList.push(relativePath);
-            // Log.i("Uploading " + currentPath);
-            const stats = await fs.stat(currentPath);
-            if (stats.isFile()) {
-                try {
-                    const lastModificationTime = stats.mtimeMs;
-                    if (lastModificationTime > lastSync) {
-                        await remoteUpload(connection, projectId, currentPath, parentPath);
-                    }
-                } catch (err) {
-                    Log.d(err);
-                }
-            } else if (stats.isDirectory()) {
-                const newFiles = await requestUploadsRecursively(connection, projectId, currentPath, parentPath, lastSync);
-                fileList.push(...newFiles);
-            }
-        }
-        return fileList;
-    }
-
-    async function remoteUpload(connection: Connection, projectId: string, filePath: string, parentPath: string): Promise<void> {
-
-        const fileContent = JSON.stringify(fs.readFileSync(filePath, "utf-8"));
-        const strBuffer = zlib.deflateSync(fileContent);
-        const base64Compressed = strBuffer.toString("base64");
-        const relativePath = path.relative(parentPath, filePath);
-
-        const remoteBindUpload = EndpointUtil.resolveProjectEndpoint(connection, projectId, ProjectEndpoints.UPLOAD);
-        const body = {
-            directory: false,
-            path: relativePath,
-            timestamp: Date.now(),
-            msg: base64Compressed,
-        };
-
-        const remoteBindRes = await Requester.put(remoteBindUpload, {
-            json: true,
-            body: body,
-        });
-
-        if (remoteBindRes !== "OK") {
-            Log.e("Unexpected remote upload response", remoteBindRes);
-        }
+        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, "POST", buildMsg);
     }
 
     export async function requestToggleAutoBuild(project: Project): Promise<void> {
@@ -278,8 +157,8 @@ namespace Requester {
             action: newAutoBuildAction
         };
 
-        // const response = await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, newAutoBuildUserStr);
-        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, Requester.post, newAutoBuildUserStr);
+        // const response = await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, post, newAutoBuildUserStr);
+        await doProjectRequest(project, ProjectEndpoints.BUILD_ACTION, body, "POST", newAutoBuildUserStr);
         project.setAutoBuild(newAutoBuild);
     }
 
@@ -290,7 +169,7 @@ namespace Requester {
         const newEnablementStr: string = Translator.t(STRING_NS, newEnablementMsgKey);
 
         const endpoint = EndpointUtil.getEnablementAction(newEnablement);
-        await doProjectRequest(project, endpoint, {}, Requester.put, newEnablementStr);
+        await doProjectRequest(project, endpoint, {}, "PUT", newEnablementStr);
     }
 
     // Validation appears to have been removed
@@ -298,7 +177,7 @@ namespace Requester {
     //     const [endpoint, body]: [Endpoint, IValidateRequestBody] = assembleValidateRequest(project, false);
 
     //     const userOperation = Translator.t(StringNamespaces.CMD_MISC, "validate");
-    //     await doProjectRequest(project, endpoint, body, Requester.post, userOperation, silent);
+    //     await doProjectRequest(project, endpoint, body, post, userOperation, silent);
     // }
 
     // export async function requestGenerate(project: Project): Promise<void> {
@@ -306,7 +185,7 @@ namespace Requester {
 
     //     const generateMsg = Translator.t(STRING_NS, "generateMissingFiles");
 
-    //     await doProjectRequest(project, endpoint, body, Requester.post, generateMsg);
+    //     await doProjectRequest(project, endpoint, body, post, generateMsg);
     //     // request a validate after the generate so that the validation errors go away faster
     //     await requestValidate(project, true);
     // }
@@ -335,7 +214,7 @@ namespace Requester {
 
     export async function requestUnbind(project: Project): Promise<void> {
         const msg = Translator.t(STRING_NS, "unbind");
-        await doProjectRequest(project, ProjectEndpoints.UNBIND, {}, Requester.post, msg, true);
+        await doProjectRequest(project, ProjectEndpoints.UNBIND, {}, "POST", msg, true);
     }
 
     export async function requestAvailableLogs(project: Project): Promise<ILogResponse> {
@@ -346,100 +225,74 @@ namespace Requester {
             };
         }
         const msg = Translator.t(STRING_NS, "checkingAvailableLogs");
-        return doProjectRequest(project, ProjectEndpoints.LOGS, {}, Requester.get, msg, true);
+        return doProjectRequest(project, ProjectEndpoints.LOGS, {}, "GET", msg, true);
     }
 
     export async function requestToggleLogs(project: Project, enable: boolean): Promise<void> {
-        const method = enable ? Requester.post : Requester.delet;
+        const verb = enable ? "POST" : "DELETE";
         const onOrOff = enable ? "on" : "off";
         const msg = Translator.t(STRING_NS, "togglingLogs", { onOrOff });
-        await doProjectRequest(project, ProjectEndpoints.LOGS, {}, method, msg, true);
+        await doProjectRequest(project, ProjectEndpoints.LOGS, {}, verb, msg, true);
     }
 
     export async function getCapabilities(project: Project): Promise<ProjectCapabilities> {
-        const result = await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, Requester.get, "Getting capabilities", true);
+        const result = await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, "GET", "Getting capabilities", true);
         const metricsAvailable = await areMetricsAvailable(project);
         return new ProjectCapabilities(result.startModes, result.controlCommands, metricsAvailable);
     }
 
     async function areMetricsAvailable(project: Project): Promise<boolean> {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
-        const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, Requester.get, msg, true);
+        const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, "GET", msg, true);
         return res.metricsAvailable;
     }
 
     /**
-     * Perform a REST request of the type specified by `requestFunc` to the project endpoint for the given project.
-     * Displays a message to the user that the request succeeded if userOperationName is not null.
-     * Always displays a message to the user in the case of an error.
-     * @param body - JSON request body for POST, PUT requests. Uses application/json content-type.
-     * @param requestFunc - eg. Requester.get, Requester.post...
-     * @param userOperationName - If `!silent`, a message will be displayed to the user that they are doing this operation on this project.
-     * @param silent - If true, an info message will not be displayed when the request is initiated. Error messages are always displayed.
+     * Try to connect to the given URL. Returns true if _any_ response is returned.
      */
-    async function doProjectRequest(
-            project: Project, endpoint: Endpoint, body: {},
-            requestFunc: RequestFunc, userOperationName: string, silent: boolean = false, returnFullRes: boolean = false): Promise<any> {
-
-        let url: string;
-        if (EndpointUtil.isProjectEndpoint(endpoint)) {
-            url = EndpointUtil.resolveProjectEndpoint(project.connection, project.id, endpoint as ProjectEndpoints);
+    export async function ping(url: string | vscode.Uri): Promise<boolean> {
+        Log.d(`Ping ${url}`);
+        if (url instanceof vscode.Uri) {
+            url = url.toString();
         }
-        else {
-            url = EndpointUtil.resolveMCEndpoint(project.connection, endpoint as MCEndpoints);
-        }
-
-        Log.i(`Doing ${userOperationName} request to ${url}`);
-
-        const options: request.RequestPromiseOptions = {
-            body,
-            resolveWithFullResponse: returnFullRes,
-        };
-
         try {
-            const result = await requestFunc(url, options);
-
-            if (!silent) {
-                vscode.window.showInformationMessage(
-                    Translator.t(STRING_NS, "requestSuccess",
-                    { operationName: userOperationName, projectName: project.name })
-                );
-            }
-            return result;
+            await req("GET", url, { timeout: 10000 });
+            // It succeeded
+            return true;
         }
         catch (err) {
-            Log.w(`Error doing ${userOperationName} project request for ${project.name}:`, err);
-
-            vscode.window.showErrorMessage(
-                Translator.t(STRING_NS, "requestFail",
-                { operationName: userOperationName, projectName: project.name, err: MCUtil.errToString(err) })
-            );
-            throw err;
+            if (err.message === ERR_LOGIN_PAGE || err instanceof StatusCodeError) {
+                // it was reachable, but returned a bad status
+                return true;
+            }
+            // likely connection refused, socket timeout, etc.
+            // so it was not reachable
+            Log.e(`Error pinging ${url}: ${err.message}`);
+            return false;
         }
     }
 
-    const READY_DELAY_S = 2;
-
     /**
-     * Repeatedly pings the ready endpoint of the given CW url.
-     * Returns true if the ready endpoint returns a good status, or false if it times out before getting a good response.
+     * Repeatedly ping the given connection's 'ready' endpoint. The connection should not be used until that endpoint returns true.
      */
-    export async function waitForReady(cwBaseUrl: vscode.Uri, timeoutS: number): Promise<boolean> {
-        const isCWReadyInitially = await isCodewindReady(cwBaseUrl, false, READY_DELAY_S);
+    export async function waitForReady(connection: Connection, timeoutS: number): Promise<boolean> {
+        const READY_DELAY_S = 2;
+
+        const isCWReadyInitially = await isCodewindReady(connection, false, READY_DELAY_S);
         if (isCWReadyInitially) {
-            Log.i(`${cwBaseUrl} was ready on first ping`);
+            Log.i(`${connection} was ready on first ping`);
             return true;
         }
 
-        let tries = 0;
         const maxTries = timeoutS / READY_DELAY_S;
+        let tries = 0;
         return new Promise<boolean>((resolve) => {
             const interval = setInterval(async () => {
                 const logStatus = tries % 10 === 0;
                 if (logStatus) {
-                    Log.d(`Waiting for Codewind at ${cwBaseUrl} to be ready, ${tries * READY_DELAY_S}s have elapsed`);
+                    Log.d(`Waiting ${connection} to be ready, ${tries * READY_DELAY_S}s have elapsed`);
                 }
-                const ready = await isCodewindReady(cwBaseUrl, logStatus, READY_DELAY_S);
+                const ready = await isCodewindReady(connection, logStatus, READY_DELAY_S);
                 tries++;
                 if (ready) {
                     clearInterval(interval);
@@ -461,10 +314,9 @@ namespace Requester {
         });
     }
 
-    async function isCodewindReady(cwBaseUrl: vscode.Uri, logStatus: boolean, timeoutS: number): Promise<boolean> {
+    async function isCodewindReady(connection: Connection, logStatus: boolean, timeoutS: number): Promise<boolean> {
         try {
-            // Ping Codewind's 'ready' endpoint
-            const res = await Requester.get(cwBaseUrl.with({ path: MCEndpoints.READY }), { timeout: timeoutS * 1000});
+            const res = await doConnectionRequest(connection, MCEndpoints.READY, "GET", { timeout: timeoutS * 1000 });
 
             if (res === true) {
                 return true;
@@ -476,6 +328,118 @@ namespace Requester {
             }
         }
         return false;
+    }
+
+    export const ERR_LOGIN_PAGE = "Authentication required";
+
+    // By enforcing all requests to go through this function,
+    // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
+
+    async function req(verb: keyof typeof HttpVerbs, url: string, options: request.RequestPromiseOptions = {}, accessToken?: string): Promise<any> {
+        const optionsCopy = Object.assign({}, options);
+        optionsCopy.json = true;
+        // we resolve with full response so we can look out for redirects below
+        optionsCopy.resolveWithFullResponse = true;
+        // TODO ...
+        optionsCopy.rejectUnauthorized = false;
+        if (!optionsCopy.timeout) {
+            optionsCopy.timeout = 60000;
+        }
+
+        const requestFunc = HttpVerbs[verb];
+
+        Log.d(`Doing ${verb} request to ${url}`); // with options:`, options);
+
+        if (accessToken) {
+            if (!url.startsWith("https")) {
+                throw new Error(`Refusing to send access token to non-secure URL ${url}`);
+            }
+            optionsCopy.auth = {
+                bearer: accessToken,
+            };
+        }
+
+        const response = await requestFunc(url, optionsCopy) as request.FullResponse;
+        if (response.request.path.startsWith("/auth/")) {
+            throw new Error(ERR_LOGIN_PAGE);
+        }
+
+        const body = response.body;
+        // Log.d(`Response body is:`, body);
+        if (options.resolveWithFullResponse) {
+            // Return the full response if it was originally requested in the options
+            return response;
+        }
+        return body;
+    }
+
+    async function doConnectionRequest(
+        connection: Connection, endpoint: MCEndpoints, verb: keyof typeof HttpVerbs, options?: request.RequestPromiseOptions): Promise<any> {
+
+        // Re-enable once remote socket works
+        // if (!connection.isConnected) {
+        //     throw new Error("Can't do API call: Codewind is disconnected.");
+        // }
+
+        const url = EndpointUtil.resolveMCEndpoint(connection, endpoint);
+
+        let accessToken;
+        if (connection instanceof RemoteConnection) {
+            accessToken = await connection.getAccessToken();
+        }
+
+        return req(verb, url, options, accessToken);
+    }
+
+    /**
+     * Perform a REST request of the type specified by `requestFunc` to the project endpoint for the given project.
+     * Displays a message to the user that the request succeeded if userOperationName is not null.
+     * Always displays a message to the user in the case of an error.
+     * @param body - JSON request body for POST, PUT, PATCH requests. Uses application/json content-type.
+     * @param silent - If true, the `userOptionName` will not be displayed when the request is initiated. Error messages are always displayed.
+     */
+    async function doProjectRequest(
+        project: Project, endpoint: Endpoint, body: {},
+        verb: keyof typeof HttpVerbs, userOperationName: string, silent: boolean = false, returnFullRes: boolean = false): Promise<any> {
+
+        let url: string;
+        if (EndpointUtil.isProjectEndpoint(endpoint)) {
+            url = EndpointUtil.resolveProjectEndpoint(project.connection, project.id, endpoint as ProjectEndpoints);
+        }
+        else {
+            url = EndpointUtil.resolveMCEndpoint(project.connection, endpoint as MCEndpoints);
+        }
+
+        Log.i(`Doing ${userOperationName} request to ${url}`);
+
+        const options: request.RequestPromiseOptions = {
+            body,
+            resolveWithFullResponse: returnFullRes,
+        };
+
+        try {
+            let accessToken;
+            if (project.connection instanceof RemoteConnection) {
+                accessToken = await project.connection.getAccessToken();
+            }
+            const result = await req(verb, url, options, accessToken);
+
+            if (!silent) {
+                vscode.window.showInformationMessage(
+                    Translator.t(STRING_NS, "requestSuccess",
+                    { operationName: userOperationName, projectName: project.name })
+                );
+            }
+            return result;
+        }
+        catch (err) {
+            Log.w(`Error doing ${userOperationName} project request for ${project.name}:`, err);
+
+            vscode.window.showErrorMessage(
+                Translator.t(STRING_NS, "requestFail",
+                { operationName: userOperationName, projectName: project.name, err: MCUtil.errToString(err) })
+            );
+        }
     }
 }
 

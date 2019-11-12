@@ -19,7 +19,7 @@ import CWEnvironment from "../../codewind/connection/CWEnvironment";
 
 export async function openTektonDashboard(connection: Connection): Promise<void> {
     try {
-        const tektonStatus = (await CWEnvironment.getEnvData(connection.url)).tektonStatus;
+        const tektonStatus = (await CWEnvironment.getEnvData(connection)).tektonStatus;
 
         if (!tektonStatus.status || !tektonStatus.url) {
             if (tektonStatus.message === "not-installed") {

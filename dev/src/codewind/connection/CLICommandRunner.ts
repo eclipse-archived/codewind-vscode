@@ -15,7 +15,7 @@ import Log from "../../Logger";
 import { ITemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
 import MCUtil from "../../MCUtil";
 
-interface CLIConnectionData {
+export interface CLIConnectionData {
     readonly id: string;
     readonly label: string;
     readonly url: string;
@@ -32,17 +32,35 @@ export interface CLIStatus {
 }
 
 export class CLICommand {
+
+    public readonly cancellable: boolean = false;
+    public readonly hasJSONOutput: boolean = true;
+    public readonly censorOutput: boolean = false;
+
     constructor(
         public readonly command: string[],
-        public readonly cancellable: boolean = false,
-        public readonly hasJSONOutput: boolean = true,
+        options?: {
+            cancellable?: boolean,
+            hasJSONOutput?: boolean,
+            censorOutput?: boolean,
+        }
     ) {
-
+        if (options) {
+            if (options.cancellable != null) {
+                this.cancellable = options.cancellable;
+            }
+            if (options.hasJSONOutput != null) {
+                this.hasJSONOutput = options.hasJSONOutput;
+            }
+            if (options.censorOutput != null) {
+                this.censorOutput = options.censorOutput;
+            }
+        }
     }
 }
 
-const STATUS = new CLICommand([ "status" ], false, true);
-const UPGRADE = new CLICommand([ "upgrade" ], false, false);
+const STATUS = new CLICommand([ "status" ]);
+const UPGRADE = new CLICommand([ "upgrade" ], { hasJSONOutput: false });
 
 // tslint:disable-next-line: variable-name
 const ProjectCommands = {
@@ -64,6 +82,13 @@ const TemplateRepoCommands = {
     ADD: new CLICommand([ "templates", "repos", "add" ]),
     LIST: new CLICommand([ "templates", "repos", "list" ]),
     REMOVE: new CLICommand([ "templates", "repos", "remove" ]),
+};
+
+// tslint:disable-next-line: variable-name
+export const AuthCommands = {
+    KEYRING_UPDATE: new CLICommand([ "seckeyring", "update" ]),
+    // KEYRING_VALIDATE: new CLICommand([ "seckeyring", "validate" ]),
+    GET_SECTOKEN: new CLICommand([ "sectoken", "get" ], { censorOutput: true }),
 };
 
 export namespace CLICommandRunner {
@@ -98,8 +123,8 @@ export namespace CLICommandRunner {
     /**
      * @returns The newly created project's inf content.
      */
-    export async function bindProject(
-        connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType): Promise<any> {
+    export async function bindProject(connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType)
+        : Promise<{ projectID: string, name: string }> {
 
         const bindRes = await CLIWrapper.cliExec(ProjectCommands.BIND, [
             "--conid", connectionID,
@@ -127,15 +152,6 @@ export namespace CLICommandRunner {
         ], "Performing workspace migration...");
     }
 
-    /*
-    export async function sync(path: string, projectID: string, lastSync: number): Promise<void> {
-        await CLIWrapper.cliExec(ProjectCommands.SYNC, [
-            "--path", path,
-            "--id", projectID,
-            "--time", lastSync.toString(),
-        ]);
-    }*/
-
     /**
      * @returns The data for the new Connection
      */
@@ -147,7 +163,8 @@ export namespace CLICommandRunner {
      * @returns The data for all current connections, except Local
      */
     export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
-        return processConnectionList(await CLIWrapper.cliExec(ConnectionCommands.LIST));
+        const connections = await CLIWrapper.cliExec(ConnectionCommands.LIST);
+        return connections.connections.filter((conn: CLIConnectionData) => conn.id !== "local");
     }
 
     /**
@@ -156,11 +173,6 @@ export namespace CLICommandRunner {
      */
     export async function removeConnection(id: string): Promise<void> {
         await CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--conid", id ]);
-    }
-
-    function processConnectionList(connectionList: any): Promise<CLIConnectionData[]> {
-        // TODO the local connection is not useful
-        return connectionList.connections.filter((conn: CLIConnectionData) => conn.id !== "local");
     }
 
     // https://github.com/eclipse/codewind/issues/941
@@ -185,5 +197,33 @@ export namespace CLICommandRunner {
         return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
             "--url", url
         ]);
+    }
+
+    export async function updateKeyringCredentials(connectionID: string, username: string, password: string): Promise<void> {
+        // in the success case, the output is just an OK status
+        await CLIWrapper.cliExec(AuthCommands.KEYRING_UPDATE, [
+            "--conid", connectionID,
+            "--username", username,
+            "--password", password
+        ]);
+    }
+
+    export const INVALID_CREDS_ERR = "Invalid user credentials";
+
+    export async function getAccessToken(connectionID: string, username: string): Promise<string> {
+        try {
+            const result: { access_token: string, expires_in: number, token_type: string } = await CLIWrapper.cliExec(AuthCommands.GET_SECTOKEN, [
+                "--conid", connectionID,
+                "--username", username,
+            ]);
+            return result.access_token;
+        }
+        catch (err) {
+            if (err.toString().includes(INVALID_CREDS_ERR)) {
+                // simplify the error
+                throw new Error(INVALID_CREDS_ERR);
+            }
+            throw err;
+        }
     }
 }
