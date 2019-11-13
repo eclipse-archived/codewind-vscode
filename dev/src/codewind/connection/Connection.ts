@@ -12,7 +12,6 @@
 import * as vscode from "vscode";
 
 import Project from "../project/Project";
-import { MCEndpoints, EndpointUtil } from "../../constants/Endpoints";
 import MCSocket from "./MCSocket";
 import Log from "../../Logger";
 import CWEnvironment from "./CWEnvironment";
@@ -25,7 +24,6 @@ import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import * as requestErrors from "request-promise-native/errors";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -83,29 +81,21 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     protected async enable(): Promise<void> {
         Log.i(`Enable connection ${this.url}`);
 
-        try {
-            const envData = await CWEnvironment.getEnvData(this.url);
-            this.cwVersion = envData.version;
-            // onConnect will be called on initial socket connect,
-            // which does the initial projects population and sets the state to Connected
-            this._socket = new MCSocket(this, envData.socketNamespace);
-            Log.d(`${this.url} has env data`, envData);
+        // const readyTimeoutS = global.isTheia ? 180 : 60;
+        const readyTimeoutS = 60;
+        const ready = await Requester.waitForReady(this, readyTimeoutS);
+        if (!ready) {
+            const errMsg = `${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
+            Log.e(errMsg);
+            vscode.window.showErrorMessage(errMsg);
+            return;
         }
-        catch (err) {
-            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
-            // so the user sees the connection has to be re-connected by hand after fixing the problem
-            // This should only apply to remote connections
-            this._state = ConnectionStates.DISABLED;
 
-            if (err instanceof requestErrors.StatusCodeError) {
-                let errMsg: string = err.message;
-                if (err.statusCode === 404) {
-                    errMsg = `Codewind API was not found. Does "${this.url}" point to a running Codewind instance?`;
-                }
-                throw new Error(`Received status ${err.statusCode}: ${errMsg}`);
-            }
-            throw err;
-        }
+        const envData = await CWEnvironment.getEnvData(this);
+        this.cwVersion = envData.version;
+        // onConnect will be called on initial socket connect,
+        // which does the initial projects population and sets the state to Connected
+        this._socket = new MCSocket(this, envData.socketNamespace);
 
         const initFWProm = this.initFileWatcher();
         await initFWProm;
@@ -139,7 +129,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public toString(): string {
-        return `${this.url} ${this.cwVersion}`;
+        return `${this.label} @ ${this.url}`;
     }
 
     private async initFileWatcher(): Promise<void> {
@@ -210,14 +200,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             this._projects.forEach((p) => p.onConnectionReconnect());
         }
 
-        const readyTimeoutS = 60;
-        const ready = await Requester.waitForReady(this.url, readyTimeoutS);
-        if (!ready) {
-            const errMsg = `Codewind at ${this.url} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
-            Log.e(errMsg);
-            vscode.window.showErrorMessage(errMsg);
-            return;
-        }
         this.hasConnected = true;
         this._state = ConnectionStates.CONNECTED;
         Log.d(`${this} is now connected`);
@@ -256,18 +238,16 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         if (!this.needProjectUpdate) {
             return this._projects;
         }
-        Log.d(`Updating projects list from ${this}`);
 
-        const projectsUrl = EndpointUtil.resolveMCEndpoint(this, MCEndpoints.PROJECTS);
-        const result = await Requester.get(projectsUrl, { json : true });
+        const projectsData = await Requester.getProjects(this);
 
         const oldProjects = this._projects;
         this._projects = [];
         const initPromises: Array<Promise<void>> = [];
 
-        for (const projectInfo of result) {
+        for (const projectInfo of projectsData) {
             // This is a hard-coded exception for a backend bug where projects get stuck in the Deleting or Validating state
-            // and don't go away until they're deleted from the workspace and MC is restarted.
+            // and don't go away until they're deleted from the workspace and codewind is restarted.
             if (projectInfo.action === "deleting" || projectInfo.action === "validating") {     // non-nls
                 Log.e("Project is in a bad state and won't be displayed:", projectInfo);
                 continue;
@@ -276,7 +256,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             let project: Project | undefined;
 
             // If we already have a Project object for this project, just update it, don't make a new object
-            const existing = oldProjects.find( (p) => p.id === projectInfo.projectID);
+            const existing = oldProjects.find((p) => p.id === projectInfo.projectID);
 
             if (existing != null) {
                 project = existing;
@@ -324,7 +304,14 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             this._projects = [];
         }
         this.needProjectUpdate = true;
-        await this.updateProjects();
+        try {
+            await this.updateProjects();
+        }
+        catch (err) {
+            Log.e(`Error updating projects for ${this}`, err);
+            vscode.window.showErrorMessage(`Error updating projects list for ${this.label}: ${MCUtil.errToString(err)}`);
+        }
+
         if (wipeProjects) {
             // refresh whole tree
             this.onChange();
@@ -332,31 +319,29 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     /**
-     * Check if this connection has a docker registry set. It is not guaranteed to be valid or have valid credentials.
-     * Once this succeeds, it will be cached for the remainder of the VS Code session, so we don't have to check every time we create a project.
+     * Returns if this connection's CW instance is running in Kube.
+     * This is the case for remote connections, or the local connection in theia.
+     */
+    public get isKubeConnection(): boolean {
+        return this.isRemote || global.isTheia;
+    }
+
+    /**
+     * Check if this connection has a docker registry set by the user.
+     * It is not guaranteed to be valid or have valid credentials.
      */
     public async isRegistrySet(): Promise<boolean> {
-        if (this._isRegistrySet) {
+        if (this._isRegistrySet || !this.isKubeConnection) {
             return true;
         }
 
-        let isRegistrySet: boolean = false;
-        if (!this.isRemote && !global.isTheia) {
-            // Local connections outside of Theia do not require a container registry
-            isRegistrySet = true;
-        }
-        else {
-            isRegistrySet = await vscode.window.withProgress({
-                location: vscode.ProgressLocation.Notification,
-                cancellable: false,
-                title: "Checking deployment registry status..."
-            }, () => {
-                return Requester.isRegistrySet(this);
-            });
-        }
-
-        // cache this so we can skip this request for the remainder of the session
-        this._isRegistrySet = isRegistrySet;
+        this._isRegistrySet = await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: "Checking deployment registry status..."
+        }, () => {
+            return Requester.isRegistrySet(this);
+        });
         return this._isRegistrySet;
     }
 

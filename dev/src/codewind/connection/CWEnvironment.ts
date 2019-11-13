@@ -11,16 +11,13 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import { Uri } from "vscode";
-
-import { MCEndpoints } from "../../constants/Endpoints";
 import Requester from "../project/Requester";
 import Log from "../../Logger";
+import Connection from "./Connection";
 
 // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
-interface RawCWEnvData {
-    readonly devops_available: boolean;
-    readonly codewind_version: string;
+export interface RawCWEnvData {
+    readonly codewind_version?: string;
     readonly os_platform: string;
     readonly running_in_k8s: boolean;
     readonly socket_namespace?: string;
@@ -53,13 +50,10 @@ namespace CWEnvironment {
      * Get the environment data for a Codewind instance at the given url.
      * Separate from normal Requester code because we do not yet have a Connection instance at this point.
      */
-    export async function getEnvData(url: Uri): Promise<CWEnvData> {
-        const envUri: Uri = url.with({ path: MCEndpoints.ENVIRONMENT });
-        const connectTimeout = 2500;
-
-        const result = await Requester.get(envUri.toString(), { timeout: connectTimeout });
-        Log.d("Raw env data:", result);
-        const massaged = massageEnv(result);
+    export async function getEnvData(connection: Connection): Promise<CWEnvData> {
+        const rawEnv = await Requester.getRawEnvironment(connection);
+        Log.d("Raw env data:", rawEnv);
+        const massaged = massageEnv(rawEnv);
         Log.i("Massaged ENV data", massaged);
         return massaged;
     }

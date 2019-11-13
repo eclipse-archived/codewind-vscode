@@ -17,7 +17,7 @@ import Connection from "./Connection";
 import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import { ProjectType, IProjectSubtypesDescriptor } from "../project/ProjectType";
-import { CLICommandRunner } from "./CLICommands";
+import { CLICommandRunner } from "./CLICommandRunner";
 
 export interface ICWTemplateData {
     label: string;

@@ -19,13 +19,14 @@ import StringNamespaces from "../../../constants/strings/StringNamespaces";
 import Translator from "../../../constants/strings/translator";
 import { CodewindStates } from "./CodewindStates";
 import MCUtil from "../../../MCUtil";
-import Constants, { CWDocs } from "../../../constants/Constants";
+import Constants from "../../../constants/Constants";
 import CLIWrapper from "../CLIWrapper";
 import Commands from "../../../constants/Commands";
 import LocalCodewindManager from "./LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
-import { CLICommandRunner, CLIStatus } from "../CLICommands";
+import { CLICommandRunner, CLIStatus } from "../CLICommandRunner";
 import { promisify } from "util";
+import CWDocs from "../../../constants/CWDocs";
 
 const STRING_NS = StringNamespaces.STARTUP;
 

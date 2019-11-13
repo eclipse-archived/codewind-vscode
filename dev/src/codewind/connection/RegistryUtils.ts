@@ -14,10 +14,10 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import Requester from "../project/Requester";
 import Connection from "./Connection";
-import { CWDocs } from "../../constants/Constants";
 import { setRegistryCmd } from "../../command/connection/SetRegistryCmd";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
+import CWDocs from "../../constants/CWDocs";
 
 namespace RegistryUtils {
     export async function onRegistryNotSet(connection: Connection): Promise<void> {

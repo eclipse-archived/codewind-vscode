@@ -10,13 +10,13 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as request from "request-promise-native";
 
 import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
 import ProjectType from "../../codewind/project/ProjectType";
-import Requester from "../../codewind/project/Requester";
 import CodewindEventListener from "../../codewind/connection/CodewindEventListener";
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
@@ -58,10 +58,11 @@ export async function testPingAppMonitor(project: Project): Promise<boolean> {
 
     Log.i(`Testing extension project's app monitor before opening`);
     try {
-        await Requester.get(project.appMonitorUrl);
+        await request.get(project.appMonitorUrl, { rejectUnauthorized: false });
         return true;
     }
     catch (err) {
+        Log.w(`Failed to access app monitor for project ${project.name} at ${project.appMonitorUrl}`, err);
         // cache this so we don't have to do this test every time.
         project.capabilities.metricsAvailable = false;
         // Notify the treeview that this project has changed so it can hide these context actions

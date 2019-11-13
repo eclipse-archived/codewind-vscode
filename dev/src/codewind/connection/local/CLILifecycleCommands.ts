@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import { CodewindStates } from "./CodewindStates";
-import { CLICommand } from "../CLICommands";
+import { CLICommand } from "../CLICommandRunner";
 
 const TAG_PLACEHOLDER = `$tag$`;
 
@@ -28,8 +28,7 @@ export class CLILifecycleCommand extends CLICommand {
             onError?: CodewindStates | undefined,
         }
     ) {
-        // None of the Lifecycle commands provide one-time JSON output, except status, which is a special case.
-        super(command, true, false);
+        super(command, { cancellable: true, hasJSONOutput: false });
     }
 
     public getUserActionName(tag: string): string {

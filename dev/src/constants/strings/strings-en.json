@@ -1,7 +1,6 @@
 {
     "productName": "Codewind",
     "activeMsg": "Codewind Tools for VSCode are active!",
-    "connectionAlreadyExists": "Connection already exists at {{- uri }}.",
     "failedToReconnect": "Couldn't reconnect to Codewind at {{- uri }}. Try re-creating the connection.",
     "versionChanged": "Codewind at {{- uri }} was previously version {{ oldVersion }}, but is now {{ newVersion }}.",
     "errorSavingConnections": "Error saving connections: {{- err }}.",

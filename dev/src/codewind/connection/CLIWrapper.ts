@@ -20,7 +20,7 @@ import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./local/CLILifecycleCommands";
-import { CLICommand } from "./CLICommands";
+import { CLICommand, AuthCommands } from "./CLICommandRunner";
 
 const BIN_DIR = "bin";
 const CLI_EXECUTABLE = "cwctl";
@@ -83,6 +83,8 @@ namespace CLIWrapper {
         return initialize();
     }
 
+    const PASSWORD_ARG = "--password";
+
     export async function cliExec(cmd: CLICommand, args: string[] = [], progressPrefix?: string): Promise<any> {
         const executablePath = await initialize();
 
@@ -94,12 +96,22 @@ namespace CLIWrapper {
 
         // cmdStr will be the full command, eg `cwctl --insecure project create <path> --url <url>`
         // is generally only used for debugging
-        const cmdStr = [ path.basename(executablePath), ...args ].join(" ");
+        let cmdStr = [ path.basename(executablePath), ...args ].join(" ");
+        if (cmdStr.includes(PASSWORD_ARG)) {
+            const words = cmdStr.split(" ");
+            const pwIndex = words.findIndex((word) => word === PASSWORD_ARG) + 1;
+            words[pwIndex] = "*********";
+            cmdStr = words.join(" ");
+        }
         Log.i(`Running CLI command: ${cmdStr}`);
 
-        // CLI output and err are echoed to a user-visible outputchannel. We hide install output because it's thousands of lines of a progress bar.
-        const echoOutputToChannel = cmd !== CLILifecycleCommands.INSTALL;
+        // CLI output and err are echoed to a user-visible outputchannel.
+        // We hide install output because it's thousands of lines of a progress bar, and sectoken because the token should not be exposed.
         cliOutputChannel.appendLine(`==> Run ${cmdStr}`);
+        const echoOutput = ![ CLILifecycleCommands.INSTALL, AuthCommands.GET_SECTOKEN ].includes(cmd);
+        if (!echoOutput) {
+            cliOutputChannel.appendLine(`<Output hidden>`);
+        }
 
         const executableDir = path.dirname(executablePath);
 
@@ -126,7 +138,7 @@ namespace CLIWrapper {
                 let errStr = "";
                 child.stdout.on("data", (chunk) => {
                     const str = chunk.toString();
-                    if (echoOutputToChannel) {
+                    if (echoOutput) {
                         cliOutputChannel.append(str);
                     }
                     outStr += str;
@@ -148,33 +160,54 @@ namespace CLIWrapper {
                         Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
                     }
                     else if (code !== 0) {
-                        let errMsg = `Error running "${cmdStr}"`;
+                        Log.e(`Error running ${cmdStr}`);
+                        Log.e("Stdout:", outStr);
+                        Log.e("Stderr:", errStr);
+
+                        let errMsg = `Error running ${path.basename(_executablePath)} ${cmd.command}`;
+                        if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
+                            const asObj = JSON.parse(outStr);
+                            if (asObj.error_description) {
+                                errMsg += `: ${asObj.error_description}`;
+                            }
+                        }
                         if (errStr) {
                             errMsg += `: ${errStr}`;
                         }
-                        Log.e(errMsg);
-                        Log.e("Stdout:", outStr);
-                        Log.e("Stderr:", errStr);
-                        reject(errMsg);
+                        return reject(errMsg);
                     }
                     else {
-                        Log.d(`Successfully ran CLI command ${cmdStr}, output was: `, outStr);
-                        if (cmd.hasJSONOutput) {
-                            if (!outStr || !(outStr.startsWith("{") || outStr.startsWith("["))) {
-                                Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
-                                return resolve({});
-                            }
-                            Log.d("CLI object output:", outStr);
-                            const obj = JSON.parse(outStr);
-                            return resolve(obj);
+                        let successMsg = `Successfully ran CLI command ${cmdStr}`;
+                        if (echoOutput) {
+                            successMsg += `, Output was:\n` + outStr.trimRight();
                         }
-                        return resolve(outStr);
+                        Log.d(successMsg);
+
+                        if (!cmd.hasJSONOutput) {
+                            return resolve(outStr);
+                        }
+
+                        if (!outStr || !isProbablyJSON(outStr)) {
+                            Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
+                            return resolve({});
+                        }
+                        // Log.d("CLI object output:", outStr);
+
+                        const obj = JSON.parse(outStr);
+                        if (obj.error_description) {
+                            return reject(obj.error_description);
+                        }
+                        return resolve(obj);
                     }
                 });
             }).finally(() => {
                 cliOutputChannel.appendLine(`==> End ${cmdStr}`);
             });
         });
+    }
+
+    function isProbablyJSON(str: string): boolean {
+        return str.startsWith("{") || str.startsWith("[");
     }
 
     export function isCancellation(err: any): boolean {
