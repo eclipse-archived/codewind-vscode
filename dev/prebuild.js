@@ -32,6 +32,7 @@ const theia_cmdsToDelete = [
     "restartDebug",
     "manageLogs",
     "containerShell",
+    "separator",
 ];
 
 const vscode_cmdsToDelete = [
