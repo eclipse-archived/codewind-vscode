@@ -4,10 +4,9 @@
 [![Chat](https://img.shields.io/static/v1.svg?label=chat&message=mattermost&color=145dbf)](https://mattermost.eclipse.org/eclipse/channels/eclipse-codewind)
 
 # Codewind for VS Code
-Codewind for VS Code provides tools to help build cloud-native, containerized applications from VS Code, regardless of which language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
+Codewind for VS Code provides tools to help build cloud-native, containerized applications from VS Code, regardless of which runtime or language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
 
 ## Why use Codewind?
-- Work on your desktop then run and debug on Kubernetes.
 - Get started quickly with templates or samples.
 - Use the tools, runtimes, and languages that you're already familiar with.
 - Pull in existing applications and get them ready for the cloud.
