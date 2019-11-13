@@ -39,11 +39,7 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
         Log.d("Finished constructing ProjectTree");
 
         if (MCUtil.isUserInCwWorkspaceOrProject()) {
-            let autoShowEnabled = vscode.workspace.getConfiguration().get(CWConfigurations.AUTO_SHOW_VIEW);
-            if (autoShowEnabled == null) {
-                autoShowEnabled = true;
-            }
-            if (autoShowEnabled) {
+            if (CWConfigurations.AUTO_SHOW_VIEW.get()) {
                 Log.d("Auto-expanding the Codewind view");
                 // reveal the LocalCodewindManager because it is guaranteed to exist
                 this.treeView.reveal(LocalCodewindManager.instance);
