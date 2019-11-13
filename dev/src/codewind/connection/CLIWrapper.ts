@@ -103,78 +103,89 @@ namespace CLIWrapper {
 
         const executableDir = path.dirname(executablePath);
 
-        return vscode.window.withProgress({
-            cancellable: cmd.cancellable,
-            location: vscode.ProgressLocation.Notification,
-            title: progressPrefix,
-        }, (progress, token) => {
-            return new Promise<any>((resolve, reject) => {
-                const child = child_process.spawn(executablePath, args, {
-                    cwd: executableDir
-                });
+        // See this commit for a rather sad restructuring to work around https://github.com/eclipse-theia/theia/issues/6506
+        const cwctlProcess = child_process.spawn(executablePath, args, {
+            cwd: executableDir
+        });
 
+        const cwctlExecPromise = new Promise<any>((resolve, reject) => {
+            cwctlProcess.on("error", (err) => {
+                return reject(err);
+            });
+
+            let outStr = "";
+            let errStr = "";
+            cwctlProcess.stdout.on("data", (chunk) => {
+                const str = chunk.toString();
+                if (echoOutputToChannel) {
+                    cliOutputChannel.append(str);
+                }
+                outStr += str;
+            });
+            cwctlProcess.stderr.on("data", (chunk) => {
+                const str = chunk.toString();
+                cliOutputChannel.append(str);
+                errStr += str;
+            });
+
+            cwctlProcess.on("close", (code: number | null) => {
+                if (code == null) {
+                    Log.d(`CLI command ${cmdStr} did not exit normally, assuming cancellation`);
+                    cliOutputChannel.appendLine(`==> Cancelled ${cmdStr}`);
+                    return reject(CLI_CMD_CANCELLED);
+                }
+                else if (code !== 0) {
+                    let errMsg = `Error running "${cmdStr}"`;
+                    if (errStr) {
+                        errMsg += `: ${errStr}`;
+                    }
+                    Log.e(errMsg);
+                    Log.e("Stdout:", outStr);
+                    Log.e("Stderr:", errStr);
+                    return reject(errMsg);
+                }
+                else {
+                    Log.d(`Successfully ran CLI command ${cmdStr}, output was: `, outStr);
+                    if (cmd.hasJSONOutput) {
+                        if (!outStr || !(outStr.startsWith("{") || outStr.startsWith("["))) {
+                            Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
+                            return resolve({});
+                        }
+                        Log.d("CLI object output:", outStr);
+                        const obj = JSON.parse(outStr);
+                        return resolve(obj);
+                    }
+                    return resolve(outStr);
+                }
+            });
+        }).finally(() => {
+            cliOutputChannel.appendLine(`==> End ${cmdStr}`);
+        });
+
+        const hasProgress = cmd instanceof CLILifecycleCommand || progressPrefix;
+        if (hasProgress) {
+            return vscode.window.withProgress({
+                cancellable: cmd.cancellable,
+                location: vscode.ProgressLocation.Notification,
+                title: progressPrefix,
+            }, (progress, token) => {
                 // only lifecycle commands show updating progress, for now
                 if (cmd instanceof CLILifecycleCommand) {
-                    CLILifecycleWrapper.updateProgress(cmd, child.stdout, progress);
+                    CLILifecycleWrapper.updateProgress(cmd, cwctlProcess.stdout, progress);
                 }
 
-                child.on("error", (err) => {
-                    return reject(err);
-                });
-
-                let outStr = "";
-                let errStr = "";
-                child.stdout.on("data", (chunk) => {
-                    const str = chunk.toString();
-                    if (echoOutputToChannel) {
-                        cliOutputChannel.append(str);
-                    }
-                    outStr += str;
-                });
-                child.stderr.on("data", (chunk) => {
-                    const str = chunk.toString();
-                    cliOutputChannel.append(str);
-                    errStr += str;
-                });
-
                 token.onCancellationRequested((_e) => {
-                    child.kill();
-                    return reject(CLI_CMD_CANCELLED);
+                    cwctlProcess.kill();
                 });
 
-                child.on("close", (code: number | null) => {
-                    if (code == null) {
-                        // this happens in SIGTERM case, not sure what else may cause it
-                        Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
-                    }
-                    else if (code !== 0) {
-                        let errMsg = `Error running "${cmdStr}"`;
-                        if (errStr) {
-                            errMsg += `: ${errStr}`;
-                        }
-                        Log.e(errMsg);
-                        Log.e("Stdout:", outStr);
-                        Log.e("Stderr:", errStr);
-                        reject(errMsg);
-                    }
-                    else {
-                        Log.d(`Successfully ran CLI command ${cmdStr}, output was: `, outStr);
-                        if (cmd.hasJSONOutput) {
-                            if (!outStr || !(outStr.startsWith("{") || outStr.startsWith("["))) {
-                                Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
-                                return resolve({});
-                            }
-                            Log.d("CLI object output:", outStr);
-                            const obj = JSON.parse(outStr);
-                            return resolve(obj);
-                        }
-                        return resolve(outStr);
-                    }
-                });
-            }).finally(() => {
-                cliOutputChannel.appendLine(`==> End ${cmdStr}`);
+                return cwctlExecPromise;
             });
-        });
+        }
+        else {
+            return cwctlExecPromise;
+        }
+
+
     }
 
     export function isCancellation(err: any): boolean {
