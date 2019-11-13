@@ -121,6 +121,10 @@ export default class LocalCodewindManager {
      * Check if the local Codewind URL has changed due to a command-line restart, and recreate the local connection if it has changed.
      */
     public async refresh(): Promise<boolean> {
+        if (global.isTheia) {
+            return false;
+        }
+
         const cwUrl = await CLILifecycleWrapper.getCodewindUrl();
         if (this.localConnection && cwUrl && cwUrl !== this.localConnection.url) {
             // If the URL has changed, dispose of the old connection, and connect to the new PFE.
@@ -156,12 +160,12 @@ export default class LocalCodewindManager {
         const waitingForReadyProm = new Promise<boolean>((resolve) => {
             const interval = setInterval(async () => {
                 tries++;
-                const pingResult = await Requester.ping(CHE_CW_URL);
+                const pingResult = await Requester.ping(CHE_CW_URL, delayS);
                 if (pingResult) {
                     clearInterval(interval);
                     return resolve(true);
                 }
-                else if (tries > maxTries) {
+                else if (tries >= maxTries) {
                     clearInterval(interval);
                     return resolve(false);
                 }
@@ -171,10 +175,10 @@ export default class LocalCodewindManager {
             }, delayS * 1000);
         }).then((result) => {
             if (result) {
-                Log.i(`Codewind pod came up after ${tries} tries`);
+                Log.i(`Codewind pod came up after ${tries} tries, ${tries * delayS}s`);
             }
             else {
-                Log.e(`Codewind pod did NOT come up after ${tries} tries`);
+                Log.e(`Codewind pod did NOT come up after ${tries} tries, ${tries * delayS}s`);
             }
             return result;
         });
@@ -198,8 +202,8 @@ export default class LocalCodewindManager {
 
         const msg = failure ?
             `Codewind failed to come up after ${secsElapsed} seconds. ` +
-            `Check the status of the Codewind pod, and click ${helpBtn} to open our documentation. ` +
-            `Refresh the page to restart the connection process.` :
+            `Check the status of the Codewind pod, and click ${helpBtn} to open our documentation. Then, restart the Che workspace.` :
+
             `Codewind is taking longer than usual to start -  Check the status of the Codewind pod, and click ${helpBtn} to open our documentation.`;
 
         const showMsgFunc = failure ? vscode.window.showErrorMessage : vscode.window.showWarningMessage;
