@@ -87,7 +87,7 @@ export default class MCLog implements vscode.QuickPickItem {
             else {
                 notUpdatingReason = Translator.t(STRING_NS, "notUpdatingReasonDisabled");
             }
-            const msg = "*".repeat(8) + Translator.t(STRING_NS, "noLongerUpdating", { reason: notUpdatingReason });
+            const msg = "*".repeat(8) + " " + Translator.t(STRING_NS, "noLongerUpdating", { reason: notUpdatingReason });
 
             this.output.appendLine(msg);
         }

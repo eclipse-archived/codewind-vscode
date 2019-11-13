@@ -114,6 +114,10 @@ export default class LocalCodewindManager {
     }
 
     public async refresh(): Promise<boolean> {
+        if (global.isTheia) {
+            return false;
+        }
+
         const cwUrl = await CLILifecycleWrapper.getCodewindUrl();
         if (this.localConnection && cwUrl && cwUrl !== this.localConnection.url) {
             // If the URL has changed, dispose of the old connection, and connect to the new PFE.
@@ -132,32 +136,76 @@ export default class LocalCodewindManager {
 
     /**
      * Theia Only -
-     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start
+     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start.
      */
     public async waitForCodewindToStartTheia(): Promise<void> {
-        // In the che case, we do not start codewind. we just wait for it to come up
-        this.changeState(CodewindStates.STARTING);
         Log.i(`In theia; waiting for Codewind to come up on ${CHE_CW_URL}`);
+        this.changeState(CodewindStates.STARTING);
         const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
 
+        // This looks awfully similar to Requester.waitForReady, but here we're just testing for a listening port.
         const timeoutS = 180;
-        const waitingForReadyProm = Requester.waitForReady(cheCwUrl, timeoutS);
+        const delayS = 2;
+        const maxTries = timeoutS / delayS;
+        const longerThanUsualTries = Math.round(maxTries / 2);
+
+        let tries = 0;
+        const waitingForReadyProm = new Promise<boolean>((resolve) => {
+            const interval = setInterval(async () => {
+                tries++;
+                const pingResult = await Requester.ping(CHE_CW_URL, delayS);
+                if (pingResult) {
+                    clearInterval(interval);
+                    return resolve(true);
+                }
+                else if (tries >= maxTries) {
+                    clearInterval(interval);
+                    return resolve(false);
+                }
+                else if (tries === longerThanUsualTries) {
+                    this.onTheiaStartTimeout(false, tries * delayS);
+                }
+            }, delayS * 1000);
+        }).then((result) => {
+            if (result) {
+                Log.i(`Codewind pod came up after ${tries} tries, ${tries * delayS}s`);
+            }
+            else {
+                Log.e(`Codewind pod did NOT come up after ${tries} tries, ${tries * delayS}s`);
+            }
+            return result;
+        });
+
         vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
             `Waiting for Codewind to start...`, waitingForReadyProm);
+        await waitingForReadyProm;
 
-        const ready = await waitingForReadyProm;
-        if (!ready) {
-            const helpBtn = "Help";
-            const errMsg = `Codewind failed to come up after ${timeoutS} seconds.
-                Check the status of the Codewind pod, and click ${helpBtn} to open our documentation. Refresh the page to try to connect again.`;
-
-            vscode.window.showErrorMessage(errMsg, helpBtn)
-            .then((res) => {
-                if (res === helpBtn) {
-                    vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.INSTALL_ON_CLOUD));
-                }
-            });
+        const isCodewindUp = await waitingForReadyProm;
+        if (!isCodewindUp) {
+            this.onTheiaStartTimeout(true, timeoutS);
+            this.changeState(CodewindStates.ERR_CONNECTING);
+            return;
         }
+
         await this.connect(cheCwUrl);
+    }
+
+    private onTheiaStartTimeout(failure: boolean, secsElapsed: number): void {
+        const helpBtn = "Help";
+
+        const msg = failure ?
+            `Codewind failed to come up after ${secsElapsed} seconds. ` +
+            `Check the status of the Codewind pod, and click ${helpBtn} to open our documentation. Then, restart the Che workspace.` :
+
+            `Codewind is taking longer than usual to start -  Check the status of the Codewind pod, and click ${helpBtn} to open our documentation.`;
+
+        const showMsgFunc = failure ? vscode.window.showErrorMessage : vscode.window.showWarningMessage;
+
+        showMsgFunc(msg, helpBtn)
+        .then((res) => {
+            if (res === helpBtn) {
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.INSTALL_ON_CLOUD));
+            }
+        });
     }
 }
