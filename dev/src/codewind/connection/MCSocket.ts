@@ -105,11 +105,7 @@ export default class MCSocket implements vscode.Disposable {
                 const msg = `Project ${newProject.name} has been created`;
                 Log.i(msg);
 
-                let showOverviewOnCreate = vscode.workspace.getConfiguration().get(CWConfigurations.OVERVIEW_ON_CREATION);
-                if (showOverviewOnCreate == null) {
-                    showOverviewOnCreate = true;
-                }
-                if (showOverviewOnCreate) {
+                if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
                     projectOverviewCmd(newProject);
                 }
                 // vscode.window.showInformationMessage(msg);

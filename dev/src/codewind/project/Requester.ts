@@ -84,12 +84,12 @@ namespace Requester {
         return req(request.delete, url, options);
     }
 
-    export async function ping(url: string | vscode.Uri): Promise<boolean> {
+    export async function ping(url: string | vscode.Uri, timeoutS: number = 10): Promise<boolean> {
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
         try {
-            await get(url, { resolveWithFullResponse: true, timeout: 10000 });
+            await get(url, { resolveWithFullResponse: true, timeout: timeoutS * 1000 });
             // It succeeded
             return true;
         }

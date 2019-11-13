@@ -25,7 +25,6 @@ import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import * as requestErrors from "request-promise-native/errors";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -84,6 +83,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         Log.i(`Enable connection ${this.url}`);
 
         try {
+            const readyTimeoutS = 60;
+            const ready = await Requester.waitForReady(this.url, readyTimeoutS);
+            if (!ready) {
+                const errMsg = `Codewind at ${this.url} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
+                Log.e(errMsg);
+                vscode.window.showErrorMessage(errMsg);
+                return;
+            }
+
             const envData = await CWEnvironment.getEnvData(this.url);
             this.cwVersion = envData.version;
             // onConnect will be called on initial socket connect,
@@ -92,18 +100,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             Log.d(`${this.url} has env data`, envData);
         }
         catch (err) {
-            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
-            // so the user sees the connection has to be re-connected by hand after fixing the problem
-            // This should only apply to remote connections
-            this._state = ConnectionStates.DISABLED;
-
-            if (err instanceof requestErrors.StatusCodeError) {
-                let errMsg: string = err.message;
-                if (err.statusCode === 404) {
-                    errMsg = `Codewind API was not found. Does "${this.url}" point to a running Codewind instance?`;
-                }
-                throw new Error(`Received status ${err.statusCode}: ${errMsg}`);
-            }
+            this._state = ConnectionStates.NETWORK_ERROR;
             throw err;
         }
 
@@ -210,14 +207,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             this._projects.forEach((p) => p.onConnectionReconnect());
         }
 
-        const readyTimeoutS = 60;
-        const ready = await Requester.waitForReady(this.url, readyTimeoutS);
-        if (!ready) {
-            const errMsg = `Codewind at ${this.url} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
-            Log.e(errMsg);
-            vscode.window.showErrorMessage(errMsg);
-            return;
-        }
         this.hasConnected = true;
         this._state = ConnectionStates.CONNECTED;
         Log.d(`${this} is now connected`);
