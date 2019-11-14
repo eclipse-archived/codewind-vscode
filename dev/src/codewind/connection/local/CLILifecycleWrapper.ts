@@ -182,45 +182,13 @@ export namespace CLILifecycleWrapper {
             throw new Error("Error starting Codewind: " + MCUtil.errToString(err));
         }
 
-        if (await isWorkspaceMigrationReqd(status["installed-versions"])) {
-            await CLICommandRunner.upgrade();
-            vscode.window.showInformationMessage(`Workspace migration completed - Codewind projects are no longer required to be under the codewind-workspace.`);
+        if (await isWorkspaceMigrationReqd(status.started, status["installed-versions"])) {
+            await doWorkspaceUpgrade();
         }
-    }
-
-    /**
-     * We have to do a cwctl upgrade (workspace migration) if the old version was older than 0.6
-     */
-    async function isWorkspaceMigrationReqd(installedVersions: string[]): Promise<boolean> {
-        try {
-            await promisify(fs.access)(MCUtil.getCWWorkspacePath());
-        }
-        catch (err) {
-            // no workspace -> no upgrade required
-            return false;
-        }
-
-        if (installedVersions.length === 0) {
-            // if they have a workspace but no installed verisons, we have to assume it was created by an old version
-            return true;
-        }
-
-        const newestInstalledVersion = installedVersions.sort()[installedVersions.length - 1];
-        const upgradeReqd = [
-            "0.1", "0.2", "0.3", "0.4", "0.5"
-        ].some((oldVersion) => newestInstalledVersion.startsWith(oldVersion));
-
-        Log.i(`The newest installed version ${newestInstalledVersion} requires workspace migration ? ${upgradeReqd}`);
-        return upgradeReqd;
     }
 
     async function onWrongVersionInstalled(installedVersions: string[], requiredTag: string): Promise<void> {
-        // Generate a user-friendly string like "0.2, 0.3, and 0.4"
-        let installedVersionsStr = installedVersions.join(" ");
-        if (installedVersions.length > 1) {
-            const lastInstalledVersion = installedVersions[installedVersions.length - 1];
-            installedVersionsStr = installedVersionsStr.replace(lastInstalledVersion, "and " + lastInstalledVersion);
-        }
+        const installedVersionsStr = MCUtil.joinWithAnd(installedVersions);
 
         const yesBtn = "OK";
         const resp = await vscode.window.showWarningMessage(
@@ -380,6 +348,68 @@ export namespace CLILifecycleWrapper {
             tag = TAG_LATEST;
         }
         return tag;
+    }
+
+    /**
+     * We have to do a cwctl upgrade (workspace migration) if the old version was older than 0.6, and the workspace was createdƒ
+     */
+    async function isWorkspaceMigrationReqd(startedVersions: string[], installedVersions: string[]): Promise<boolean> {
+        try {
+            await promisify(fs.access)(MCUtil.getCWWorkspacePath());
+        }
+        catch (err) {
+            // no workspace -> no upgrade required
+            return false;
+        }
+
+        const versions = startedVersions.length > 0 ? startedVersions : installedVersions;
+
+        if (versions.length === 0) {
+            // if they have a workspace but no installed verisons, we have to assume it was created by an old version
+            return true;
+        }
+
+        const newestInstalledVersion = versions.sort()[versions.length - 1];
+        const upgradeReqd = [
+            "0.1", "0.2", "0.3", "0.4", "0.5"
+        ].some((oldVersion) => newestInstalledVersion.startsWith(oldVersion));
+
+        Log.i(`The newest installed version ${newestInstalledVersion} requires workspace migration ? ${upgradeReqd}`);
+        return upgradeReqd;
+    }
+
+    async function doWorkspaceUpgrade(): Promise<void> {
+        let upgradeResult;
+        try {
+            upgradeResult = await CLICommandRunner.upgrade();
+        }
+        catch (err) {
+            Log.e("Upgrade errored out", err);
+            CLIWrapper.showCLIError(`Failed to migrate projects from the codewind-workspace.
+                Use the Add Existing Project command to add your projects back to Codewind.`);
+            return;
+        }
+
+        if (upgradeResult.migrated.length === 0 && upgradeResult.failed.length === 0) {
+            Log.i("No projects were available to be migrated");
+        }
+        else if (upgradeResult.failed.length === 0) {
+            Log.i(`Upgrade totally succeeded`);
+            vscode.window.showInformationMessage(`Successfully migrated ${upgradeResult.migrated.length} projects: ` +
+                `${MCUtil.joinWithAnd(upgradeResult.migrated)}.`);
+        }
+        else if (upgradeResult.migrated.length === 0) {
+            Log.i(`Upgrade totally failed`);
+            CLIWrapper.showCLIError(`Failed to migrate any projects from the codewind-workspace. ` +
+                `Use the Add Existing Project command to add your projects back to Codewind.`);
+        }
+        else {
+            Log.i(`Upgrade partially succeeded`);
+            const projectsSucceeded = MCUtil.joinWithAnd(upgradeResult.migrated);
+            const projectsFailed = MCUtil.joinWithAnd(upgradeResult.failed.map((failed) => failed.projectName));
+            CLIWrapper.showCLIError(`Successfully migrated ${projectsSucceeded}, but failed to migrate ${projectsFailed}. ` +
+                `Use the Add Existing project command to add the failed projects back to Codewind.`);
+        }
     }
 }
 
