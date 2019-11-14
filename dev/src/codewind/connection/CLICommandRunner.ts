@@ -24,6 +24,14 @@ export interface CLIConnectionData {
     readonly clientid: string;
 }
 
+interface WorkspaceUpgradeResult {
+    migrated: string[];
+    failed: Array<{
+        error: string,
+        projectName: string
+    }>;
+}
+
 export interface CLIStatus {
     // status: "uninstalled" | "stopped" | "started";
     "installed-versions": string[];
@@ -60,7 +68,7 @@ export class CLICommand {
 }
 
 const STATUS = new CLICommand([ "status" ]);
-const UPGRADE = new CLICommand([ "upgrade" ], { hasJSONOutput: false });
+const UPGRADE = new CLICommand([ "upgrade" ]);
 
 // tslint:disable-next-line: variable-name
 const ProjectCommands = {
@@ -85,7 +93,7 @@ const TemplateRepoCommands = {
 };
 
 // tslint:disable-next-line: variable-name
-export const AuthCommands = {
+const AuthCommands = {
     KEYRING_UPDATE: new CLICommand([ "seckeyring", "update" ]),
     // KEYRING_VALIDATE: new CLICommand([ "seckeyring", "validate" ]),
     GET_SECTOKEN: new CLICommand([ "sectoken", "get" ], { censorOutput: true }),
@@ -146,10 +154,13 @@ export namespace CLICommandRunner {
         return bindRes;
     }
 
-    export async function upgrade(): Promise<void> {
-        await CLIWrapper.cliExec(UPGRADE, [
+    /**
+     * Perform a workspace upgrade from a version older than 0.6
+     */
+    export async function upgrade(): Promise<WorkspaceUpgradeResult> {
+        return CLIWrapper.cliExec(UPGRADE, [
             "--ws", MCUtil.getCWWorkspacePath(),
-        ], "Performing workspace migration...");
+        ]);
     }
 
     /**

@@ -19,8 +19,8 @@ import { promisify } from "util";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
-import { CLILifecycleCommand, CLILifecycleCommands } from "./local/CLILifecycleCommands";
-import { CLICommand, AuthCommands } from "./CLICommandRunner";
+import { CLILifecycleCommand } from "./local/CLILifecycleCommands";
+import { CLICommand } from "./CLICommandRunner";
 
 const BIN_DIR = "bin";
 const CLI_EXECUTABLE = "cwctl";
@@ -108,7 +108,7 @@ namespace CLIWrapper {
         // CLI output and err are echoed to a user-visible outputchannel.
         // We hide install output because it's thousands of lines of a progress bar, and sectoken because the token should not be exposed.
         cliOutputChannel.appendLine(`==> Run ${cmdStr}`);
-        const echoOutput = ![ CLILifecycleCommands.INSTALL, AuthCommands.GET_SECTOKEN ].includes(cmd);
+        const echoOutput = !cmd.censorOutput;
         if (!echoOutput) {
             cliOutputChannel.appendLine(`<Output hidden>`);
         }
