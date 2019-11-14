@@ -31,6 +31,7 @@ export enum ConnectionOverviewWVMessages {
     SAVE_CONNECTION_INFO = "save-connection",
     SAVE_REGISTRY = "save-registry",
     DELETE = "delete",
+    CANCEL = "cancel"
 }
 
 /**
@@ -170,6 +171,13 @@ export default class ConnectionOverview {
                     }
                     break;
                 }
+                case ConnectionOverviewWVMessages.CANCEL: {
+                    vscode.window.showInformationMessage("Cancelling editing connection");
+                    if (this.connection) {
+                        this.refresh(this.connection.getRemoteInfo());
+                    }
+                    break;
+                }
                 case ConnectionOverviewWVMessages.SAVE_REGISTRY: {
                     const registryData = msg.data;
                     await this.updateRegistry(registryData, true);
@@ -179,6 +187,7 @@ export default class ConnectionOverview {
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Deleting connection ${this.connection.label}`);
                         removeConnectionCmd(this.connection);
+                        this.dispose();
                     }
                     else {
                         vscode.window.showInformationMessage(`Creating new connection cancelled`);

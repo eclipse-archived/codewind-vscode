@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="21px" height="21px" viewBox="0 0 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 55.2 (78181) - https://sketchapp.com -->
+    <title>icon/status/checkmark/16</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <circle id="path-1" cx="11.5" cy="11.5" r="10.0625"></circle>
+        <polygon id="path-3" points="10.6895497 5.18788642 12.3067372 5.18788642 12.3067372 17.8019489 10.6895497 17.8019489"></polygon>
+    </defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="V5-Docker-saving-error-color" transform="translate(-546.000000, -14.000000)">
+            <g id="icon/status/error-filled/16" transform="translate(545.000000, 13.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="icon-color" fill="#DA1E28" fill-rule="evenodd" xlink:href="#path-1"></use>
+                <mask id="mask-4" fill="white">
+                    <use xlink:href="#path-3"></use>
+                </mask>
+                <use id="icon-color" fill="#FFFFFF" fill-rule="evenodd" transform="translate(11.498143, 11.494918) rotate(-45.000000) translate(-11.498143, -11.494918) " xlink:href="#path-3"></use>
+            </g>
+        </g>
+    </g>
+</svg>

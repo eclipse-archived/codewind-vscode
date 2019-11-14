@@ -48,8 +48,13 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
         </div>
     </div>
+    <div>
     <div id="description">
-        <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason">
+            <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
+    </div>
+    <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
+        Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
+    </div>
     </div>
     <div id="main">
 
@@ -61,13 +66,16 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                 </h3>
 
                 <div class="input">
-                    <p>Fill in the fields about the connection that you're starting from.</p>
+                    ${connectionInfo.ingressUrl ? `<p style="display: none;">Fill in the fields about the connection that you're starting from.</p>`
+                    : "<p>Fill in the fields about the connection that you're starting from.</p>" }
 
                     <label for="input-url">URL</label>
-
-                    ${connectionInfo.ingressUrl ? `<div>${connectionInfo.ingressUrl}</div>` :
+                    ${connectionInfo.ingressUrl ? `<div id="url">${connectionInfo.ingressUrl}</div><input type="text" id="ingress-url" class="input-url" name="ingress-url" style="display: none;"
+                    placeholder="codewind-gatekeeper-mycluster.nip.io"
+                    value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"
+                />` :
                     `<input type="text" id="ingress-url" class="input-url" name="ingress-url"
-                        placeholder="${connectionInfo.ingressUrl ? "" : "codewind-gatekeeper-k2s2zuwf-10.105.198.173.nip.io"}"
+                        placeholder="codewind-gatekeeper-mycluster.nip.io"
                         value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"
                     />`}
 
@@ -101,31 +109,29 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                         value="${connectionInfo.registryUrl ? connectionInfo.registryUrl : ""}"
                     />
 
-                    <div style="float: left; margin-top: 10px;">
-                        <label for="input-username">Username</label>
-                        <input type="text" id="docker-username" class="input-username" name="docker-username"
-                        value="${connectionInfo.registryUsername ? connectionInfo.registryUsername : ""}"
-                        />
+                    <div id="input-password" style="display: none;">
+                        <label for="input-password" style="margin-left: 10px;">Password</label>
+                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
                     </div>
 
-                    <div style="overflow: hidden; margin-top: 10px;">
-                        <label for="input-password">Password</label>
-                            <input type="password" id="docker-password" class="input-password" name="docker-password"
-                        />
+                    ${connectionInfo.ingressUrl ? `` :
+                        `<label for="input-password" style="margin-left: 10px;">Password</label>
+                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"
+                        />`}
+
                     </div>
 
-                    <div type="button" id="test-btn" class="btn btn-prominent" onclick="testNewDockerRegistry()">Test</div>
+                    ${connectionInfo.ingressUrl ? `<div type="button" id="test-btn" class="btn btn-prominent" style="display: none"; onclick="testNewConnection()">Test</div>` : `<div type="button" id="test-btn" class="btn btn-prominent" onclick="testNewConnection()">Test</div>`}
                 </div>
+
             </div>
 
             <div>
-            ${connectionInfo.ingressUrl ? `<div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()">Delete Connection</div>
-                                   <div type="button" id="save-btn" class="btn btn-prominent" onclick="()">Edit</div>
-                                   <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="">Disconnect</div>`
-                :
-
-                `<div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()">Save</div>
-                <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="()">Cancel</div>`}
+                <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()" ${connectionInfo.ingressUrl ? `style="display: inline-block;"` : `style="display: none;"`}>Delete Connection</div>
+                <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()" ${connectionInfo.ingressUrl ? `style="display: inline;"` : `style="display: none;"`}>Edit</div>
+                <div type="button" id="disconnect-btn" class="btn btn-prominent" onclick="" ${connectionInfo.ingressUrl ? `style="display: inline;"` : `style="display: none;"`}>Disconnect</div>
+                <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()" ${connectionInfo.ingressUrl ? `style="display: none;"` : `style="display: inline;"`}>Save</div>
+                <div type="button" id="cancel-btn" class="btn btn-prominent"  onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')" ${connectionInfo.ingressUrl ? `style="display: none;"` : `style="display: inline;"`}>Cancel</div>
             </div>
 
     </div>
@@ -137,23 +143,34 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             const ingressInput = document.querySelector("#ingress-url");
             const ingressUsername = document.querySelector("#ingress-username");
             const ingressPassword = document.querySelector("#ingress-password");
-
-            const clabel = document.querySelector("#remote-connection-name");
-
-            const dockerRegistryURL = document.querySelector("#docker-url");
-            const dockerRegistryUsername = document.querySelector("#docker-username");
-            const dockerRegistryPassword = document.querySelector("#docker-password");
+            const connectionName = document.querySelector("#remote-connection-name");
 
             // Data body is IConnectionInfoFields
-            sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", {
-                ingressUrl: ingressInput.value,
-                username: ingressUsername.value,
-                password: ingressPassword.value,
-                label: clabel.value,
-                registryUrl: dockerRegistryURL.value,
-                registryUsername: dockerRegistryUsername.value,
-                registryPassword: dockerRegistryPassword.value
-            });
+            sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", { ingressUrl: ingressInput.value,  username: ingressUsername.value, password: ingressPassword.value, label: connectionName.value });
+        }
+
+        function editConnection() {
+            document.querySelector("#deployment-box p").style.display = "block";
+            document.querySelector("#ingress-url").style.display = "block";
+            document.querySelector("#ingress-username").style.display = "inline-block";
+
+            document.querySelector("#url").style.display = "none";
+
+            document.querySelector("#input-password").style.display = "block";
+            document.querySelector("#input-password").style.marginTop = "5px";
+
+
+            document.querySelector("#edit-btn").style.display = "none";
+            document.querySelector("#disconnect-btn").style.display = "none";
+
+            document.querySelector("#remote-connection-name").style.display = "block";
+            document.querySelector("#connection-name").style.display = "none";
+            document.querySelector("#description-text").style.display = "block";
+
+            document.querySelector("#cancel-btn").style.display = "inline";
+            document.querySelector("#save-btn").style.display = "inline";
+            document.querySelector("#test-btn").style.display = "inline";
+
         }
 
         function testNewConnection() {
