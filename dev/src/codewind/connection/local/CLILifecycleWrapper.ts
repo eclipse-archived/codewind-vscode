@@ -381,6 +381,14 @@ export namespace CLILifecycleWrapper {
     async function doWorkspaceUpgrade(): Promise<void> {
         let upgradeResult;
         try {
+            const learnMoreBtn = "Learn More";
+            vscode.window.showInformationMessage(`Performing codewind-workspace migration...`, learnMoreBtn)
+            .then((res) => {
+                if (res === learnMoreBtn) {
+                    vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.WORKSPACE_NEWS));
+                }
+            });
+
             upgradeResult = await CLICommandRunner.upgrade();
         }
         catch (err) {

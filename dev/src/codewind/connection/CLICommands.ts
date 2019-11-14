@@ -135,7 +135,7 @@ export namespace CLICommandRunner {
     export async function upgrade(): Promise<WorkspaceUpgradeResult> {
         return CLIWrapper.cliExec(UPGRADE, [
             "--ws", MCUtil.getCWWorkspacePath(),
-        ], "Performing workspace migration...");
+        ]);
     }
 
     /*
