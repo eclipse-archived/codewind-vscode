@@ -26,9 +26,10 @@ export class CLILifecycleCommand extends CLICommand {
             during?: CodewindStates | undefined,
             after?: CodewindStates | undefined,
             onError?: CodewindStates | undefined,
-        }
+        },
+        censorOutput: boolean = false,
     ) {
-        super(command, { cancellable: true, hasJSONOutput: false });
+        super(command, { cancellable: true, hasJSONOutput: false, censorOutput });
     }
 
     public getUserActionName(tag: string): string {
@@ -46,7 +47,7 @@ export const CLILifecycleCommands = {
         new CLILifecycleCommand([ "install" ], `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`, true, {
             during: CodewindStates.INSTALLING,
             onError: CodewindStates.ERR_INSTALLING,
-        }),
+        }, true),
     START:
         new CLILifecycleCommand([ "start" ], `Starting Codewind ${TAG_PLACEHOLDER}`, true, {
             during: CodewindStates.STARTING,

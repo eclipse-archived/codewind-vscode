@@ -193,6 +193,28 @@ namespace MCUtil {
         }
         return path.join(os.homedir(), "codewind-workspace");
     }
+
+    /**
+     * Joins a string array into a user-friendly list.
+     * Eg, `joinWithAnd([ "tim", "erin", "john" ])` => "tim, erin, and john"
+     */
+    export function joinWithAnd(strings: string[]): string {
+        strings = strings.filter((s) => {
+            // remove undefined/empty
+            if (!s) {
+                Log.w(`Refusing to joinWithAnd empty or undefined string`);
+                return false;
+            }
+            return true;
+        });
+
+        let joined: string = strings.join(" ");
+        if (strings.length > 1) {
+            const lastItem = strings[strings.length - 1];
+            joined = joined.replace(lastItem, "and " + lastItem);
+        }
+        return joined;
+    }
 }
 
 export default MCUtil;

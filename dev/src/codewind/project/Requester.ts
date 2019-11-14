@@ -250,13 +250,13 @@ namespace Requester {
     /**
      * Try to connect to the given URL. Returns true if _any_ response is returned.
      */
-    export async function ping(url: string | vscode.Uri): Promise<boolean> {
+    export async function ping(url: string | vscode.Uri, timeoutS: number): Promise<boolean> {
         Log.d(`Ping ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
         try {
-            await req("GET", url, { timeout: 10000 });
+            await req("GET", url, { timeout: timeoutS * 10000 });
             // It succeeded
             return true;
         }

@@ -23,6 +23,7 @@ export enum CWDocs {
     DOCKER_REGISTRY = "dockerregistry.html",
     PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",
     INSTALL_ON_CLOUD = "installoncloud.html",
+    WORKSPACE_NEWS = "news06.html#codewind-workspace-updates",
 }
 
 export default CWDocs;
