@@ -38,5 +38,4 @@ namespace ConnectionMemento {
     }
 }
 
-
 export default ConnectionMemento;
