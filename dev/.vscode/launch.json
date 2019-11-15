@@ -12,7 +12,8 @@
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
-                // put a workspace (.code-workspace, or folder) path here to launch into it
+                // put a workspace (.code-workspace, or folder) path below this comment to launch into a non-empty workspace
+                // eg, "/Users/tim/vscode-codewind-workspace"
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/**/*.js"
