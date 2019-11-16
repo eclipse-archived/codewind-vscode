@@ -41,7 +41,7 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
 
     <div id="top-section">
         <div class="title">
-            <img id="connection-logo" alt="Codewind Logo" src="${connectionInfo.url ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
+            <img id="connection-logo" alt="Codewind Logo" src="${connectionInfo.ingressUrl ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <input id="remote-connection-name" class="bx--text-input" value=${connectionInfo.label}>
         </div>
         <div tabindex="0" id="learn-more-btn"  style="color: #0f62fe;" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
@@ -56,7 +56,7 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             <div id="deployment-box">
 
                 <h3>Codewind Connection
-                    ${connectionInfo.url ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnected)}"/>` :
+                    ${connectionInfo.ingressUrl ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnected)}"/>` :
                     `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>`}
                 </h3>
 
@@ -65,27 +65,27 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
 
                     <label for="input-url">URL</label>
 
-                    ${connectionInfo.url ? `<div>${connectionInfo.url}</div>` :
+                    ${connectionInfo.ingressUrl ? `<div>${connectionInfo.ingressUrl}</div>` :
                     `<input type="text" id="ingress-url" class="input-url" name="ingress-url"
-                        placeholder="${connectionInfo.url ? "" : "codewind-gatekeeper-k2s2zuwf-10.105.198.173.nip.io"}"
-                        value="${connectionInfo.url ? connectionInfo.url : ""}"
+                        placeholder="${connectionInfo.ingressUrl ? "" : "codewind-gatekeeper-k2s2zuwf-10.105.198.173.nip.io"}"
+                        value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"
                     />`}
 
                     <div style="float: left; margin-top: 10px;">
                         <label for="input-username">Username</label>
-                        ${connectionInfo.url ? `<div>${connectionInfo.username}</div>` :
+                        ${connectionInfo.ingressUrl ? `<div>${connectionInfo.username}</div>` :
                         `<input type="text" id="ingress-username" class="input-username" name="ingress-username"
                         value="${connectionInfo.username ? connectionInfo.username : "developer"}"
                         />`}
                     </div>
                     <div style="overflow: hidden; margin-top: 10px;">
-                    ${connectionInfo.url ? `` :
+                    ${connectionInfo.ingressUrl ? `` :
                         `<label for="input-password">Password</label>
                             <input type="password" id="ingress-password" class="input-password" name="ingress-password" value="********"
                         />`}
                     </div>
 
-                    ${connectionInfo.url ? `` : `<div type="button" id="test-btn" class="btn btn-prominent" onclick="testNewConnection()">Test</div>`}
+                    ${connectionInfo.ingressUrl ? `` : `<div type="button" id="test-btn" class="btn btn-prominent" onclick="testNewConnection()">Test</div>`}
                 </div>
 
             </div>
@@ -119,7 +119,7 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             </div>
 
             <div>
-            ${connectionInfo.url ? `<div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()">Delete Connection</div>
+            ${connectionInfo.ingressUrl ? `<div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()">Delete Connection</div>
                                    <div type="button" id="save-btn" class="btn btn-prominent" onclick="()">Edit</div>
                                    <div type="button" id="cancel-btn" class="btn btn-prominent" onclick="">Disconnect</div>`
                 :
