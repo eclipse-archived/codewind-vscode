@@ -81,14 +81,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     protected async enable(): Promise<void> {
         Log.i(`Enable connection ${this.url}`);
 
-        // const readyTimeoutS = global.isTheia ? 180 : 60;
         const readyTimeoutS = 60;
         const ready = await Requester.waitForReady(this, readyTimeoutS);
         if (!ready) {
-            const errMsg = `${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
-            Log.e(errMsg);
-            vscode.window.showErrorMessage(errMsg);
-            return;
+            throw new Error(`${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`);
         }
 
         const envData = await CWEnvironment.getEnvData(this);

@@ -93,6 +93,22 @@ export default class MCSocket implements vscode.Disposable {
         this.socket.disconnect();
     }
 
+    public async authenticate(token: string): Promise<void> {
+        Log.i(`Authenticating ${this}`);
+        return new Promise<void>((resolve, reject) => {
+            this.socket.emit("authentication", { token });
+
+            this.socket.on("authenticated", () => {
+                Log.i(`Successfully authenticated ${this}`);
+                resolve();
+            });
+            this.socket.on("unauthorized", (payload: { message: string }) => {
+                Log.e(`${this} received unauthorized event`, payload);
+                reject(payload.message);
+            });
+        });
+    }
+
     private readonly onProjectBound = async (payload: { success: boolean; projectID?: string; error?: string; }): Promise<void> => {
         await this.connection.forceUpdateProjectList();
 

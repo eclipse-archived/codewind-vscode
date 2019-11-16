@@ -51,8 +51,12 @@ export default class RemoteConnection extends Connection {
     public async enable(): Promise<void> {
         try {
             await this.updateCredentialsPromise;
-            await this.getAccessToken();
+            const token = await this.getAccessToken();
             await super.enable();
+            if (!this._socket) {
+                throw new Error(`${this.label} socket was undefined after enabling`);
+            }
+            await this._socket.authenticate(token);
         }
         catch (err) {
             // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
@@ -60,9 +64,6 @@ export default class RemoteConnection extends Connection {
             this._state = ConnectionStates.DISABLED;
             throw err;
         }
-
-        // TODO REMOVE THIS once the socket is working through the gatekeeper
-        await this.onConnect();
     }
 
     public async disable(): Promise<void> {
@@ -89,21 +90,6 @@ export default class RemoteConnection extends Connection {
         await ConnectionMemento.save(this.memento);
     }
 
-    public get username(): string {
-        return this._username;
-    }
-
-    public get memento(): ConnectionMemento {
-        return {
-            id: this.id,
-            label: this.label,
-            ingressUrl: this.url.toString(),
-            username: this._username,
-            registryUrl: this._registryUrl,
-            registryUsername: this._registryUsername,
-        };
-    }
-
     public async getAccessToken(): Promise<string> {
         // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
         await this.updateCredentialsPromise;
@@ -127,6 +113,21 @@ export default class RemoteConnection extends Connection {
             this._state = ConnectionStates.AUTH_ERROR;
             throw err;
         }
+    }
+
+    public get username(): string {
+        return this._username;
+    }
+
+    public get memento(): ConnectionMemento {
+        return {
+            id: this.id,
+            label: this.label,
+            ingressUrl: this.url.toString(),
+            username: this._username,
+            registryUrl: this._registryUrl,
+            registryUsername: this._registryUsername,
+        };
     }
 
     public get activeOverviewPage(): ConnectionOverview | undefined {
