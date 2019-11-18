@@ -119,6 +119,11 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                             <input type="password" id="ingress-password" class="input-password" name="ingress-password"
                         />`}
 
+                    <div id="input-password" style="display: none;">
+                        <label for="input-password" style="margin-left: 10px;">Password</label>
+                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
+                    </div>
+
                     </div>
 
                     ${connectionInfo.ingressUrl ? `<div type="button" id="test-btn" class="btn btn-prominent" style="display: none"; onclick="testNewConnection()">Test</div>` : `<div type="button" id="test-btn" class="btn btn-prominent" onclick="testNewConnection()">Test</div>`}
