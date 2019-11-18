@@ -54,7 +54,7 @@ namespace UserProjectCreator {
         connection: Connection, template: ICWTemplateData, parentDir: vscode.Uri, projectName: string): Promise<INewProjectInfo> {
 
         const projectPath = path.join(parentDir.fsPath, projectName);
-        const creationRes = await CLICommandRunner.createProject(projectPath, projectName, template.url);
+        const creationRes = await CLICommandRunner.createProject(connection.id, projectPath, projectName, template.url);
 
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
@@ -78,7 +78,7 @@ namespace UserProjectCreator {
         Log.i("Binding to", pathToBind);
 
         const projectName = path.basename(pathToBind);
-        const validateRes = await detectProjectType(pathToBind);
+        const validateRes = await detectProjectType(connection, pathToBind);
         if (validateRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             const failedResult = (validateRes.result as { error: string });
@@ -122,7 +122,7 @@ namespace UserProjectCreator {
         // validate once more with detected type and subtype (if defined),
         // to run any extension defined command involving subtype
         if (projectTypeInfo.projectSubtype) {
-            await detectProjectType(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
+            await detectProjectType(connection, pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
         }
         await CLICommandRunner.bindProject(connection.id, projectName, pathToBind, projectTypeInfo);
         return { projectName, projectPath: pathToBind };
@@ -279,8 +279,8 @@ namespace UserProjectCreator {
         return language.id;
     }
 
-    async function detectProjectType(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
-        const detectResponse = await CLICommandRunner.detectProjectType(pathToBind, desiredType);
+    async function detectProjectType(connection: Connection, pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
+        const detectResponse = await CLICommandRunner.detectProjectType(connection.id, pathToBind, desiredType);
         Log.d("Detection response", detectResponse);
         return detectResponse;
     }
