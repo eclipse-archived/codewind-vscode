@@ -11,7 +11,7 @@ You can install Codewind locally in VS Code. For more information about installi
 
 Prerequisites
 - Install [VS Code](https://code.visualstudio.com/download).
-- Install Docker.
+- Install Docker 17.06 or later.
 - If you use Linux, you also need to install Docker Compose.
 
 Complete the installation:
