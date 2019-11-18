@@ -63,7 +63,7 @@ export namespace CLILifecycleWrapper {
         const beforeCmdState = LocalCodewindManager.instance.state;
         const transitionStates = cmd.transitionStates;
         if (transitionStates && transitionStates.during) {
-            LocalCodewindManager.instance.changeState(transitionStates.during);
+            LocalCodewindManager.instance.setState(transitionStates.during);
         }
 
         let progressTitle;
@@ -79,16 +79,16 @@ export namespace CLILifecycleWrapper {
         catch (err) {
             if (CLIWrapper.isCancellation(err)) {
                 // restore original state
-                LocalCodewindManager.instance.changeState(beforeCmdState);
+                LocalCodewindManager.instance.setState(beforeCmdState);
             }
             else if (transitionStates && transitionStates.onError) {
-                LocalCodewindManager.instance.changeState(transitionStates.onError);
+                LocalCodewindManager.instance.setState(transitionStates.onError);
             }
             currentOperation = undefined;
             throw err;
         }
         if (transitionStates && transitionStates.after) {
-            LocalCodewindManager.instance.changeState(transitionStates.after);
+            LocalCodewindManager.instance.setState(transitionStates.after);
         }
         currentOperation = undefined;
     }
@@ -163,7 +163,7 @@ export namespace CLILifecycleWrapper {
                 if (CLIWrapper.isCancellation(err)) {
                     throw err;
                 }
-                LocalCodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
+                LocalCodewindManager.instance.setState(CodewindStates.ERR_INSTALLING);
                 Log.e("Error installing codewind", err);
                 throw new Error("Error installing Codewind: " + MCUtil.errToString(err));
             }
@@ -239,7 +239,7 @@ export namespace CLILifecycleWrapper {
                     throw err;
                 }
                 Log.e("Install failed", err);
-                LocalCodewindManager.instance.changeState(CodewindStates.ERR_INSTALLING);
+                LocalCodewindManager.instance.setState(CodewindStates.ERR_INSTALLING);
                 CLIWrapper.showCLIError(MCUtil.errToString(err));
                 return onInstallFailOrReject(false);
             }

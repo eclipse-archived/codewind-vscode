@@ -13,19 +13,25 @@ import * as vscode from "vscode";
 
 import Connection from "../../codewind/connection/Connection";
 import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindManager";
+import MCUtil from "../../MCUtil";
+import Log from "../../Logger";
 
 export default async function refreshConnectionCmd(connection: Connection): Promise<void> {
+    try {
+        // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
+        // In Theia this has no effect
+        const localHasChanged = await LocalCodewindManager.instance.refresh();
+        if (localHasChanged) {
+            vscode.window.showInformationMessage(`Reconnected to Local Codewind`);
+            // We don't have to do the projects update in this case because the connection was recreated
+            return;
+        }
 
-    if (!connection.isRemote) {
-        // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh
-       const localHasChanged = await LocalCodewindManager.instance.refresh();
-       if (localHasChanged) {
-           vscode.window.showInformationMessage(`Reconnected to Local Codewind`);
-           // We don't have to do the projects update in this case because the connection was recreated
-           return;
-       }
+        await connection.refresh();
     }
-
-    vscode.window.showInformationMessage(`Refreshed projects list of ${connection.label}`);
-    return connection.forceUpdateProjectList(true);
+    catch (err) {
+        const errMsg = `Error refreshing ${connection.label}`;
+        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+        Log.e(errMsg, err);
+    }
 }

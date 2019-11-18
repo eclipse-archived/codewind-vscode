@@ -78,11 +78,11 @@ export namespace ConnectionMemento {
             await ConnectionManager.instance.loadRemoteConnection(memento);
         }
         catch (err) {
-            const errMsg = `Error loading connection ${memento.label}: ${MCUtil.errToString(err)}`;
+            const errMsg = `Error loading connection ${memento.label}`;
             Log.e(errMsg, err);
 
             const retryBtn = "Retry";
-            vscode.window.showErrorMessage(errMsg, retryBtn)
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, retryBtn)
             .then((res) => {
                 if (res === retryBtn) {
                     loadConnection(memento);

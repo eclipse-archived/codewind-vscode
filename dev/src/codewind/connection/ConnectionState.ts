@@ -13,17 +13,22 @@ export class ConnectionState {
     constructor(
         public readonly isConnected: boolean,
         public readonly hasChildrenInTree: boolean,
+        public readonly asString: string,
     ) {
 
+    }
+
+    public toString(): string {
+        return this.asString;
     }
 }
 
 // tslint:disable-next-line: variable-name
 export const ConnectionStates = {
-    CONNECTED:      new ConnectionState(true, true),
-    NETWORK_ERROR:  new ConnectionState(false, true),
+    CONNECTED:      new ConnectionState(true, true, "Connected"),
+    NETWORK_ERROR:  new ConnectionState(false, true, "Network Error"),
     // Explicitly disabled by user - only applies to remote connections
-    DISABLED:       new ConnectionState(false, false),
+    DISABLED:       new ConnectionState(false, false, "Disabled"),
     // REGISTRY_ERROR: new ConnectionState(true, true),
-    AUTH_ERROR:     new ConnectionState(false, true),
+    AUTH_ERROR:     new ConnectionState(false, true, "Auth Error"),
 };

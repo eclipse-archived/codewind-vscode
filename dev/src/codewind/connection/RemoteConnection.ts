@@ -17,7 +17,6 @@ import { ConnectionStates } from "./ConnectionState";
 import { CLICommandRunner } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
-import MCUtil from "../../MCUtil";
 
 export default class RemoteConnection extends Connection {
 
@@ -49,26 +48,35 @@ export default class RemoteConnection extends Connection {
     }
 
     public async enable(): Promise<void> {
+        await this.updateCredentialsPromise;
+        const token = await this.getAccessToken();
+
         try {
-            await this.updateCredentialsPromise;
-            const token = await this.getAccessToken();
             await super.enable();
-            if (!this._socket) {
-                throw new Error(`${this.label} socket was undefined after enabling`);
-            }
-            await this._socket.authenticate(token);
         }
         catch (err) {
             // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
             // so the user sees the connection has to be re-connected by hand after fixing the problem
-            this._state = ConnectionStates.DISABLED;
+            this.setState(ConnectionStates.DISABLED);
+            throw err;
+        }
+
+        if (!this._socket) {
+            throw new Error(`${this.label} socket was undefined after enabling appeared to succeed`);
+        }
+
+        try {
+            await this._socket.authenticate(token);
+        }
+        catch (err) {
+            this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
         }
     }
 
     public async disable(): Promise<void> {
         await super.disable();
-        this._state = ConnectionStates.DISABLED;
+        this.setState(ConnectionStates.DISABLED);
     }
 
     public async updateCredentials(username: string, password: string): Promise<void> {
@@ -98,19 +106,19 @@ export default class RemoteConnection extends Connection {
             return this._accessToken;
         }
 
-        Log.d(`Looking up access token for user ${this._username}`);
+        Log.d(`${this.label} looking up access token for user "${this._username}"`);
         try {
             this._accessToken = await CLICommandRunner.getAccessToken(this.id, this._username);
-            this._state = ConnectionStates.CONNECTED;
+            this.setState(ConnectionStates.CONNECTED);
             return this._accessToken;
         }
         catch (err) {
-            const errMsg = `Error authenticating for ${this.label}`;
+            const errMsg = `Error getting access token for ${this.label}`;
             Log.e(errMsg, err);
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            // vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
 
             this._accessToken = undefined;
-            this._state = ConnectionStates.AUTH_ERROR;
+            this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
         }
     }
@@ -128,6 +136,16 @@ export default class RemoteConnection extends Connection {
             registryUrl: this._registryUrl,
             registryUsername: this._registryUsername,
         };
+    }
+
+    public async refresh(): Promise<void> {
+        if (this.isConnected) {
+            super.refresh();
+            return;
+        }
+        await this.disable();
+        await this.enable();
+        vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
     public get activeOverviewPage(): ConnectionOverview | undefined {

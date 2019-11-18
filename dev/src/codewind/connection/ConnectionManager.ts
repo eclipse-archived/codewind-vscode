@@ -31,7 +31,13 @@ export default class ConnectionManager implements vscode.Disposable {
 
     public async activate(): Promise<void> {
         try {
-            await ConnectionMemento.loadSavedConnections();
+            await vscode.window.withProgress({
+                cancellable: false,
+                location: vscode.ProgressLocation.Window,
+                title: "Loading Codewind connections...",
+            }, () => {
+                return ConnectionMemento.loadSavedConnections();
+            });
         }
         catch (err) {
             Log.e(`Error loading remote connections`, err);

@@ -132,7 +132,7 @@
         "connectionLabelSimple": "Projects",
         "connectionLabel": "Projects ({{ label }})",
         "notStartedConnectionLabel": "Codewind is stopped (Click to start)",
-        "disconnectedConnectionLabel": "Disconnected",
+        "disconnectedConnectionLabel": "Connection Lost",
         "projectLabel": "{{ projectName }} {{- state }}"
     }
 }
