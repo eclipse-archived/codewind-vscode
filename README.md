@@ -10,8 +10,8 @@ Create and develop cloud-native, containerized web applications from VS Code.
 You can install Codewind locally in VS Code. For more information about installing Codewind, see [Installing Codewind for VS Code](https://www.eclipse.org/codewind/mdtvscinstallinfo.html).
 
 Prerequisites
-- Install [VS Code](https://code.visualstudio.com/download).
-- Install Docker.
+- Install [VS Code](https://code.visualstudio.com/download) 1.28.0 or later.
+- Install Docker 17.06 or later.
 - If you use Linux, you also need to install Docker Compose.
 
 Complete the installation:
