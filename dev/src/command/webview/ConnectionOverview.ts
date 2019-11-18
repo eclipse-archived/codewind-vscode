@@ -174,7 +174,7 @@ export default class ConnectionOverview {
                 case ConnectionOverviewWVMessages.CANCEL: {
                     vscode.window.showInformationMessage("Cancelling editing connection");
                     if (this.connection) {
-                        this.refresh(this.connection.getRemoteInfo());
+                        this.refresh(this.connection.memento);
                     }
                     break;
                 }
