@@ -19,6 +19,7 @@ export class CLILifecycleCommand extends CLICommand {
         public readonly command: string[],
         public readonly userActionName: string,
         public readonly usesTag: boolean,
+        public readonly cancellable: boolean,
         /**
          * The states that the Codewind tree item goes through when this command runs
          */
@@ -29,7 +30,7 @@ export class CLILifecycleCommand extends CLICommand {
         }
     ) {
         // None of the Lifecycle commands provide one-time JSON output, except status, which is a special case.
-        super(command, true, false);
+        super(command, cancellable, false);
     }
 
     public getUserActionName(tag: string): string {
@@ -44,22 +45,22 @@ export class CLILifecycleCommand extends CLICommand {
 // tslint:disable-next-line: variable-name
 export const CLILifecycleCommands = {
     INSTALL:
-        new CLILifecycleCommand([ "install" ], `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`, true, {
+        new CLILifecycleCommand([ "install" ], `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`, true, false, {
             during: CodewindStates.INSTALLING,
             onError: CodewindStates.ERR_INSTALLING,
         }),
     START:
-        new CLILifecycleCommand([ "start" ], `Starting Codewind ${TAG_PLACEHOLDER}`, true, {
+        new CLILifecycleCommand([ "start" ], `Starting Codewind ${TAG_PLACEHOLDER}`, true, true, {
             during: CodewindStates.STARTING,
             onError: CodewindStates.ERR_STARTING,
             after: CodewindStates.STARTED,
         }),
     STOP:
-        new CLILifecycleCommand([ "stop-all" ], "Stopping Codewind", false, {
+        new CLILifecycleCommand([ "stop-all" ], "Stopping Codewind", false, true, {
             during: CodewindStates.STOPPING,
             onError: CodewindStates.STARTED,
             after: CodewindStates.STOPPED,
         }),
     REMOVE:
-        new CLILifecycleCommand([ "remove" ], `Removing Codewind ${TAG_PLACEHOLDER} and project images`, true),
+        new CLILifecycleCommand([ "remove" ], `Removing Codewind ${TAG_PLACEHOLDER} and project images`, true, true),
 };
