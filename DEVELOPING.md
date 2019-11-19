@@ -8,7 +8,7 @@
     bin/pull.sh
 ```
 2. Open [`codewind.code-workspace`](https://github.com/eclipse/codewind-vscode/blob/master/codewind.code-workspace), or just the `dev/` folder, in VS Code.
-3. Create a workspace (directory or `.code-workspace`) for Codewind extension use, and add the path to the `args` array in `dev/.vscode/launch.json`. An empty directory will work. VS Code will launch into this workspace.
+3. Create or identify a workspace (directory or `.code-workspace`, an empty directory will work) for Codewind extension use, and add the path to the `args` array in `dev/.vscode/launch.json`. VS Code will launch into this workspace.
     - When editing `launch.json`, do not modify the `--extensionDevelopmentPath`.
 4. Run the **Extension** launch in `launch.json` (hit F5). See [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
 - To use a version of Codewind other than latest:
