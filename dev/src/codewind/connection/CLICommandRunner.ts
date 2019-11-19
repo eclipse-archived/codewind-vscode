@@ -39,6 +39,12 @@ export interface CLIStatus {
     url?: string;   // only set when started
 }
 
+export interface CLICommandOptions {
+    cancellable?: boolean;
+    hasJSONOutput?: boolean;
+    censorOutput?: boolean;
+}
+
 export class CLICommand {
 
     public readonly cancellable: boolean = false;
@@ -47,11 +53,7 @@ export class CLICommand {
 
     constructor(
         public readonly command: string[],
-        options?: {
-            cancellable?: boolean,
-            hasJSONOutput?: boolean,
-            censorOutput?: boolean,
-        }
+        options?: CLICommandOptions,
     ) {
         if (options) {
             if (options.cancellable != null) {
