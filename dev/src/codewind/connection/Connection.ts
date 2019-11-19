@@ -101,6 +101,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const initFWProm = this.initFileWatcher();
         await initFWProm;
+        await this.forceUpdateProjectList();
         this.onChange(this);
     }
 
