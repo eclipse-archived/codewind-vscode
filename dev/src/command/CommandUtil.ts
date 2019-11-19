@@ -250,17 +250,22 @@ async function promptForConnection(connectedOnly: boolean, remoteOnly: boolean):
     });
 
     if (choices.length === 0) {
-        const startCwBtn = "Start Local Codewind";
-        const newConnectionBtn = "New Connection";
-        vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn, newConnectionBtn)
-        .then((res) => {
-            if (res === startCwBtn) {
-                connectLocalCodewindCmd(true);
-            }
-            else if (res === newConnectionBtn) {
-                newRemoteConnectionCmd();
-            }
-        });
+        if (global.isTheia) {
+            vscode.window.showWarningMessage(`Codewind has not yet started. Wait for the Codewind pod to come up before running this command.`);
+        }
+        else {
+            const startCwBtn = "Start Local Codewind";
+            const newConnectionBtn = "New Connection";
+            vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn, newConnectionBtn)
+            .then((res) => {
+                if (res === startCwBtn) {
+                    connectLocalCodewindCmd(true);
+                }
+                else if (res === newConnectionBtn) {
+                    newRemoteConnectionCmd();
+                }
+            });
+        }
 
         return undefined;
     }
