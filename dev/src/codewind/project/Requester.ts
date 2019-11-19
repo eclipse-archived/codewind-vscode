@@ -250,7 +250,7 @@ namespace Requester {
     /**
      * Try to connect to the given URL. Returns true if _any_ response is returned.
      */
-    export async function ping(url: string | vscode.Uri, timeoutS: number): Promise<boolean> {
+    export async function ping(url: string | vscode.Uri, timeoutS: number = 10): Promise<boolean> {
         Log.d(`Ping ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
@@ -261,8 +261,14 @@ namespace Requester {
             return true;
         }
         catch (err) {
-            if (err.message === ERR_LOGIN_PAGE || err instanceof StatusCodeError) {
-                // it was reachable, but returned a bad status
+            if (err.message === ERR_LOGIN_PAGE) {
+                return true;
+            }
+            else if (err instanceof StatusCodeError) {
+                if (err.statusCode === 503) {
+                    // We treat 503 as failures, because from a kube cluster it means the hostname is wrong, the ingress/route does not exist, etc.
+                    return false;
+                }
                 return true;
             }
             // likely connection refused, socket timeout, etc.

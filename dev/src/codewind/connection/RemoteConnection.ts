@@ -17,6 +17,7 @@ import { ConnectionStates } from "./ConnectionState";
 import { CLICommandRunner } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
+import Requester from "../project/Requester";
 
 export default class RemoteConnection extends Connection {
 
@@ -48,15 +49,21 @@ export default class RemoteConnection extends Connection {
     }
 
     public async enable(): Promise<void> {
-        await this.updateCredentialsPromise;
+        const canPing = await Requester.ping(this.url);
+        if (!canPing) {
+            Log.w(`Failed to ping ${this} when enabling`);
+            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
+            // so the user sees the connection has to be re-connected by hand after fixing the problem
+            this.setState(ConnectionStates.DISABLED);
+            throw new Error(`Could not connect to ${this.label}: failed to ping ${this.url}`);
+        }
+
         const token = await this.getAccessToken();
 
         try {
             await super.enable();
         }
         catch (err) {
-            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
-            // so the user sees the connection has to be re-connected by hand after fixing the problem
             this.setState(ConnectionStates.DISABLED);
             throw err;
         }

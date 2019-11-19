@@ -238,7 +238,7 @@ export default class ConnectionOverview {
             title: `Connecting to ${ingressUrl}...`
         }), async (): Promise<void> => {
 
-            const canPing = await Requester.ping(ingressUrl, 10000);
+            const canPing = await Requester.ping(ingressUrl);
 
             if (!canPing) {
                 throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
