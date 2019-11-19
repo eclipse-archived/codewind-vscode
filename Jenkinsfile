@@ -44,6 +44,14 @@ spec:
 
     stages {
         stage("Download dependency binaries") {
+            // This when clause disables Tagged build
+            when {
+                beforeAgent true
+                not {
+                    buildingTag()
+                }
+            }
+
             steps {
                 dir("dev/bin") {
                     sh """#!/usr/bin/env bash
@@ -66,6 +74,14 @@ spec:
         }
         // we duplicate the cloned repo so that we can build vscode and theia in parallel without the builds interfering with one another
         stage("Duplicate code") {
+            // This when clause disables Tagged build
+            when {
+                beforeAgent true
+                not {
+                    buildingTag()
+                }
+            }
+
             steps {
                 dir ("..") {
                     // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
@@ -79,6 +95,14 @@ spec:
             }
         }
         stage("Build") {
+            // This when clause disables Tagged build
+            when {
+                beforeAgent true
+                not {
+                    buildingTag()
+                }
+            }
+
             parallel {
                 stage("Build for VS Code") {
                     steps {
@@ -103,11 +127,16 @@ spec:
         }
 
         stage ("Upload") {
-            // This when clause disables PR build uploads; you may comment this out if you want your build uploaded.
+            // This when clause disables PR/Tag build uploads; you may comment this out if you want your build uploaded.
             when {
                 beforeAgent true
-                not {
-                    changeRequest()
+                allOf {
+                    not {
+                        changeRequest()
+                    }
+                    not {
+                        buildingTag()
+                    }
                 }
             }
 
@@ -174,11 +203,17 @@ spec:
         }
 
         stage("Report") {
+            // This when clause disables PR/Tag build uploads; you may comment this out if you want your build uploaded.
             when {
                 beforeAgent true
-                triggeredBy 'UpstreamCause'
+                allOf {
+                    triggeredBy 'UpstreamCause'
+                    not {
+                        buildingTag()
+                    }
+                }
             }
-
+            
             options {
                 skipDefaultCheckout()
             }
