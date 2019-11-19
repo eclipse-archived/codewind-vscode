@@ -18,13 +18,15 @@ import Log from "../../Logger";
 
 export default async function refreshConnectionCmd(connection: Connection): Promise<void> {
     try {
-        // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
-        // In Theia this has no effect
-        const localHasChanged = await LocalCodewindManager.instance.refresh();
-        if (localHasChanged) {
-            vscode.window.showInformationMessage(`Reconnected to Local Codewind`);
-            // We don't have to do the projects update in this case because the connection was recreated
-            return;
+        if (!connection.isRemote) {
+            // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
+            // In Theia this has no effect
+            const localHasChanged = await LocalCodewindManager.instance.refresh();
+            if (localHasChanged) {
+                vscode.window.showInformationMessage(`Reconnected to Local Codewind`);
+                // We don't have to do the projects update in this case because the connection was recreated
+                return;
+            }
         }
 
         await connection.refresh();
