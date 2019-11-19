@@ -88,8 +88,11 @@ export namespace CLICommandRunner {
         return statusObj;
     }
 
-    export async function createProject(projectPath: string, projectName: string, url: string): Promise<IInitializationResponse> {
-        return CLIWrapper.cliExec(ProjectCommands.CREATE, [ projectPath, "--url", url ], `Creating ${projectName}...`);
+    export async function createProject(projectPath: string, url: string): Promise<IInitializationResponse> {
+        return CLIWrapper.cliExec(ProjectCommands.CREATE, [
+            projectPath,
+            "--url", url,
+        ]);
     }
 
     /**
