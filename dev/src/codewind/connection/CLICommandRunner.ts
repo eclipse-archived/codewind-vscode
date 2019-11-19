@@ -176,8 +176,12 @@ export namespace CLICommandRunner {
     /**
      * @returns The data for the new Connection
      */
-    export async function addConnection(label: string, url: string): Promise<CLIConnectionData> {
-        return await CLIWrapper.cliExec(ConnectionCommands.ADD, [ "--label", label, "--url", url ]);
+    export async function addConnection(label: string, url: string, username: string): Promise<CLIConnectionData> {
+        return await CLIWrapper.cliExec(ConnectionCommands.ADD, [
+            "--label", label,
+            "--url", url,
+            "--username", username,
+        ]);
     }
 
     /**

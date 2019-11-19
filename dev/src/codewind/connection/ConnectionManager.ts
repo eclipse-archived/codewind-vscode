@@ -74,7 +74,7 @@ export default class ConnectionManager implements vscode.Disposable {
             return existing;
         }
 
-        const newConnID = await ConnectionMemento.addConnection(label, ingressUrl);
+        const newConnID = await ConnectionMemento.addConnection(label, ingressUrl, username);
 
         const newMemento: ConnectionMemento = {
             id: newConnID,
