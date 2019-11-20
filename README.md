@@ -41,7 +41,7 @@ For more information, see [Installing Codewind for VS Code](https://www.eclipse.
 2. Open the **Codewind** view in the Explorer view group or enter `Focus on Codewind View` into the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). If you do not see Codewind in either the Explorer view or the Command Palette, the extension did not install correctly.
 3. Choose **Install** when prompted to complete the installation of additional Docker images that Codewind requires to run. The installation may take a few minutes to complete.
 4. Now you can create or add a project. Add a project by using either the `Create Project` or `Add Existing Project` command. The new project appears in the Codewind view.
-5. To see all actions available, open the Command Palette and type `Codewind`. You can also access Commands through buttons and right-click menus in the Codewind view.
+5. To see all actions available, open the Command Palette and type `Codewind`. You can access these same commands through buttons and right-click menus in the Codewind view. For more information, see the [Commands Overview](https://www.eclipse.org/codewind/mdt-vsc-commands-overview.html).
 
 ## Contributing
 Submit issues and contributions:
