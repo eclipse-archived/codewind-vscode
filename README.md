@@ -7,17 +7,17 @@
 Codewind for VS Code provides tools to help build cloud-native, containerized applications from VS Code, regardless of which runtime or language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
 
 ## Why use Codewind?
-- Get started quickly with templates or samples.
-- Use the tools, runtimes, and languages that you're already familiar with.
-- Pull in existing applications and get them ready for the cloud.
-- Enjoy quick, iterative development and fast feedback.
-- Learn as you go.
+- Get started with templates or samples that you can use to quickly create and deploy applications that run in containers.
+- Create containerized applications in languages that you're already familiar with. Codewind supports popular runtimes.
+- Pull in your existing applications and use Codewind to help get them cloud ready.
+- See code changes reflected in your containerized application almost instantaneously. The Codewind advanced inner loop manages your application updates efficiently.
+- Develop in containers without feeling like you're developing in containers. Development flow within the IDE feels the same as traditional application development.
 
 ## Features
 - Create new containerized projects or add existing ones.
 - View your containerized projects, including the application and build status.
 - Debug Microprofile/Java EE, Node.js, and Spring applications.
-- View application and build logs in the Output view.
+- Access application, build, and container logs in the Output view.
 - See validation errors in the Problems view.
 - Open a shell session into an application container.
 - Toggle the project auto build setting and manually initiate project builds.
