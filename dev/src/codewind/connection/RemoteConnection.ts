@@ -57,6 +57,7 @@ export default class RemoteConnection extends Connection {
             this.setState(ConnectionStates.DISABLED);
             throw new Error(`Could not connect to ${this.label}: failed to ping ${this.url}`);
         }
+        Log.d(`Successfully pinged ${this}`);
 
         const token = await this.getAccessToken();
 

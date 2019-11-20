@@ -262,9 +262,11 @@ namespace Requester {
         }
         catch (err) {
             if (err.message === ERR_LOGIN_PAGE) {
+                Log.d(`Received login pag when pinging ${url}`)
                 return true;
             }
             else if (err instanceof StatusCodeError) {
+                Log.d(`Received status ${err.statusCode} when pinging ${url}`);
                 if (err.statusCode === 503) {
                     // We treat 503 as failures, because from a kube cluster it means the hostname is wrong, the ingress/route does not exist, etc.
                     return false;
