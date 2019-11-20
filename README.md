@@ -25,8 +25,8 @@ For more information, see [the Codewind website](https://www.eclipse.org/codewin
 - Toggle the project auto build setting and manually initiate project builds.
 - Open your application or the application monitor in a browser.
 
-## Getting Started with Codewind
-For more information about getting started with Codewind, see [Getting Started with Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
+## Getting started with Codewind
+For more information about getting started with Codewind, see [Getting started with Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
 
 ### Prerequisites
 - Install [VS Code](https://code.visualstudio.com/download) 1.28.0 or later.
@@ -40,8 +40,8 @@ For more information, see [Installing Codewind for VS Code](https://www.eclipse.
 1. Find Codewind for VS Code in the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=IBM.codewind) or by searching for `Codewind` in the [VS Code Extensions view](https://code.visualstudio.com/docs/editor/extension-gallery#_browse-for-extensions).
 2. Open the **Codewind** view in the Explorer view group or enter `Focus on Codewind View` into the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette). If you do not see Codewind in either the Explorer view or the Command Palette, the extension did not install correctly.
 3. Choose **Install** when prompted to complete the installation of additional Docker images that Codewind requires to run. The installation may take a few minutes to complete.
-4. Start by creating or adding a project. You can add a project by using either  the `Create Project` or `Add Existing Project` command. The new project appears in the Codewind view.
-5. To see all actions available, open the Command Palette and type `Codewind`. Commands can also be accessed through buttons and right-click menus in the Codewind view.
+4. Now you can create or add a project. Add a project by using either the `Create Project` or `Add Existing Project` command. The new project appears in the Codewind view.
+5. To see all actions available, open the Command Palette and type `Codewind`. You can also access Commands through buttons and right-click menus in the Codewind view.
 
 ## Contributing
 Submit issues and contributions:
