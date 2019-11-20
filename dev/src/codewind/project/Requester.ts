@@ -262,7 +262,7 @@ namespace Requester {
         }
         catch (err) {
             if (err.message === ERR_LOGIN_PAGE) {
-                Log.d(`Received login pag when pinging ${url}`)
+                Log.d(`Received login page when pinging ${url}`);
                 return true;
             }
             else if (err instanceof StatusCodeError) {
