@@ -17,7 +17,6 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
-import Requester from "../../codewind/project/Requester";
 
 export default async function removeProjectCmd(project: Project): Promise<void> {
     await removeProject(project);
@@ -55,31 +54,24 @@ export async function removeProject(project: Project, prompt: boolean = true): P
         doDeleteProjectDir = true;
     }
 
-    if (doDeleteProjectDir) {
-        project.doDeleteOnUnbind = true;
-    }
-
-    await Promise.all([
-        Requester.requestUnbind(project),
-        // doDeleteProjectDir ? deleteProjectDir(project) : Promise.resolve(),
-    ]);
+    await vscode.window.withProgress({
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: `Removing ${project.name}...`
+    }, async () => {
+        await project.deleteFromCodewind(doDeleteProjectDir);
+    });
 }
 
 export async function deleteProjectDir(project: Project): Promise<void> {
     Log.i("Deleting project directory: " + project.localPath);
     const projectDirPath = project.localPath.fsPath;
-    return vscode.window.withProgress({
-        cancellable: false,
-        location: vscode.ProgressLocation.Window,
-        title: `Deleting ${projectDirPath}...`,
-    }, (_progress) => {
-        return new Promise<void>((resolve, _reject) => {
-            rmrf(projectDirPath, { glob: false }, (err) => {
-                if (err) {
-                    vscode.window.showErrorMessage(`Failed to delete ${project.name} directory: ${MCUtil.errToString(err)}`);
-                }
-                return resolve();
-            });
+    return new Promise<void>((resolve, _reject) => {
+        rmrf(projectDirPath, { glob: false }, (err) => {
+            if (err) {
+                vscode.window.showErrorMessage(`Failed to delete ${project.name} directory: ${MCUtil.errToString(err)}`);
+            }
+            return resolve();
         });
     });
 }

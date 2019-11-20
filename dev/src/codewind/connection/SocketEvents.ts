@@ -80,6 +80,11 @@ namespace SocketEvents {
         readonly msg: string;
     }
 
+    export interface DeletionResult {
+        readonly projectID: string;
+        readonly status: string;
+    }
+
     /**
      * Socket events we listen for from Portal
      * See MCSocket

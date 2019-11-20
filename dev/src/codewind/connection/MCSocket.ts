@@ -176,7 +176,7 @@ export default class MCSocket implements vscode.Disposable {
         this.onProjectChanged(payload);
     }
 
-    private readonly onProjectDeleted = async (payload: { projectID: string }): Promise<void> => {
+    private readonly onProjectDeleted = async (payload: SocketEvents.DeletionResult): Promise<void> => {
         Log.d("Project deleted", payload.projectID);
 
         const project = await this.getProject(payload);
@@ -184,7 +184,7 @@ export default class MCSocket implements vscode.Disposable {
             return;
         }
 
-        await project.onDelete();
+        await project.onDeletionEvent(payload);
         this.connection.forceUpdateProjectList();
     }
 
