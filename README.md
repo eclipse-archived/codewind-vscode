@@ -6,7 +6,7 @@
 # Codewind for VS Code
 Codewind for VS Code provides tools to help build cloud-native, containerized applications from VS Code, regardless of which runtime or language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
 
-For more information, see [codewind.dev](https://www.eclipse.org/codewind/).
+For more information, see [the Codewind website](https://www.eclipse.org/codewind/).
 
 ## Why use Codewind?
 - Get started with templates or samples that you can use to quickly create and deploy applications that run in containers.
@@ -24,8 +24,6 @@ For more information, see [codewind.dev](https://www.eclipse.org/codewind/).
 - Open a shell session into an application container.
 - Toggle the project auto build setting and manually initiate project builds.
 - Open your application or the application monitor in a browser.
-
-For more information, see the [Codewind website](https://www.eclipse.org/codewind/).
 
 ## Getting Started with Codewind
 For more information about getting started with Codewind, see [Getting Started with Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
