@@ -51,4 +51,4 @@ Submit issues and contributions:
 - [Jenkins](https://ci.eclipse.org/codewind/job/Codewind/job/codewind-vscode/)
 
 ## Developing
-See [DEVELOPING.md](https://github.com/eclipse/codewind-vscode/blob/master/DEVELOPING.md).
+To develop and debug Codewind for VS Code, see [DEVELOPING.md](https://github.com/eclipse/codewind-vscode/blob/master/DEVELOPING.md).
