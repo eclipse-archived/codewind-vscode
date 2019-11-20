@@ -4,7 +4,26 @@
 [![Chat](https://img.shields.io/static/v1.svg?label=chat&message=mattermost&color=145dbf)](https://mattermost.eclipse.org/eclipse/channels/eclipse-codewind)
 
 # Codewind for VS Code
-Create and develop cloud-native, containerized web applications from VS Code.
+Codewind for VS Code provides tools to help build cloud-native, containerized applications from VS Code, regardless of which runtime or language you use. Rapidly create an application from a template project and launch, update, test, and debug in Docker containers on the desktop.
+
+## Why use Codewind?
+- Get started with templates or samples that you can use to quickly create and deploy applications that run in containers.
+- Create containerized applications in languages that you're already familiar with. Codewind supports popular runtimes.
+- Pull in your existing applications and use Codewind to help get them cloud ready.
+- See code changes reflected in your containerized application almost instantaneously. The Codewind advanced inner loop manages your application updates efficiently.
+- Develop in containers without feeling like you're developing in containers. Development flow within the IDE feels the same as traditional application development.
+
+## Features
+- Create new containerized projects or add existing ones.
+- View your containerized projects, including the application and build status.
+- Debug Microprofile/Java EE, Node.js, and Spring applications.
+- Access application, build, and container logs in the Output view.
+- See validation errors in the Problems view.
+- Open a shell session into an application container.
+- Toggle the project auto build setting and manually initiate project builds.
+- Open your application or the application monitor in a browser.
+
+For more information, see the [Codewind website](https://www.eclipse.org/codewind/).
 
 ## Installing Codewind
 You can install Codewind locally in VS Code. For more information about installing Codewind, see [Installing Codewind for VS Code](https://www.eclipse.org/codewind/mdtvscinstallinfo.html).
@@ -21,16 +40,6 @@ Complete the installation:
 
 ## Using Codewind for VS Code
 To see the actions available, open the [**Command Palette**](https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette) and type `Codewind`.</br>
-
-Features:</br>
-- [**Create New Project** and **Add Existing Project**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Create new projects from application templates or import existing container-ready projects.
-- [**Codewind view**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): View Codewind projects, including application and build statuses.
-- [**Attach debugger**](https://www.eclipse.org/codewind/mdt-vsc-commands-restart-and-debug.html): Debug Microprofile, Spring, and Node.js projects in their containers.
-- [**Show all logs**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): View application and build logs in the VS Code **Output** view.
-- [**Open folder as workspace**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): View and edit project deployment information.
-- [**Open container shell**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Open a shell session into a Codewind application container.
-- [**Toggle auto build**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Toggle project auto build and manually initiate project builds.
-- [**Enable or disable project** and **Show project overview**](https://www.eclipse.org/codewind/mdt-vsc-commands-project.html): Disable, enable, and delete projects.
 
 ## Contributing
 Submit issues and contributions:
