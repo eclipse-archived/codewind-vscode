@@ -74,6 +74,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this._state;
     }
 
+    protected setState(newState: ConnectionState): void {
+        Log.d(`${this.label} is now ${newState}`);
+        this._state = newState;
+        this.onChange();
+    }
+
     public get isConnected(): boolean {
         return this._state.isConnected;
     }
@@ -81,14 +87,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     protected async enable(): Promise<void> {
         Log.i(`Enable connection ${this.url}`);
 
-        // const readyTimeoutS = global.isTheia ? 180 : 60;
         const readyTimeoutS = 60;
         const ready = await Requester.waitForReady(this, readyTimeoutS);
         if (!ready) {
-            const errMsg = `${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`;
-            Log.e(errMsg);
-            vscode.window.showErrorMessage(errMsg);
-            return;
+            throw new Error(`${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`);
         }
 
         const envData = await CWEnvironment.getEnvData(this);
@@ -99,6 +101,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const initFWProm = this.initFileWatcher();
         await initFWProm;
+        await this.forceUpdateProjectList();
         this.onChange(this);
     }
 
@@ -201,7 +204,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         this.hasConnected = true;
-        this._state = ConnectionStates.CONNECTED;
+        this.setState(ConnectionStates.CONNECTED);
         Log.d(`${this} is now connected`);
         try {
             await this.forceUpdateProjectList();
@@ -219,7 +222,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // we already know we're disconnected, nothing to do until we reconnect
             return;
         }
-        this._state = ConnectionStates.NETWORK_ERROR;
+        this.setState(ConnectionStates.NETWORK_ERROR);
 
         this._projects.forEach((p) => p.onConnectionDisconnect());
         this._projects = [];
@@ -348,6 +351,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     public async setRegistry(registry: string): Promise<void> {
         await Requester.configureRegistry(this, "set", registry);
         this._isRegistrySet = true;
+    }
+
+    public async refresh(): Promise<void> {
+        await this.forceUpdateProjectList(true);
+        vscode.window.showInformationMessage(`Refreshed projects list of ${this.label}`);
     }
 
     public get detail(): string {

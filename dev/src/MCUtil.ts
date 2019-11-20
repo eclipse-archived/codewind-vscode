@@ -86,6 +86,9 @@ namespace MCUtil {
             return err.error.msg || err.error.message || JSON.stringify(err.error);
         }
 
+        if (!err.message) {
+            return "Unknown error";
+        }
         return err.message || JSON.stringify(err);
     }
 

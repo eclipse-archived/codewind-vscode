@@ -37,7 +37,7 @@ export enum ConnectionOverviewWVMessages {
  * The editable textfields in the Connection (left half) part of the overview
  */
 interface ConnectionInfoFields {
-    readonly url?: string;
+    readonly ingressUrl?: string;
     readonly username?: string;
     readonly password?: string;
 }
@@ -137,7 +137,7 @@ export default class ConnectionOverview {
                     const newInfo: ConnectionOverviewFields = msg.data;
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Updating info for ${this.connection.label} to ${JSON.stringify(newInfo)}`);
-                        if (newInfo.url !== this.connection.memento.ingressUrl) {
+                        if (newInfo.ingressUrl !== this.connection.memento.ingressUrl) {
                             vscode.window.showErrorMessage("Changing ingress is not allowed");
                         }
                         else if (!newInfo.username) {
@@ -156,7 +156,7 @@ export default class ConnectionOverview {
                             const newConnection = await this.createNewConnection(newInfo);
                             this.connection = newConnection;
                             this.connection.onOverviewOpened(this);
-                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.url}`);
+                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressUrl}`);
                             if (newInfo.registryUrl) {
                                 await this.updateRegistry(newInfo, false);
                             }
@@ -164,7 +164,7 @@ export default class ConnectionOverview {
                         }
                         catch (err) {
                             // the err from createNewConnection is user-friendly
-                            Log.w(`Error creating new connection to ${newInfo.url}`, err);
+                            Log.w(`Error creating new connection to ${newInfo.ingressUrl}`, err);
                             vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
                         }
                     }
@@ -201,12 +201,12 @@ export default class ConnectionOverview {
      * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
     private async createNewConnection(newConnectionInfo: ConnectionInfoFields): Promise<RemoteConnection> {
-        if (!newConnectionInfo.url) {
+        if (!newConnectionInfo.ingressUrl) {
             throw new Error("Enter a Codewind Gatekeeper ingress host");
         }
-        Log.d("Ingress host is", newConnectionInfo.url);
+        Log.d("Ingress host is", newConnectionInfo.ingressUrl);
 
-        let ingressUrlStr = newConnectionInfo.url.trim();
+        let ingressUrlStr = newConnectionInfo.ingressUrl.trim();
         try {
             // tslint:disable-next-line: no-unused-expression
             if (!ingressUrlStr.includes("://")) {
@@ -238,7 +238,7 @@ export default class ConnectionOverview {
             title: `Connecting to ${ingressUrl}...`
         }), async (): Promise<void> => {
 
-            const canPing = await Requester.ping(ingressUrl, 10000);
+            const canPing = await Requester.ping(ingressUrl);
 
             if (!canPing) {
                 throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);

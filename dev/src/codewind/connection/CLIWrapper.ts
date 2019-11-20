@@ -161,10 +161,12 @@ namespace CLIWrapper {
                     }
                     else if (code !== 0) {
                         Log.e(`Error running ${cmdStr}`);
-                        Log.e("Stdout:", outStr);
-                        Log.e("Stderr:", errStr);
+                        Log.e("Stdout:", outStr.trim());
+                        if (errStr) {
+                            Log.e("Stderr:", errStr.trim());
+                        }
 
-                        let errMsg = `Error running ${path.basename(_executablePath)} ${cmd.command}`;
+                        let errMsg = `Error running ${path.basename(_executablePath)} ${cmd.command.join(" ")}`;
                         if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
                             const asObj = JSON.parse(outStr);
                             if (asObj.error_description) {

@@ -25,8 +25,8 @@ export interface CLIConnectionData {
 }
 
 interface WorkspaceUpgradeResult {
-    migrated: string[];
-    failed: Array<{
+    readonly migrated: string[];
+    readonly failed: Array<{
         error: string,
         projectName: string
     }>;
@@ -115,15 +115,25 @@ export namespace CLICommandRunner {
         return statusObj;
     }
 
-    export async function createProject(projectPath: string, projectName: string, url: string): Promise<IInitializationResponse> {
-        return CLIWrapper.cliExec(ProjectCommands.CREATE, [ projectPath, "--url", url ], `Creating ${projectName}...`);
+    export async function createProject(connectionID: string, projectPath: string, url: string)
+        : Promise<IInitializationResponse> {
+
+        return CLIWrapper.cliExec(ProjectCommands.CREATE, [
+            projectPath,
+            "--conid", connectionID,
+            "--url", url
+        ]);
     }
 
     /**
      * Test the path given to determine the project type Codewind should use.
      */
-    export async function detectProjectType(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
-        const args = [ projectPath ];
+    export async function detectProjectType(connectionID: string, projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
+        const args = [
+            projectPath,
+            "--conid", connectionID,
+        ];
+
         if (desiredType) {
             args.push("--type", desiredType);
         }
@@ -168,8 +178,12 @@ export namespace CLICommandRunner {
     /**
      * @returns The data for the new Connection
      */
-    export async function addConnection(label: string, url: string): Promise<CLIConnectionData> {
-        return await CLIWrapper.cliExec(ConnectionCommands.ADD, [ "--label", label, "--url", url ]);
+    export async function addConnection(label: string, url: string, username: string): Promise<CLIConnectionData> {
+        return await CLIWrapper.cliExec(ConnectionCommands.ADD, [
+            "--label", label,
+            "--url", url,
+            "--username", username,
+        ]);
     }
 
     /**
@@ -189,8 +203,9 @@ export namespace CLICommandRunner {
     }
 
     // https://github.com/eclipse/codewind/issues/941
-    export async function addTemplateSource(_connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateRepo[]> {
+    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateRepo[]> {
         const args = [
+            "--conid", connectionID,
             "--url", url,
             "--name", name,
         ];
@@ -202,12 +217,15 @@ export namespace CLICommandRunner {
         return CLIWrapper.cliExec(TemplateRepoCommands.ADD, args);
     }
 
-    export async function getTemplateSources(_connectionID: string): Promise<ITemplateRepo[]> {
-        return CLIWrapper.cliExec(TemplateRepoCommands.LIST);
+    export async function getTemplateSources(connectionID: string): Promise<ITemplateRepo[]> {
+        return CLIWrapper.cliExec(TemplateRepoCommands.LIST, [
+            "--conid", connectionID,
+        ]);
     }
 
-    export async function removeTemplateSource(_connectionID: string, url: string): Promise<ITemplateRepo[]> {
+    export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateRepo[]> {
         return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
+            "--conid", connectionID,
             "--url", url
         ]);
     }

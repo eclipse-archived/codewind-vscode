@@ -12,9 +12,9 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import { CLICommandRunner } from "./CLICommandRunner";
 import ConnectionManager from "./ConnectionManager";
 import MCUtil from "../../MCUtil";
+import { CLICommandRunner } from "./CLICommandRunner";
 
 /**
  *
@@ -35,12 +35,12 @@ export namespace ConnectionMemento {
      * Save the given connection info using the CLI.
      * @returns The new connection's ID.
      */
-    export async function addConnection(label: string, url: string | vscode.Uri): Promise<string> {
+    export async function addConnection(label: string, url: string | vscode.Uri, username: string): Promise<string> {
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
         Log.i(`Saving remote connection ${label} @ ${url}`);
-        const addResult = await CLICommandRunner.addConnection(label, url);
+        const addResult = await CLICommandRunner.addConnection(label, url, username);
         const id = addResult.id;
         return id;
     }
@@ -78,11 +78,11 @@ export namespace ConnectionMemento {
             await ConnectionManager.instance.loadRemoteConnection(memento);
         }
         catch (err) {
-            const errMsg = `Error loading connection ${memento.label}: ${MCUtil.errToString(err)}`;
+            const errMsg = `Error loading connection ${memento.label}`;
             Log.e(errMsg, err);
 
             const retryBtn = "Retry";
-            vscode.window.showErrorMessage(errMsg, retryBtn)
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, retryBtn)
             .then((res) => {
                 if (res === retryBtn) {
                     loadConnection(memento);

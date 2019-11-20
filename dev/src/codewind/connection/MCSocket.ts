@@ -50,7 +50,7 @@ export default class MCSocket implements vscode.Disposable {
         Log.i("Creating MCSocket for URI", this.uri);
 
         const usingHttps = connection.url.scheme === "https";
-        const timeout = global.isTheia ? 15000 : 5000;
+        const timeout = connection.isKubeConnection ? 15000 : 5000;
         const options: SocketIOClient.ConnectOpts = {
             rejectUnauthorized: !usingHttps,                    // TODO because of our self-signed certs
             secure: usingHttps,
@@ -91,6 +91,29 @@ export default class MCSocket implements vscode.Disposable {
     public async dispose(): Promise<void> {
         this.connection.onDisconnect();
         this.socket.disconnect();
+    }
+
+    public async authenticate(token: string): Promise<void> {
+        Log.i(`Authenticating ${this}`);
+        return new Promise<void>((resolve, reject) => {
+            this.socket.emit("authentication", { token });
+
+            const timeoutS = 10;
+            const timeout = setTimeout(() => {
+                reject(`${this.uri} did not respond to authentication request within ${timeoutS} seconds.`);
+            }, timeoutS * 1000);
+
+            this.socket.on("authenticated", () => {
+                Log.i(`Successfully authenticated ${this}`);
+                clearTimeout(timeout);
+                resolve();
+            });
+            this.socket.on("unauthorized", (payload: { message: string }) => {
+                Log.e(`${this} received unauthorized event`, payload);
+                clearTimeout(timeout);
+                reject(payload.message);
+            });
+        });
     }
 
     private readonly onProjectBound = async (payload: { success: boolean; projectID?: string; error?: string; }): Promise<void> => {

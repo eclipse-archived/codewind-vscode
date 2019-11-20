@@ -79,11 +79,11 @@ export default class LocalCodewindManager {
     public async connect(cwUrl: vscode.Uri): Promise<void> {
         try {
             this._localConnection = await ConnectionManager.instance.connectLocal(cwUrl);
-            this.changeState(CodewindStates.STARTED);
+            this.setState(CodewindStates.STARTED);
         }
         catch (err) {
             Log.e("Error connecting to Codewind after it should have started", err);
-            this.changeState(CodewindStates.ERR_CONNECTING);
+            this.setState(CodewindStates.ERR_CONNECTING);
             vscode.window.showErrorMessage(MCUtil.errToString(err));
         }
     }
@@ -105,7 +105,7 @@ export default class LocalCodewindManager {
         }
         catch (err) {
             Log.e("Error getting URL after Codewind should have started", err);
-            this.changeState(CodewindStates.ERR_CONNECTING);
+            this.setState(CodewindStates.ERR_CONNECTING);
             throw err;
         }
         Log.i("Codewind appears to have started at " + cwUrl);
@@ -135,7 +135,7 @@ export default class LocalCodewindManager {
         return false;
     }
 
-    public changeState(newState: CodewindStates): void {
+    public setState(newState: CodewindStates): void {
         Log.d(`Local Codewind state changing from ${this._state} to ${newState}`);
         this._state = newState;
         CodewindEventListener.onChange(this);
@@ -147,7 +147,7 @@ export default class LocalCodewindManager {
      */
     public async waitForCodewindToStartTheia(): Promise<void> {
         Log.i(`In theia; waiting for Codewind to come up on ${CHE_CW_URL}`);
-        this.changeState(CodewindStates.STARTING);
+        this.setState(CodewindStates.STARTING);
         const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
 
         // This looks awfully similar to Requester.waitForReady, but here we're just testing for a listening port.
@@ -190,7 +190,7 @@ export default class LocalCodewindManager {
         const isCodewindUp = await waitingForReadyProm;
         if (!isCodewindUp) {
             this.onTheiaStartTimeout(true, timeoutS);
-            this.changeState(CodewindStates.ERR_CONNECTING);
+            this.setState(CodewindStates.ERR_CONNECTING);
             return;
         }
 

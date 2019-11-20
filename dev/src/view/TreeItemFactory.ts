@@ -92,7 +92,7 @@ namespace TreeItemFactory {
             return [{
                 label: "Authentication error",
                 iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
-                tooltip: "Click here to open the Connection Overview",
+                tooltip: "Click here to open this connection's Settings",
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
                 command: {
                     command: Commands.CONNECTION_OVERVIEW,

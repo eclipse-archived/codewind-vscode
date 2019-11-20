@@ -17,7 +17,7 @@ import { ConnectionStates } from "./ConnectionState";
 import { CLICommandRunner } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
-import MCUtil from "../../MCUtil";
+import Requester from "../project/Requester";
 
 export default class RemoteConnection extends Connection {
 
@@ -49,25 +49,42 @@ export default class RemoteConnection extends Connection {
     }
 
     public async enable(): Promise<void> {
+        const canPing = await Requester.ping(this.url);
+        if (!canPing) {
+            Log.w(`Failed to ping ${this} when enabling`);
+            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
+            // so the user sees the connection has to be re-connected by hand after fixing the problem
+            this.setState(ConnectionStates.DISABLED);
+            throw new Error(`Could not connect to ${this.label}: failed to ping ${this.url}`);
+        }
+        Log.d(`Successfully pinged ${this}`);
+
+        const token = await this.getAccessToken();
+
         try {
-            await this.updateCredentialsPromise;
-            await this.getAccessToken();
             await super.enable();
         }
         catch (err) {
-            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
-            // so the user sees the connection has to be re-connected by hand after fixing the problem
-            this._state = ConnectionStates.DISABLED;
+            this.setState(ConnectionStates.DISABLED);
             throw err;
         }
 
-        // TODO REMOVE THIS once the socket is working through the gatekeeper
-        await this.onConnect();
+        if (!this._socket) {
+            throw new Error(`${this.label} socket was undefined after enabling appeared to succeed`);
+        }
+
+        try {
+            await this._socket.authenticate(token);
+        }
+        catch (err) {
+            this.setState(ConnectionStates.AUTH_ERROR);
+            throw err;
+        }
     }
 
     public async disable(): Promise<void> {
         await super.disable();
-        this._state = ConnectionStates.DISABLED;
+        this.setState(ConnectionStates.DISABLED);
     }
 
     public async updateCredentials(username: string, password: string): Promise<void> {
@@ -89,6 +106,31 @@ export default class RemoteConnection extends Connection {
         await ConnectionMemento.save(this.memento);
     }
 
+    public async getAccessToken(): Promise<string> {
+        // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
+        await this.updateCredentialsPromise;
+
+        if (this._accessToken) {
+            return this._accessToken;
+        }
+
+        Log.d(`${this.label} looking up access token for user "${this._username}"`);
+        try {
+            this._accessToken = await CLICommandRunner.getAccessToken(this.id, this._username);
+            this.setState(ConnectionStates.CONNECTED);
+            return this._accessToken;
+        }
+        catch (err) {
+            const errMsg = `Error getting access token for ${this.label}`;
+            Log.e(errMsg, err);
+            // vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+
+            this._accessToken = undefined;
+            this.setState(ConnectionStates.AUTH_ERROR);
+            throw err;
+        }
+    }
+
     public get username(): string {
         return this._username;
     }
@@ -104,29 +146,14 @@ export default class RemoteConnection extends Connection {
         };
     }
 
-    public async getAccessToken(): Promise<string> {
-        // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
-        await this.updateCredentialsPromise;
-
-        if (this._accessToken) {
-            return this._accessToken;
+    public async refresh(): Promise<void> {
+        if (this.isConnected) {
+            super.refresh();
+            return;
         }
-
-        Log.d(`Looking up access token for user ${this._username}`);
-        try {
-            this._accessToken = await CLICommandRunner.getAccessToken(this.id, this._username);
-            this._state = ConnectionStates.CONNECTED;
-            return this._accessToken;
-        }
-        catch (err) {
-            const errMsg = `Error authenticating for ${this.label}`;
-            Log.e(errMsg, err);
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-
-            this._accessToken = undefined;
-            this._state = ConnectionStates.AUTH_ERROR;
-            throw err;
-        }
+        await this.disable();
+        await this.enable();
+        vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
     public get activeOverviewPage(): ConnectionOverview | undefined {
