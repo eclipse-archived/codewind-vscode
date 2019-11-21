@@ -194,6 +194,13 @@ namespace MCUtil {
         return path.join(os.homedir(), "codewind-workspace");
     }
 
+    export function getCWDataPath(): string {
+        if (MCUtil.getOS() === "windows") {
+            return "C:\\codewind-data";
+        }
+        return path.join(os.homedir(), "codewind-data");
+    }
+
     /**
      * Joins a string array into a user-friendly list.
      * Eg, `joinWithAnd([ "tim", "erin", "john" ])` => "tim, erin, and john"
