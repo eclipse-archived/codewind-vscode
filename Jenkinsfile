@@ -163,6 +163,7 @@ spec:
 
                     printf "Uploading files:\n$(ls -l *.vsix)\n"
 
+                    ssh $sshHost rm -rf $deployDir
                     ssh $sshHost mkdir -p $deployDir
                     scp *.vsix $sshHost:$deployDir
                     echo "Uploaded to https://download.eclipse.org${deployDir##*download.eclipse.org}"
