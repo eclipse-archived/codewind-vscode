@@ -18,6 +18,7 @@ import SocketEvents from "./SocketEvents";
 import Requester from "../project/Requester";
 import { ProjectType, IProjectSubtypesDescriptor } from "../project/ProjectType";
 import { CLICommandRunner } from "./CLICommandRunner";
+import MCUtil from "../../MCUtil";
 
 export interface ICWTemplateData {
     label: string;
@@ -300,10 +301,6 @@ namespace UserProjectCreator {
     }
 
     export async function promptForDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {
-        // if (!defaultUri && vscode.workspace.workspaceFolders != null) {
-        //     defaultUri = vscode.workspace.workspaceFolders[0].uri;
-        // }
-
         const selectedDirs = await vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
@@ -312,10 +309,17 @@ namespace UserProjectCreator {
             defaultUri
         });
         if (selectedDirs == null) {
-            return;
+            return undefined;
         }
-        // canSelectMany is false
-        return selectedDirs[0];
+        // canSelectMany is false so we just use [0]
+        const selectedDir = selectedDirs[0];
+
+        const cwDataPath = MCUtil.getCWDataPath();
+        if (selectedDir.fsPath.startsWith(cwDataPath)) {
+            vscode.window.showErrorMessage(`You cannot create or add a project under ${cwDataPath}. Select a different directory.`);
+            return undefined;
+        }
+        return selectedDir;
     }
 }
 
