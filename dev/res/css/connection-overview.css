@@ -26,8 +26,7 @@ body {
 
 #learn-more-btn-remote {
     color: #0f62fe;
-    display: inline-block;
-    margin-left: 430px;
+    float: right;
 }
 
 #connection-logo {
@@ -225,7 +224,7 @@ body {
     width: 500px;
 }
 
-#connection-name {
+.connection-name {
     font-family: HelveticaNeue;
     font-size: 32px;
     color: #CCCCCC;

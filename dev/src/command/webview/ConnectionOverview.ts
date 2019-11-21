@@ -118,6 +118,7 @@ export default class ConnectionOverview {
                 (err) => { if (err) { Log.e("Error writing out test connection overview", err); } }
             );
         }
+        this.webPanel.webview.html = "";
         this.webPanel.webview.html = html;
     }
 
@@ -172,9 +173,10 @@ export default class ConnectionOverview {
                     break;
                 }
                 case ConnectionOverviewWVMessages.CANCEL: {
-                    vscode.window.showInformationMessage("Cancelling editing connection");
                     if (this.connection) {
                         this.refresh(this.connection.memento);
+                    } else {
+                        this.dispose();
                     }
                     break;
                 }
@@ -186,7 +188,7 @@ export default class ConnectionOverview {
                 case ConnectionOverviewWVMessages.DELETE: {
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Deleting connection ${this.connection.label}`);
-                        removeConnectionCmd(this.connection);
+                        await removeConnectionCmd(this.connection);
                         this.dispose();
                     }
                     else {

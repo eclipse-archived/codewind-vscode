@@ -39,13 +39,13 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
     <div id="top-section">
         <div class="title">
             <img id="connection-logo" alt="Codewind Logo" src="${connectionInfo.ingressUrl ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
-            ${connectionInfo.ingressUrl ? `<div id="connection-name">${connectionInfo.label}</div><input id="remote-connection-name" class="bx--text-input" value=${connectionInfo.label} style="display: none;">` :
+            ${connectionInfo.ingressUrl ? `<div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>` :
             `<input id="remote-connection-name" class="bx--text-input" value=${connectionInfo.label}>`}
         </div>
     </div>
     <div>
     <div id="description">
-        ${connectionInfo.ingressUrl ? `<input id="description-text" class="bx--text-input-description" style="display: none;" placeholder="Description about this remote connection that the user might use for some reason"/>`
+        ${connectionInfo.ingressUrl ? ""
         : `<input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>`}
     </div>
     <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
@@ -74,19 +74,19 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                     <div style="float: left; margin-top: 10px;">
                         <label for="input-username">Username</label>
                         ${connectionInfo.ingressUrl ? `<div id="ingress-username-label">${connectionInfo.username}</div>
-                            <input type="text" id="ingress-username" class="input-username" name="ingress-username" style="display: none;" value="developer"/>`
+                            <input type="text" id="ingress-username" class="input-username" name="ingress-username" style="display: none;" value=${connectionInfo.username}>`
                         :
                         `<input type="text" id="ingress-username" class="input-username" name="ingress-username" value="developer"/>`}
                     </div>
                     <div style="overflow: hidden; margin-top: 10px;">
-                    ${connectionInfo.ingressUrl ? `` :
-                        `<label for="input-password" style="margin-left: 10px;">Password</label>
-                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"
-                        />`}
-                    <div id="input-password" style="display: none;">
+                    ${connectionInfo.ingressUrl ? `<div id="input-password" style="display: none;">
                         <label for="input-password" style="margin-left: 10px;">Password</label>
-                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
-                    </div>
+                        <input type="password" id="ingress-password" class="input-password" name="ingress-password" placeholder="**************"/>
+                        </div>` 
+                        :
+                        `<label for="input-password" style="margin-left: 10px;">Password</label>
+                            <input type="password" id="ingress-password" class="input-password" name="ingress-password" placeholder="**************"
+                        />`}
                     </div>
                     ${connectionInfo.ingressUrl ? `<div type="button" id="test-btn" class="btn btn-prominent" style="display: none"; onclick="testNewConnection()">Test</div>` : `<div type="button" id="test-btn" class="btn btn-prominent" onclick="testNewConnection()">Test</div>`}
                 </div>
@@ -105,13 +105,22 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
         const vscode = acquireVsCodeApi();
 
         function submitNewConnection() {
-            const ingressInput = document.querySelector("#ingress-url");
-            const ingressUsername = document.querySelector("#ingress-username");
-            const ingressPassword = document.querySelector("#ingress-password");
-            const connectionName = document.querySelector("#remote-connection-name");
+            const ingressInput = document.querySelector("#ingress-url").value;
+            const ingressUsername = document.querySelector("#ingress-username").value;
+            const ingressPassword = document.querySelector("#ingress-password").value;
+            let connectionName = document.querySelector("#remote-connection-name").value;
 
-            // Data body is IConnectionInfoFields
-            sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", { ingressUrl: ingressInput.value,  username: ingressUsername.value, password: ingressPassword.value, label: connectionName.value });
+            if (!connectionName) { 
+                connectionName = document.querySelector("#remote-connection-name").innerText;
+            }
+
+            if (ingressInput === '${connectionInfo.ingressUrl}' && ingressUsername === '${connectionInfo.username}') {
+                sendMsg("${ConnectionOverviewWVMessages.CANCEL}");
+            } else {
+                // Data body is IConnectionInfoFields
+                sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", { ingressUrl: ingressInput,  username: ingressUsername, password: ingressPassword, label: connectionName });
+            }
+
         }
 
         function editConnection() {
@@ -124,9 +133,6 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             document.querySelector("#input-password").style.marginTop = "5px";
             document.querySelector("#edit-btn").style.display = "none";
             document.querySelector("#disconnect-btn").style.display = "none";
-            document.querySelector("#remote-connection-name").style.display = "block";
-            document.querySelector("#connection-name").style.display = "none";
-            document.querySelector("#description-text").style.display = "block";
             document.querySelector("#cancel-btn").style.display = "inline";
             document.querySelector("#save-btn").style.display = "inline";
             document.querySelector("#test-btn").style.display = "inline";
