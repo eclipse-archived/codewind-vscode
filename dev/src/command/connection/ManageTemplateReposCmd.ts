@@ -197,7 +197,7 @@ async function handleWebviewMessage(this: Connection, msg: WebviewUtil.IWVMessag
 async function promptForNewRepo(): Promise<{ repoUrl: string, repoName: string, repoDescr?: string } | undefined> {
     const repoUrl = await vscode.window.showInputBox({
         ignoreFocusOut: true,
-        placeHolder: `https://raw.githubusercontent.com/kabanero-io/codewind-templates/master/devfiles/index.json`,
+        placeHolder: `https://raw.githubusercontent.com/codewind-resources/codewind-templates/master/devfiles/index.json`,
         prompt: "Enter the URL to your template source's index file.",
         validateInput: validateRepoInput,
     });

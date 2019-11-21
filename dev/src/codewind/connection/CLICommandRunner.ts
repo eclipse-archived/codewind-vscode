@@ -217,10 +217,17 @@ export namespace CLICommandRunner {
         return CLIWrapper.cliExec(TemplateRepoCommands.ADD, args);
     }
 
+    let hasFetchedTemplates = false;
     export async function getTemplateSources(connectionID: string): Promise<ITemplateRepo[]> {
-        return CLIWrapper.cliExec(TemplateRepoCommands.LIST, [
+        // The first time we fetch template sources per-codewind instance can be very slow, so we show a progress notification just once
+        const progress = hasFetchedTemplates ? undefined : "Fetching template sources...";
+
+        const result = await CLIWrapper.cliExec(TemplateRepoCommands.LIST, [
             "--conid", connectionID,
-        ]);
+        ], progress);
+
+        hasFetchedTemplates = true;
+        return result;
     }
 
     export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateRepo[]> {
