@@ -96,6 +96,7 @@ export default class Project implements vscode.QuickPickItem {
 
     public readonly logManager: MCLogManager;
 
+    private resolvePendingDeletion: (() => void) | undefined;
     private deleteFilesOnUnbind: boolean = false;
 
     constructor(
@@ -412,19 +413,40 @@ export default class Project implements vscode.QuickPickItem {
         this.connection.onChange(this);
     }
 
-    public set doDeleteOnUnbind(deleteOnUnbind: boolean) {
-        this.deleteFilesOnUnbind = deleteOnUnbind;
+    public deleteFromCodewind(deleteFiles: boolean): Promise<void> {
+        Log.d(`Deleting ${this}`);
+        this.deleteFilesOnUnbind = deleteFiles;
+        const pendingDeletionProm = new Promise<void>((resolve) => {
+            this.resolvePendingDeletion = resolve;
+            Requester.requestUnbind(this);
+        });
+        return pendingDeletionProm;
     }
 
-    public async onDelete(): Promise<void> {
-        Log.i(`${this.name} was deleted`);
-        // vscode.window.showInformationMessage(Translator.t(STRING_NS, "onDeletion", { projectName: this.name }));
+    public async onDeletionEvent(event: SocketEvents.DeletionResult): Promise<void> {
+        if (!this.resolvePendingDeletion) {
+            Log.e(`Received deletion event for ${this} that was not pending deletion`);
+            return;
+        }
+
+        if (event.status !== SocketEvents.STATUS_SUCCESS) {
+            Log.e(`Received bad deletion event for ${this}`, event);
+            vscode.window.showErrorMessage(`Error deleting ${this.name}`);
+            // resolve the pending deletion because they will have to try again
+            this.resolvePendingDeletion();
+            return;
+        }
+
+        Log.i(`${this} was deleted in Codewind`);
         DebugUtils.removeDebugLaunchConfigFor(this);
+
         const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
         await Promise.all([
             deleteFilesProm,
             this.dispose(),
         ]);
+        this.resolvePendingDeletion();
+        Log.d(`Finished deleting ${this}`);
     }
 
     /**
