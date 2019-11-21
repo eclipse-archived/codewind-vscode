@@ -95,18 +95,11 @@ export default async function createProject(connection: Connection): Promise<voi
             const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
                 vscode.workspace.workspaceFolders[0].uri : undefined;
 
-            const selection = await vscode.window.showOpenDialog({
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                defaultUri,
-                openLabel: "Select Parent Directory",
-            });
-
+            const selection = await UserProjectCreator.promptForDir("Select Parent Directory", defaultUri);
             if (!selection) {
                 return undefined;
             }
-            parentDir = selection[0];
+            parentDir = selection;
         }
 
         const response = await UserProjectCreator.createProject(connection, template, parentDir, projectName);
