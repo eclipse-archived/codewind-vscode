@@ -32,10 +32,10 @@ const STRING_NS = StringNamespaces.STARTUP;
 
 const TAG_OPTION = "-t";
 
-// Codewind tag to install if no env vars set
-const DEFAULT_CW_TAG = "0.6.0";
 const TAG_LATEST = "latest";
-
+// Codewind tag to install if CW_TAG is not set in env
+// UPDATE THIS on release branches to eg "0.6.0"
+const DEFAULT_CW_TAG = TAG_LATEST;
 
 export namespace CLILifecycleWrapper {
 
