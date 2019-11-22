@@ -31,6 +31,7 @@ export enum ConnectionOverviewWVMessages {
     SAVE_CONNECTION_INFO = "save-connection",
     SAVE_REGISTRY = "save-registry",
     DELETE = "delete",
+    CANCEL = "cancel"
 }
 
 /**
@@ -117,6 +118,7 @@ export default class ConnectionOverview {
                 (err) => { if (err) { Log.e("Error writing out test connection overview", err); } }
             );
         }
+        this.webPanel.webview.html = "";
         this.webPanel.webview.html = html;
     }
 
@@ -170,6 +172,14 @@ export default class ConnectionOverview {
                     }
                     break;
                 }
+                case ConnectionOverviewWVMessages.CANCEL: {
+                    if (this.connection) {
+                        this.refresh(this.connection.memento);
+                    } else {
+                        this.dispose();
+                    }
+                    break;
+                }
                 case ConnectionOverviewWVMessages.SAVE_REGISTRY: {
                     const registryData = msg.data;
                     await this.updateRegistry(registryData, true);
@@ -178,7 +188,8 @@ export default class ConnectionOverview {
                 case ConnectionOverviewWVMessages.DELETE: {
                     if (this.connection) {
                         vscode.window.showInformationMessage(`Deleting connection ${this.connection.label}`);
-                        removeConnectionCmd(this.connection);
+                        await removeConnectionCmd(this.connection);
+                        this.dispose();
                     }
                     else {
                         vscode.window.showInformationMessage(`Creating new connection cancelled`);
