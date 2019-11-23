@@ -101,7 +101,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const initFWProm = this.initFileWatcher();
         await initFWProm;
-        await this.forceUpdateProjectList();
+
+        try {
+            Log.d("Updating projects list after ready");
+            await this.forceUpdateProjectList();
+        }
+        catch (err) {
+            Log.e("Error updating projects list after ready", err);
+        }
+
         this.onChange(this);
     }
 
@@ -206,13 +214,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.hasConnected = true;
         this.setState(ConnectionStates.CONNECTED);
         Log.d(`${this} is now connected`);
-        try {
-            await this.forceUpdateProjectList();
-        }
-        catch (err) {
-            Log.e("Error getting projects list after connect event", err);
-        }
-
         this.onChange();
     }
 
