@@ -82,10 +82,14 @@ export namespace ConnectionMemento {
             Log.e(errMsg, err);
 
             const retryBtn = "Retry";
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, retryBtn)
+            const rmBtn = "Remove Connection";
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, retryBtn, rmBtn)
             .then((res) => {
                 if (res === retryBtn) {
                     loadConnection(memento);
+                }
+                else if (res === rmBtn) {
+                    CLICommandRunner.removeConnection(memento.id);
                 }
             });
         }

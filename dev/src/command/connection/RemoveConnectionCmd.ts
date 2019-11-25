@@ -16,6 +16,7 @@ import Log from "../../Logger";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindManager";
 import stopLocalCodewindCmd from "../StopCodewindCmd";
+import MCUtil from "../../MCUtil";
 
 export default async function removeConnectionCmd(connection: Connection): Promise<boolean> {
     Log.i("Removing connection " + connection.url);
@@ -37,6 +38,14 @@ export default async function removeConnectionCmd(connection: Connection): Promi
         return false;
     }
 
-    await ConnectionManager.instance.removeConnection(connection);
-    return true;
+    try {
+        await ConnectionManager.instance.removeConnection(connection);
+        return true;
+    }
+    catch (err) {
+        const errMsg = `Error removing ${connection.label}`;
+        Log.e(errMsg, err);
+        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(errMsg)}`);
+        return false;
+    }
 }
