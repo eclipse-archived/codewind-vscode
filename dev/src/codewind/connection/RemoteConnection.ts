@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Connection from "./Connection";
 import ConnectionOverview from "../../command/webview/ConnectionOverview";
-import { ConnectionStates } from "./ConnectionState";
+import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { CLICommandRunner } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
@@ -30,6 +30,11 @@ export default class RemoteConnection extends Connection {
     private _accessToken: string | undefined;
 
     private _activeOverviewPage: ConnectionOverview | undefined;
+
+    /**
+     * Do not allow toggling (enabling or disabling) the connection when a toggle is already in progress
+     */
+    private currentToggleOperation: "connecting" | "disconnecting" | undefined;
 
     constructor(
         ingressUrl: vscode.Uri,
@@ -49,6 +54,22 @@ export default class RemoteConnection extends Connection {
     }
 
     public async enable(): Promise<void> {
+        if (!this.shouldToggle()) {
+            return;
+        }
+        this.currentToggleOperation = "connecting";
+        try {
+            await this.enableInner();
+        }
+        catch (err) {
+            throw err;
+        }
+        finally {
+            this.currentToggleOperation = undefined;
+        }
+    }
+
+    private async enableInner(): Promise<void> {
         const canPing = await Requester.ping(this.url);
         if (!canPing) {
             Log.w(`Failed to ping ${this} when enabling`);
@@ -83,8 +104,36 @@ export default class RemoteConnection extends Connection {
     }
 
     public async disable(): Promise<void> {
-        await super.disable();
-        this.setState(ConnectionStates.DISABLED);
+        if (!this.shouldToggle()) {
+            return;
+        }
+        this.currentToggleOperation = "disconnecting";
+        try {
+            await super.disable();
+            this.setState(ConnectionStates.DISABLED);
+        }
+        catch (err) {
+            throw err;
+        }
+        finally {
+            this.currentToggleOperation = undefined;
+        }
+    }
+
+    /**
+     * Block enable/disable when one of those is already in progress.
+     */
+    private shouldToggle(): boolean {
+        if (this.currentToggleOperation) {
+            vscode.window.showWarningMessage(`${this.label} is already ${this.currentToggleOperation}.`);
+            return false;
+        }
+        return true;
+    }
+
+    protected setState(newState: ConnectionState): void {
+        super.setState(newState);
+        this.tryRefreshOverview();
     }
 
     public async updateCredentials(username: string, password: string): Promise<void> {
@@ -96,6 +145,7 @@ export default class RemoteConnection extends Connection {
         this._accessToken = undefined;
         Log.i("Finished updating keyring credentials");
         await ConnectionMemento.save(this.memento);
+        this.tryRefreshOverview();
     }
 
     public async updateRegistry(registryUrl: string, registryUser: string, _registryPass: string): Promise<void> {
