@@ -17,7 +17,7 @@ import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindManager";
 import stopLocalCodewindCmd from "../StopCodewindCmd";
 
-export default async function removeConnectionCmd(connection: Connection): Promise<void> {
+export default async function removeConnectionCmd(connection: Connection): Promise<boolean> {
     Log.i("Removing connection " + connection.url);
 
     if (connection === LocalCodewindManager.instance.localConnection) {
@@ -28,14 +28,15 @@ export default async function removeConnectionCmd(connection: Connection): Promi
                 stopLocalCodewindCmd();
             }
         });
-        return;
+        return false;
     }
 
     const yesBtn = "Yes";
     const confirm = await vscode.window.showWarningMessage(`Are you sure you want to remove ${connection.label}?`, { modal: true }, yesBtn);
     if (confirm !== yesBtn) {
-        return;
+        return false;
     }
 
     await ConnectionManager.instance.removeConnection(connection);
+    return true;
 }

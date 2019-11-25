@@ -25,10 +25,13 @@ import MCUtil from "../../MCUtil";
 import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
+import { ConnectionState, ConnectionStates } from "../../codewind/connection/ConnectionState";
+import toggleConnectionEnablement from "../connection/ToggleConnectionEnablement";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
     SAVE_CONNECTION_INFO = "save-connection",
+    TOGGLE_CONNECTED = "toggleConnected",
     SAVE_REGISTRY = "save-registry",
     DELETE = "delete",
     CANCEL = "cancel"
@@ -111,7 +114,11 @@ export default class ConnectionOverview {
     }
 
     public refresh(connectionInfo: ConnectionOverviewFields): void {
-        const html = getConnectionInfoPage(connectionInfo);
+        let state: ConnectionState = ConnectionStates.DISABLED;
+        if (this.connection) {
+            state = this.connection.state;
+        }
+        const html = getConnectionInfoPage(connectionInfo, state);
         if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
             const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
             fs.writeFile("/Users/laven.s@ibm.com/desktop/connectionOverview.html", htmlWithFileProto,
@@ -138,11 +145,7 @@ export default class ConnectionOverview {
                 case ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO: {
                     const newInfo: ConnectionOverviewFields = msg.data;
                     if (this.connection) {
-                        vscode.window.showInformationMessage(`Updating info for ${this.connection.label} to ${JSON.stringify(newInfo)}`);
-                        if (newInfo.ingressUrl !== this.connection.memento.ingressUrl) {
-                            vscode.window.showErrorMessage("Changing ingress is not allowed");
-                        }
-                        else if (!newInfo.username) {
+                        if (!newInfo.username) {
                             vscode.window.showErrorMessage(`Enter a username`);
                         }
                         else if (!newInfo.password) {
@@ -155,10 +158,10 @@ export default class ConnectionOverview {
                     }
                     else {
                         try {
-                            const newConnection = await this.createNewConnection(newInfo);
+                            const newConnection = await this.createNewConnection(newInfo, this.label);
                             this.connection = newConnection;
                             this.connection.onOverviewOpened(this);
-                            vscode.window.showInformationMessage(`Successfully created new connection "${this.label}" to ${newInfo.ingressUrl}`);
+                            vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newConnection.url}`);
                             if (newInfo.registryUrl) {
                                 await this.updateRegistry(newInfo, false);
                             }
@@ -171,6 +174,14 @@ export default class ConnectionOverview {
                         }
                     }
                     break;
+                }
+                case ConnectionOverviewWVMessages.TOGGLE_CONNECTED: {
+                    if (this.connection) {
+                        await toggleConnectionEnablement(this.connection, !this.connection.enabled);
+                    }
+                    else {
+                        Log.e("Received Toggle Connected event but there is no connection");
+                    }
                 }
                 case ConnectionOverviewWVMessages.CANCEL: {
                     if (this.connection) {
@@ -187,9 +198,10 @@ export default class ConnectionOverview {
                 }
                 case ConnectionOverviewWVMessages.DELETE: {
                     if (this.connection) {
-                        vscode.window.showInformationMessage(`Deleting connection ${this.connection.label}`);
-                        await removeConnectionCmd(this.connection);
-                        this.dispose();
+                        const didRemove = await removeConnectionCmd(this.connection);
+                        if (didRemove) {
+                            this.dispose();
+                        }
                     }
                     else {
                         vscode.window.showInformationMessage(`Creating new connection cancelled`);
@@ -211,7 +223,7 @@ export default class ConnectionOverview {
      * Tries to create a new connection from the given info.
      * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
-    private async createNewConnection(newConnectionInfo: ConnectionInfoFields): Promise<RemoteConnection> {
+    private async createNewConnection(newConnectionInfo: ConnectionInfoFields, label: string): Promise<RemoteConnection> {
         if (!newConnectionInfo.ingressUrl) {
             throw new Error("Enter a Codewind Gatekeeper ingress host");
         }
@@ -246,7 +258,7 @@ export default class ConnectionOverview {
         await vscode.window.withProgress(({
             cancellable: true,
             location: vscode.ProgressLocation.Notification,
-            title: `Connecting to ${ingressUrl}...`
+            title: `Pinging ${ingressUrl}...`
         }), async (): Promise<void> => {
 
             const canPing = await Requester.ping(ingressUrl);
@@ -264,7 +276,7 @@ export default class ConnectionOverview {
         return vscode.window.withProgress({
             cancellable: false,
             location: vscode.ProgressLocation.Notification,
-            title: `Creating new connection...`,
+            title: `Creating ${label}...`,
         }, async () => {
             const newConnection = await ConnectionManager.instance.createRemoteConnection(ingressUrl, this.label, username, password);
             return newConnection;
@@ -300,5 +312,4 @@ export default class ConnectionOverview {
             );
         }
     }
-
 }
