@@ -131,6 +131,11 @@ export default class MCSocket implements vscode.Disposable {
                 if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
                     projectOverviewCmd(newProject);
                 }
+
+                if (!newProject.isInVSCodeWorkspace) {
+                    vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
+                        `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
+                }
                 // vscode.window.showInformationMessage(msg);
             }
         }

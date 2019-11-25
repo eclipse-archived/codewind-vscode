@@ -608,6 +608,11 @@ export default class Project implements vscode.QuickPickItem {
         return !this.connection.isRemote; // && !!this.containerID;
     }
 
+    public get isInVSCodeWorkspace(): boolean {
+        return !!vscode.workspace.workspaceFolders &&
+            vscode.workspace.workspaceFolders.some((folder) => this.localPath.fsPath.startsWith(folder.uri.fsPath));
+    }
+
     ///// Setters
 
     /**
