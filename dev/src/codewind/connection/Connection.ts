@@ -94,8 +94,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
             const envData = await CWEnvironment.getEnvData(this.url);
             this.cwVersion = envData.version;
-            // onConnect will be called on initial socket connect,
-            // which does the initial projects population and sets the state to Connected
+            // onConnect will be called on initial socket connect, which sets the state to Connected
             this._socket = new MCSocket(this, envData.socketNamespace);
             Log.d(`${this.url} has env data`, envData);
         }
@@ -106,6 +105,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const initFWProm = this.initFileWatcher();
         await initFWProm;
+
+        try {
+            Log.d("Updating projects list after ready");
+            await this.forceUpdateProjectList();
+        }
+        catch (err) {
+            Log.e("Error updating projects list after ready", err);
+        }
+
         this.onChange(this);
     }
 
@@ -210,13 +218,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.hasConnected = true;
         this._state = ConnectionStates.CONNECTED;
         Log.d(`${this} is now connected`);
-        try {
-            await this.forceUpdateProjectList();
-        }
-        catch (err) {
-            Log.e("Error getting projects list after connect event", err);
-        }
-
         this.onChange();
     }
 
