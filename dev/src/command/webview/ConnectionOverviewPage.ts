@@ -111,7 +111,11 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                 connectionName = document.querySelector("#remote-connection-name").innerText;
             }
 
-            if (ingressInput === '${connectionInfo.ingressUrl}' && ingressUsername === '${connectionInfo.username}') {
+            // If none of the fields changed, treat it the same as a cancel
+            if (ingressInput === '${connectionInfo.ingressUrl}'
+                && ingressUsername === '${connectionInfo.username}'
+                && !ingressPassword) {
+
                 sendMsg("${ConnectionOverviewWVMessages.CANCEL}");
             } else {
                 // Data body is IConnectionInfoFields

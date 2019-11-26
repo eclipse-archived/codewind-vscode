@@ -15,6 +15,7 @@ import Log from "../../Logger";
 import ConnectionManager from "./ConnectionManager";
 import MCUtil from "../../MCUtil";
 import { CLICommandRunner } from "./CLICommandRunner";
+import remoteConnectionOverviewCmd from "../../command/connection/ConnectionOverviewCmd";
 
 /**
  *
@@ -82,14 +83,31 @@ export namespace ConnectionMemento {
             Log.e(errMsg, err);
 
             const retryBtn = "Retry";
+            const openSettingsBtn = "Open Connection Settings";
             const rmBtn = "Remove Connection";
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, retryBtn, rmBtn)
+
+            const loadedConn = ConnectionManager.instance.remoteConnections.find((conn) => conn.id === memento.id);
+            const btns = [ retryBtn ];
+            if (loadedConn) {
+                // The load did succeed, there is just a promise with the connection
+                btns.push(openSettingsBtn);
+            }
+            else {
+                // give the user some way to remove the broken connection
+                btns.push(rmBtn);
+            }
+
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, ...btns)
             .then((res) => {
                 if (res === retryBtn) {
                     loadConnection(memento);
                 }
                 else if (res === rmBtn) {
                     CLICommandRunner.removeConnection(memento.id);
+                }
+                // loadedConn will be non-null from the btns condition above
+                else if (res === openSettingsBtn && loadedConn) {
+                    remoteConnectionOverviewCmd(loadedConn);
                 }
             });
         }

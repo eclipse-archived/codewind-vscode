@@ -26,7 +26,7 @@ import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 import { ConnectionState, ConnectionStates } from "../../codewind/connection/ConnectionState";
-import toggleConnectionEnablement from "../connection/ToggleConnectionEnablement";
+import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
@@ -121,7 +121,7 @@ export default class ConnectionOverview {
         const html = getConnectionInfoPage(connectionInfo, state);
         if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
             const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
-            fs.writeFile("/Users/laven.s@ibm.com/desktop/connectionOverview.html", htmlWithFileProto,
+            fs.writeFile(`${process.env.HOME}/connectionOverview.html`, htmlWithFileProto,
                 (err) => { if (err) { Log.e("Error writing out test connection overview", err); } }
             );
         }
@@ -177,7 +177,7 @@ export default class ConnectionOverview {
                 }
                 case ConnectionOverviewWVMessages.TOGGLE_CONNECTED: {
                     if (this.connection) {
-                        await toggleConnectionEnablement(this.connection, !this.connection.enabled);
+                        await toggleConnectionEnablementCmd(this.connection, !this.connection.enabled);
                     }
                     else {
                         Log.e("Received Toggle Connected event but there is no connection");
@@ -231,7 +231,6 @@ export default class ConnectionOverview {
 
         let ingressUrlStr = newConnectionInfo.ingressUrl.trim();
         try {
-            // tslint:disable-next-line: no-unused-expression
             if (!ingressUrlStr.includes("://")) {
                 Log.d(`No protocol; assuming https`);
                 ingressUrlStr = `https://${ingressUrlStr}`;
@@ -266,8 +265,6 @@ export default class ConnectionOverview {
             if (!canPing) {
                 throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
             }
-
-            // Auth check? Version check?
         });
 
         const username = newConnectionInfo.username;

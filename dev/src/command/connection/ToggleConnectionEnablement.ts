@@ -16,9 +16,9 @@ import Connection from "../../codewind/connection/Connection";
 import Log from "../../Logger";
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import MCUtil from "../../MCUtil";
-import remoteConnectionOverviewCmd from "./ConnectionOverviewCmd";
+import remoteConnectionSettingsCmd from "./ConnectionOverviewCmd";
 
-export default async function toggleConnectionEnablement(connection_: Connection, enable: boolean): Promise<void> {
+export default async function toggleConnectionEnablementCmd(connection_: Connection, enable: boolean): Promise<void> {
     if (!connection_.isRemote) {
         Log.e("Cannot toggle enablement for the local connection");
         return;
@@ -41,20 +41,20 @@ export default async function toggleConnectionEnablement(connection_: Connection
             }
             await connection.enable();
         }
-        vscode.window.showInformationMessage(`Successfully ${enable ? "connected to " : "disconnected from "} ${connection.url}`);
+        vscode.window.showInformationMessage(`Successfully ${enable ? "connected to" : "disconnected from"} ${connection.url}`);
     }
     catch (err) {
-        const errMsg = `Failed to ${enable ? "connect to " : "disconnect from "} ${connection.url}. ${MCUtil.errToString(err)}`;
+        const errMsg = `Failed to ${enable ? "connect to" : "disconnect from"} ${connection.label}: ${MCUtil.errToString(err)}`;
         Log.e(errMsg, err);
-        const openConnOverviewBtn = "Open Connection Overview";
+        const openConnSettingsBtn = "Open Connection Settings";
         const retryBtn = "Retry";
-        vscode.window.showErrorMessage(errMsg, openConnOverviewBtn, retryBtn)
+        vscode.window.showErrorMessage(errMsg, openConnSettingsBtn, retryBtn)
         .then((res) => {
-            if (res === openConnOverviewBtn) {
-                remoteConnectionOverviewCmd(connection);
+            if (res === openConnSettingsBtn) {
+                remoteConnectionSettingsCmd(connection);
             }
             else if (res === retryBtn) {
-                toggleConnectionEnablement(connection, enable);
+                toggleConnectionEnablementCmd(connection, enable);
             }
         });
     }
