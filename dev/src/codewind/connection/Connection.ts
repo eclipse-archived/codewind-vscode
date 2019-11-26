@@ -67,7 +67,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public get enabled(): boolean {
-        return this._socket != null;
+        return this.state !== ConnectionStates.DISABLED;
     }
 
     public get state(): ConnectionState {

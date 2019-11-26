@@ -46,7 +46,7 @@ import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
-import toggleConnectionEnablement from "./connection/ToggleConnectionEnablement";
+import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnablement";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -66,8 +66,8 @@ export function createCommands(): vscode.Disposable[] {
 
         vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
         registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined, false, true),
-        registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablement, true, false, true),
-        registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablement, false, false, true),
+        registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablementCmd, true, false, true),
+        registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, false, false, true),
 
         registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined, true, false),
         registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined, true, false),

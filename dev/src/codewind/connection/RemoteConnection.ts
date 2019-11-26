@@ -80,18 +80,24 @@ export default class RemoteConnection extends Connection {
         }
         Log.d(`Successfully pinged ${this}`);
 
-        const token = await this.getAccessToken();
+        let token: string;
+        try {
+            token = await this.getAccessToken();
+        }
+        catch (err) {
+            this.setState(ConnectionStates.AUTH_ERROR);
+            throw err;
+        }
 
         try {
             await super.enable();
+            if (!this._socket) {
+                throw new Error(`${this.label} socket was undefined after enabling appeared to succeed`);
+            }
         }
         catch (err) {
             this.setState(ConnectionStates.DISABLED);
             throw err;
-        }
-
-        if (!this._socket) {
-            throw new Error(`${this.label} socket was undefined after enabling appeared to succeed`);
         }
 
         try {
@@ -138,14 +144,23 @@ export default class RemoteConnection extends Connection {
 
     public async updateCredentials(username: string, password: string): Promise<void> {
         Log.i(`Updating keyring credentials for ${this}`);
-        this._username = username;
         this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
         await this.updateCredentialsPromise;
-        // invalidate the access token
+        this._username = username;
+        // Invalidate the old access token which used the old credentials
         this._accessToken = undefined;
-        Log.i("Finished updating keyring credentials");
-        await ConnectionMemento.save(this.memento);
         this.tryRefreshOverview();
+
+        if (this.state !== ConnectionStates.DISABLED) {
+            try {
+                await this.getAccessToken();
+            }
+            catch (err) {
+                // Nothing, getAccessToken will display the error
+            }
+        }
+        await ConnectionMemento.save(this.memento);
+        Log.i("Finished updating keyring credentials");
     }
 
     public async updateRegistry(registryUrl: string, registryUser: string, _registryPass: string): Promise<void> {
@@ -157,6 +172,7 @@ export default class RemoteConnection extends Connection {
     }
 
     public async getAccessToken(): Promise<string> {
+
         // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
         await this.updateCredentialsPromise;
 
