@@ -28,8 +28,10 @@
             "isBackground": false,
             "command": "npm run copy-strings",
             "windows": {
-                "command": "mkdir -p ./out/constants/strings/; copy -v ./src/constants/strings/strings-*.json ./out/constants/strings/"
-            },
+                "command" : [
+                    ".\\bin\\copy-strings-win.cmd"
+                ]
+            },  
             "presentation": {
                 "reveal": "silent",
                 "panel": "shared",
