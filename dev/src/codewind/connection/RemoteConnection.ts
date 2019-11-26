@@ -144,21 +144,21 @@ export default class RemoteConnection extends Connection {
 
     public async updateCredentials(username: string, password: string): Promise<void> {
         Log.i(`Updating keyring credentials for ${this}`);
-        this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
-        await this.updateCredentialsPromise;
         this._username = username;
+        await ConnectionMemento.save(this.memento);
         // Invalidate the old access token which used the old credentials
+        this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
         this._accessToken = undefined;
 
         if (this.state !== ConnectionStates.DISABLED) {
             try {
+                Log.d(`Refreshing access token after credentials update`);
                 await this.getAccessToken();
             }
             catch (err) {
                 // Nothing, getAccessToken will display the error
             }
         }
-        await ConnectionMemento.save(this.memento);
         Log.i("Finished updating keyring credentials");
         this.tryRefreshOverview();
     }
