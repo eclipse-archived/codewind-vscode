@@ -149,7 +149,6 @@ export default class RemoteConnection extends Connection {
         this._username = username;
         // Invalidate the old access token which used the old credentials
         this._accessToken = undefined;
-        this.tryRefreshOverview();
 
         if (this.state !== ConnectionStates.DISABLED) {
             try {
@@ -161,6 +160,7 @@ export default class RemoteConnection extends Connection {
         }
         await ConnectionMemento.save(this.memento);
         Log.i("Finished updating keyring credentials");
+        this.tryRefreshOverview();
     }
 
     public async updateRegistry(registryUrl: string, registryUser: string, _registryPass: string): Promise<void> {
