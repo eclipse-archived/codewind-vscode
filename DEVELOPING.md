@@ -7,6 +7,7 @@
     npm install && \
     bin/pull.sh
 ```
+- On Windows, you may run `bin/pull.sh` using [WSL](https://docs.microsoft.com/en-us/windows/wsl/about) or [MSYS2](https://www.msys2.org/).
 2. Open [`codewind.code-workspace`](https://github.com/eclipse/codewind-vscode/blob/master/codewind.code-workspace), or just the `dev/` folder, in VS Code.
 3. Create or identify a workspace (directory or `.code-workspace`, an empty directory will work) for Codewind extension use, and add the path to the `args` array in `dev/.vscode/launch.json`. VS Code will launch into this workspace.
     - When editing `launch.json`, do not modify the `--extensionDevelopmentPath`.
