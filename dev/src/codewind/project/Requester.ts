@@ -22,11 +22,12 @@ import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../con
 import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
 import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
 import { RawCWEnvData } from "../connection/CWEnvironment";
 import RemoteConnection from "../connection/RemoteConnection";
+import { ISourceEnablement } from "../../command/webview/SourcesPageWrapper";
+import { ContainerRegistry } from "../../command/webview/RegistriesPageWrapper";
 
 // tslint:disable-next-line: variable-name
 const HttpVerbs = {
@@ -65,7 +66,7 @@ namespace Requester {
         value: string;
     }
 
-    export async function enableTemplateRepos(connection: Connection, enablements: IRepoEnablement): Promise<void> {
+    export async function enableTemplateRepos(connection: Connection, enablements: ISourceEnablement): Promise<void> {
         const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
             return {
                 op: "enable",
@@ -122,6 +123,14 @@ namespace Requester {
             return [];
         }
         return result;
+    }
+
+    export async function getContainerRegistries(_connection: Connection): Promise<ContainerRegistry[]> {
+        return [
+            new ContainerRegistry("docker.io", "eclipse", "timetchells", true),
+            new ContainerRegistry("quay.io", "timetchells", "timetchells", false),
+            new ContainerRegistry("whatever.io", undefined, "timetchells", false),
+        ];
     }
 
     // Project-specific requests

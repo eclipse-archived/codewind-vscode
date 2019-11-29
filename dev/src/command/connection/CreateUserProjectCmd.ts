@@ -16,11 +16,11 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import UserProjectCreator, { ICWTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
-import manageTemplateReposCmd, { refreshManageReposPage } from "./ManageTemplateReposCmd";
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/RegistryUtils";
 import Resources from "../../constants/Resources";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
+import manageSourcesCmd from "./ManageSourcesCmd";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
@@ -43,11 +43,13 @@ export default async function createProject(connection: Connection): Promise<voi
         }
         extState.update(HAS_SELECTED_SOURCE_KEY, true);
         if (selectedSource === "managed") {
-            manageTemplateReposCmd(connection);
+            manageSourcesCmd(connection);
             // Don't continue with the create in this case.
             return;
         }
-        await refreshManageReposPage(connection);
+        if (connection.sourcesPage) {
+            connection.sourcesPage.refresh();
+        }
     }
 
     try {
@@ -245,7 +247,7 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     const qpiSelection = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
         qp.onDidTriggerButton((btn) => {
             if (btn.tooltip === MANAGE_SOURCES_QP_BTN) {
-                manageTemplateReposCmd(connection);
+                manageSourcesCmd(connection);
                 resolve(undefined);
             }
         });
@@ -313,7 +315,7 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
             manageReposBtn)
         .then((res) => {
             if (res === manageReposBtn) {
-                manageTemplateReposCmd(connection);
+                manageSourcesCmd(connection);
             }
         });
 

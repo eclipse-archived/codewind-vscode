@@ -11,18 +11,12 @@
 
 // import * as vscode from "vscode";
 
-import Resources from "../../constants/Resources";
-import WebviewUtil from "./WebviewUtil";
-import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "./ConnectionOverview";
-import { ConnectionState } from "../../codewind/connection/ConnectionState";
+import Resources from "../../../constants/Resources";
+import WebviewUtil from "../WebviewUtil";
+import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "../ConnectionOverviewPageWrapper";
+import { ConnectionState } from "../../../codewind/connection/ConnectionState";
 
-// const csp = `<meta http-equiv="Content-Security-Policy"
-    // content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource:;"
-    // />`;
-
-const csp = "";
-
-export default function getConnectionInfoPage(connectionInfo: ConnectionOverviewFields, state: ConnectionState): string {
+export default function getConnectionInfoHtml(connectionInfo: ConnectionOverviewFields, state: ConnectionState): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
     const connectionExists = !!connectionInfo.ingressUrl;
     return `
@@ -30,17 +24,17 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
     <html>
     <head>
         <meta charset="UTF-8">
-        ${global.isTheia ? "" : csp}
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${WebviewUtil.getCSP()}
+
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("connection-overview.css")}"/>
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
         ${global.isTheia ?
             `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>
     </head>
     <body>
     <div id="top-section">
-        <div class="title">
+        <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
                 src="${state.isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>

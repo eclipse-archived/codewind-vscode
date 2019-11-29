@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import ConnectionOverview from "../webview/ConnectionOverview";
+import ConnectionOverview from "../webview/ConnectionOverviewPageWrapper";
 
 const NEW_CONNECTION_TITLE = "New Codewind Connection";
 // const NEW_CONNECTION_NO_STEPS = 2;

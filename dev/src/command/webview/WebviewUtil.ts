@@ -10,12 +10,14 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 
 import Resources from "../../constants/Resources";
 import Commands from "../../constants/Commands";
-import { ProjectOverviewWVMessages, IWVOpenable } from "./ProjectOverviewPage";
-import { ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
-import { ConnectionOverviewWVMessages } from "./ConnectionOverview";
+import { IWVOpenable } from "./pages/ProjectOverviewPage";
+import MCUtil from "../../MCUtil";
+import Log from "../../Logger";
 
 const RESOURCE_SCHEME = "vscode-resource:";
 
@@ -32,7 +34,7 @@ namespace WebviewUtil {
     }
 
     export interface IWVMessage {
-        type: ProjectOverviewWVMessages | ManageReposWVMessages | ConnectionOverviewWVMessages;
+        type: string;
         data: any;
     }
 
@@ -51,6 +53,46 @@ namespace WebviewUtil {
         // Log.i("The uri is:", uri);
         const cmd: string = openable.type === "folder" ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
         vscode.commands.executeCommand(cmd, uri);
+    }
+
+    export function getCSP(): string {
+        if (global.isTheia || MCUtil.isDevEnv()) {
+            return "";
+        }
+        return `<meta http-equiv="Content-Security-Policy"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource:;"
+        >`;
+    }
+
+    /**
+     * For debugging in the browser, write out the html to an html file on disk and point to the resources on disk.
+     * The file will be stored in ~/filename.html.
+     *
+     * If CW_ENV=dev is not set, this function does nothing.
+     */
+    export function debugWriteOutWebview(html: string, filename: string): void {
+        if (!MCUtil.isDevEnv()) {
+            return;
+        }
+
+        if (!filename.endsWith(".html")) {
+            filename = filename + ".html";
+        }
+
+        const destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");
+        const destFile = path.join(destDir, filename);
+        const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
+
+        fs.writeFile(destFile, htmlWithFileProto,
+            (err) => {
+                if (err) {
+                    Log.e(`Error writing out debug webview ${filename}`, err);
+                }
+                else {
+                    Log.d(`Wrote out debug webview to ${destFile}`);
+                }
+            }
+        );
     }
 }
 

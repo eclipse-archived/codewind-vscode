@@ -4,15 +4,28 @@
     align-items: center;
 }
 
-#logo {
+.title-section {
+    display: inline-flex;
+    align-content: center;
+    align-items: center;
+}
+
+.title-section > img {
     height: 2.5em;
     margin-right: 1em;
 }
 
-.title {
-    display: inline-flex;
-    align-content: center;
-    align-items: center;
+.title-section-subtitled > img {
+    margin-top: -1.25em;
+}
+
+#title {
+    margin-bottom: 0;
+}
+
+#subtitle {
+    margin-top: 0;
+    color: var(--vscode-editorLineNumber-foreground)
 }
 
 #learn-more-btn {

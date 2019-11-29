@@ -225,6 +225,10 @@ namespace MCUtil {
         }
         return joined;
     }
+
+    export function isDevEnv(): boolean {
+        return process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV;
+    }
 }
 
 export default MCUtil;

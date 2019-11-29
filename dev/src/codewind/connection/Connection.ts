@@ -24,6 +24,9 @@ import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
+import { CLICommandRunner } from "./CLICommandRunner";
+import { ManageSourcesPage as SourcesPageWrapper , ITemplateSource } from "../../command/webview/SourcesPageWrapper";
+import { ManageRegistriesPageWrapper as RegistriesPageWrapper, ManageRegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -44,6 +47,9 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private needProjectUpdate: boolean = true;
 
     private _isRegistrySet: boolean = false;
+
+    private _sourcesPage: SourcesPageWrapper  | undefined;
+    private _registriesPage: RegistriesPageWrapper | undefined;
 
     constructor(
         /**
@@ -365,5 +371,33 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public get socketURI(): string | undefined {
         return this._socket ? this._socket.uri : undefined;
+    }
+
+    public getSources(): Promise<ITemplateSource[]> {
+        return CLICommandRunner.getTemplateSources(this.id);
+    }
+
+    public onDidOpenSourcesPage(page: SourcesPageWrapper): void {
+        this._sourcesPage = page;
+    }
+
+    public onDidOpenRegistriesPage(page: ManageRegistriesPageWrapper): void {
+        this._registriesPage = page;
+    }
+
+    public get sourcesPage(): SourcesPageWrapper  | undefined {
+        return this._sourcesPage;
+    }
+
+    public get registriesPage(): ManageRegistriesPageWrapper | undefined {
+        return this._registriesPage;
+    }
+
+    public onDidCloseSourcesPage(): void {
+        this._sourcesPage = undefined;
+    }
+
+    public onDidCloseRegistriesPage(): void {
+        this._registriesPage = undefined;
     }
 }

@@ -14,10 +14,10 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import Requester from "../project/Requester";
 import Connection from "./Connection";
-import { setRegistryCmd } from "../../command/connection/SetRegistryCmd";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
 import CWDocs from "../../constants/CWDocs";
+import manageRegistriesCmd from "../../command/connection/ManageRegistriesCmd";
 
 namespace RegistryUtils {
     export async function onRegistryNotSet(connection: Connection): Promise<void> {
@@ -28,7 +28,7 @@ namespace RegistryUtils {
             setRegistryBtn, moreInfoBtn
         );
         if (res === setRegistryBtn) {
-            setRegistryCmd(connection);
+            manageRegistriesCmd(connection);
         }
         else if (res === moreInfoBtn) {
             vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.DOCKER_REGISTRY));

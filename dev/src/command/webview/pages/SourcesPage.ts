@@ -11,44 +11,40 @@
 
 // import * as vscode from "vscode";
 
-import Resources from "../../constants/Resources";
+import Resources from "../../../constants/Resources";
 // import MCUtil from "../../MCUtil";
-import WebviewUtil from "./WebviewUtil";
-import { ITemplateRepo, ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
+import WebviewUtil from "../WebviewUtil";
+import { ITemplateSource, ManageSourcesWVMessages } from "../SourcesPageWrapper";
 
-const REPO_ID_ATTR = "data-id";
-const REPO_ENABLED_ATTR = "data-enabled";
-const REPO_TOGGLE_CLASS = "repo-toggle";
-export const LEARN_MORE_LINK = "learn-more-placeholder";
+const SOURCE_ID_ATTR = "data-id";
+const SOURCE_ENABLED_ATTR = "data-enabled";
 
-export default function getManageReposPage(repos: ITemplateRepo[]): string {
+export default function getManageSourcesPage(connectionLabel: string, sources: ITemplateSource[]): string {
     return `
     <!DOCTYPE html>
 
     <html>
     <head>
         <meta charset="UTF-8">
-
-        ${global.isTheia ? "" : `
-        <meta http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource:;"
-        >`}
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${WebviewUtil.getCSP()}
 
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("repos-table.css")}"/>
+        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("sources-registries-tables.css")}"/>
         <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
         ${global.isTheia ?
             `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
-        <!--link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/-->
     </head>
     <body>
 
     <div id="top-section">
-        <div class="title">
+        <div class="title-section title-section-subtitled">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
-            <h1>Template Source Manager</h1>
+            <div>
+                <h1 id="title">Template Sources</h1>
+                <h2 id="subtitle">${connectionLabel}</h2>
+            </div>
         </div>
-        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageReposWVMessages.HELP}')">
+        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageSourcesWVMessages.HELP}')">
             Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
         </div>
     </div>
@@ -58,33 +54,24 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
             Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
         </div-->
         <div id="toolbar-right-buttons">
-            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageReposWVMessages.REFRESH}')">
+            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageSourcesWVMessages.REFRESH}')">
                 Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
             </div>
-            <div tabindex="0" id="add-repo-btn" class="btn btn-prominent" onclick="sendMsg('${ManageReposWVMessages.ADD_NEW}')">
+            <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${ManageSourcesWVMessages.ADD_NEW}')">
                 Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
             </div>
         </div>
     </div>
 
-    ${buildTemplateTable(repos)}
+    ${buildTemplateTable(sources)}
 
     <script>
         const vscode = acquireVsCodeApi();
 
-        // function onEnableAllOrNone(event, isSelectAll) {
-        //     const repos = Array.from(document.getElementsByClassName("${REPO_TOGGLE_CLASS}"))
-        //     .map((toggleBtn) => {
-        //         return getRepoEnablementObj(toggleBtn);
-        //     });
-        //     sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos });
-        // }
-
-        function onToggleRepo(toggleBtn) {
-
+        function onToggleSource(toggleBtn) {
             // update the enable attr, and switch the toggle image
-            const newEnablement = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") != "true";
-            toggleBtn.setAttribute("${REPO_ENABLED_ATTR}", newEnablement);
+            const newEnablement = toggleBtn.getAttribute("${SOURCE_ENABLED_ATTR}") != "true";
+            toggleBtn.setAttribute("${SOURCE_ENABLED_ATTR}", newEnablement);
 
             let newToggleImg, newToggleAlt;
             if (newEnablement) {
@@ -98,15 +85,15 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
             toggleBtn.src = newToggleImg;
             toggleBtn.alt = newToggleAlt;
 
-            sendMsg("${ManageReposWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(toggleBtn) ] });
+            sendMsg("${ManageSourcesWVMessages.ENABLE_DISABLE}", { repos: [ getRepoEnablementObj(toggleBtn) ] });
         }
 
         /**
          * Generate data field to pass back in IRepoEnablementEvent (see ManageTemplateReposCmd)
          */
         function getRepoEnablementObj(toggleBtn) {
-            const repoID = toggleBtn.getAttribute("${REPO_ID_ATTR}");
-            const enable = toggleBtn.getAttribute("${REPO_ENABLED_ATTR}") == "true";
+            const repoID = toggleBtn.getAttribute("${SOURCE_ID_ATTR}");
+            const enable = toggleBtn.getAttribute("${SOURCE_ENABLED_ATTR}") == "true";
             return {
                 repoID,
                 enable,
@@ -114,12 +101,11 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
         }
 
         function deleteRepo(repoDeleteBtn) {
-            const repoID = repoDeleteBtn.getAttribute("${REPO_ID_ATTR}");
-            sendMsg("${ManageReposWVMessages.DELETE}", repoID);
+            const repoID = repoDeleteBtn.getAttribute("${SOURCE_ID_ATTR}");
+            sendMsg("${ManageSourcesWVMessages.DELETE}", repoID);
         }
 
         function sendMsg(type, data = undefined) {
-            // See IWebViewMsg in ManageTemplateReposCmd
             const msg = { type: type, data: data };
             // console.log("Send message " + JSON.stringify(msg));
             vscode.postMessage(msg);
@@ -131,9 +117,9 @@ export default function getManageReposPage(repos: ITemplateRepo[]): string {
     `;
 }
 
-function buildTemplateTable(repos: ITemplateRepo[]): string {
+function buildTemplateTable(sources: ITemplateSource[]): string {
 
-    const repoRows = repos.map(buildRepoRow);
+    const repoRows = sources.map(buildRow);
 
     return `
     <table>
@@ -142,7 +128,7 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
             <col id="style-col"/>
             <col id="descr-col"/>
             <col id="status-col"/>
-            <col id="delete-col"/>
+            <col class="btn-col"/>
         </colgroup>
         <thead>
             <tr>
@@ -160,24 +146,24 @@ function buildTemplateTable(repos: ITemplateRepo[]): string {
     `;
 }
 
-function buildRepoRow(repo: ITemplateRepo): string {
-    const repoName = repo.name || "No name available";
-    const repoDescr = repo.description || "No description available";
+function buildRow(source: ITemplateSource): string {
+    const name = source.name || "No name available";
+    const descr = source.description || "No description available";
     return `
     <tr>
-        <td class="name-cell"><a href="${repo.url}">${repoName}</a></td>
-        <td class="style-cell">${repo.projectStyles.join(", ")}</td-->
-        <td class="descr-cell">${repoDescr}</td>
-        ${getStatusToggleTD(repo)}
-        ${getDeleteBtnTD(repo)}
+        <td class="name-cell"><a href="${source.url}">${name}</a></td>
+        <td class="style-cell">${source.projectStyles.join(", ")}</td-->
+        <td class="descr-cell">${descr}</td>
+        ${getStatusToggleTD(source)}
+        ${getDeleteBtnTD(source)}
     </tr>
     `;
 }
 
-function getStatusToggleTD(repo: ITemplateRepo): string {
-    return `<td class="repo-toggle-cell">
-        <input type="image" alt="${getStatusToggleAlt(repo.enabled)}" ${REPO_ID_ATTR}="${repo.url}" ${REPO_ENABLED_ATTR}="${repo.enabled}"
-            class="${REPO_TOGGLE_CLASS} btn" src="${getStatusToggleIconSrc(repo.enabled)}" onclick="onToggleRepo(this)"/>
+function getStatusToggleTD(source: ITemplateSource): string {
+    return `<td class="btn-cell">
+        <input type="image" alt="${getStatusToggleAlt(source.enabled)}" ${SOURCE_ID_ATTR}="${source.url}" ${SOURCE_ENABLED_ATTR}="${source.enabled}"
+            class="source-toggle btn" src="${getStatusToggleIconSrc(source.enabled)}" onclick="onToggleSource(this)"/>
     </td>`;
 }
 
@@ -195,21 +181,21 @@ function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = fal
     return toggleIcon;
 }
 
-function getDeleteBtnTD(repo: ITemplateRepo): string {
+function getDeleteBtnTD(source: ITemplateSource): string {
     let title = "Delete";
-    let deleteBtnClass = "btn delete-btn";
+    let deleteBtnClass = "btn";
     let onClick = "deleteRepo(this)";
-    if (repo.protected) {
+    if (source.protected) {
         deleteBtnClass += " not-allowed";
         title = "This source cannot be deleted.";
         onClick = "";
     }
 
-    const deleteBtn = `<input type="image" ${REPO_ID_ATTR}="${repo.url}" alt="Delete ${repo.description}" title="${title}"
+    const deleteBtn = `<input type="image" ${SOURCE_ID_ATTR}="${source.url}" alt="Delete ${source.description}" title="${title}"
         onclick="${onClick}" class="${deleteBtnClass}" src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
 
     return `
-    <td class="delete-btn-cell">
+    <td class="btn-cell">
         ${deleteBtn}
     </td>`;
 }

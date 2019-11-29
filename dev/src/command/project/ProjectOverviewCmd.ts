@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
 
-import * as ProjectOverview from "../webview/ProjectOverviewPage";
+import * as ProjectOverview from "../webview/pages/ProjectOverviewPage";
 import Log from "../../Logger";
 import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
@@ -31,7 +31,7 @@ export default async function projectOverviewCmd(project: Project): Promise<void
 
     const webPanel = vscode.window.createWebviewPanel(project.name, project.name, vscode.ViewColumn.Active, wvOptions);
 
-    const existingPI = project.onOpenProjectInfo(webPanel);
+    const existingPI = project.onDidOpenProjectInfo(webPanel);
     if (existingPI != null) {
         // Just focus them on the existing one, and do nothing more.
         existingPI.reveal();
@@ -42,7 +42,7 @@ export default async function projectOverviewCmd(project: Project): Promise<void
     webPanel.reveal();
     webPanel.onDidDispose(() => {
         // this will dispose the webview a second time, but that seems to be fine
-        project.closeProjectInfo();
+        project.onDidCloseProjectInfo();
     });
 
     const icons = project.type.icon;

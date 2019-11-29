@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import ConnectionOverview from "../../command/webview/ConnectionOverview";
+import ConnectionOverview from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { CLICommandRunner } from "./CLICommandRunner";
 import Log from "../../Logger";
@@ -126,6 +126,13 @@ export default class RemoteConnection extends Connection {
         }
     }
 
+    public async dispose(): Promise<void> {
+        if (this.overviewPage) {
+            this.overviewPage.dispose();
+        }
+        await super.dispose();
+    }
+
     /**
      * Block enable/disable when one of those is already in progress.
      */
@@ -222,15 +229,15 @@ export default class RemoteConnection extends Connection {
         vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
-    public get activeOverviewPage(): ConnectionOverview | undefined {
+    public get overviewPage(): ConnectionOverview | undefined {
         return this._activeOverviewPage;
     }
 
-    public onOverviewOpened(overviewPage: ConnectionOverview): void {
+    public onDidOpenOverview(overviewPage: ConnectionOverview): void {
         this._activeOverviewPage = overviewPage;
     }
 
-    public onOverviewClosed(): void {
+    public onDidCloseOverview(): void {
         if (this._activeOverviewPage) {
             this._activeOverviewPage = undefined;
         }

@@ -31,7 +31,7 @@ body {
     justify-content: inherit;
 }
 
-#add-repo-btn {
+#add-btn {
     padding-left: 1em;
     padding-right: 1.5em;
 }
@@ -40,7 +40,7 @@ table {
     width: 100%;
     border-spacing: 0;
     table-layout: fixed;
-    background-color: var(--vscode-welcomePage-background);     /* Doesn't work! */
+    background-color: var(--vscode-welcomePage-buttonBackground);     /* Doesn't work! */
 }
 
 #name-col {
@@ -55,8 +55,12 @@ table {
     width: 17%;
 }
 
-#delete-col {
-    width: 50px;
+#push-registry-col {
+    width: 25ch;
+}
+
+.btn-col {
+    width: 70px;
 }
 
 td {
@@ -90,29 +94,29 @@ thead > tr > td {
     border: none;
 }
 
-td > .btn {
-    padding: 0;
-    padding-right: .5em;
-    padding-left: .5em;
-}
-
-.repo-toggle {
-    min-height: 1em;
-    height: 110%;
-}
-
-.repo-toggle-cell {
-    padding: 0;
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-    text-align: center;
-}
-
-.delete-btn-cell {
+.btn-cell {
     padding: 0;
     text-align: center;
 }
 
-.delete-btn {
+.btn-cell > .btn {
     height: 1.75em;
+}
+
+.btn-cell > .source-toggle {
+    min-height: 1.25em;
+    height: 125%;
+}
+
+.namespace-disabled {
+    color: #999;
+}
+
+#push-registry-header {
+    text-align: center;
+}
+
+.push-registry-radiobtn {
+    zoom: 175%;
+    margin: 0;
 }

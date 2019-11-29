@@ -56,8 +56,11 @@
     "cmdID_bindProject": "ext.cw.bindProject",
     "cmdTitle_bindProject": "Add Existing Project",
 
-    "cmdID_manageTemplateRepos": "ext.cw.manageTemplateRepos",
+    "cmdID_manageTemplateRepos": "ext.cw.manageSources",
     "cmdTitle_manageTemplateRepos": "Manage Template Sources",
+
+    "cmdID_manageRegistries": "ext.cw.manageRegistries",
+    "cmdTitle_manageRegistries": "Manage Container Registries",
 
     "cmdID_connectionOverview": "ext.cw.connectionOverview",
     "cmdTitle_connectionOverview": "Remote Connection Settings",
