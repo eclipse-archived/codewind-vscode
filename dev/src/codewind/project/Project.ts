@@ -130,7 +130,7 @@ export default class Project implements vscode.QuickPickItem {
         // appImageLastBuild is a string
         this._lastImgBuild = new Date(Number(projectInfo.appImgLastBuild));
 
-        this._autoInjectMetricsEnabled = projectInfo.injectMetrics;
+        this._autoInjectMetricsEnabled = projectInfo.injectMetrics || false;
 
         this._ports = {
             appPort: undefined,
