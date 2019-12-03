@@ -251,8 +251,8 @@ namespace Requester {
         const newInjectMetrics: boolean = !project.autoInjectMetricsEnabled;
 
         // user-friendly action
-        const autoBuildMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
-        const newAutoInjectMetricsUserStr: string = Translator.t(STRING_NS, autoBuildMsgKey);
+        const autoInjectMetricsMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
+        const newAutoInjectMetricsUserStr: string = Translator.t(STRING_NS, autoInjectMetricsMsgKey);
 
         const body = {
             enable: newInjectMetrics
