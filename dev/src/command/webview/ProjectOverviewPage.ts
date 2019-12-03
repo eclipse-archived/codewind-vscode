@@ -179,8 +179,6 @@ function generateHtml(project: Project): string {
 
             function sendMsg(type, data = undefined) {
                 // See IWebViewMsg in ProjectOverviewCmd
-                console.log('type', type);
-                console.log('data', data);
                 vscode.postMessage({ type: type, data: data });
             }
         </script>
