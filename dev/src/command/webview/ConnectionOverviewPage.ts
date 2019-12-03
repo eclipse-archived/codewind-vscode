@@ -84,11 +84,11 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                 </div>
             </div>
 
-            <div>
+            <div class="remote-connection-btn-group">
                 <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
-                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection</div>
+                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/></div>
                 <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit</div>
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/></div>
                 <div type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${state.isConnected ? "Disconnect" : "Connect"}</div>
                 <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
@@ -135,7 +135,6 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             document.querySelector("#ingress-username").style.display = "block";
             // document.querySelector("#url").style.display = "none";
             document.querySelector("#input-password").style.display = "block";
-            document.querySelector("#input-password").style.marginTop = "5px";
             document.querySelector("#edit-btn").style.display = "none";
             document.querySelector("#toggle-connect-btn").style.display = "none";
             document.querySelector("#cancel-btn").style.display = "inline";
