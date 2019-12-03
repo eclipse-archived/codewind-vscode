@@ -334,6 +334,14 @@
                 {
                     "command": "%cmdID_separator%",
                     "when": "never"
+                },
+                {
+                    "command": "%cmdID_enableAutoInjectMetrics%",
+                    "when": "never"
+                },
+                {
+                    "command": "%cmdID_disableAutoInjectMetrics%",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -544,6 +552,16 @@
                     "group": "ext.cw.f@2"
                 },
                 {
+                    "command": "%cmdID_enableAutoInjectMetrics%",
+                    "when": "%isEnabledAutoInjectMetricsOff%",
+                    "group": "ext.cw.f@3"
+                },
+                {
+                    "command": "%cmdID_disableAutoInjectMetrics%",
+                    "when": "%isEnabledAutoInjectMetricsOn%",
+                    "group": "ext.cw.f@3"
+                },
+                {
                     "command": "%cmdID_disable%",
                     "when": "%isEnabledProject%",
                     "group": "ext.cw.z@0"
@@ -562,16 +580,6 @@
                     "command": "%cmdID_removeProject%",
                     "when": "%isProject%",
                     "group": "ext.cw.z@1"
-                },
-                {
-                    "command": "%cmdID_enableAutoInjectMetrics%",
-                    "when": "%isEnabledAutoInjectMetricsOff%",
-                    "group": "ext.cw.f@2"
-                },
-                {
-                    "command": "%cmdID_disableAutoInjectMetrics%",
-                    "when": "%isEnabledAutoInjectMetricsOn%",
-                    "group": "ext.cw.f@2"
                 }
             ]
         }
