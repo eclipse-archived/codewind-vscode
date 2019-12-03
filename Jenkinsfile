@@ -39,7 +39,7 @@ spec:
     }
 
     parameters {
-        string(name: "APPSODY_VERSION", defaultValue: "0.5.1", description: "Appsody executable version to download")
+        string(name: "APPSODY_VERSION", defaultValue: "0.5.2", description: "Appsody executable version to download")
     }
 
     stages {
