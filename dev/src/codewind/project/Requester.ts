@@ -146,7 +146,7 @@ namespace Requester {
     }
 
     export async function requestToggleAutoBuild(project: Project): Promise<void> {
-        const newAutoBuild: boolean = !project.autoInjectMetricsEnabled;
+        const newAutoBuild: boolean = !project.autoBuildEnabled;
 
         // user-friendly action
         const autoBuildMsgKey = newAutoBuild ? "autoBuildEnable" : "autoBuildDisable";                  // non-nls
