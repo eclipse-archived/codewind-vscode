@@ -146,7 +146,7 @@ namespace Requester {
     }
 
     export async function requestToggleAutoBuild(project: Project): Promise<void> {
-        const newAutoBuild: boolean = !project.autoBuildEnabled;
+        const newAutoBuild: boolean = !project.autoInjectMetricsEnabled;
 
         // user-friendly action
         const autoBuildMsgKey = newAutoBuild ? "autoBuildEnable" : "autoBuildDisable";                  // non-nls
@@ -245,6 +245,22 @@ namespace Requester {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
         const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, "GET", msg, true);
         return res.metricsAvailable;
+    }
+
+    export async function requestToggleAutoInjectMetrics(project: Project): Promise<void> {
+        const newInjectMetrics: boolean = !project.autoInjectMetricsEnabled;
+
+        // user-friendly action
+        const autoBuildMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
+        const newAutoInjectMetricsUserStr: string = Translator.t(STRING_NS, autoBuildMsgKey);
+
+        const body = {
+            enable: newInjectMetrics
+        };
+
+        await doProjectRequest(project, ProjectEndpoints.METRICS_INJECTION, body, "POST", newAutoInjectMetricsUserStr);
+
+        project.setAutoInjectMetrics(newInjectMetrics);
     }
 
     /**

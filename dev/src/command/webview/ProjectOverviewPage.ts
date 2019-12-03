@@ -31,6 +31,7 @@ export enum ProjectOverviewWVMessages {
     UNBIND = "unbind",
     TOGGLE_ENABLEMENT = "toggleEnablement",
     EDIT = "edit",
+    TOGGLE_AUTOINJECTMETRICS = "toggleAutoInjectMetrics",
 }
 
 enum OpenableTypes {
@@ -125,6 +126,16 @@ function generateHtml(project: Project): string {
                         />
                     </td>
                 </tr>
+                <tr>
+                    <td class="info-label">Auto inject metrics:</td>
+                    <td>
+                        <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
+                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOINJECTMETRICS}')"
+                            ${project.autoInjectMetricsEnabled ? "checked" : ""}
+                            ${project.state.isEnabled ? " " : " disabled"}
+                        />
+                    </td>
+                </tr>
                 ${buildRow("Application Status", project.state.appState)}
                 ${buildRow("Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
                 ${buildRow("Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
@@ -168,6 +179,8 @@ function generateHtml(project: Project): string {
 
             function sendMsg(type, data = undefined) {
                 // See IWebViewMsg in ProjectOverviewCmd
+                console.log('type', type);
+                console.log('data', data);
                 vscode.postMessage({ type: type, data: data });
             }
         </script>

@@ -304,6 +304,21 @@
                 "command": "%cmdID_removeProject%",
                 "title": "%cmdTitle_removeProject%",
                 "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_toggleAutoInjectMetrics%",
+                "title": "%cmdTitle_toggleAutoInjectMetrics%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_enableAutoInjectMetrics%",
+                "title": "%cmdTitle_enableAutoInjectMetrics%",
+                "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_disableAutoInjectMetrics%",
+                "title": "%cmdTitle_disableAutoInjectMetrics%",
+                "category": "%commandCategory%"
             }
         ],
         "menus": {
@@ -547,6 +562,16 @@
                     "command": "%cmdID_removeProject%",
                     "when": "%isProject%",
                     "group": "ext.cw.z@1"
+                },
+                {
+                    "command": "%cmdID_enableAutoInjectMetrics%",
+                    "when": "%isEnabledAutoInjectMetricsOff%",
+                    "group": "ext.cw.f@2"
+                },
+                {
+                    "command": "%cmdID_disableAutoInjectMetrics%",
+                    "when": "%isEnabledAutoInjectMetricsOn%",
+                    "group": "ext.cw.f@2"
                 }
             ]
         }
