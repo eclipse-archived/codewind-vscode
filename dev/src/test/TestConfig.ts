@@ -57,40 +57,47 @@ namespace TestConfig {
             url: "https://github.com/microclimate-dev2ops/microclimateGoTemplate",
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.NODE, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.NODE,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: true,
             url: "https://github.com/appsody/stacks/releases/download/nodejs-loopback-v0.1.4/incubator.nodejs-loopback.templates.scaffold.tar.gz",
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.NODE, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.NODE,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: true,
             url: "https://github.com/appsody/stacks/releases/download/nodejs-express-v0.2.6/incubator.nodejs-express.v0.2.6.templates.simple.tar.gz",
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.JAVA, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: true,
             // tslint:disable-next-line: max-line-length
             url:  "https://github.com/appsody/stacks/releases/download/java-spring-boot2-v0.3.12/incubator.java-spring-boot2.v0.3.12.templates.default.tar.gz",
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.JAVA, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: true,
             // tslint:disable-next-line: max-line-length
             url:  "https://github.com/appsody/stacks/releases/download/java-microprofile-v0.2.14/incubator.java-microprofile.v0.2.14.templates.default.tar.gz",
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.PYTHON, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.PYTHON,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: false,
             url:  "https://github.com/appsody/stacks/releases/download/python-flask-v0.1.3/incubator.python-flask.v0.1.3.templates.simple.tar.gz",
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.JAVA, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: true,
             // tslint:disable-next-line: max-line-length
             url: "https://github.com/appsody/stacks/releases/download/java-spring-boot2-v0.3.14/incubator.java-spring-boot2.v0.3.14.templates.kotlin.tar.gz"
         },
         {
-            projectType: new ProjectType("appsodyExtension", ProjectType.Languages.JAVA, "appsodyExtension"),
+            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
+                ProjectType.InternalTypes.EXTENSION_APPSODY),
             canRestart: true,
             // tslint:disable-next-line: max-line-length
             url:  "https://github.com/appsody/stacks/releases/download/java-spring-boot2-v0.3.14/incubator.java-spring-boot2.v0.3.14.templates.default.tar.gz",

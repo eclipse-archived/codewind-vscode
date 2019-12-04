@@ -247,8 +247,8 @@ namespace Requester {
         return res.metricsAvailable;
     }
 
-    export async function requestToggleAutoInjectMetrics(project: Project): Promise<void> {
-        const newInjectMetrics: boolean = !project.autoInjectMetricsEnabled;
+    export async function requestToggleInjectMetrics(project: Project): Promise<void> {
+        const newInjectMetrics: boolean = !project.injectMetricsEnabled;
 
         // user-friendly action
         const autoInjectMetricsMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
@@ -259,8 +259,7 @@ namespace Requester {
         };
 
         await doProjectRequest(project, ProjectEndpoints.METRICS_INJECTION, body, "POST", newAutoInjectMetricsUserStr);
-
-        project.setAutoInjectMetrics(newInjectMetrics);
+        project.setInjectMetrics(newInjectMetrics);
     }
 
     /**
