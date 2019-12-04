@@ -75,8 +75,8 @@ namespace SocketEvents {
 
     export type ILogsListChangedEvent = { projectID: string } & ILogResponse;
 
-    export interface IRegistryStatus {
-        readonly deploymentRegistryTest: boolean;
+    export interface IPushRegistryStatus {
+        readonly imagePushRegistryTest: boolean;
         readonly msg: string;
     }
 

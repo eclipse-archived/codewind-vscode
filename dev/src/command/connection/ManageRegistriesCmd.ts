@@ -18,6 +18,11 @@ import MCUtil from "../../MCUtil";
 import { ManageRegistriesPageWrapper } from "../webview/RegistriesPageWrapper";
 
 export default async function manageRegistriesCmd(connection: Connection): Promise<void> {
+    if (!connection.isKubeConnection) {
+        vscode.window.showWarningMessage(`The local connection does not use container image registries.`);
+        return;
+    }
+
     try {
         if (connection.registriesPage) {
             // Show existing page
@@ -28,7 +33,7 @@ export default async function manageRegistriesCmd(connection: Connection): Promi
         connection.onDidOpenRegistriesPage(manageRegistriesPage);
     }
     catch (err) {
-        const errMsg = `Error opening Manage Container Registries page:`;
+        const errMsg = `Error opening Manage image registries page:`;
         vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
         Log.e(errMsg, err);
     }

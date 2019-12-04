@@ -104,7 +104,9 @@ export default class ConnectionManager implements vscode.Disposable {
             return this.connections[0];
         }
         Log.i("Creating connection to " + url);
-        const newConnection = new Connection(LOCAL_CONNECTION_ID, url, "Local Codewind", false);
+
+        const label = global.isTheia ? "Codewind" : "Local Codewind";
+        const newConnection = new Connection(LOCAL_CONNECTION_ID, url, label, false);
         this.onNewConnection(newConnection);
         return newConnection;
     }
@@ -119,9 +121,9 @@ export default class ConnectionManager implements vscode.Disposable {
         }
         Log.i("New Connection @ " + newConnection.url);
 
-        await newConnection.initPromise;
         // pass undefined here to refresh the tree from its root
         CodewindEventListener.onChange(undefined);
+        await newConnection.initPromise;
     }
 
     public async removeConnection(connection: Connection): Promise<boolean> {

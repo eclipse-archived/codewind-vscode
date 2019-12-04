@@ -11,122 +11,241 @@
 
 import * as vscode from "vscode";
 
-import Log from "../../Logger";
-import Requester from "../project/Requester";
 import Connection from "./Connection";
-import Commands from "../../constants/Commands";
-import MCUtil from "../../MCUtil";
-import CWDocs from "../../constants/CWDocs";
 import manageRegistriesCmd from "../../command/connection/ManageRegistriesCmd";
+import InputUtil from "../../InputUtil";
+import Requester from "../project/Requester";
+import Log from "../../Logger";
+import MCUtil from "../../MCUtil";
+
+export class ContainerRegistry {
+    public readonly fullAddress: string;
+    private _isPushRegistry: boolean = false;
+
+    constructor(
+        public readonly address: string,
+        public readonly username: string,
+        private _namespace: string = "",
+    ) {
+        this.fullAddress = `${address}/${this.namespace}`;
+    }
+
+    public toString(): string {
+        return `${this.username}@${this.fullAddress}`;
+    }
+
+    public get isPushRegistry(): boolean {
+        return this._isPushRegistry;
+    }
+
+    public set isPushRegistry(isPushRegistry: boolean) {
+        this._isPushRegistry = isPushRegistry;
+    }
+
+    public get namespace(): string {
+        return this._namespace;
+    }
+
+    public set namespace(ns: string) {
+        this._namespace = ns;
+    }
+}
 
 namespace RegistryUtils {
-    export async function onRegistryNotSet(connection: Connection): Promise<void> {
-        const setRegistryBtn = "Set Registry";
-        const moreInfoBtn = "More Info";
-        const res = await vscode.window.showErrorMessage(
-            "You must set a deployment registry before creating or adding a project. Run the Set Deployment Registry command.",
-            setRegistryBtn, moreInfoBtn
-        );
-        if (res === setRegistryBtn) {
-            manageRegistriesCmd(connection);
+
+    /**
+     * Returns if this connection MUST set up a push registry before it can build a project of this type.
+     *
+     * If the project type requires a push registry and the connection does not have a push registry,
+     * shows an error message and returns true.
+     */
+    export async function doesNeedPushRegistry(projectType: string, connection: Connection): Promise<boolean> {
+        // The local (non-kube) connection never needs a push registry because the images are run locally
+        if (doesUsePushRegistry(projectType) && await connection.needsPushRegistry()) {
+            const manageRegistriesBtn = "Manage Registries";
+
+            vscode.window.showErrorMessage(`Codewind style projects require an Image Push Registry to be configured. Add a registry using the Manage Registries page.`,
+                manageRegistriesBtn)
+            .then((res) => {
+                if (res === manageRegistriesBtn) {
+                    manageRegistriesCmd(connection);
+                }
+            });
+            return true;
         }
-        else if (res === moreInfoBtn) {
-            vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.DOCKER_REGISTRY));
+        return false;
+    }
+
+    function doesUsePushRegistry(projectType: string): boolean {
+        // these two extension types do not require a push registry
+        return projectType !== "appsodyExtension" && projectType !== "odo";
+    }
+
+    const newRegistryWizardSteps: InputUtil.InputStep[] = [
+        {
+            promptGenerator: () => `Enter the registry's base address (domain). Do not specify a namespace.`,
+            placeholder: `docker.io`,
+            // validator: RegistryUtils.validateAddress,
+        },
+        {
+            promptGenerator: (address) => `Enter the username for ${address}.`,
+        },
+        {
+            promptGenerator: (address, username) => `Enter the password for ${username} @ ${address}.`,
+            password: true,
+        },
+    ];
+
+    export async function addNewRegistry(connection: Connection, existingRegistries: ContainerRegistry[]): Promise<void> {
+        const wizardTitle = "Sign in to a new image registry";
+
+        newRegistryWizardSteps[0].validator = (input: string) => {
+            return validateAddress(input, existingRegistries.map((reg) => reg.address));
+        };
+
+        const [ address, username, password ]: string[] = await InputUtil.runMultiStepInput(wizardTitle, newRegistryWizardSteps);
+
+        const isFirstRegistry = existingRegistries.length === 0;
+        let setAsPushRegistry: boolean;
+        if (isFirstRegistry) {
+            setAsPushRegistry = true;
+        }
+        else {
+            const setAsPushOption: vscode.QuickPickItem = {
+                label: `Set ${address} as your image push registry`,
+                detail: `Codewind-style project images will be pushed to this registry.`
+            };
+            const dontSetAsPushOption: vscode.QuickPickItem = {
+                label: `Don't set ${address} as image push registry`,
+                detail: `This registry can still be used to pull private images.`
+            };
+
+            const response = await vscode.window.showQuickPick([
+                setAsPushOption, dontSetAsPushOption,
+            ], {
+                canPickMany: false,
+                ignoreFocusOut: true,
+                placeHolder: `Would you like to push your built project images to this registry?`
+            });
+
+            if (response == null) {
+                return;
+            }
+            setAsPushRegistry = response === setAsPushOption;
+        }
+
+        const newRegistry = await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Creating registry secret for ${username} @ ${address}...`,
+        }, async () => {
+            const newRegistry_ = await Requester.addRegistrySecret(connection, address, username, password);
+            Log.i(`Successfully added image registry ${address}`);
+            return newRegistry_;
+        });
+
+        if (setAsPushRegistry) {
+            let didSetPush = false;
+            try {
+                didSetPush = await setPushRegistry(connection, newRegistry);
+            }
+            catch (err) {
+                const errMsg = `Failed to set push registry to ${newRegistry.fullAddress} after adding`;
+                Log.e(errMsg, err);
+                vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            }
+
+            if (!didSetPush && isFirstRegistry) {
+                vscode.window.showWarningMessage(`You added a registry secret, but did not set it as your image push registry. ` +
+                    `Codewind-style projects will be unable to build until you add a push registry.`);
+            }
         }
     }
 
-    export async function setRegistry(connection: Connection): Promise<boolean> {
-        Log.i(`Setting deployment registry`);
-        const registry = await vscode.window.showInputBox({
-            ignoreFocusOut: true,
-            // valueSelection doesn't work in theia
-            value: `docker-registry.default.svc:5000/eclipse-che`,
-            prompt: `Enter a deployment registry location such as Dockerhub or your cluster's internal registry.`,
-            validateInput: validateRegistry,
-        });
+    export async function setPushRegistry(connection: Connection, pushRegistry: ContainerRegistry): Promise<boolean> {
+        // the secret for this registry must already have been created
 
-        if (registry == null) {
-            return false;
-        }
-
-        const yesBtn = "Yes";
-        const noBtn = "No";
+        /*
+        const yesBtn = "Test";
 
         const doTestResponse = await vscode.window.showInformationMessage(
-            `Would you like to test deploying a Hello World image to ${registry} right now?`,
-            { modal: true },
-            yesBtn, noBtn
+            `Would you like to test deploying a Hello World image to ${pushRegistry.fullAddress} as ${pushRegistry.username} right now?`,
+            yesBtn
         );
 
         // Log.d("doTestResponse", doTestResponse);
 
-        if (doTestResponse == null) {
-            return false;
-        }
-        else if (doTestResponse === yesBtn) {
-            const testResult = await testRegistry(connection, registry);
+        if (doTestResponse === yesBtn) {
+            const testResult = await testRegistry(connection, pushRegistry);
             if (!testResult) {
                 // user did not get a successful test
-                return false;
+                return;
             }
             else if (testResult === "retry") {
-                return setRegistry(connection);
+                return setPushRegistry(connection, pushRegistry);
             }
             // else test succeeded, or they selected to override the failed test
         }
-        // if they selected noBtn just continue and write
+        */
 
-        try {
-            await connection.setRegistry(registry);
-            Log.i(`Deployment registry set successfully for ${connection.url}`);
-            vscode.window.showInformationMessage(`The deployment registry ${registry} has been saved. ` +
-                `You can now build Codewind projects.`
-            );
-        }
-        catch (err) {
-            vscode.window.showErrorMessage(`Error updating registry: ${MCUtil.errToString(err)}`);
+        const namespace = await vscode.window.showInputBox({
+            ignoreFocusOut: true,
+            placeHolder: pushRegistry.username,
+            prompt: `Enter the namespace to push to ${pushRegistry.address} under. ` +
+                `The namespace may be empty. For example, to push to docker.io/eclipse, the namespace is "eclipse".` ,
+            validateInput: validateIsOnlyUrlChars,
+        });
+
+        if (namespace == null) {
             return false;
         }
+        pushRegistry.namespace = namespace;
 
+        await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Setting ${pushRegistry.fullAddress} as image push registry...`,
+        }, async () => {
+            await Requester.setPushRegistry(connection, pushRegistry);
+        });
+
+        Log.i(`Push registry set successfully for ${connection.url} to ${pushRegistry.fullAddress}`);
         return true;
     }
 
-    async function testRegistry(connection: Connection, registry: string): Promise<boolean | "retry"> {
+    /*
+    async function testRegistry(connection: Connection, registry: ContainerRegistry): Promise<boolean | "retry"> {
         const testResult = await vscode.window.withProgress({
             title: `Pushing a test image to ${registry}...`,
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
-        }, (_progress) => {
+        }, () => {
             try {
-                return Requester.configureRegistry(connection, "test", registry);
+                return Requester.testPushRegistry(connection, registry);
             }
             catch (err) {
                 Log.e("Error testing registry", err);
-                return Promise.resolve({ deploymentRegistryTest: false, msg: MCUtil.errToString(err) });
+                return Promise.resolve({ imagePushRegistryTest: false, msg: MCUtil.errToString(err) });
             }
         });
 
         // tslint:disable-next-line: no-boolean-literal-compare
-        if (testResult.deploymentRegistryTest === true) {
+        if (testResult.imagePushRegistryTest === true) {
             vscode.window.showInformationMessage("Deployment registry test succeeded");
             return true;
         }
 
-        const enterNewBtn = "Enter New Registry";
         const tryAgainBtn = "Try Again";
         const overrideBtn = "Set Anyway";
         const pushFailedRes = await vscode.window.showWarningMessage(
-            `Pushing to "${registry}" failed`,
+            `Pushing to "${registry.fullAddress}" failed`,
             { modal: true },
-            enterNewBtn,
             tryAgainBtn,
             overrideBtn,
         );
+
         if (pushFailedRes == null) {
             return false;
-        }
-        else if (pushFailedRes === enterNewBtn) {
-            return "retry";
         }
         else if (pushFailedRes === tryAgainBtn) {
             return testRegistry(connection, registry);
@@ -135,19 +254,45 @@ namespace RegistryUtils {
             // override
             return true;
         }
-    }
+    }*/
 
-    function validateRegistry(reg: string): string | undefined {
-        // list of legal URL characters
-        const rx = /^[A-Za-z0-9-._~:/?#\[\]@!\$&'\(\)\*\+;%=,]+$/;
-        const match = reg.match(rx);
-        if (match == null || match[0] !== reg) {
-            return `"${reg}" is not a valid registry location. The format is <hostname>:<port>/<path>. ` +
-                `Port and path are optional, and do not provide a protocol (such as "http").`;
+    export function validateIsOnlyUrlChars(input: string): string | undefined {
+        const legal = /^[A-Za-z0-9-._~:/?#\[\]@!\$&'\(\)\*\+;%=,]*$/;
+        if (!legal.test(input)) {
+            return `Invalid input: "${input}" contains illegal characters.`;
         }
         return undefined;
     }
 
+    const PROTOCOL_SEP = "://";
+
+    export function validateAddress(input: string, existingAddresses: string[]): string | undefined {
+        const illegalCharsMsg = validateIsOnlyUrlChars(input);
+        if (illegalCharsMsg) {
+            return illegalCharsMsg;
+        }
+
+        if (input.includes(PROTOCOL_SEP)) {
+            return "Don't include a protocol in your registry address.";
+        }
+
+        const existing = existingAddresses
+            .map((addr) => {
+                // The backend may have added a protocol.
+                const protocolIndex = addr.search(PROTOCOL_SEP);
+                if (protocolIndex > 0) {
+                    return addr.substring(protocolIndex + PROTOCOL_SEP.length);
+                }
+                return addr;
+            })
+            .find(((addr) => addr === input));
+
+        if (existing) {
+            return `You already have a registry at ${existing}. You can only have one login for a given registry at a time. Remove the existing registry to add a new one at the same address.`;
+        }
+
+        return undefined;
+    }
 }
 
 export default RegistryUtils;

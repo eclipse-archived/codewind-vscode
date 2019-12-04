@@ -145,18 +145,6 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             sendMsg("${ConnectionOverviewWVMessages.DELETE}");
         }
 
-        function testNewDockerRegistry() {
-            const dockerRegistryURL = document.querySelector("#docker-url");
-            const dockerRegistryUsername = document.querySelector("#docker-username");
-            const dockerRegistryPassword = document.querySelector("#docker-password");
-
-            sendMsg("${ConnectionOverviewWVMessages.SAVE_REGISTRY}", {
-                registryUrl: dockerRegistryURL.value,
-                registryUsername: dockerRegistryUsername.value,
-                registryPassword: dockerRegistryPassword.value
-            });
-        }
-
         function sendMsg(type, data = undefined) {
             // See IWebViewMsg in ManageTemplateReposCmd
             const msg = { type: type, data: data };

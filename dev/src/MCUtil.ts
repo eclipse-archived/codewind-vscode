@@ -229,6 +229,28 @@ namespace MCUtil {
     export function isDevEnv(): boolean {
         return process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV;
     }
+
+    export async function promptForProjectDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {
+        const selectedDirs = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: btnLabel,
+            defaultUri
+        });
+        if (selectedDirs == null) {
+            return undefined;
+        }
+        // canSelectMany is false so we just use [0]
+        const selectedDir = selectedDirs[0];
+
+        const cwDataPath = MCUtil.getCWDataPath();
+        if (selectedDir.fsPath.startsWith(cwDataPath)) {
+            vscode.window.showErrorMessage(`You cannot create or add a project under ${cwDataPath}. Select a different directory.`);
+            return undefined;
+        }
+        return selectedDir;
+    }
 }
 
 export default MCUtil;

@@ -10,56 +10,68 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as path from "path";
 
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
-import UserProjectCreator, { ICWTemplateData } from "../../codewind/connection/UserProjectCreator";
 import Requester from "../../codewind/project/Requester";
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/RegistryUtils";
 import Resources from "../../constants/Resources";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import manageSourcesCmd from "./ManageSourcesCmd";
+import SocketEvents from "../../codewind/connection/SocketEvents";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
 
 const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
-export default async function createProject(connection: Connection): Promise<void> {
-    if (!(await connection.isRegistrySet())) {
-        RegistryUtils.onRegistryNotSet(connection);
-        return;
-    }
+export interface CWTemplateData {
+    label: string;
+    description: string;
+    url: string;
+    language: string;
+    projectType: string;
+    source?: string;
+}
 
-    // On initial project create, prompt the user to select a template source
-    const extState = global.extGlobalState as vscode.Memento;
-    const hasSelectedSource = extState.get(HAS_SELECTED_SOURCE_KEY) as boolean;
-    if (!hasSelectedSource) {
-        const selectedSource = await showTemplateSourceQuickpick(connection);
-        if (selectedSource == null) {
-            return;
-        }
-        extState.update(HAS_SELECTED_SOURCE_KEY, true);
-        if (selectedSource === "managed") {
-            manageSourcesCmd(connection);
-            // Don't continue with the create in this case.
-            return;
-        }
-        if (connection.sourcesPage) {
-            connection.sourcesPage.refresh();
+export default async function createProjectCmd(connection: Connection): Promise<void> {
+    if (!connection.isRemote) {
+        // On initial project create, prompt the user to select a template source
+        const extState = global.extGlobalState as vscode.Memento;
+        const hasSelectedSource = extState.get(HAS_SELECTED_SOURCE_KEY) as boolean;
+        if (!hasSelectedSource) {
+            const selectedSource = await showTemplateSourceQuickpick(connection);
+            if (selectedSource == null) {
+                return;
+            }
+            extState.update(HAS_SELECTED_SOURCE_KEY, true);
+            if (selectedSource === "managed") {
+                manageSourcesCmd(connection);
+                // Don't continue with the create in this case.
+                return;
+            }
+            if (connection.sourcesPage) {
+                connection.sourcesPage.refresh();
+            }
         }
     }
 
     try {
-        let template: ICWTemplateData | undefined;
+        let template: CWTemplateData | undefined;
         let projectName: string | undefined;
         while (!template || !projectName) {
             template = await promptForTemplate(connection);
             if (template == null) {
                 return;
             }
+            else if (await RegistryUtils.doesNeedPushRegistry(template.projectType, connection)) {
+                // The user needs to configure a push registry before they can create this type of project
+                return;
+            }
+
             try {
                 projectName = await promptForProjectName(connection, template);
                 if (projectName == null) {
@@ -97,14 +109,14 @@ export default async function createProject(connection: Connection): Promise<voi
             const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
                 vscode.workspace.workspaceFolders[0].uri : undefined;
 
-            const selection = await UserProjectCreator.promptForDir("Select Parent Directory", defaultUri);
+            const selection = await MCUtil.promptForProjectDir("Select Parent Directory", defaultUri);
             if (!selection) {
                 return undefined;
             }
             parentDir = selection;
         }
 
-        const response = await UserProjectCreator.createProject(connection, template, parentDir, projectName);
+        const response = await createProject(connection, template, parentDir, projectName);
         if (!response) {
             // user cancelled
             return;
@@ -190,7 +202,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     await Requester.enableTemplateRepos(connection, { repos: repoEnablement });
 
     vscode.window.showInformationMessage(
-        `Set template source to ${selection.label}. You can change this setting at any time with the Manage Template Sources command.`
+        `Set template source to ${selection.label}. The other sources have been disabled. You can change this setting at any time with the Manage Template Sources command. `
     );
     return "selected";
 }
@@ -201,7 +213,7 @@ function getWizardTitle(connection: Connection): string {
 
 const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
 
-async function promptForTemplate(connection: Connection): Promise<ICWTemplateData | undefined> {
+async function promptForTemplate(connection: Connection): Promise<CWTemplateData | undefined> {
 
     const qp = vscode.window.createQuickPick();
     // busy and enabled have no effect in theia https://github.com/eclipse-theia/theia/issues/5059
@@ -287,7 +299,7 @@ async function promptForTemplate(connection: Connection): Promise<ICWTemplateDat
     return selectedProjectType;
 }
 
-async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & ICWTemplateData> | undefined>  {
+async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & CWTemplateData> | undefined>  {
     const templates = await Requester.getTemplates(connection);
     // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
     const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
@@ -324,7 +336,7 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
     return templateQpis;
 }
 
-async function promptForProjectName(connection: Connection, template: ICWTemplateData): Promise<string | undefined> {
+async function promptForProjectName(connection: Connection, template: CWTemplateData): Promise<string | undefined> {
     const projNamePlaceholder = `my-${template.language}-project`;
     const projNamePrompt = `Enter a name for your new ${template.language} project`;
 
@@ -374,4 +386,34 @@ function validateProjectName(projectName: string): string | undefined {
     //     return `Invalid project name "${projectName}". Project name can only contain numbers, lowercase letters, periods, hyphens, and underscores.`;
     // }
     return undefined;
+}
+
+export async function createProject(connection: Connection, template: CWTemplateData, parentDir: vscode.Uri, projectName: string)
+    : Promise<{ projectName: string, projectPath: string }> {
+
+    const projectPath = path.join(parentDir.fsPath, projectName);
+    await vscode.window.withProgress({
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: `Creating ${projectName}...`
+    }, async () => {
+        const creationRes = await CLICommandRunner.createProject(connection.id, projectPath, template.url);
+
+        if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
+            // failed
+            let failedReason = `Unknown error creating ${projectName} at ${projectPath}`;
+            try {
+                failedReason = (creationRes.result as any).error || creationRes.result as string;
+            }
+            // tslint:disable-next-line: no-empty
+            catch (err) {}
+            throw new Error(failedReason);
+        }
+
+        // create succeeded, now we bind
+        const projectType = { projectType: template.projectType, language: template.language };
+        await CLICommandRunner.bindProject(connection.id, projectName, projectPath, projectType);
+    });
+
+    return { projectName, projectPath };
 }

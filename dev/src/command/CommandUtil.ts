@@ -25,8 +25,8 @@ import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
 import openAppMonitorCmd from "./project/OpenAppMonitor";
 import refreshConnectionCmd from "./connection/RefreshConnectionCmd";
 import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
-import createProject from "./connection/CreateUserProjectCmd";
-import bindProject from "./connection/BindProjectCmd";
+import createProjectCmd from "./connection/CreateUserProjectCmd";
+import bindProjectCmd from "./connection/BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
 import connectLocalCodewindCmd from "./StartCodewindCmd";
 import stopLocalCodewindCmd from "./StopCodewindCmd";
@@ -72,8 +72,8 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, false, false, true),
         registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined, false, false),
 
-        registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined, true, false),
-        registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined, true, false),
+        registerConnectionCommand(Commands.CREATE_PROJECT, createProjectCmd, undefined, true, false),
+        registerConnectionCommand(Commands.BIND_PROJECT, bindProjectCmd, undefined, true, false),
 
         registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined, false, true),
         registerConnectionCommand(Commands.MANAGE_TEMPLATE_SOURCES, manageSourcesCmd, undefined, true, false),

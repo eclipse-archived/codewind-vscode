@@ -15,11 +15,12 @@
 
 import Resources from "../../../constants/Resources";
 import WebviewUtil from "../WebviewUtil";
-import { ContainerRegistry, ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
+import { ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
+import { ContainerRegistry } from "../../../codewind/connection/RegistryUtils";
 
 const FULL_ADDRESS_ATTR = "data-full-address";
 
-export default function getManageRegistriesPage(connectionLabel: string, registries: ContainerRegistry[], hasPushRegistry: boolean): string {
+export default function getManageRegistriesPage(connectionLabel: string, registries: ContainerRegistry[], needsPushRegistry: boolean): string {
     return `
     <!DOCTYPE html>
 
@@ -40,7 +41,7 @@ export default function getManageRegistriesPage(connectionLabel: string, registr
         <div class="title-section title-section-subtitled">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
             <div>
-                <h1 id="title">Container Registries</h1>
+                <h1 id="title">Image Registries</h1>
                 <h2 id="subtitle">${connectionLabel}</h2>
             </div>
         </div>
@@ -54,16 +55,20 @@ export default function getManageRegistriesPage(connectionLabel: string, registr
             <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageRegistriesWVMessages.REFRESH}')">
                 Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
             </div>
-            <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${ManageRegistriesWVMessages.ADD_NEW}')">
+            <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="addNew()">
                 Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
             </div>
         </div>
     </div>
 
-    ${buildTable(registries, hasPushRegistry)}
+    ${buildTable(registries, needsPushRegistry)}
 
     <script>
         const vscode = acquireVsCodeApi();
+
+        function addNew() {
+            sendMsg('${ManageRegistriesWVMessages.ADD_NEW}');
+        }
 
         function changePushRegistry(selectPushBtn) {
             const fullAddress = selectPushBtn.getAttribute("${FULL_ADDRESS_ATTR}");
@@ -88,17 +93,26 @@ export default function getManageRegistriesPage(connectionLabel: string, registr
     `;
 }
 
-function buildTable(registries: ContainerRegistry[], hasPushRegistry: boolean): string {
+function buildTable(registries: ContainerRegistry[], needsPushRegistry: boolean): string {
 
-    const rows = registries.map((registry) => buildRow(registry, hasPushRegistry));
+    if (registries.length === 0) {
+        return `
+            <h2 id="no-registries-msg">
+                You have not yet added any image registries. Click <a onclick="addNew()">Add New.</a> <br><br>
+                ${needsPushRegistry ? "At least one image registry is required in order to build Codewind-style projects." : ""}
+            </h2>
+        `;
+    }
+
+    const rows = registries.map((registry) => buildRow(registry, needsPushRegistry));
 
     return `
     <table>
         <colgroup>
             <col id="address-col"/>
             <col id="username-col"/>
-            ${hasPushRegistry ? `<col id="namespace-col"/>` : "" }
-            ${hasPushRegistry ? `<col id="push-registry-col"/>` : ""}
+            ${needsPushRegistry ? `<col id="namespace-col"/>` : "" }
+            ${needsPushRegistry ? `<col id="push-registry-col"/>` : ""}
             <!--col class="btn-col"/-->      <!-- Edit buttons -->
             <col class="btn-col"/>      <!-- Delete buttons -->
         </colgroup>
@@ -106,8 +120,8 @@ function buildTable(registries: ContainerRegistry[], hasPushRegistry: boolean): 
             <tr>
                 <td>Address</td>
                 <td>Username</td>
-                ${hasPushRegistry ? "<td>Namespace</td>" : ""}
-                ${hasPushRegistry ?
+                ${needsPushRegistry ? "<td>Namespace</td>" : ""}
+                ${needsPushRegistry ?
                     `<td id="push-registry-header">Select a Push Registry</td>` : ""
                 }
                 <!--td></td-->
@@ -121,15 +135,15 @@ function buildTable(registries: ContainerRegistry[], hasPushRegistry: boolean): 
     `;
 }
 
-function buildRow(registry: ContainerRegistry, hasPushRegistry: boolean): string {
+function buildRow(registry: ContainerRegistry, needsPushRegistry: boolean): string {
     // These two columns are left out for the local non-che connection, which does not use a push registry.
     let namespaceTD = "";
     let pushRegistryTD = "";
-    if (hasPushRegistry) {
+    if (needsPushRegistry) {
         // Namespace is greyed out if it's not the current push registry (because it's only used for pushing)
         namespaceTD = `
             <td class="${registry.isPushRegistry ? "" : "namespace-disabled"}">
-                ${registry.namespace || ""}
+                ${registry.namespace || "/"}
             </td>
         `;
         pushRegistryTD = `

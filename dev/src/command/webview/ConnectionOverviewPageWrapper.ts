@@ -30,7 +30,6 @@ export enum ConnectionOverviewWVMessages {
     HELP = "help",
     SAVE_CONNECTION_INFO = "save-connection",
     TOGGLE_CONNECTED = "toggleConnected",
-    SAVE_REGISTRY = "save-registry",
     DELETE = "delete",
     CANCEL = "cancel"
 }
@@ -44,16 +43,7 @@ interface ConnectionInfoFields {
     readonly password?: string;
 }
 
-/**
- * The editable textfields in the Container Registry (right half) part of the overview
- */
-interface RegistryInfoFields {
-    readonly registryUrl?: string;
-    readonly registryUsername?: string;
-    readonly registryPassword?: string;
-}
-
-export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields & RegistryInfoFields;
+export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields;
 
 export default class ConnectionOverview {
 
@@ -156,9 +146,6 @@ export default class ConnectionOverview {
                             this.connection = newConnection;
                             this.connection.onDidOpenOverview(this);
                             vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newConnection.url}`);
-                            if (newInfo.registryUrl) {
-                                await this.updateRegistry(newInfo, false);
-                            }
                             this.refresh(this.connection.memento);
                         }
                         catch (err) {
@@ -183,11 +170,6 @@ export default class ConnectionOverview {
                     } else {
                         this.dispose();
                     }
-                    break;
-                }
-                case ConnectionOverviewWVMessages.SAVE_REGISTRY: {
-                    const registryData = msg.data;
-                    await this.updateRegistry(registryData, true);
                     break;
                 }
                 case ConnectionOverviewWVMessages.DELETE: {
@@ -274,33 +256,4 @@ export default class ConnectionOverview {
         });
     }
 
-    private async updateRegistry(registryInfo: RegistryInfoFields, isUpdate: boolean): Promise<void> {
-        if (!this.connection) {
-            Log.e("Requested to update registry but connection is undefined");
-            return;
-        }
-
-        if (!registryInfo.registryUrl) {
-            vscode.window.showErrorMessage(`Enter a container registry URL`);
-            return;
-        }
-        else if (!registryInfo.registryUsername) {
-            vscode.window.showErrorMessage(`Enter a container registry username`);
-            return;
-        }
-        else if (!registryInfo.registryPassword) {
-            vscode.window.showErrorMessage(`Enter a container registry password`);
-            return;
-        }
-        await this.connection.updateRegistry(
-            registryInfo.registryUrl, registryInfo.registryUsername, registryInfo.registryPassword
-        );
-        this.refresh(this.connection.memento);
-
-        if (isUpdate) {
-            vscode.window.showInformationMessage(
-                `Updating registry info for ${this.connection.label} to ${JSON.stringify(registryInfo)}`
-            );
-        }
-    }
 }

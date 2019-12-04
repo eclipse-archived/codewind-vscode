@@ -19,6 +19,7 @@ import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
+import RegistryUtils, { ContainerRegistry } from "../../codewind/connection/RegistryUtils";
 
 export enum ManageRegistriesWVMessages {
     ADD_NEW = "add-new",
@@ -33,7 +34,7 @@ interface ManageRegistriesMsgData {
     readonly fullAddress: string;
 }
 
-const REGISTRIES_PAGE_TITLE = "Container Registries";
+const REGISTRIES_PAGE_TITLE = "Image Registries";
 
 export class ManageRegistriesPageWrapper {
 
@@ -75,6 +76,7 @@ export class ManageRegistriesPageWrapper {
                 this.handleWebviewMessage(msg);
             }
             catch (err) {
+                vscode.window.showErrorMessage(`Error running action ${msg.type}: ${MCUtil.errToString(err)}`);
                 Log.e("Error processing message from registries webview", err);
                 Log.e("Message was", msg);
             }
@@ -84,7 +86,14 @@ export class ManageRegistriesPageWrapper {
     }
 
     public async refresh(): Promise<void> {
-        this.registries = await Requester.getContainerRegistries(this.connection);
+        try {
+            this.registries = await Requester.getImageRegistries(this.connection);
+        }
+        catch (err) {
+            const errMsg = `Error getting image registries for ${this.connection.label}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+        }
 
         const html = getManageRegistriesHtml(this.connection.label, this.registries, this.connection.isKubeConnection);
         WebviewUtil.debugWriteOutWebview(html, "manage-registries");
@@ -105,69 +114,64 @@ export class ManageRegistriesPageWrapper {
     }
 
     private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
-        try {
-            switch (msg.type as ManageRegistriesWVMessages) {
-                case ManageRegistriesWVMessages.ADD_NEW: {
-                    vscode.window.showInformationMessage("Add New");
-                    break;
+        switch (msg.type as ManageRegistriesWVMessages) {
+            case ManageRegistriesWVMessages.ADD_NEW: {
+                try {
+                    await RegistryUtils.addNewRegistry(this.connection, this.registries);
                 }
-                case ManageRegistriesWVMessages.CHANGE_PUSH: {
-                    const data = msg.data as ManageRegistriesMsgData;
-                    const registry = this.lookupRegistry(data.fullAddress);
-                    if (registry.isPushRegistry) {
-                        // nothing to do
-                        return;
-                    }
-                    vscode.window.showInformationMessage(`Change push registry to ${registry}`);
-                    break;
+                catch (err) {
+                    const errMsg = `Failed to add new image registry`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
                 }
-                case ManageRegistriesWVMessages.DELETE: {
-                    const data = msg.data as ManageRegistriesMsgData;
-                    const registry = this.lookupRegistry(data.fullAddress);
-                    vscode.window.showInformationMessage(`Delete ${registry}`);
-                    break;
+
+                await this.refresh();
+                break;
+            }
+            case ManageRegistriesWVMessages.CHANGE_PUSH: {
+                const data = msg.data as ManageRegistriesMsgData;
+                const newPushRegistry = this.lookupRegistry(data.fullAddress);
+
+                try {
+                    await RegistryUtils.setPushRegistry(this.connection, newPushRegistry);
+                    vscode.window.showInformationMessage(`Change push registry to ${newPushRegistry}`);
                 }
-                case ManageRegistriesWVMessages.HELP: {
-                    vscode.window.showInformationMessage("Help");
-                    break;
+                catch (err) {
+                    const errMsg = `Failed to update push registry to ${newPushRegistry.fullAddress}`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
                 }
-                case ManageRegistriesWVMessages.REFRESH: {
-                    await this.refresh();
-                    break;
+
+                await this.refresh();
+                break;
+            }
+            case ManageRegistriesWVMessages.DELETE: {
+                const data = msg.data as ManageRegistriesMsgData;
+                const registry = this.lookupRegistry(data.fullAddress);
+
+                try {
+                    await Requester.removeRegistrySecret(this.connection, registry);
                 }
-                default: {
-                    Log.e("Received unknown event from manage templates webview:", msg);
+                catch (err) {
+                    const errMsg = `Failed to remove registry ${registry.fullAddress}`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
                 }
+
+                await this.refresh();
+                break;
+            }
+            case ManageRegistriesWVMessages.HELP: {
+                vscode.window.showInformationMessage("Help");
+                break;
+            }
+            case ManageRegistriesWVMessages.REFRESH: {
+                await this.refresh();
+                break;
+            }
+            default: {
+                Log.e("Received unknown event from manage templates webview:", msg);
             }
         }
-        catch (err) {
-            vscode.window.showErrorMessage(`Error performing action ${msg.type}: ${MCUtil.errToString(err)}`);
-            Log.e("Error processing message from manage registries webview", err);
-            Log.e("Message was", msg);
-        }
-    }
-}
-
-// tslint:disable-next-line: max-classes-per-file
-export class ContainerRegistry {
-    public readonly fullAddress: string;
-    public readonly namespace: string;
-
-    constructor(
-        public readonly address: string,
-        namespace: string | undefined,
-        public readonly username: string,
-        public readonly isPushRegistry: boolean,
-    ) {
-        if (isPushRegistry && !namespace) {
-            Log.e(`${this} is a push registry without a namespace`);
-        }
-
-        this.namespace = namespace || "";
-        this.fullAddress = `${address}/${this.namespace}`;
-    }
-
-    public toString(): string {
-        return `${this.username}@${this.fullAddress}`;
     }
 }

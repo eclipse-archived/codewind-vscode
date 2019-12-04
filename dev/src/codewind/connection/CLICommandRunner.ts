@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import CLIWrapper from "./CLIWrapper";
-import { IInitializationResponse, IDetectedProjectType } from "./UserProjectCreator";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import { ITemplateSource } from "../../command/webview/SourcesPageWrapper";
@@ -22,6 +21,18 @@ export interface CLIConnectionData {
     readonly auth: string;
     readonly realm: string;
     readonly clientid: string;
+}
+
+export interface IDetectedProjectType {
+    language: string;
+    projectType: string;
+    projectSubtype?: string;
+}
+
+export interface IInitializationResponse {
+    status: string;
+    result: IDetectedProjectType | string | { error: string };
+    projectPath?: string;
 }
 
 export interface CLIStatus {

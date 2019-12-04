@@ -22,8 +22,6 @@ import Requester from "../project/Requester";
 export default class RemoteConnection extends Connection {
 
     private _username: string;
-    private _registryUrl: string | undefined;
-    private _registryUsername: string | undefined;
 
     private updateCredentialsPromise: Promise<void> = Promise.resolve();
     // private _username: string | undefined;
@@ -44,8 +42,6 @@ export default class RemoteConnection extends Connection {
         super(memento.id, ingressUrl, memento.label, true);
 
         this._username = memento.username;
-        this._registryUrl = memento.registryUrl;
-        this._registryUsername = memento.registryUsername;
 
         if (password) {
             Log.i("Doing initial credentials update for new connection");
@@ -170,14 +166,6 @@ export default class RemoteConnection extends Connection {
         this.tryRefreshOverview();
     }
 
-    public async updateRegistry(registryUrl: string, registryUser: string, _registryPass: string): Promise<void> {
-        // TODO create the secret, test the registry
-        this._registryUrl = registryUrl;
-        this._registryUsername = registryUser;
-        Log.d(`Update registry for ${this.label}`);
-        await ConnectionMemento.save(this.memento);
-    }
-
     public async getAccessToken(): Promise<string> {
 
         // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
@@ -214,8 +202,6 @@ export default class RemoteConnection extends Connection {
             label: this.label,
             ingressUrl: this.url.toString(),
             username: this._username,
-            registryUrl: this._registryUrl,
-            registryUsername: this._registryUsername,
         };
     }
 
