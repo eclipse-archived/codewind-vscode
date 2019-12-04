@@ -30,6 +30,11 @@ declare namespace NodeJS {
         // For some reason, importing anything at the top of this file causes all the properties declared here to not work anymore.
         // So, we use 'any' for extGlobalState - but it's a vscode.Memento.
         // extGlobalState: vscode.Memento
-        extGlobalState: any
+        extGlobalState: any,
+
+        /**
+         * The running version of this extension, eg "0.7.0"
+         */
+        extVersion: string,
     }
 }

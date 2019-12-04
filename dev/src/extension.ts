@@ -42,12 +42,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     global.__extRoot = context.extensionPath;
     // Declared as 'any' type, but will always be assigned globalState which is a vscode.Memento
     global.extGlobalState = context.globalState;
-
-    // https://github.com/theia-ide/theia/issues/5501
     global.isTheia = vscode.env.appName.toLowerCase().includes("theia");
 
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");
+
+    try {
+        const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
+        global.extVersion = thisExtension.packageJSON.version;
+    }
+    catch (err) {
+        Log.e("Error determining extension version", err);
+        global.extVersion = "unknown";
+    }
+    Log.i("Extension version is " + global.extVersion);
 
     try {
         await Translator.init();
