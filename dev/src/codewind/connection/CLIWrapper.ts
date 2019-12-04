@@ -61,27 +61,37 @@ namespace CLIWrapper {
 
         // The executable is copied out to eg ~/.codewind/0.7.0/cwctl
 
-        const internalCwctl = getInternalExecutable();
-        const internalCwctlDirname = path.dirname(internalCwctl);
-        const internalCwctlBasename = path.basename(internalCwctl);
+        const binarySourcePath = getInternalExecutable();
+        const binarySourceDir = path.dirname(binarySourcePath);
+        const binaryBasename = path.basename(binarySourcePath);
 
-        const cwctlTargetDir = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR, global.extVersion);
-        await promisify(fs.mkdir)(cwctlTargetDir, { recursive: true });
+        const binaryTargetDir = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR, global.extVersion);
+        await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
 
-        _cwctlPath = path.join(cwctlTargetDir, internalCwctlBasename);
-        Log.d(`Copying ${internalCwctl} to ${_cwctlPath}`);
-        await promisify(fs.copyFile)(internalCwctl, path.join(cwctlTargetDir, internalCwctlBasename));
+        const cwctlTargetPath = path.join(binaryTargetDir, binaryBasename);
+        await copyIfDestNotExist(binarySourcePath, cwctlTargetPath);
+        _cwctlPath = cwctlTargetPath;
 
         Log.d("Copying CLI prerequisites");
-        for (const prereq of CLI_PREREQS[internalCwctlBasename]) {
-            const source = path.join(internalCwctlDirname, prereq);
-            const target = path.join(cwctlTargetDir, prereq);
-            Log.d(`Copying ${source} to ${target}`);
-            await promisify(fs.copyFile)(source, target);
+        for (const prereq of CLI_PREREQS[binaryBasename]) {
+            const source = path.join(binarySourceDir, prereq);
+            const target = path.join(binaryTargetDir, prereq);
+            await copyIfDestNotExist(source, target);
         }
-        Log.i("CLI copy-out succeeded to " + _cwctlPath);
+        Log.i("Binary copy-out succeeded to " + _cwctlPath);
         cliOutputChannel.appendLine(`cwctl is available at ${_cwctlPath}`);
         return _cwctlPath;
+    }
+
+    async function copyIfDestNotExist(sourcePath: string, destPath: string): Promise<void> {
+        try {
+            await promisify(fs.access)(destPath);
+            Log.d(`${_cwctlPath} already exists`);
+        }
+        catch (err) {
+            Log.d(`Copying ${sourcePath} to ${destPath}`);
+            await promisify(fs.copyFile)(sourcePath, destPath);
+        }
     }
 
     export async function getExecutablePath(): Promise<string> {
