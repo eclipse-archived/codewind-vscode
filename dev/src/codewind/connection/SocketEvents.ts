@@ -101,7 +101,7 @@ namespace SocketEvents {
         PROJECT_VALIDATED = "projectValidated",
         PROJECT_CREATED = "projectCreation",
         PROJECT_BOUND = "projectBind",
-        REGISTRY_STATUS = "deploymentRegistryStatus",
+        REGISTRY_STATUS = "imagePushRegistryStatus",
     }
 
     /**
