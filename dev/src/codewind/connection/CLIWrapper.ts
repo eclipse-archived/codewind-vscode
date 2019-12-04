@@ -61,19 +61,19 @@ namespace CLIWrapper {
 
         // The executable is copied out to eg ~/.codewind/0.7.0/cwctl
 
-        const binarySourcePath = getInternalExecutable();
-        const binarySourceDir = path.dirname(binarySourcePath);
-        const binaryBasename = path.basename(binarySourcePath);
+        const cwctlSourcePath = getInternalExecutable();
+        const binarySourceDir = path.dirname(cwctlSourcePath);
+        const cwctlBasename = path.basename(cwctlSourcePath);
 
         const binaryTargetDir = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR, global.extVersion);
         await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
 
-        const cwctlTargetPath = path.join(binaryTargetDir, binaryBasename);
-        await copyIfDestNotExist(binarySourcePath, cwctlTargetPath);
+        const cwctlTargetPath = path.join(binaryTargetDir, cwctlBasename);
+        await copyIfDestNotExist(cwctlSourcePath, cwctlTargetPath);
         _cwctlPath = cwctlTargetPath;
 
         Log.d("Copying CLI prerequisites");
-        for (const prereq of CLI_PREREQS[binaryBasename]) {
+        for (const prereq of CLI_PREREQS[cwctlBasename]) {
             const source = path.join(binarySourceDir, prereq);
             const target = path.join(binaryTargetDir, prereq);
             await copyIfDestNotExist(source, target);
