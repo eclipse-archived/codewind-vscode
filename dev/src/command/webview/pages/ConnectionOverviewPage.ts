@@ -37,16 +37,17 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             <img id="connection-logo" alt="Codewind Logo"
                 src="${isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>
+            <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
+                Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
+            </div>
         </div>
     </div>
     <!--div id="description">
         <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
     </div-->
-    <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
-        Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
-    </div>
     </div>
     <div id="main">
+        <div style="display: flex;">
             <div id="deployment-box">
                 <h3>Codewind Connection
                     ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
@@ -75,6 +76,22 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                     </div>
                     <!--div type="button" id="test-btn" class="btn btn-prominent" ${connectionExists ? "style='display: none;'" : ""} onclick="testNewConnection()">Test</div-->
                 </div>
+            </div>
+
+            <div>
+                <div id="link-container-box">
+                    <h3>Select Sources<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
+                    <p>Select sources to fetch new project templates from.</p>
+                    <div type="button" class="btn btn-prominent">Open Template Source Manager</div>
+                </div>
+
+                <div id="link-container-box">
+                    <h3>Add Registries<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
+                    <p> Log in to Container Image Registries to push project images and pull private template images.</p>
+                    <div type="button" class="btn btn-prominent">Open Container Registry Manager (optional)</div>
+                </div>
+            </div>
+
             </div>
 
             <div class="remote-connection-btn-group">
@@ -134,6 +151,13 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             document.querySelector("#save-btn").style.display = "inline";
             document.querySelector("#test-btn").style.display = "inline";
         }
+
+        let passwordInput = document.querySelector("#input-password");
+        passwordInput.addEventListener("keyup", (ev) => {
+            if (ev.key === "Enter") {
+               submitNewConnection();
+            }
+        });
 
         function toggleConnection() {
             sendMsg("${ConnectionOverviewWVMessages.TOGGLE_CONNECTED}");
