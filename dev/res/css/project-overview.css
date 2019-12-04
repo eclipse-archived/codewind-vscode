@@ -17,7 +17,7 @@ body {
     margin-left: 1em;
 }
 
-#auto-build-toggle {
+#auto-build-toggle, #auto-inject-metrics-toggle {
     margin: 0;
     padding: 0;
     zoom: 1.25;

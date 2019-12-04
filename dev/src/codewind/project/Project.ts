@@ -81,6 +81,7 @@ export default class Project implements vscode.QuickPickItem {
     // Dates below will always be set, but might be "invalid date"s
     private _lastBuild: Date;
     private _lastImgBuild: Date;
+    private _autoInjectMetricsEnabled: boolean;
 
     public static readonly diagnostics: vscode.DiagnosticCollection
         = vscode.languages.createDiagnosticCollection(Validator.DIAGNOSTIC_COLLECTION_NAME);
@@ -129,6 +130,8 @@ export default class Project implements vscode.QuickPickItem {
         // appImageLastBuild is a string
         this._lastImgBuild = new Date(Number(projectInfo.appImgLastBuild));
 
+        this._autoInjectMetricsEnabled = projectInfo.injectMetrics || false;
+
         this._ports = {
             appPort: undefined,
             debugPort: undefined,
@@ -169,6 +172,7 @@ export default class Project implements vscode.QuickPickItem {
         this.setLastBuild(projectInfo.lastbuild);
         this.setLastImgBuild(Number(projectInfo.appImageLastBuild));
         this.setAutoBuild(projectInfo.autoBuild);
+        this.setAutoInjectMetrics(projectInfo.injectMetrics);
 
         if (projectInfo.isHttps) {
             this._usesHttps = projectInfo.isHttps === true;
@@ -613,6 +617,10 @@ export default class Project implements vscode.QuickPickItem {
             vscode.workspace.workspaceFolders.some((folder) => this.localPath.fsPath.startsWith(folder.uri.fsPath));
     }
 
+    public get autoInjectMetricsEnabled(): boolean {
+        return this._autoInjectMetricsEnabled;
+    }
+
     ///// Setters
 
     /**
@@ -737,5 +745,22 @@ export default class Project implements vscode.QuickPickItem {
             // fall-back in case the user deleted the file, or something.
             vscode.window.showWarningMessage(`${settingsFilePath} does not exist or was not readable.`);
         }
+    }
+
+    public setAutoInjectMetrics(newInjectMetrics: boolean | undefined): boolean {
+        if (newInjectMetrics == null) {
+            return false;
+        }
+        const oldInjectMetrics = this._autoInjectMetricsEnabled;
+        this._autoInjectMetricsEnabled = newInjectMetrics;
+
+        const changed = this._autoInjectMetricsEnabled !== oldInjectMetrics;
+        if (changed) {
+            // onChange has to be invoked explicitly because this function can be called outside of update()
+            Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._autoInjectMetricsEnabled}`);
+            this.onChange();
+        }
+
+        return changed;
     }
 }

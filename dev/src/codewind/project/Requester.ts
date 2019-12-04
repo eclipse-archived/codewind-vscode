@@ -247,6 +247,22 @@ namespace Requester {
         return res.metricsAvailable;
     }
 
+    export async function requestToggleAutoInjectMetrics(project: Project): Promise<void> {
+        const newInjectMetrics: boolean = !project.autoInjectMetricsEnabled;
+
+        // user-friendly action
+        const autoInjectMetricsMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
+        const newAutoInjectMetricsUserStr: string = Translator.t(STRING_NS, autoInjectMetricsMsgKey);
+
+        const body = {
+            enable: newInjectMetrics
+        };
+
+        await doProjectRequest(project, ProjectEndpoints.METRICS_INJECTION, body, "POST", newAutoInjectMetricsUserStr);
+
+        project.setAutoInjectMetrics(newInjectMetrics);
+    }
+
     /**
      * Try to connect to the given URL. Returns true if _any_ response is returned.
      */
