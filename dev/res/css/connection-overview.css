@@ -234,6 +234,7 @@ body {
 .connection-name {
     font-family: IBMPlexSans;
     font-size: 32px;
+    white-space: nowrap;
 }
 
 .remote-connection-btn-group .btn img {

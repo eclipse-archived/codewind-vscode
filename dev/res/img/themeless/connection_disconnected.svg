@@ -24,7 +24,7 @@
 							l-0.056-0.463c-0.26-1.965-1.935-3.433-3.916-3.433c-1.982,0-3.656,1.469-3.915,3.433L4.036,5.194H3.55
 							C2.148,5.25,1.057,6.432,1.113,7.834s1.238,2.493,2.64,2.437L3.753,11.399z"/>
 					</defs>
-					<use xlink:href="#SVGID_1_"  style="overflow:visible;fill:#FFFFFF;"/>
+					<use xlink:href="#SVGID_1_"  style="overflow:visible;fill:#d4d4d4;"/>
 					<clipPath id="SVGID_2_">
 						<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
 					</clipPath>
