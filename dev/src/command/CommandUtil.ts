@@ -47,7 +47,7 @@ import LocalCodewindManager from "../codewind/connection/local/LocalCodewindMana
 import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnablement";
-import toggleAutoInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
+import toggleInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -107,10 +107,10 @@ export function createCommands(): vscode.Disposable[] {
         registerProjectCommand(Commands.OPEN_APP_MONITOR, openAppMonitorCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),
 
-        registerProjectCommand(Commands.TOGGLE_AUTOINJECTMETRICS, toggleAutoInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
-        // Enable and disable "Auto Inject Metrics" are the same as Toggle "Auto Inject Metrics" - they are just presented to the user differently.
-        registerProjectCommand(Commands.ENABLE_AUTOINJECTMETRICS, toggleAutoInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.DISABLE_AUTOINJECTMETRICS, toggleAutoInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.TOGGLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
+        // Enable and disable "Inject Metrics" are the same as Toggle "Inject Metrics" - they are just presented to the user differently.
+        registerProjectCommand(Commands.ENABLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.DISABLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
     ];
 }
 

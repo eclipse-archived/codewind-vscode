@@ -31,7 +31,7 @@ export enum ProjectOverviewWVMessages {
     UNBIND = "unbind",
     TOGGLE_ENABLEMENT = "toggleEnablement",
     EDIT = "edit",
-    TOGGLE_AUTOINJECTMETRICS = "toggleAutoInjectMetrics",
+    TOGGLE_INJECT_METRICS = "toggleInjectMetrics",
 }
 
 enum OpenableTypes {
@@ -127,12 +127,12 @@ function generateHtml(project: Project): string {
                     </td>
                 </tr>
                 <tr>
-                    <td class="info-label">Auto inject metrics:</td>
+                    <td class="info-label">Inject Appmetrics:</td>
                     <td>
                         <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
-                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOINJECTMETRICS}')"
-                            ${project.autoInjectMetricsEnabled ? "checked" : ""}
-                            ${project.state.isEnabled ? " " : " disabled"}
+                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}')"
+                            ${project.injectMetricsEnabled ? "checked" : ""}
+                            ${project.type.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
                         />
                     </td>
                 </tr>

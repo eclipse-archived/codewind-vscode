@@ -83,13 +83,21 @@ namespace MCUtil {
                     return infoMsg;
                 }
             }
-            return err.error.msg || err.error.message || JSON.stringify(err.error);
+            const msg = err.error.msg || err.error.message;
+            if (msg) {
+                return msg;
+            }
+            const jsoErr = JSON.stringify(err.error);
+            if (jsoErr !== "{}") {
+                return jsoErr;
+            }
         }
 
-        if (!err.message) {
-            return "Unknown error";
+        if (err.message) {
+            return err.message;
         }
-        return err.message || JSON.stringify(err);
+
+        return "Unknown error";
     }
 
     const charsToRemove = "·/_,:;";

@@ -122,14 +122,14 @@
     "cmdID_validate": "ext.cw.validate",
     "cmdTitle_validate": "Validate",
 
-    "cmdID_toggleAutoInjectMetrics": "ext.cw.toggleAutoInjectMetrics",
-    "cmdTitle_toggleAutoInjectMetrics": "Toggle Inject Metrics",
+    "cmdID_toggleAutoInjectMetrics": "ext.cw.toggleInjectMetrics",
+    "cmdTitle_toggleAutoInjectMetrics": "Toggle Inject Appmetrics",
 
-    "cmdID_enableAutoInjectMetrics": "ext.cw.enableAutoInjectMetrics",
-    "cmdTitle_enableAutoInjectMetrics": "Enable Auto Inject Metrics",
+    "cmdID_enableAutoInjectMetrics": "ext.cw.enableInjectMetrics",
+    "cmdTitle_enableAutoInjectMetrics": "Enable Inject Appmetrics",
 
-    "cmdID_disableAutoInjectMetrics": "ext.cw.disableAutoInjectMetrics",
-    "cmdTitle_disableAutoInjectMetrics": "Disable Auto Inject Metrics",
+    "cmdID_disableAutoInjectMetrics": "ext.cw.disableInjectMetrics",
+    "cmdTitle_disableAutoInjectMetrics": "Disable Inject Appmetrics",
 
     "// None of items below are exposed to user": [
         "These regexes match Context IDs for Projects and Connections to determine command enablement",
@@ -160,6 +160,6 @@
     "isShellableProject":               "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.shellable.*/",
     "isEnabledAutoBuildOn":             "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOn/",
     "isEnabledAutoBuildOff":            "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOff/",
-    "isEnabledAutoInjectMetricsOn":     "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoInjectMetricsOn/",
-    "isEnabledAutoInjectMetricsOff":    "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoInjectMetricsOff/"
+    "isEnabledAutoInjectMetricsOn":     "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.injectMetricsOn/",
+    "isEnabledAutoInjectMetricsOff":    "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.injectMetricsOff/"
 }

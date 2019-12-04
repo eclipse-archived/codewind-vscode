@@ -123,8 +123,8 @@
         "checkingAvailableLogs": "checking available logs",
         "togglingLogs": "toggling logs {{ onOrOff }}",
         "checkingMetrics": "checking metrics status",
-        "autoInjectMetricsEnable": "Enabling auto inject metrics",
-        "autoInjectMetricsDisable": "Disabling auto inject metrics",
+        "autoInjectMetricsEnable": "Enabling appmetrics injection",
+        "autoInjectMetricsDisable": "Disabling appmetrics injection",
 
         "requestSuccess":   "{{ projectName }}: {{ operationName }}",
         "requestFail":      "{{ projectName }}: {{ operationName }} failed: {{- err }}"

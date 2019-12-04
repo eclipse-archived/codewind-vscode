@@ -22,7 +22,7 @@ export class ProjectType {
     public readonly icon: Resources.IconPaths;
 
     constructor(
-        public readonly internalType: string,
+        public readonly internalType: ProjectType.InternalTypes,
         public readonly language: string,
         public readonly extensionName?: string,
     ) {
@@ -135,6 +135,15 @@ export class ProjectType {
     public get providesBuildLog(): boolean {
         return !ProjectType.PROJECTS_WITHOUT_BUILDLOGS.includes(this.type);
     }
+
+    public get canInjectMetrics(): boolean {
+        // This should be the job of the capabilities API
+        return [
+            ProjectType.InternalTypes.MICROPROFILE,
+            ProjectType.InternalTypes.NODE,
+            ProjectType.InternalTypes.SPRING
+        ].includes(this.internalType);
+    }
 }
 
 export namespace ProjectType {
@@ -162,7 +171,9 @@ export namespace ProjectType {
         SPRING = "spring",
         NODE = "nodejs",
         SWIFT = "swift",
-        DOCKER = "docker"
+        DOCKER = "docker",
+        EXTENSION_APPSODY = "appsodyExtension",
+        EXTENSION_ODO = "odo",
     }
 
 

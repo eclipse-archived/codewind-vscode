@@ -60,8 +60,8 @@ enum TreeItemContextValues {
 
     PROJ_SHELLABLE = "shellable",
 
-    PROJ_AUTOINJECTMETRICS_ON = "autoInjectMetricsOn",
-    PROJ_AUTOINJECTMETRICS_OFF = "autoInjectMetricsOff",
+    PROJ_INJECT_METRICS_ON = "injectMetricsOn",
+    PROJ_INJECT_METRICS_OFF = "injectMetricsOff",
 }
 
 namespace TreeItemContext {
@@ -142,10 +142,12 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_SHELLABLE);
         }
 
-        if (project.autoInjectMetricsEnabled) {
-            contextValues.push(TreeItemContextValues.PROJ_AUTOINJECTMETRICS_ON);
-        } else {
-            contextValues.push(TreeItemContextValues.PROJ_AUTOINJECTMETRICS_OFF);
+        if (project.type.canInjectMetrics) {
+            if (project.injectMetricsEnabled) {
+                contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_ON);
+            } else {
+                contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_OFF);
+            }
         }
 
         // The final result will look like eg: "ext.cw.project.enabled.autoBuildOn"

@@ -49,9 +49,10 @@ enum Commands {
     PROJECT_OVERVIEW = "ext.cw.projectOverview",
     OPEN_APP_MONITOR = "ext.cw.openAppMonitor",
     OPEN_PERF_DASHBOARD = "ext.cw.openPerfDashboard",
-    TOGGLE_AUTOINJECTMETRICS = "ext.cw.toggleAutoInjectMetrics",
-    ENABLE_AUTOINJECTMETRICS = "ext.cw.enableAutoInjectMetrics",
-    DISABLE_AUTOINJECTMETRICS = "ext.cw.disableAutoInjectMetrics",
+
+    TOGGLE_INJECT_METRICS = "ext.cw.toggleInjectMetrics",
+    ENABLE_INJECT_METRICS = "ext.cw.enableInjectMetrics",
+    DISABLE_INJECT_METRICS = "ext.cw.disableInjectMetrics",
 
     MANAGE_LOGS = "ext.cw.manageLogs",
     SHOW_ALL_LOGS = "ext.cw.showAllLogs",
