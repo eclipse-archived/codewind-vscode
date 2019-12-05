@@ -14,10 +14,12 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import ConnectionOverview from "../../command/webview/ConnectionOverview";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner, AccessToken } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
 import Requester from "../project/Requester";
+import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
+import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 
 export default class RemoteConnection extends Connection {
 
@@ -27,7 +29,7 @@ export default class RemoteConnection extends Connection {
 
     private updateCredentialsPromise: Promise<void> = Promise.resolve();
     // private _username: string | undefined;
-    private _accessToken: string | undefined;
+    private _accessToken: AccessToken | undefined;
 
     private _activeOverviewPage: ConnectionOverview | undefined;
 
@@ -82,7 +84,7 @@ export default class RemoteConnection extends Connection {
 
         let token: string;
         try {
-            token = await this.getAccessToken();
+            token = (await this.getAccessToken()).access_token;
         }
         catch (err) {
             this.setState(ConnectionStates.AUTH_ERROR);
@@ -124,6 +126,22 @@ export default class RemoteConnection extends Connection {
         finally {
             this.currentToggleOperation = undefined;
         }
+    }
+
+    protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
+        return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath, {
+            getLatestAuthToken: (): FWAuthToken | undefined => {
+                if (!this._accessToken) {
+                    return undefined;
+                }
+                return new FWAuthToken(this._accessToken.access_token, this._accessToken.token_type);
+            },
+            informReceivedInvalidAuthToken: () => {
+                this._accessToken = undefined;
+                // Invalidate and retart the process of getting a new access token
+                this.getAccessToken();
+            }
+        });
     }
 
     /**
@@ -171,7 +189,7 @@ export default class RemoteConnection extends Connection {
         await ConnectionMemento.save(this.memento);
     }
 
-    public async getAccessToken(): Promise<string> {
+    public async getAccessToken(): Promise<AccessToken> {
 
         // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
         await this.updateCredentialsPromise;
