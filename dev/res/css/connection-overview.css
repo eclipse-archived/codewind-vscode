@@ -25,9 +25,10 @@ body {
 }
 
 #learn-more-btn-remote {
-    color: #0f62fe;
-    width: 145px;
-    margin-left: 835px;
+    display: inline;
+    position: absolute;
+    margin-left: 5px;
+    outline: none;
 }
 
 #url {
@@ -97,6 +98,7 @@ body {
     float: right;
     width: 20px;
     margin-right: 345px;
+    margin-top: 5px;
 }
 
 #deployment-box p {
@@ -188,7 +190,7 @@ body {
 
  #toggle-connect-btn {
     color: #fff;
-    background: var(--vscode-editor-foreground);
+    background: var(--vscode-sideBarSectionHeader-background);
     font-size: .875rem;
     font-weight: 400;
     line-height: 1.125rem;

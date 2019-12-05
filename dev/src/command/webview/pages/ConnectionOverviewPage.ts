@@ -37,9 +37,6 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             <img id="connection-logo" alt="Codewind Logo"
                 src="${isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>
-            <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
-                Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
-            </div>
         </div>
     </div>
     <!--div id="description">
@@ -50,6 +47,9 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
         <div style="display: flex;">
             <div id="deployment-box">
                 <h3>Codewind Connection
+                <div tabindex="0" id="learn-more-btn-remote" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
+                    <img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
+                </div>
                     ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
                     `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`}
                 </h3>
@@ -81,7 +81,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             <div>
                 <div id="link-container-box">
                     <h3>Select Sources<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
-                    <p>Select sources to fetch new project templates from.</p>
+                    <p>Select sources to fetch new project templates from.</p><br>
                     <div type="button" class="btn btn-prominent">Open Template Source Manager</div>
                 </div>
 
