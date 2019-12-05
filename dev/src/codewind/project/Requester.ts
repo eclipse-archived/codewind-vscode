@@ -27,6 +27,7 @@ import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
 import { RawCWEnvData } from "../connection/CWEnvironment";
 import RemoteConnection from "../connection/RemoteConnection";
+import { AccessToken } from "../connection/CLICommandRunner";
 
 // tslint:disable-next-line: variable-name
 const HttpVerbs = {
@@ -358,11 +359,14 @@ namespace Requester {
     // By enforcing all requests to go through this function,
     // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
 
-    async function req(verb: keyof typeof HttpVerbs, url: string, options: request.RequestPromiseOptions = {}, accessToken?: string): Promise<any> {
+    async function req(verb: keyof typeof HttpVerbs, url: string, options: request.RequestPromiseOptions = {}, accessToken?: AccessToken)
+        : Promise<any> {
+
         const optionsCopy = Object.assign({}, options);
         optionsCopy.json = true;
         // we resolve with full response so we can look out for redirects below
         optionsCopy.resolveWithFullResponse = true;
+        optionsCopy.followRedirect = false;
         // TODO ...
         optionsCopy.rejectUnauthorized = false;
         if (!optionsCopy.timeout) {
@@ -378,12 +382,12 @@ namespace Requester {
                 throw new Error(`Refusing to send access token to non-secure URL ${url}`);
             }
             optionsCopy.auth = {
-                bearer: accessToken,
+                bearer: accessToken.access_token,
             };
         }
 
         const response = await requestFunc(url, optionsCopy) as request.FullResponse;
-        if (response.request.path.startsWith("/auth/")) {
+        if (response.statusCode === 302 && response.headers.location && response.headers.location.includes("openid-connect/auth")) {
             throw new Error(ERR_LOGIN_PAGE);
         }
 
