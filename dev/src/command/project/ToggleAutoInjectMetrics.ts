@@ -9,20 +9,15 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-/**
- * Miscellaneous constants
- */
-namespace Constants {
-    export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
-    export const DOT_CODEWIND_DIR = ".codewind";
+import * as vscode from "vscode";
 
-    export const CHE_WORKSPACEID_ENVVAR = "CHE_WORKSPACE_ID";
-    export const CHE_API_EXTERNAL_ENVVAR = "CHE_API_EXTERNAL";
+import Project from "../../codewind/project/Project";
+import Requester from "../../codewind/project/Requester";
 
-    export const CW_ENV_VAR = "CW_ENV";
-    export const CW_ENV_DEV = "dev";
-    export const CW_ENV_TEST = "test";
-    export const CW_ENV_TAG_VAR = "CW_TAG";
+export default async function toggleInjectMetricsCmd(project: Project): Promise<void> {
+    if (!project.type.canInjectMetrics) {
+        vscode.window.showWarningMessage(`This project type does not support Appmetrics injection.`);
+        return;
+    }
+    return Requester.requestToggleInjectMetrics(project);
 }
-
-export default Constants;

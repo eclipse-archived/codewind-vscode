@@ -29,9 +29,14 @@ body {
     float: right;
 }
 
+#url {
+    font-family: IBMPlexSans;
+}
+
 #connection-logo {
     height: 45px;
     margin-right: 1em;
+    background-color: var(--vscode-editor-background);
 }
 
 #deployment-box {
@@ -39,19 +44,18 @@ body {
     width: 530px;
     height: 340px;
     display: inline-table;
-    background-color: #161616;
+    background-color: var(--vscode-sideBar-background);
 }
 
 #deployment-box p {
-    color: white;
+    font-family: IBMPlexSans;
 }
 #deployment-box label {
-    color: white;
+    font-family: IBMPlexSans;
 }
 
 #deployment-box h3 {
-    background: #262626;
-    color: #fff;
+    background: var(--vscode-sideBarSectionHeader-background);
     font-size: 20px;
     width: 100%;
     margin-top: 0px;
@@ -78,11 +82,12 @@ body {
     height: 2.5rem;
     margin-top: 5px;
     margin-bottom: 5px;
+    font-family: IBMPlexSans;
     font-size: 1rem;
-    background-color:black;
+    background-color: var(--vscode-sideBarSectionHeader-background);
     border: 0;
     text-indent: 1rem;
-    color: #fff;
+    color: var(--vscode-editor-foreground);
 }
 
 #deployment-box .input-username {
@@ -92,10 +97,11 @@ body {
     margin-top: 5px;
     margin-bottom: 5px;
     font-size: 1rem;
-    background-color: black;
+    font-family: IBMPlexSans;
+    background-color: var(--vscode-sideBarSectionHeader-background);
     border: 0;
     text-indent: 1rem;
-    color: #fff;
+    color: var(--vscode-editor-foreground);
 }
 
 #deployment-box .input-password {
@@ -106,10 +112,10 @@ body {
     margin-bottom: 5px;
     margin-left: 10px;
     font-size: 1rem;
-    background-color: black;
+    background-color:var(--vscode-sideBarSectionHeader-background);
     border: 0;
     text-indent: 1rem;
-    color: #fff;
+    color: var(--vscode-editor-foreground);
 }
 
 #cancel-btn {
@@ -226,7 +232,14 @@ body {
 }
 
 .connection-name {
-    font-family: HelveticaNeue;
+    font-family: IBMPlexSans;
     font-size: 32px;
-    color: #CCCCCC;
+    white-space: nowrap;
+}
+
+.remote-connection-btn-group .btn img {
+    margin-left: 10px;
+    vertical-align: text-top;
+    height: 17px;
+    padding: 0px;
 }

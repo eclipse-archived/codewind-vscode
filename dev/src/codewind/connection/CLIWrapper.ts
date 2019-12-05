@@ -21,6 +21,7 @@ import Log from "../../Logger";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
 import { CLILifecycleCommand } from "./local/CLILifecycleCommands";
 import { CLICommand } from "./CLICommandRunner";
+import Constants from "../../constants/Constants";
 
 const BIN_DIR = "bin";
 const CLI_EXECUTABLE = "cwctl";
@@ -47,38 +48,55 @@ namespace CLIWrapper {
     }
 
     // abs path to copied-out executable. Set and returned by initialize()
-    let _executablePath: string;
+    let _cwctlPath: string;
 
     /**
      * Copies the CLI to somewhere writeable if not already done, and sets exectablePath.
      * @returns The path to the CLI executable after moving it to a writeable directory.
      */
     export async function initialize(): Promise<string> {
-        if (_executablePath) {
-            return _executablePath;
+        if (_cwctlPath) {
+            return _cwctlPath;
         }
-        const executableDir = os.tmpdir();
-        const executable = getInternalExecutable();
-        const executableDirname = path.dirname(executable);
-        const executableBasename = path.basename(executable);
-        _executablePath = path.join(executableDir, executableBasename);
-        Log.d(`Copying ${executable} to ${_executablePath}`);
-        await promisify(fs.copyFile)(executable, path.join(executableDir, executableBasename));
+
+        // The executable is copied out to eg ~/.codewind/0.7.0/cwctl
+
+        const cwctlSourcePath = getInternalExecutable();
+        const binarySourceDir = path.dirname(cwctlSourcePath);
+        const cwctlBasename = path.basename(cwctlSourcePath);
+
+        const binaryTargetDir = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR, global.extVersion);
+        await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
+
+        const cwctlTargetPath = path.join(binaryTargetDir, cwctlBasename);
+        await copyIfDestNotExist(cwctlSourcePath, cwctlTargetPath);
+        _cwctlPath = cwctlTargetPath;
+
         Log.d("Copying CLI prerequisites");
-        for (const prereq of CLI_PREREQS[executableBasename]) {
-            const source = path.join(executableDirname, prereq);
-            const target = path.join(executableDir, prereq);
-            Log.d(`Copying ${source} to ${target}`);
-            await promisify(fs.copyFile)(source, target);
+        for (const prereq of CLI_PREREQS[cwctlBasename]) {
+            const source = path.join(binarySourceDir, prereq);
+            const target = path.join(binaryTargetDir, prereq);
+            await copyIfDestNotExist(source, target);
         }
-        Log.i("CLI copy-out succeeded, to " + _executablePath);
-        // cliOutputChannel.appendLine(`cwctl is available at ${_executablePath}`);
-        return _executablePath;
+        Log.i("Binary copy-out succeeded to " + _cwctlPath);
+        cliOutputChannel.appendLine(`cwctl is available at ${_cwctlPath}`);
+        return _cwctlPath;
+    }
+
+    async function copyIfDestNotExist(sourcePath: string, destPath: string): Promise<void> {
+        try {
+            await promisify(fs.access)(destPath);
+            Log.d(`${_cwctlPath} already exists`);
+        }
+        catch (err) {
+            Log.d(`Copying ${sourcePath} to ${destPath}`);
+            await promisify(fs.copyFile)(sourcePath, destPath);
+        }
     }
 
     export async function getExecutablePath(): Promise<string> {
-        if (_executablePath) {
-            return _executablePath;
+        if (_cwctlPath) {
+            return _cwctlPath;
         }
         return initialize();
     }
@@ -166,7 +184,7 @@ namespace CLIWrapper {
                             Log.e("Stderr:", errStr.trim());
                         }
 
-                        let errMsg = `Error running ${path.basename(_executablePath)} ${cmd.command.join(" ")}`;
+                        let errMsg = `Error running ${path.basename(_cwctlPath)} ${cmd.command.join(" ")}`;
                         if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
                             const asObj = JSON.parse(outStr);
                             if (asObj.error_description) {

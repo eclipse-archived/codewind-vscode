@@ -17,6 +17,7 @@ import * as ProjectOverview from "../webview/pages/ProjectOverviewPage";
 import Log from "../../Logger";
 import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
+import toggleInjectMetricsCmd from "./ToggleAutoInjectMetrics";
 import requestBuildCmd from "./RequestBuildCmd";
 import Resources from "../../constants/Resources";
 import { removeProject } from "./RemoveProjectCmd";
@@ -83,6 +84,10 @@ function handleWebviewMessage(this: Project, msg: WebviewUtil.IWVMessage): void 
             }
             case ProjectOverview.ProjectOverviewWVMessages.EDIT: {
                 project.tryOpenSettingsFile();
+                break;
+            }
+            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS: {
+                toggleInjectMetricsCmd(project);
                 break;
             }
             default: {

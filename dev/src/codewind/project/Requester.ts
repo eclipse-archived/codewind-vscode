@@ -318,6 +318,21 @@ namespace Requester {
         return res.metricsAvailable;
     }
 
+    export async function requestToggleInjectMetrics(project: Project): Promise<void> {
+        const newInjectMetrics: boolean = !project.injectMetricsEnabled;
+
+        // user-friendly action
+        const autoInjectMetricsMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
+        const newAutoInjectMetricsUserStr: string = Translator.t(STRING_NS, autoInjectMetricsMsgKey);
+
+        const body = {
+            enable: newInjectMetrics
+        };
+
+        await doProjectRequest(project, ProjectEndpoints.METRICS_INJECTION, body, "POST", newAutoInjectMetricsUserStr);
+        project.setInjectMetrics(newInjectMetrics);
+    }
+
     /**
      * Try to connect to the given URL. Returns true if any response, other than 503 unavailable, is returned.
      */

@@ -77,10 +77,10 @@ export default class Project implements vscode.QuickPickItem {
     private appBaseURL: vscode.Uri | undefined;
     private _autoBuildEnabled: boolean;
     private _usesHttps: boolean;
-    private _lastSync: number;
     // Dates below will always be set, but might be "invalid date"s
     private _lastBuild: Date;
     private _lastImgBuild: Date;
+    private _injectMetricsEnabled: boolean;
 
     public static readonly diagnostics: vscode.DiagnosticCollection
         = vscode.languages.createDiagnosticCollection(Validator.DIAGNOSTIC_COLLECTION_NAME);
@@ -123,11 +123,12 @@ export default class Project implements vscode.QuickPickItem {
 
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
         this._autoBuildEnabled = projectInfo.autoBuild;
-        this._lastSync = 0;
         // lastbuild is a number
         this._lastBuild = new Date(projectInfo.lastbuild);
         // appImageLastBuild is a string
         this._lastImgBuild = new Date(Number(projectInfo.appImgLastBuild));
+
+        this._injectMetricsEnabled = projectInfo.injectMetrics || false;
 
         this._ports = {
             appPort: undefined,
@@ -173,6 +174,7 @@ export default class Project implements vscode.QuickPickItem {
         this.setLastBuild(projectInfo.lastbuild);
         this.setLastImgBuild(Number(projectInfo.appImageLastBuild));
         this.setAutoBuild(projectInfo.autoBuild);
+        this.setInjectMetrics(projectInfo.injectMetrics);
 
         if (projectInfo.isHttps) {
             this._usesHttps = projectInfo.isHttps === true;
@@ -604,10 +606,6 @@ export default class Project implements vscode.QuickPickItem {
         return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
     }
 
-    public get lastSync(): number {
-        return this._lastSync;
-    }
-
     public get canContainerShell(): boolean {
         return !this.connection.isRemote; // && !!this.containerID;
     }
@@ -615,6 +613,10 @@ export default class Project implements vscode.QuickPickItem {
     public get isInVSCodeWorkspace(): boolean {
         return !!vscode.workspace.workspaceFolders &&
             vscode.workspace.workspaceFolders.some((folder) => this.localPath.fsPath.startsWith(folder.uri.fsPath));
+    }
+
+    public get injectMetricsEnabled(): boolean {
+        return this._injectMetricsEnabled;
     }
 
     ///// Setters
@@ -713,10 +715,21 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    public setLastSync(): void {
-        Log.d(`Marking ${this.name} as synced`);
-        const startTime = Date.now();
-        this._lastSync = startTime;
+    public setInjectMetrics(newInjectMetrics: boolean | undefined): boolean {
+        if (newInjectMetrics == null) {
+            return false;
+        }
+        const oldInjectMetrics = this._injectMetricsEnabled;
+        this._injectMetricsEnabled = newInjectMetrics;
+
+        const changed = this._injectMetricsEnabled !== oldInjectMetrics;
+        if (changed) {
+            // onChange has to be invoked explicitly because this function can be called outside of update()
+            Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._injectMetricsEnabled}`);
+            this.onChange();
+        }
+
+        return changed;
     }
 
     public async tryOpenSettingsFile(): Promise<void> {
