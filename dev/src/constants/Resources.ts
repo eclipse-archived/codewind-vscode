@@ -112,6 +112,8 @@ namespace Resources {
         ToggleOnThin = "toggle_on_thin.svg",
         ToggleOffThin = "toggle_off_thin.svg",
         Trash = "trash.svg",
+        Delete = "trash_can.svg",
+        Edit_Connection = "edit_connection.svg",
         Warning = "warning.svg",
 
         Generic      = "project-types/generic.svg",
