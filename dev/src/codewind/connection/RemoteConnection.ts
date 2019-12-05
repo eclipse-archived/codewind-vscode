@@ -207,11 +207,12 @@ export default class RemoteConnection extends Connection {
 
     public async refresh(): Promise<void> {
         if (this.isConnected) {
-            super.refresh();
+            await super.refresh();
             return;
         }
         await this.disable();
         await this.enable();
+        await super.refresh();
         vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
