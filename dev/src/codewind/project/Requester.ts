@@ -111,21 +111,24 @@ namespace Requester {
     }
 
     interface RegistrySecretResponse {
-        readonly url: string;
+        readonly address: string;
         readonly username: string;
     }
 
     function asContainerRegistry(response: RegistrySecretResponse): ContainerRegistry {
-        return new ContainerRegistry(response.url, response.username);
+        if (!response.address || !response.username) {
+            Log.e(`Received unexpected container registry response:`, response);
+        }
+        return new ContainerRegistry(response.address, response.username);
     }
 
     export async function getImageRegistries(connection: Connection): Promise<ContainerRegistry[]> {
         const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "GET");
         const registries = response.map((reg) => asContainerRegistry(reg));
-        Log.d(`Image registries`, registries);
+        // Log.d(`${registries.length} image registries`);
 
         const pushRegistryRes = await getPushRegistry(connection);
-        Log.d(`Image push registry response`, pushRegistryRes);
+        // Log.d(`Image push registry response`, pushRegistryRes);
 
         // tslint:disable-next-line: no-boolean-literal-compare
         if (pushRegistryRes.imagePushRegistry === true) {
@@ -134,8 +137,9 @@ namespace Requester {
                 Log.e(`Push registry response was ${JSON.stringify(pushRegistryRes)} but no registry with a matching address was found`);
             }
             else {
-                Log.i(`Push registry is ${pushRegistry}`);
                 pushRegistry.isPushRegistry = true;
+                pushRegistry.namespace = pushRegistryRes.namespace || "";
+                Log.i(`Push registry is ${pushRegistry.address}`);
             }
         }
         else {
@@ -151,9 +155,8 @@ namespace Requester {
         const credentialsEncoded = Buffer.from(JSON.stringify(credentialsPlain)).toString("base64");
 
         const body = {
-            url: address,
+            address,
             credentials: credentialsEncoded,
-            // namespace: containerRegistry.namespace
         };
 
         const response = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "POST", { body });
@@ -162,23 +165,22 @@ namespace Requester {
 
     export async function removeRegistrySecret(connection: Connection, toRemove: ContainerRegistry): Promise<ContainerRegistry[]> {
         const body = {
-            url: toRemove.address,
+            address: toRemove.address,
         };
 
         const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "DELETE", { body });
         return response.map(asContainerRegistry);
     }
 
-    async function getPushRegistry(connection: Connection): Promise<{ imagePushRegistry: boolean, address?: string, namespace?: string }> {
+    export async function getPushRegistry(connection: Connection): Promise<{ imagePushRegistry: boolean, address?: string, namespace?: string }> {
         return doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "GET");
     }
 
     export async function setPushRegistry(connection: Connection, registry: ContainerRegistry): Promise<void> {
         const body = {
             operation: "set",
-            // url: registry.address,
-            // namespace: registry.namespace,
-            imagePushRegistry: registry.fullAddress,
+            address: registry.address,
+            namespace: registry.namespace,
         };
 
         await doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "POST", { body });
@@ -188,7 +190,7 @@ namespace Requester {
 
         const body = {
             operation: "test",
-            url: registry.address,
+            address: registry.address,
             namespace: registry.namespace,
         };
 

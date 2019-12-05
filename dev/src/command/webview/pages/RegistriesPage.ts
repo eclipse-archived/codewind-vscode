@@ -86,6 +86,15 @@ export default function getManageRegistriesPage(connectionLabel: string, registr
             // console.log("Send message " + JSON.stringify(msg));
             vscode.postMessage(msg);
         }
+
+        window.addEventListener("message", event => {
+            const message = event.data; // The JSON data our extension sent
+
+            switch (message.command) {
+
+            }
+        });
+
     </script>
 
     </body>
@@ -143,7 +152,7 @@ function buildRow(registry: ContainerRegistry, needsPushRegistry: boolean): stri
         // Namespace is greyed out if it's not the current push registry (because it's only used for pushing)
         namespaceTD = `
             <td class="${registry.isPushRegistry ? "" : "namespace-disabled"}">
-                ${registry.namespace || "/"}
+                ${registry.namespace || "N/A"}
             </td>
         `;
         pushRegistryTD = `

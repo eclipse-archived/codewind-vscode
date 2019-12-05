@@ -130,24 +130,43 @@ export class ManageRegistriesPageWrapper {
             }
             case ManageRegistriesWVMessages.CHANGE_PUSH: {
                 const data = msg.data as ManageRegistriesMsgData;
-                const newPushRegistry = this.lookupRegistry(data.fullAddress);
+                const pushRegistryToSet = this.lookupRegistry(data.fullAddress);
+                if (pushRegistryToSet.isPushRegistry) {
+                    // shouldn't happen, but nothing to do in this case
+                    return;
+                }
 
                 try {
-                    await RegistryUtils.setPushRegistry(this.connection, newPushRegistry);
-                    vscode.window.showInformationMessage(`Change push registry to ${newPushRegistry}`);
+                    const updatedPushRegistry = await RegistryUtils.setPushRegistry(this.connection, pushRegistryToSet, true);
+                    if (updatedPushRegistry) {
+                        vscode.window.showInformationMessage(`Successfully changed push registry to ${updatedPushRegistry.fullAddress}`);
+                    }
                 }
                 catch (err) {
-                    const errMsg = `Failed to update push registry to ${newPushRegistry.fullAddress}`;
+                    const errMsg = `Failed to update push registry to ${pushRegistryToSet.fullAddress}`;
                     Log.e(errMsg, err);
                     vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
                 }
 
                 await this.refresh();
+                // this.registriesPage.webview.postMessage({ command: ManageRegistriesWVMessages.CHANGE_PUSH, fullAddress: );
                 break;
             }
             case ManageRegistriesWVMessages.DELETE: {
                 const data = msg.data as ManageRegistriesMsgData;
                 const registry = this.lookupRegistry(data.fullAddress);
+
+                if (registry.isPushRegistry) {
+                    const continueBtn = "Remove Anyway";
+                    const confirm = await vscode.window.showWarningMessage(`${registry.fullAddress} is currently set as your image push registry. ` +
+                        `Removing it will cause Codewind-style project builds to fail until a new image push registry is selected.`,
+                        { modal: true },
+                        continueBtn
+                    );
+                    if (confirm !== continueBtn) {
+                        return;
+                    }
+                }
 
                 try {
                     await Requester.removeRegistrySecret(this.connection, registry);

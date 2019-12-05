@@ -208,7 +208,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
 }
 
 function getWizardTitle(connection: Connection): string {
-    return `[${connection.label}] Create a New Project`;
+    return `(${connection.label}) Create a New Project`;
 }
 
 const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
@@ -301,6 +301,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
 
 async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & CWTemplateData> | undefined>  {
     const templates = await Requester.getTemplates(connection);
+    Log.d(`Finished GETing templates`);
     // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
     const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
 

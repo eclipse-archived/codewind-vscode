@@ -89,7 +89,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     protected async enable(): Promise<void> {
-        Log.i(`Enable connection ${this.url}`);
+        Log.i(`Enable connection ${this.label} @ ${this.url}`);
 
         const readyTimeoutS = 60;
         const ready = await Requester.waitForReady(this, readyTimeoutS);
@@ -144,7 +144,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public toString(): string {
-        return `${this.label} @ ${this.url}`;
+        return `${this.label}`;
     }
 
     private async initFileWatcher(): Promise<void> {
@@ -339,8 +339,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // The local connection does not ever need a push registry since the images are deployed to docker for desktop
             return false;
         }
-        const registries = await Requester.getImageRegistries(this);
-        return registries.some((registry) => registry.isPushRegistry);
+
+        const pushRegistryRes = await Requester.getPushRegistry(this);
+        // If the imagePushRegistry IS set, we do NOT need a push registry (since we already have one)
+        return !pushRegistryRes.imagePushRegistry;
     }
 
     public async refresh(): Promise<void> {

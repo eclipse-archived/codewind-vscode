@@ -62,8 +62,7 @@ export function createCommands(): vscode.Disposable[] {
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
 
         // the separator is just for display purposes and has no command bound to it
-        // tslint:disable-next-line: no-empty
-        vscode.commands.registerCommand(Commands.SEPARATOR, () => {}),
+        vscode.commands.registerCommand(Commands.SEPARATOR, () => { /**/ }),
 
         vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
 

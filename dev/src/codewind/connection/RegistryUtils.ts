@@ -19,7 +19,6 @@ import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 
 export class ContainerRegistry {
-    public readonly fullAddress: string;
     private _isPushRegistry: boolean = false;
 
     constructor(
@@ -27,7 +26,7 @@ export class ContainerRegistry {
         public readonly username: string,
         private _namespace: string = "",
     ) {
-        this.fullAddress = `${address}/${this.namespace}`;
+
     }
 
     public toString(): string {
@@ -48,6 +47,10 @@ export class ContainerRegistry {
 
     public set namespace(ns: string) {
         this._namespace = ns;
+    }
+
+    public get fullAddress(): string {
+        return `${this.address}/${this.namespace}`;
     }
 }
 
@@ -97,7 +100,7 @@ namespace RegistryUtils {
     ];
 
     export async function addNewRegistry(connection: Connection, existingRegistries: ContainerRegistry[]): Promise<void> {
-        const wizardTitle = "Sign in to a new image registry";
+        const wizardTitle = "Sign in to a new Image Registry";
 
         newRegistryWizardSteps[0].validator = (input: string) => {
             return validateAddress(input, existingRegistries.map((reg) => reg.address));
@@ -147,7 +150,7 @@ namespace RegistryUtils {
         if (setAsPushRegistry) {
             let didSetPush = false;
             try {
-                didSetPush = await setPushRegistry(connection, newRegistry);
+                didSetPush = (await setPushRegistry(connection, newRegistry, false)) != null;
             }
             catch (err) {
                 const errMsg = `Failed to set push registry to ${newRegistry.fullAddress} after adding`;
@@ -162,7 +165,9 @@ namespace RegistryUtils {
         }
     }
 
-    export async function setPushRegistry(connection: Connection, pushRegistry: ContainerRegistry): Promise<boolean> {
+    export async function setPushRegistry(connection: Connection, pushRegistry: ContainerRegistry, showProgress: boolean)
+        : Promise<ContainerRegistry | undefined> {
+
         // the secret for this registry must already have been created
 
         /*
@@ -197,20 +202,26 @@ namespace RegistryUtils {
         });
 
         if (namespace == null) {
-            return false;
+            return undefined;
         }
         pushRegistry.namespace = namespace;
 
-        await vscode.window.withProgress({
-            cancellable: false,
-            location: vscode.ProgressLocation.Notification,
-            title: `Setting ${pushRegistry.fullAddress} as image push registry...`,
-        }, async () => {
-            await Requester.setPushRegistry(connection, pushRegistry);
-        });
+        const setPushProm = Requester.setPushRegistry(connection, pushRegistry);
+        if (showProgress) {
+            await vscode.window.withProgress({
+                cancellable: false,
+                location: vscode.ProgressLocation.Notification,
+                title: `Setting image push registry to ${pushRegistry.fullAddress}...`,
+            }, async () => {
+                await setPushProm;
+            });
+        }
+        else {
+            await setPushProm;
+        }
 
         Log.i(`Push registry set successfully for ${connection.url} to ${pushRegistry.fullAddress}`);
-        return true;
+        return pushRegistry;
     }
 
     /*

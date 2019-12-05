@@ -28,7 +28,7 @@ export enum MCEndpoints {
     PROJECTS = "api/v1/projects",
     PROJECT_TYPES = "api/v1/project-types",
     REGISTRY_SECRETS = "api/v1/registrysecrets",
-    PUSH_REGISTRY = "api/v1/registry",
+    PUSH_REGISTRY = "api/v1/imagepushregistry",
 }
 
 /**

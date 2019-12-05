@@ -79,7 +79,7 @@ export default class MCSocket implements vscode.Disposable {
             .on(SocketEvents.Types.PROJECT_SETTING_CHANGED, this.onProjectSettingsChanged)
             .on(SocketEvents.Types.LOG_UPDATE,              this.onLogUpdate)
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
-            // .on(SocketEvents.Types.REGISTRY_STATUS,         this.onRegistryStatus)
+            .on(SocketEvents.Types.REGISTRY_STATUS,         this.onPushRegistryStatus)
             ;
     }
 
@@ -100,7 +100,7 @@ export default class MCSocket implements vscode.Disposable {
 
             const timeoutS = 10;
             const timeout = setTimeout(() => {
-                reject(`${this.uri} did not respond to authentication request within ${timeoutS} seconds.`);
+                reject(`Socket at ${this.uri} did not respond to authentication request within ${timeoutS} seconds.`);
             }, timeoutS * 1000);
 
             this.socket.on("authenticated", () => {
@@ -248,15 +248,17 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
-    /*
-    private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatus): Promise<void> => {
-        // tslint:disable-next-line: no-boolean-literal-compare
-        if (payload.imagePushRegistryTest === false) {
-            Log.i("Deployment registry is not correctly configured", payload.msg);
-            vscode.window.showErrorMessage("Deployment registry error: " + payload.msg);
+    private readonly onPushRegistryStatus = async (payload: SocketEvents.IPushRegistryStatus): Promise<void> => {
+        Log.d(`Received push registry status`, payload);
+        if (payload.msg) {
+            if (payload.imagePushRegistryTest) {
+                vscode.window.showInformationMessage(payload.msg);
+            }
+            else {
+                vscode.window.showErrorMessage(payload.msg);
+            }
         }
     }
-    */
 
     // prevents multiple events from simultaneously requesting a projects refresh
     private refreshingProjectsProm: Promise<void> | undefined;
