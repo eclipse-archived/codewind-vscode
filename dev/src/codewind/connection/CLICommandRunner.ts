@@ -42,6 +42,12 @@ export interface CLIStatus {
     url?: string;   // only set when started
 }
 
+export interface AccessToken {
+    readonly access_token: string;
+    readonly expires_in: number;
+    readonly token_type: string;
+}
+
 export interface CLICommandOptions {
     cancellable?: boolean;
     hasJSONOutput?: boolean;
@@ -259,13 +265,13 @@ export namespace CLICommandRunner {
 
     export const INVALID_CREDS_ERR = "Invalid user credentials";
 
-    export async function getAccessToken(connectionID: string, username: string): Promise<string> {
+    export async function getAccessToken(connectionID: string, username: string): Promise<AccessToken> {
         try {
-            const result: { access_token: string, expires_in: number, token_type: string } = await CLIWrapper.cliExec(AuthCommands.GET_SECTOKEN, [
+            const result = await CLIWrapper.cliExec(AuthCommands.GET_SECTOKEN, [
                 "--conid", connectionID,
                 "--username", username,
             ]);
-            return result.access_token;
+            return result;
         }
         catch (err) {
             if (err.toString().includes(INVALID_CREDS_ERR)) {

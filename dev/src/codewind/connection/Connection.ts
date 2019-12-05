@@ -155,18 +155,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         Log.i("Establishing file watcher");
         const cliPath = await CLIWrapper.getExecutablePath();
-        return vscode.window.withProgress({
-            title: "Establishing Codewind file watchers",
-            cancellable: false,
-            location: vscode.ProgressLocation.Window,
-        }, (_progress) => {
-            return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath)
-            .then((fw: FileWatcher) => {
-                this.fileWatcher = fw;
-                FWLogSettings.getInstance().setOutputLogsToScreen(false);
-                Log.i("File watcher is established");
-            });
-        });
+
+        this.fileWatcher = await this.createFileWatcher(cliPath);
+
+        FWLogSettings.getInstance().setOutputLogsToScreen(false);
+        Log.i(`${this.label} File watcher is established`);
+    }
+
+    protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
+        return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath);
     }
 
     private getHost(url: vscode.Uri): string {
