@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
+
 import Log from "../../Logger";
 import SocketEvents from "../connection/SocketEvents";
 import ProjectCapabilities from "./ProjectCapabilities";
@@ -19,19 +21,28 @@ import ProjectCapabilities from "./ProjectCapabilities";
  */
 export class ProjectState {
     public readonly appState: ProjectState.AppStates;
+    public readonly appDetail: SocketEvents.AppStatusDetail | undefined;
     public readonly buildState: ProjectState.BuildStates;
     public readonly buildDetail: string;
 
     constructor(
+        private readonly projectName: string,
         projectInfoPayload: any,
         // Use oldState if the projectInfoPayload is missing state information (eg. from a restart success event)
         // It will be used as fallback values if the new state is null or UNKNOWN.
-        oldState?: ProjectState
+        oldState: ProjectState | undefined
     ) {
         if (projectInfoPayload != null) {
             if (oldState != null) {
                 if (projectInfoPayload[SocketEvents.Keys.APP_STATE] == null) {
                     projectInfoPayload[SocketEvents.Keys.APP_STATE] = oldState.appState.toString();
+                }
+                if (projectInfoPayload[SocketEvents.Keys.APP_DETAIL] == null) {
+                    if (oldState.appDetail) {
+                        // Only show a given notification once
+                        oldState.appDetail.notify = false;
+                    }
+                    projectInfoPayload[SocketEvents.Keys.APP_DETAIL] = oldState.appDetail;
                 }
                 if (projectInfoPayload[SocketEvents.Keys.BUILD_STATE] == null) {
                     projectInfoPayload[SocketEvents.Keys.BUILD_STATE] = oldState.buildState.toString();
@@ -42,8 +53,22 @@ export class ProjectState {
             }
 
             this.appState = ProjectState.getAppState(projectInfoPayload);
+            if (this.appState !== ProjectState.AppStates.DISABLED) {
+                this.appDetail = projectInfoPayload[SocketEvents.Keys.APP_DETAIL];
+            }
+            else {
+                this.appDetail = undefined;
+            }
             this.buildState = ProjectState.getBuildState(projectInfoPayload);
-            this.buildDetail = projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL] || "";
+            this.buildDetail = (projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL] || "").trim();
+
+            if (this.appDetail) {
+                vscode.window.showInformationMessage(`APP DETAIL FOR ${this.projectName} ${JSON.stringify(this.appDetail)}`);
+            }
+
+            if (this.appDetail && this.appDetail.notify) {
+                this.notify();
+            }
         }
         else {
             Log.e("ProjectState received null ProjectInfo");
@@ -56,6 +81,7 @@ export class ProjectState {
     public equals(other: ProjectState): boolean {
         return other != null &&
             this.appState === other.appState &&
+            this.appDetail === other.appDetail &&
             this.buildState === other.buildState &&
             this.buildDetail === other.buildDetail;
     }
@@ -110,7 +136,13 @@ export class ProjectState {
 
         if (this.buildDetail != null && this.buildDetail.trim() !== "") {
             // a detailed status is available
-            buildStateStr = `${this.buildState} - ${this.buildDetail}`;         // non-nls
+            if (this.buildState === ProjectState.BuildStates.BUILDING) {
+                // Don't show "building" because the detail will have "building" in it already
+                return this.buildDetail;
+            }
+            else {
+                buildStateStr = `${this.buildState} - ${this.buildDetail}`;
+            }
         }
         // Don't display the build state if it's unknown
         else if (this.buildState !== ProjectState.BuildStates.UNKNOWN) {
@@ -118,14 +150,40 @@ export class ProjectState {
         }
         return buildStateStr;
     }
+
+    public getAppStatusWithDetail(): string {
+        let status = this.appState.toString();
+        if (this.appDetail && this.appDetail.message) {
+            status += ` - ${this.appDetail.message}`;
+        }
+        return status;
+    }
+
+    private notify(): void {
+        // https://github.com/eclipse/codewind/issues/1297
+        if (!this.appDetail || !this.appDetail.notify) {
+            return;
+        }
+
+        Log.i(`Showing user detailed app status ${this.appDetail.message} for project ${this.projectName}`);
+        const notificationMsg = `${this.projectName} - ${this.appDetail.message}`;
+
+        if (this.appDetail.severity === "ERROR") {
+            vscode.window.showErrorMessage(notificationMsg);
+        }
+        else if (this.appDetail.severity === "WARN") {
+            vscode.window.showWarningMessage(notificationMsg);
+        }
+        else {
+            vscode.window.showInformationMessage(notificationMsg);
+        }
+    }
 }
 
 export namespace ProjectState {
 
     // The AppStates and BuildStates string values are all exposed to the user.
 
-    // These _should_ be translated, but since you can't put computed values in a string enum,
-    // we can cross that bridge when we come to it :)
     export enum AppStates {
         STARTED = "Running",
         STARTING = "Starting",

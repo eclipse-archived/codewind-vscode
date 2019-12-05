@@ -136,7 +136,7 @@ function generateHtml(project: Project): string {
                         />
                     </td>
                 </tr>
-                ${buildRow("Application Status", project.state.appState)}
+                ${buildRow("Application Status", project.state.getAppStatusWithDetail())}
                 ${buildRow("Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
                 ${buildRow("Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
                 ${buildRow("Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}

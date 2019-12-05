@@ -190,7 +190,7 @@ export default class Project implements vscode.QuickPickItem {
 
         // note oldState can be null if this is the first time update is being invoked.
         const oldState = this._state;
-        this._state = new ProjectState(projectInfo, oldState != null ? oldState : undefined);
+        this._state = new ProjectState(this.name, projectInfo, oldState);
 
         if (!this._state.equals(oldState)) {
             const startModeMsg = projectInfo.startMode == null ? "" : `, startMode=${projectInfo.startMode}`;
