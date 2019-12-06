@@ -39,7 +39,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     protected _socket: MCSocket | undefined;
 
     private fileWatcher: FileWatcher | undefined;
-    public readonly initPromise: Promise<void>;
 
     private hasConnected: boolean = false;
 
@@ -49,6 +48,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _sourcesPage: SourcesPageWrapper  | undefined;
     private _registriesPage: RegistriesPageWrapper | undefined;
 
+    private hasInitialized: boolean = false;
     private _hasHadPushRegistry: boolean = false;
 
     constructor(
@@ -68,8 +68,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     ) {
         this._state = ConnectionStates.INITIALIZING;
         this.host = this.getHost(url);
-        // caller must await on this promise before expecting this connection to function correctly
-        this.initPromise = this.enable();
+        this.enable();
     }
 
     public get enabled(): boolean {
@@ -116,7 +115,13 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             Log.e("Error updating projects list after ready", err);
         }
 
+        this.hasInitialized = true;
+        if (this._socket.isConnected) {
+            Log.d(`${this} is now ready - enable finished after connect`);
+            this.setState(ConnectionStates.READY);
+        }
         this.onChange(this);
+        Log.d(`${this} finished base enable`);
     }
 
     protected async disable(): Promise<void> {
@@ -135,6 +140,9 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             this._socket ? this._socket.dispose() : Promise.resolve(),
             this._projects.map((p) => p.dispose()),
         ]);
+        this.hasConnected = false;
+        this.hasInitialized = false;
+
         this._socket = undefined;
         this.fileWatcher = undefined;
         this._projects = [];
@@ -215,8 +223,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         this.hasConnected = true;
-        this.setState(ConnectionStates.CONNECTED);
         Log.d(`${this} is now connected`);
+        if (this.hasInitialized) {
+            Log.d(`${this} is now ready - initialize finished before connect`);
+            this.setState(ConnectionStates.READY);
+        }
         this.onChange();
     }
 
@@ -354,7 +365,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public async refresh(): Promise<void> {
         await this.forceUpdateProjectList(true);
-        vscode.window.showInformationMessage(`Refreshed projects list of ${this.label}`);
+        vscode.window.showInformationMessage(`Refreshed ${this.label}`);
     }
 
     public get detail(): string {

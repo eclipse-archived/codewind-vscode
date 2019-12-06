@@ -14,9 +14,8 @@
 import Resources from "../../../constants/Resources";
 import WebviewUtil from "../WebviewUtil";
 import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "../ConnectionOverviewPageWrapper";
-import { ConnectionState } from "../../../codewind/connection/ConnectionState";
 
-export default function getConnectionInfoHtml(connectionInfo: ConnectionOverviewFields, state: ConnectionState): string {
+export default function getConnectionInfoHtml(connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
     const connectionExists = !!connectionInfo.ingressUrl;
     return `
@@ -36,7 +35,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
     <div id="top-section">
         <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
-                src="${state.isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
+                src="${isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>
         </div>
     </div>
@@ -50,7 +49,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
     <div id="main">
             <div id="deployment-box">
                 <h3>Codewind Connection
-                    ${state.isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
+                    ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
                     `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`}
                 </h3>
                 <div class="input">
@@ -84,7 +83,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                 <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/></div>
                 <div type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${state.isConnected ? "Disconnect" : "Connect"}</div>
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</div>
                 <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
                     ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save</div>
                 <div type="button" id="cancel-btn" class="btn btn-prominent"  onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"

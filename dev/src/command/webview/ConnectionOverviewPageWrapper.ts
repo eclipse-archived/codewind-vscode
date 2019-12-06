@@ -23,7 +23,6 @@ import MCUtil from "../../MCUtil";
 import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
-import { ConnectionState, ConnectionStates } from "../../codewind/connection/ConnectionState";
 import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
 
 export enum ConnectionOverviewWVMessages {
@@ -104,11 +103,11 @@ export default class ConnectionOverview {
     }
 
     public refresh(connectionInfo: ConnectionOverviewFields): void {
-        let state: ConnectionState = ConnectionStates.DISABLED;
+        let isConnnected = false;
         if (this.connection) {
-            state = this.connection.state;
+            isConnnected = this.connection.isConnected;
         }
-        const html = getConnectionInfoHtml(connectionInfo, state);
+        const html = getConnectionInfoHtml(connectionInfo, isConnnected);
         // MCUtil.debugWriteOutWebview(html, "connection-overview");
         this.connectionOverviewPage.webview.html = html;
     }
@@ -230,19 +229,6 @@ export default class ConnectionOverview {
 
         const ingressUrl = vscode.Uri.parse(ingressUrlStr);
 
-        await vscode.window.withProgress(({
-            cancellable: true,
-            location: vscode.ProgressLocation.Notification,
-            title: `Pinging ${ingressUrl}...`
-        }), async (): Promise<void> => {
-
-            const canPing = await Requester.ping(ingressUrl);
-
-            if (!canPing) {
-                throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
-            }
-        });
-
         const username = newConnectionInfo.username;
         const password = newConnectionInfo.password;
 
@@ -251,6 +237,12 @@ export default class ConnectionOverview {
             location: vscode.ProgressLocation.Notification,
             title: `Creating ${label}...`,
         }, async () => {
+            const canPing = await Requester.ping(ingressUrl);
+
+            if (!canPing) {
+                throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
+            }
+
             const newConnection = await ConnectionManager.instance.createRemoteConnection(ingressUrl, this.label, username, password);
             return newConnection;
         });

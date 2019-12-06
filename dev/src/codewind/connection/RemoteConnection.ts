@@ -105,6 +105,7 @@ export default class RemoteConnection extends Connection {
             this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
         }
+        Log.d(`${this} finished remote enable`);
     }
 
     public async disable(): Promise<void> {
@@ -197,7 +198,10 @@ export default class RemoteConnection extends Connection {
         Log.d(`${this.label} looking up access token for user "${this._username}"`);
         try {
             this._accessToken = await CLICommandRunner.getAccessToken(this.id, this._username);
-            this.setState(ConnectionStates.CONNECTED);
+            if (this._socket && this._socket.isConnected && !this._socket.isAuthorized) {
+                await this._socket.authenticate(this._accessToken.access_token);
+            }
+            this.setState(ConnectionStates.READY);
             return this._accessToken;
         }
         catch (err) {
@@ -232,7 +236,6 @@ export default class RemoteConnection extends Connection {
         await this.disable();
         await this.enable();
         await super.refresh();
-        vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
     public get overviewPage(): ConnectionOverview | undefined {

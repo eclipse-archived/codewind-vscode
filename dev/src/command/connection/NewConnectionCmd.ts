@@ -60,8 +60,8 @@ async function getConnectionLabel(): Promise<string | undefined> {
     // labelIb.totalSteps = NEW_CONNECTION_NO_STEPS;
     labelIb.title = NEW_CONNECTION_TITLE;
     labelIb.onDidChangeValue((input) => {
-        if (!input) {
-            labelIb.validationMessage = "The label cannot be empty.";
+        if (!input || input.trim() === "") {
+            labelIb.validationMessage = "The label cannot be empty or contain only whitespace.";
         }
         else {
             labelIb.validationMessage = undefined;
@@ -78,7 +78,11 @@ async function getConnectionLabel(): Promise<string | undefined> {
         // });
         labelIb.onDidHide(() => resolve(undefined));
         labelIb.onDidAccept(async () => {
-            resolve(labelIb.value);
+            if (labelIb.validationMessage) {
+                // prevent saving invalid
+                return;
+            }
+            resolve(labelIb.value.trim());
         });
     })
     .finally(() => labelIb.hide());
