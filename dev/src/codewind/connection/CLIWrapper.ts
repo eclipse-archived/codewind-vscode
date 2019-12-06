@@ -133,97 +133,104 @@ namespace CLIWrapper {
 
         const executableDir = path.dirname(executablePath);
 
-        return vscode.window.withProgress({
-            cancellable: cmd.cancellable,
-            location: vscode.ProgressLocation.Notification,
-            title: progressPrefix,
-        }, (progress, token) => {
-            return new Promise<any>((resolve, reject) => {
-                const child = child_process.spawn(executablePath, args, {
-                    cwd: executableDir
-                });
+        const cwctlProcess = child_process.spawn(executablePath, args, {
+            cwd: executableDir
+        });
 
+        const cwctlExecPromise = new Promise<any>((resolve, reject) => {
+            cwctlProcess.on("error", (err) => {
+                return reject(err);
+            });
+
+            let outStr = "";
+            let errStr = "";
+            cwctlProcess.stdout.on("data", (chunk) => {
+                const str = chunk.toString();
+                if (echoOutput) {
+                    cliOutputChannel.append(str);
+                }
+                outStr += str;
+            });
+            cwctlProcess.stderr.on("data", (chunk) => {
+                const str = chunk.toString();
+                cliOutputChannel.append(str);
+                errStr += str;
+            });
+
+            cwctlProcess.on("close", (code: number | null) => {
+                if (code == null) {
+                    // this happens in SIGTERM case, not sure what else may cause it
+                    Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
+                }
+                else if (code !== 0) {
+                    Log.e(`Error running ${cmdStr}`);
+                    Log.e("Stdout:", outStr.trim());
+                    if (errStr) {
+                        Log.e("Stderr:", errStr.trim());
+                    }
+
+                    let errMsg = `Error running ${path.basename(_cwctlPath)} ${cmd.command.join(" ")}`;
+                    if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
+                        const asObj = JSON.parse(outStr);
+                        if (asObj.error_description) {
+                            errMsg += `: ${asObj.error_description}`;
+                        }
+                    }
+                    if (errStr) {
+                        errMsg += `: ${errStr}`;
+                    }
+                    return reject(errMsg);
+                }
+                else {
+                    let successMsg = `Successfully ran CLI command ${cmdStr}`;
+                    if (echoOutput) {
+                        successMsg += `, Output was:\n` + outStr.trimRight();
+                    }
+                    Log.d(successMsg);
+
+                    if (!cmd.hasJSONOutput) {
+                        return resolve(outStr);
+                    }
+
+                    if (!outStr || !isProbablyJSON(outStr)) {
+                        Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
+                        return resolve({});
+                    }
+                    // Log.d("CLI object output:", outStr);
+
+                    const obj = JSON.parse(outStr);
+                    if (obj.error_description) {
+                        return reject(obj.error_description);
+                    }
+                    return resolve(obj);
+                }
+            });
+        }).finally(() => {
+            cliOutputChannel.appendLine(`==> End ${cmdStr}`);
+        });
+
+        const hasProgress = cmd instanceof CLILifecycleCommand || progressPrefix;
+        if (hasProgress) {
+            return vscode.window.withProgress({
+                cancellable: cmd.cancellable,
+                location: vscode.ProgressLocation.Notification,
+                title: progressPrefix,
+            }, (progress, token) => {
                 // only lifecycle commands show updating progress, for now
                 if (cmd instanceof CLILifecycleCommand) {
-                    CLILifecycleWrapper.updateProgress(cmd, child.stdout, progress);
+                    CLILifecycleWrapper.updateProgress(cmd, cwctlProcess.stdout, progress);
                 }
 
-                child.on("error", (err) => {
-                    return reject(err);
-                });
-
-                let outStr = "";
-                let errStr = "";
-                child.stdout.on("data", (chunk) => {
-                    const str = chunk.toString();
-                    if (echoOutput) {
-                        cliOutputChannel.append(str);
-                    }
-                    outStr += str;
-                });
-                child.stderr.on("data", (chunk) => {
-                    const str = chunk.toString();
-                    cliOutputChannel.append(str);
-                    errStr += str;
-                });
-
                 token.onCancellationRequested((_e) => {
-                    child.kill();
-                    return reject(CLI_CMD_CANCELLED);
+                    cwctlProcess.kill();
                 });
 
-                child.on("close", (code: number | null) => {
-                    if (code == null) {
-                        // this happens in SIGTERM case, not sure what else may cause it
-                        Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
-                    }
-                    else if (code !== 0) {
-                        Log.e(`Error running ${cmdStr}`);
-                        Log.e("Stdout:", outStr.trim());
-                        if (errStr) {
-                            Log.e("Stderr:", errStr.trim());
-                        }
-
-                        let errMsg = `Error running ${path.basename(_cwctlPath)} ${cmd.command.join(" ")}`;
-                        if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
-                            const asObj = JSON.parse(outStr);
-                            if (asObj.error_description) {
-                                errMsg += `: ${asObj.error_description}`;
-                            }
-                        }
-                        if (errStr) {
-                            errMsg += `: ${errStr}`;
-                        }
-                        return reject(errMsg);
-                    }
-                    else {
-                        let successMsg = `Successfully ran CLI command ${cmdStr}`;
-                        if (echoOutput) {
-                            successMsg += `, Output was:\n` + outStr.trimRight();
-                        }
-                        Log.d(successMsg);
-
-                        if (!cmd.hasJSONOutput) {
-                            return resolve(outStr);
-                        }
-
-                        if (!outStr || !isProbablyJSON(outStr)) {
-                            Log.e(`Missing expected JSON output from CLI command, output was "${outStr}"`);
-                            return resolve({});
-                        }
-                        // Log.d("CLI object output:", outStr);
-
-                        const obj = JSON.parse(outStr);
-                        if (obj.error_description) {
-                            return reject(obj.error_description);
-                        }
-                        return resolve(obj);
-                    }
-                });
-            }).finally(() => {
-                cliOutputChannel.appendLine(`==> End ${cmdStr}`);
+                return cwctlExecPromise;
             });
-        });
+        }
+        else {
+            return cwctlExecPromise;
+        }
     }
 
     function isProbablyJSON(str: string): boolean {
