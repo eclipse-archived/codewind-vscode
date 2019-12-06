@@ -12,12 +12,10 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
 
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import Resources from "../../constants/Resources";
-import getConnectionInfoPage from "./ConnectionOverviewPage";
-import Constants from "../../constants/Constants";
+import getConnectionInfoHtml from "./pages/ConnectionOverviewPage";
 import Log from "../../Logger";
 import WebviewUtil from "./WebviewUtil";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
@@ -32,7 +30,6 @@ export enum ConnectionOverviewWVMessages {
     HELP = "help",
     SAVE_CONNECTION_INFO = "save-connection",
     TOGGLE_CONNECTED = "toggleConnected",
-    SAVE_REGISTRY = "save-registry",
     DELETE = "delete",
     CANCEL = "cancel"
 }
@@ -46,16 +43,7 @@ interface ConnectionInfoFields {
     readonly password?: string;
 }
 
-/**
- * The editable textfields in the Container Registry (right half) part of the overview
- */
-interface RegistryInfoFields {
-    readonly registryUrl?: string;
-    readonly registryUsername?: string;
-    readonly registryPassword?: string;
-}
-
-export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields & RegistryInfoFields;
+export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields;
 
 export default class ConnectionOverview {
 
@@ -64,15 +52,15 @@ export default class ConnectionOverview {
      * The Connection we are showing the info for. If it's undefined, we are creating a new connection.
      */
     private connection: RemoteConnection | undefined;
-    private readonly webPanel: vscode.WebviewPanel;
+    private readonly connectionOverviewPage: vscode.WebviewPanel;
 
     public static showForNewConnection(label: string): ConnectionOverview {
         return new ConnectionOverview({ label });
     }
 
     public static showForExistingConnection(connection: RemoteConnection): ConnectionOverview {
-        if (connection.activeOverviewPage) {
-            return connection.activeOverviewPage;
+        if (connection.overviewPage) {
+            return connection.overviewPage;
         }
         return new ConnectionOverview(connection.memento, connection);
     }
@@ -91,26 +79,28 @@ export default class ConnectionOverview {
         };
 
         if (this.connection) {
-            this.connection.onOverviewOpened(this);
+            this.connection.onDidOpenOverview(this);
         }
 
-        this.webPanel = vscode.window.createWebviewPanel(connectionInfo.label, connectionInfo.label, vscode.ViewColumn.Active, wvOptions);
+        this.connectionOverviewPage = vscode.window.createWebviewPanel(
+            connectionInfo.label, connectionInfo.label, vscode.ViewColumn.Active, wvOptions
+        );
 
-        this.webPanel.reveal();
-        this.webPanel.onDidDispose(() => {
+        this.connectionOverviewPage.reveal();
+        this.connectionOverviewPage.onDidDispose(() => {
             if (this.connection) {
-                this.connection.onOverviewClosed();
+                this.connection.onDidCloseOverview();
             }
         });
 
         const icons = Resources.getIconPaths(Resources.Icons.Logo);
-        this.webPanel.iconPath = {
+        this.connectionOverviewPage.iconPath = {
             light: vscode.Uri.file(icons.light),
             dark:  vscode.Uri.file(icons.dark)
         };
 
         this.refresh(connectionInfo);
-        this.webPanel.webview.onDidReceiveMessage(this.handleWebviewMessage);
+        this.connectionOverviewPage.webview.onDidReceiveMessage(this.handleWebviewMessage);
     }
 
     public refresh(connectionInfo: ConnectionOverviewFields): void {
@@ -118,20 +108,14 @@ export default class ConnectionOverview {
         if (this.connection) {
             state = this.connection.state;
         }
-        const html = getConnectionInfoPage(connectionInfo, state);
-        if (process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV) {
-            const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
-            fs.writeFile(`${process.env.HOME}/connectionOverview.html`, htmlWithFileProto,
-                (err) => { if (err) { Log.e("Error writing out test connection overview", err); } }
-            );
-        }
-        this.webPanel.webview.html = "";
-        this.webPanel.webview.html = html;
+        const html = getConnectionInfoHtml(connectionInfo, state);
+        // MCUtil.debugWriteOutWebview(html, "connection-overview");
+        this.connectionOverviewPage.webview.html = html;
     }
 
     public dispose(): void {
-        if (this.webPanel) {
-            this.webPanel.dispose();
+        if (this.connectionOverviewPage) {
+            this.connectionOverviewPage.dispose();
         }
     }
 
@@ -160,11 +144,8 @@ export default class ConnectionOverview {
                         try {
                             const newConnection = await this.createNewConnection(newInfo, this.label);
                             this.connection = newConnection;
-                            this.connection.onOverviewOpened(this);
+                            this.connection.onDidOpenOverview(this);
                             vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newConnection.url}`);
-                            if (newInfo.registryUrl) {
-                                await this.updateRegistry(newInfo, false);
-                            }
                             this.refresh(this.connection.memento);
                         }
                         catch (err) {
@@ -189,11 +170,6 @@ export default class ConnectionOverview {
                     } else {
                         this.dispose();
                     }
-                    break;
-                }
-                case ConnectionOverviewWVMessages.SAVE_REGISTRY: {
-                    const registryData = msg.data;
-                    await this.updateRegistry(registryData, true);
                     break;
                 }
                 case ConnectionOverviewWVMessages.DELETE: {
@@ -280,33 +256,4 @@ export default class ConnectionOverview {
         });
     }
 
-    private async updateRegistry(registryInfo: RegistryInfoFields, isUpdate: boolean): Promise<void> {
-        if (!this.connection) {
-            Log.e("Requested to update registry but connection is undefined");
-            return;
-        }
-
-        if (!registryInfo.registryUrl) {
-            vscode.window.showErrorMessage(`Enter a container registry URL`);
-            return;
-        }
-        else if (!registryInfo.registryUsername) {
-            vscode.window.showErrorMessage(`Enter a container registry username`);
-            return;
-        }
-        else if (!registryInfo.registryPassword) {
-            vscode.window.showErrorMessage(`Enter a container registry password`);
-            return;
-        }
-        await this.connection.updateRegistry(
-            registryInfo.registryUrl, registryInfo.registryUsername, registryInfo.registryPassword
-        );
-        this.refresh(this.connection.memento);
-
-        if (isUpdate) {
-            vscode.window.showInformationMessage(
-                `Updating registry info for ${this.connection.label} to ${JSON.stringify(registryInfo)}`
-            );
-        }
-    }
 }

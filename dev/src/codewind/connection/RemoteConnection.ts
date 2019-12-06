@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import ConnectionOverview from "../../command/webview/ConnectionOverview";
+import ConnectionOverview from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { CLICommandRunner, AccessToken } from "./CLICommandRunner";
 import Log from "../../Logger";
@@ -24,8 +24,6 @@ import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 export default class RemoteConnection extends Connection {
 
     private _username: string;
-    private _registryUrl: string | undefined;
-    private _registryUsername: string | undefined;
 
     private updateCredentialsPromise: Promise<void> = Promise.resolve();
     // private _username: string | undefined;
@@ -46,8 +44,6 @@ export default class RemoteConnection extends Connection {
         super(memento.id, ingressUrl, memento.label, true);
 
         this._username = memento.username;
-        this._registryUrl = memento.registryUrl;
-        this._registryUsername = memento.registryUsername;
 
         if (password) {
             Log.i("Doing initial credentials update for new connection");
@@ -128,6 +124,14 @@ export default class RemoteConnection extends Connection {
         }
     }
 
+    public async dispose(): Promise<void> {
+        if (this.overviewPage) {
+            this.overviewPage.dispose();
+        }
+        await super.dispose();
+
+    }
+
     protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
         return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath, {
             getLatestAuthToken: (): FWAuthToken | undefined => {
@@ -181,14 +185,6 @@ export default class RemoteConnection extends Connection {
         this.tryRefreshOverview();
     }
 
-    public async updateRegistry(registryUrl: string, registryUser: string, _registryPass: string): Promise<void> {
-        // TODO create the secret, test the registry
-        this._registryUrl = registryUrl;
-        this._registryUsername = registryUser;
-        Log.d(`Update registry for ${this.label}`);
-        await ConnectionMemento.save(this.memento);
-    }
-
     public async getAccessToken(): Promise<AccessToken> {
 
         // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
@@ -225,30 +221,29 @@ export default class RemoteConnection extends Connection {
             label: this.label,
             ingressUrl: this.url.toString(),
             username: this._username,
-            registryUrl: this._registryUrl,
-            registryUsername: this._registryUsername,
         };
     }
 
     public async refresh(): Promise<void> {
         if (this.isConnected) {
-            super.refresh();
+            await super.refresh();
             return;
         }
         await this.disable();
         await this.enable();
+        await super.refresh();
         vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
-    public get activeOverviewPage(): ConnectionOverview | undefined {
+    public get overviewPage(): ConnectionOverview | undefined {
         return this._activeOverviewPage;
     }
 
-    public onOverviewOpened(overviewPage: ConnectionOverview): void {
+    public onDidOpenOverview(overviewPage: ConnectionOverview): void {
         this._activeOverviewPage = overviewPage;
     }
 
-    public onOverviewClosed(): void {
+    public onDidCloseOverview(): void {
         if (this._activeOverviewPage) {
             this._activeOverviewPage = undefined;
         }

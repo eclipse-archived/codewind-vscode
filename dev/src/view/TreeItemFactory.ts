@@ -108,6 +108,13 @@ namespace TreeItemFactory {
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
             }];
         }
+        else if (connection.state === ConnectionStates.INITIALIZING) {
+            return [{
+                label: "Connecting...",
+                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+            }];
+        }
         else if (connection.isConnected) {
             if (connection.projects.length > 0) {
                 return connection.projects.sort((a, b) => a.name.localeCompare(b.name));

@@ -143,7 +143,7 @@ describe("Codewind for VSCode basic test", async function() {
 
             // the tiniest of delays, because if the projects are created in the same millisecond the initialize container falls over :)
             await new Promise((resolve) => setTimeout(resolve, 5));
-            const createPromise = TestUtil.createProject(testConnection, testType.projectType);
+            const createPromise = TestUtil.createTestProject(testConnection, testType.projectType);
             createPromises.push(createPromise);
 
             createPromise

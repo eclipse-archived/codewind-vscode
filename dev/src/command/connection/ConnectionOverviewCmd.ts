@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Connection from "../../codewind/connection/Connection";
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
-import ConnectionOverview from "../webview/ConnectionOverview";
+import ConnectionOverview from "../webview/ConnectionOverviewPageWrapper";
 
 export default async function remoteConnectionOverviewCmd(connection: Connection): Promise<void> {
     // if (!(connection instanceof RemoteConnection)) {

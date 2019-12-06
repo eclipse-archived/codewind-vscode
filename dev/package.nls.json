@@ -56,8 +56,11 @@
     "cmdID_bindProject": "ext.cw.bindProject",
     "cmdTitle_bindProject": "Add Existing Project",
 
-    "cmdID_manageTemplateRepos": "ext.cw.manageTemplateRepos",
-    "cmdTitle_manageTemplateRepos": "Manage Template Sources",
+    "cmdID_manageTemplateRepos": "ext.cw.manageSources",
+    "cmdTitle_manageTemplateRepos": "Template Sources Manager",
+
+    "cmdID_manageRegistries": "ext.cw.manageRegistries",
+    "cmdTitle_manageRegistries": "Image Registry Manager",
 
     "cmdID_connectionOverview": "ext.cw.connectionOverview",
     "cmdTitle_connectionOverview": "Remote Connection Settings",
@@ -146,7 +149,6 @@
     "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote.*/",
     "isEnabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*/",
     "isDisabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.disabled.*/",
-    "isConnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled\\.connected.*/",
     "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection.*\\.registry.*connected.*/",
     "isConnectionWithTekton": "viewItem =~ /ext\\.cw\\.connection.*\\.tekton.*connected.*/",
 

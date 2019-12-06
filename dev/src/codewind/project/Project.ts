@@ -29,7 +29,7 @@ import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
 import Requester from "./Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
-import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPage";
+import { refreshProjectOverview } from "../../command/webview/pages/ProjectOverviewPage";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 
@@ -150,6 +150,10 @@ export default class Project implements vscode.QuickPickItem {
         });
 
         Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
+    }
+
+    public toString(): string {
+        return this.name;
     }
 
     /**
@@ -468,7 +472,7 @@ export default class Project implements vscode.QuickPickItem {
      * If the user does not already have an info page open for this project, returns undefined,
      * and sets the given webview to be this project's project info panel.
      */
-    public onOpenProjectInfo(wvPanel: vscode.WebviewPanel): vscode.WebviewPanel | undefined {
+    public onDidOpenProjectInfo(wvPanel: vscode.WebviewPanel): vscode.WebviewPanel | undefined {
         if (this.activeProjectInfo != null) {
             return this.activeProjectInfo;
         }
@@ -477,7 +481,7 @@ export default class Project implements vscode.QuickPickItem {
         return undefined;
     }
 
-    public closeProjectInfo(): void {
+    public onDidCloseProjectInfo(): void {
         if (this.activeProjectInfo != null) {
             this.activeProjectInfo.dispose();
             this.activeProjectInfo = undefined;

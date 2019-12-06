@@ -10,10 +10,9 @@
  *******************************************************************************/
 
 import CLIWrapper from "./CLIWrapper";
-import { IInitializationResponse, IDetectedProjectType } from "./UserProjectCreator";
 import Log from "../../Logger";
-import { ITemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
 import MCUtil from "../../MCUtil";
+import { ITemplateSource } from "../../command/webview/SourcesPageWrapper";
 
 export interface CLIConnectionData {
     readonly id: string;
@@ -24,12 +23,16 @@ export interface CLIConnectionData {
     readonly clientid: string;
 }
 
-interface WorkspaceUpgradeResult {
-    readonly migrated: string[];
-    readonly failed: Array<{
-        error: string,
-        projectName: string
-    }>;
+export interface IDetectedProjectType {
+    language: string;
+    projectType: string;
+    projectSubtype?: string;
+}
+
+export interface IInitializationResponse {
+    status: string;
+    result: IDetectedProjectType | string | { error: string };
+    projectPath?: string;
 }
 
 export interface CLIStatus {
@@ -172,6 +175,14 @@ export namespace CLICommandRunner {
         return bindRes;
     }
 
+    interface WorkspaceUpgradeResult {
+        readonly migrated: string[];
+        readonly failed: Array<{
+            error: string,
+            projectName: string
+        }>;
+    }
+
     /**
      * Perform a workspace upgrade from a version older than 0.6
      */
@@ -209,7 +220,7 @@ export namespace CLICommandRunner {
     }
 
     // https://github.com/eclipse/codewind/issues/941
-    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateRepo[]> {
+    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateSource[]> {
         const args = [
             "--conid", connectionID,
             "--url", url,
@@ -224,7 +235,7 @@ export namespace CLICommandRunner {
     }
 
     let hasFetchedTemplates = false;
-    export async function getTemplateSources(connectionID: string): Promise<ITemplateRepo[]> {
+    export async function getTemplateSources(connectionID: string): Promise<ITemplateSource[]> {
         // The first time we fetch template sources per-codewind instance can be very slow, so we show a progress notification just once
         const progress = hasFetchedTemplates ? undefined : "Fetching template sources...";
 
@@ -236,7 +247,7 @@ export namespace CLICommandRunner {
         return result;
     }
 
-    export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateRepo[]> {
+    export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateSource[]> {
         return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
             "--conid", connectionID,
             "--url", url

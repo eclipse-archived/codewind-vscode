@@ -11,11 +11,11 @@
 
 import * as vscode from "vscode";
 
-import Resources from "../../constants/Resources";
-import MCUtil from "../../MCUtil";
-import Project from "../../codewind/project/Project";
-import WebviewUtil from "../webview/WebviewUtil";
-import CWDocs from "../../constants/CWDocs";
+import Resources from "../../../constants/Resources";
+import MCUtil from "../../../MCUtil";
+import Project from "../../../codewind/project/Project";
+import WebviewUtil from "../WebviewUtil";
+import CWDocs from "../../../constants/CWDocs";
 
 // This file does have a bunch of strings that should be translated,
 // but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.
@@ -49,7 +49,7 @@ export interface IWVOpenable {
 }
 
 export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): string {
-    const html = generateHtml(project);
+    const html = getProjectOverviewHtml(project);
     webviewPanel.webview.html = html;
     return html;
 }
@@ -58,7 +58,7 @@ const NOT_AVAILABLE = "Not available";
 const NOT_RUNNING = "Not running";
 const NOT_DEBUGGING = "Not debugging";
 
-function generateHtml(project: Project): string {
+function getProjectOverviewHtml(project: Project): string {
 
     // const emptyRow =
     // `
@@ -74,8 +74,8 @@ function generateHtml(project: Project): string {
         <html>
         <head>
             <meta charset="UTF-8">
-            <!--meta http-equiv="Content-Security-Policy" content="default-src 'self' ;"-->
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            ${WebviewUtil.getCSP()}
 
             <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
             <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("project-overview.css")}"/>
@@ -84,7 +84,7 @@ function generateHtml(project: Project): string {
         </head>
         <body>
 
-        <div class="title">
+        <div class="title-section">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
             <h1>Project ${project.name}</h1>
         </div>

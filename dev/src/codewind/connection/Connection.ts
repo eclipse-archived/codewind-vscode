@@ -24,6 +24,9 @@ import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
+import { CLICommandRunner } from "./CLICommandRunner";
+import { ManageSourcesPage as SourcesPageWrapper , ITemplateSource } from "../../command/webview/SourcesPageWrapper";
+import { ManageRegistriesPageWrapper as RegistriesPageWrapper, ManageRegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -43,7 +46,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
 
-    private _isRegistrySet: boolean = false;
+    private _sourcesPage: SourcesPageWrapper  | undefined;
+    private _registriesPage: RegistriesPageWrapper | undefined;
+
+    private _hasHadPushRegistry: boolean = false;
 
     constructor(
         /**
@@ -60,7 +66,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         public readonly label: string,
         public readonly isRemote: boolean,
     ) {
-        this._state = ConnectionStates.NETWORK_ERROR;
+        this._state = ConnectionStates.INITIALIZING;
         this.host = this.getHost(url);
         // caller must await on this promise before expecting this connection to function correctly
         this.initPromise = this.enable();
@@ -85,7 +91,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     protected async enable(): Promise<void> {
-        Log.i(`Enable connection ${this.url}`);
+        Log.i(`Enable connection ${this.label} @ ${this.url}`);
 
         const readyTimeoutS = 60;
         const ready = await Requester.waitForReady(this, readyTimeoutS);
@@ -140,7 +146,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public toString(): string {
-        return `${this.label} @ ${this.url}`;
+        return `${this.label}`;
     }
 
     private async initFileWatcher(): Promise<void> {
@@ -327,28 +333,23 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this.isRemote || global.isTheia;
     }
 
-    /**
-     * Check if this connection has a docker registry set by the user.
-     * It is not guaranteed to be valid or have valid credentials.
-     */
-    public async isRegistrySet(): Promise<boolean> {
-        if (this._isRegistrySet || !this.isKubeConnection) {
-            return true;
+    public async needsPushRegistry(): Promise<boolean> {
+        if (!this.isKubeConnection) {
+            // The local connection does not ever need a push registry since the images are deployed to docker for desktop
+            return false;
+        }
+        else if (this._hasHadPushRegistry) {
+            // Once the push registry is configured once, we skip that step to save time, if we had one and then the user removed it, it will fail.
+            return false;
         }
 
-        this._isRegistrySet = await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            cancellable: false,
-            title: "Checking deployment registry status..."
-        }, () => {
-            return Requester.isRegistrySet(this);
-        });
-        return this._isRegistrySet;
-    }
-
-    public async setRegistry(registry: string): Promise<void> {
-        await Requester.configureRegistry(this, "set", registry);
-        this._isRegistrySet = true;
+        const pushRegistryRes = await Requester.getPushRegistry(this);
+        // If the imagePushRegistry IS set, we do NOT need a push registry (since we already have one)
+        const hasPushRegistry = !pushRegistryRes.imagePushRegistry;
+        if (hasPushRegistry) {
+            this._hasHadPushRegistry = true;
+        }
+        return hasPushRegistry;
     }
 
     public async refresh(): Promise<void> {
@@ -362,5 +363,33 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public get socketURI(): string | undefined {
         return this._socket ? this._socket.uri : undefined;
+    }
+
+    public getSources(): Promise<ITemplateSource[]> {
+        return CLICommandRunner.getTemplateSources(this.id);
+    }
+
+    public onDidOpenSourcesPage(page: SourcesPageWrapper): void {
+        this._sourcesPage = page;
+    }
+
+    public onDidOpenRegistriesPage(page: ManageRegistriesPageWrapper): void {
+        this._registriesPage = page;
+    }
+
+    public get sourcesPage(): SourcesPageWrapper  | undefined {
+        return this._sourcesPage;
+    }
+
+    public get registriesPage(): ManageRegistriesPageWrapper | undefined {
+        return this._registriesPage;
+    }
+
+    public onDidCloseSourcesPage(): void {
+        this._sourcesPage = undefined;
+    }
+
+    public onDidCloseRegistriesPage(): void {
+        this._registriesPage = undefined;
     }
 }

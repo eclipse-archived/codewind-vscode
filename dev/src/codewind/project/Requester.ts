@@ -18,15 +18,16 @@ import Log from "../../Logger";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import MCUtil from "../../MCUtil";
-import EndpointUtil, { ProjectEndpoints, Endpoint, MCEndpoints } from "../../constants/Endpoints";
+import EndpointUtil, { ProjectEndpoints, MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
-import { ICWTemplateData } from "../connection/UserProjectCreator";
 import Connection from "../connection/Connection";
-import { IRepoEnablement } from "../../command/connection/ManageTemplateReposCmd";
 import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
 import { RawCWEnvData } from "../connection/CWEnvironment";
 import RemoteConnection from "../connection/RemoteConnection";
+import { ISourceEnablement } from "../../command/webview/SourcesPageWrapper";
+import { CWTemplateData } from "../../command/connection/CreateUserProjectCmd";
+import { ContainerRegistry } from "../connection/RegistryUtils";
 import { AccessToken } from "../connection/CLICommandRunner";
 
 // tslint:disable-next-line: variable-name
@@ -40,6 +41,13 @@ const HttpVerbs = {
 
 const STRING_NS = StringNamespaces.REQUESTS;
 
+/**
+ * These functions wrap all our API calls to the Codewind backend.
+ *
+ * Each request is perform for either a Connection or a Project - see doConnectionRequest and doProjectRequest.
+ *
+ * API doc - https://eclipse.github.io/codewind/
+ */
 namespace Requester {
 
     ///// Connection-specific requests
@@ -52,7 +60,7 @@ namespace Requester {
         return doConnectionRequest(connection, MCEndpoints.ENVIRONMENT, "GET");
     }
 
-    export async function getTemplates(connection: Connection): Promise<ICWTemplateData[]> {
+    export async function getTemplates(connection: Connection): Promise<CWTemplateData[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.TEMPLATES, "GET", { qs: { showEnabledOnly: true }});
         if (result == null) {
             return [];
@@ -66,7 +74,7 @@ namespace Requester {
         value: string;
     }
 
-    export async function enableTemplateRepos(connection: Connection, enablements: IRepoEnablement): Promise<void> {
+    export async function enableTemplateRepos(connection: Connection, enablements: ISourceEnablement): Promise<void> {
         const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
             return {
                 op: "enable",
@@ -95,34 +103,104 @@ namespace Requester {
         // Log.d("Repo enablement result", result);
     }
 
-    export async function isRegistrySet(connection: Connection): Promise<boolean> {
-        try {
-            const registryStatus: { deploymentRegistry: boolean } = await doConnectionRequest(connection, MCEndpoints.REGISTRY, "GET");
-            return registryStatus.deploymentRegistry;
-        }
-        catch (err) {
-            Log.e("Error checking registry status", err);
-            return false;
-        }
-    }
-
-    export async function configureRegistry(connection: Connection, operation: "set" | "test", deploymentRegistry: string)
-        : Promise<SocketEvents.IRegistryStatus> {
-
-        const body = {
-            deploymentRegistry,
-            operation,
-        };
-
-        return doConnectionRequest(connection, MCEndpoints.REGISTRY, "POST", { body });
-    }
-
     export async function getProjectTypes(connection: Connection): Promise<IProjectTypeDescriptor[]> {
         const result = await doConnectionRequest(connection, MCEndpoints.PROJECT_TYPES, "GET");
         if (result == null) {
             return [];
         }
         return result;
+    }
+
+    interface RegistrySecretResponse {
+        readonly address: string;
+        readonly username: string;
+    }
+
+    function asContainerRegistry(response: RegistrySecretResponse): ContainerRegistry {
+        if (!response.address || !response.username) {
+            Log.e(`Received unexpected container registry response:`, response);
+        }
+        return new ContainerRegistry(response.address, response.username);
+    }
+
+    export async function getImageRegistries(connection: Connection): Promise<ContainerRegistry[]> {
+        const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "GET");
+        // Log.d(`Container registry response:`, response);
+        const registries = response.map((reg) => asContainerRegistry(reg));
+
+        const pushRegistryRes = await getPushRegistry(connection);
+        Log.d(`Image push registry response`, pushRegistryRes);
+
+        // tslint:disable-next-line: no-boolean-literal-compare
+        if (pushRegistryRes.imagePushRegistry === true) {
+            const pushRegistry = registries.find((reg) => reg.address === pushRegistryRes.address);
+            if (!pushRegistry) {
+                Log.e(`Push registry response was ${JSON.stringify(pushRegistryRes)} but no registry with a matching address was found`);
+            }
+            else {
+                pushRegistry.isPushRegistry = true;
+                pushRegistry.namespace = pushRegistryRes.namespace || "";
+                Log.i(`Push registry is ${pushRegistry.address}`);
+            }
+        }
+        else {
+            Log.d(`No image push registry is set`);
+        }
+        return registries;
+    }
+
+    export async function addRegistrySecret(connection: Connection, address: string, username: string, password: string)
+        : Promise<ContainerRegistry> {
+
+        const credentialsPlain = { username, password };
+        const credentialsEncoded = Buffer.from(JSON.stringify(credentialsPlain)).toString("base64");
+
+        const body = {
+            address,
+            credentials: credentialsEncoded,
+        };
+
+        const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "POST", { body });
+        const match = response.find((reg) => reg.address === address);
+        if (match == null) {
+            Log.e("Got success response when adding new registry secret, but was not found in api response");
+            throw new Error(`Error adding new registry secret`);
+        }
+        return asContainerRegistry(match);
+    }
+
+    export async function removeRegistrySecret(connection: Connection, toRemove: ContainerRegistry): Promise<ContainerRegistry[]> {
+        const body = {
+            address: toRemove.address,
+        };
+
+        const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "DELETE", { body });
+        return response.map(asContainerRegistry);
+    }
+
+    export async function getPushRegistry(connection: Connection): Promise<{ imagePushRegistry: boolean, address?: string, namespace?: string }> {
+        return doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "GET");
+    }
+
+    export async function setPushRegistry(connection: Connection, registry: ContainerRegistry): Promise<void> {
+        const body = {
+            operation: "set",
+            address: registry.address,
+            namespace: registry.namespace,
+        };
+
+        await doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "POST", { body });
+    }
+
+    export async function testPushRegistry(connection: Connection, registry: ContainerRegistry): Promise<SocketEvents.IPushRegistryStatus> {
+
+        const body = {
+            operation: "test",
+            address: registry.address,
+            namespace: registry.namespace,
+        };
+
+        return doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "POST", { body });
     }
 
     // Project-specific requests
@@ -264,7 +342,7 @@ namespace Requester {
     }
 
     /**
-     * Try to connect to the given URL. Returns true if _any_ response is returned.
+     * Try to connect to the given URL. Returns true if any response, other than 503 unavailable, is returned.
      */
     export async function ping(url: string | vscode.Uri, timeoutS: number = 10): Promise<boolean> {
         Log.d(`Ping ${url}`);
@@ -426,18 +504,12 @@ namespace Requester {
      * @param silent - If true, the `userOptionName` will not be displayed when the request is initiated. Error messages are always displayed.
      */
     async function doProjectRequest(
-        project: Project, endpoint: Endpoint, body: {},
+        project: Project, endpoint: ProjectEndpoints, body: {},
         verb: keyof typeof HttpVerbs, userOperationName: string, silent: boolean = false, returnFullRes: boolean = false): Promise<any> {
 
-        let url: string;
-        if (EndpointUtil.isProjectEndpoint(endpoint)) {
-            url = EndpointUtil.resolveProjectEndpoint(project.connection, project.id, endpoint as ProjectEndpoints);
-        }
-        else {
-            url = EndpointUtil.resolveMCEndpoint(project.connection, endpoint as MCEndpoints);
-        }
+        const url = EndpointUtil.resolveProjectEndpoint(project.connection, project.id, endpoint as ProjectEndpoints);
 
-        Log.i(`Doing ${userOperationName} request to ${url}`);
+        // Log.i(`Doing ${userOperationName} request to ${url}`);
 
         const options: request.RequestPromiseOptions = {
             body,

@@ -26,13 +26,9 @@ export enum MCEndpoints {
     TEMPLATE_REPOS = "api/v1/templates/repositories",
     BATCH_TEMPLATE_REPOS = "api/v1/batch/templates/repositories",
     PROJECTS = "api/v1/projects",
-    CREATE_FROM_TEMPLATE = "api/v1/projects/",
-    PREBIND_VALIDATE = "api/v1/validate",
-    BIND = "api/v1/projects/bind",
-    REMOTE_BIND_START = "api/v1/projects/remote-bind/start",
-
-    REGISTRY = "api/v1/registry",
-    PROJECT_TYPES = "api/v1/project-types"
+    PROJECT_TYPES = "api/v1/project-types",
+    REGISTRY_SECRETS = "api/v1/registrysecrets",
+    PUSH_REGISTRY = "api/v1/imagepushregistry",
 }
 
 /**
@@ -48,10 +44,6 @@ export enum ProjectEndpoints {
     OPEN = "open",
     CLOSE = "close",
     UNBIND = "unbind",
-
-    UPLOAD = "remote-bind/upload",
-    CLEAR = "remote-bind/clear",
-    REMOTE_BIND_END = "remote-bind/end",
 
     CAPABILITIES = "capabilities",
 }

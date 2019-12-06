@@ -12,16 +12,24 @@
 import * as vscode from "vscode";
 
 import Connection from "../../codewind/connection/Connection";
-import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
-import RegistryUtils from "../../codewind/connection/RegistryUtils";
+import MCUtil from "../../MCUtil";
+import { ManageSourcesPage } from "../webview/SourcesPageWrapper";
 
-export async function setRegistryCmd(connection: Connection): Promise<void> {
+export default async function manageSourcesCmd(connection: Connection): Promise<void> {
     try {
-        await RegistryUtils.setRegistry(connection);
+        if (connection.sourcesPage) {
+            // Show existing page
+            connection.sourcesPage.reveal();
+            return;
+        }
+
+        const manageSourcesPage = new ManageSourcesPage(connection);
+        connection.onDidOpenSourcesPage(manageSourcesPage);
     }
     catch (err) {
-        Log.e("Error doing setRegistryCmd", err);
-        vscode.window.showErrorMessage(MCUtil.errToString(err));
+        const errMsg = `Error opening Manage Template Sources page:`;
+        vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+        Log.e(errMsg, err);
     }
 }
