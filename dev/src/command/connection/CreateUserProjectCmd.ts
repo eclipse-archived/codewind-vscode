@@ -239,7 +239,15 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
         qp.show();
     }
 
-    const templateQpis = await getTemplateQpis(connection);
+    let templateQpis;
+    try {
+        templateQpis = await getTemplateQpis(connection);
+    }
+    catch (err) {
+        qp.hide();
+        throw err;
+    }
+
     if (templateQpis == null) {
         // getTemplateQpis will have shown the error message
         qp.hide();
