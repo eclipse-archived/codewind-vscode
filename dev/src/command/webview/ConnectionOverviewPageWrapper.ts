@@ -24,13 +24,17 @@ import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
+import manageRegistriesCmd from "../connection/ManageRegistriesCmd";
+import manageSourcesCmd from "../connection/ManageSourcesCmd";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
     SAVE_CONNECTION_INFO = "save-connection",
     TOGGLE_CONNECTED = "toggleConnected",
     DELETE = "delete",
-    CANCEL = "cancel"
+    CANCEL = "cancel",
+    REGISTRY = "registry",
+    SOURCES = "sources"
 }
 
 /**
@@ -108,7 +112,8 @@ export default class ConnectionOverview {
             isConnnected = this.connection.isConnected;
         }
         const html = getConnectionInfoHtml(connectionInfo, isConnnected);
-        // MCUtil.debugWriteOutWebview(html, "connection-overview");
+        // WebviewUtil.debugWriteOutWebview(html, "connection-overview");
+        this.connectionOverviewPage.webview.html = "";
         this.connectionOverviewPage.webview.html = html;
     }
 
@@ -182,6 +187,22 @@ export default class ConnectionOverview {
                         vscode.window.showInformationMessage(`Creating new connection cancelled`);
                     }
                     break;
+                }
+
+                case ConnectionOverviewWVMessages.REGISTRY: {
+                    if (this.connection) {
+                        manageRegistriesCmd(this.connection);
+                    } else {
+                        vscode.window.showInformationMessage("Create a new connection");
+                    }
+                }
+
+                case ConnectionOverviewWVMessages.SOURCES: {
+                    if (this.connection) {
+                        manageSourcesCmd(this.connection);
+                    } else {
+                        vscode.window.showInformationMessage("Create a new connection");
+                    }
                 }
                 default:
                     Log.e("Received unexpected WebView message in Connection Overview page", msg);

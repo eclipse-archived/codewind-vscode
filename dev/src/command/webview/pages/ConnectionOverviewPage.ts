@@ -55,7 +55,8 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    <label for="input-url">Codewind Gatekeeper URL</label>
+                    ${connectionExists ? `<label for="input-url">Codewind Gatekeeper URL</label><img id="copy_url" onclick="copyURL()" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/>` : 
+                    `<label for="input-url">Codewind Gatekeeper URL</label>` }
                     <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}
@@ -82,13 +83,13 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                 <div id="link-container-box">
                     <h3>Select Sources<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
                     <p>Select sources to fetch new project templates from.</p><br>
-                    <div type="button" class="btn btn-prominent">Open Template Source Manager</div>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
                 </div>
 
                 <div id="link-container-box">
                     <h3>Add Registries<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
                     <p> Log in to Container Image Registries to push project images and pull private template images.</p>
-                    <div type="button" class="btn btn-prominent">Open Container Registry Manager (optional)</div>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager (optional)</div>
                 </div>
             </div>
 
@@ -165,6 +166,19 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                submitNewConnection();
             }
         });
+
+        function copyURL() {
+            const url = document.querySelector("#ingress-url")
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = url.value;
+
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+
+            document.execCommand('copy');
+
+            document.body.removeChild(tempTextArea);
+        }
 
         function toggleConnection() {
             sendMsg("${ConnectionOverviewWVMessages.TOGGLE_CONNECTED}");

@@ -38,6 +38,11 @@ body {
     margin-top: 5px;
 }
 
+#copy_url {
+    width: 15px;
+    margin-left: 5px;
+}
+
 #ingress-username-label {
     font-family: IBMPlexSans;
     font-size: 0.9rem;
@@ -98,7 +103,7 @@ body {
     float: right;
     width: 20px;
     margin-right: 345px;
-    margin-top: 5px;
+    margin-top: 3px;
 }
 
 #deployment-box p {
@@ -124,8 +129,6 @@ body {
     width: 25px;
     float: right;
     margin-right: 15px;
-    margin-top: 2px;
-
 }
 
 #deployment-box .input {

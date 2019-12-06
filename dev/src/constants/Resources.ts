@@ -97,6 +97,7 @@ namespace Resources {
         ConnectionConnectedCheckmark = "connection_connected_checkmark.svg",
         ConnectionDisconnectedCheckmark = "connection_disconnected_checkmark.svg",
         ConnectionWarningCheckmark = "connection_warning.svg",
+        Copy = "copy.svg",
         ServerError = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",
