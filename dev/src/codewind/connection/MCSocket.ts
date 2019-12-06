@@ -30,6 +30,9 @@ export default class MCSocket implements vscode.Disposable {
     public readonly uri: string;
     private readonly socket: SocketIOClient.Socket;
 
+    private _isConnected: boolean = false;
+    private _isAuthorized: boolean = false;
+
     /**
      * Create a SocketIO connection to the server at the given URI.
      * Can throw an error.
@@ -62,8 +65,14 @@ export default class MCSocket implements vscode.Disposable {
         this.socket.connect();
 
         this.socket
-            .on("connect",      this.connection.onConnect)      // non-nls
-            .on("disconnect",   this.connection.onDisconnect)   // non-nls
+            .on("connect", () => {
+                this._isConnected = true;
+                this.connection.onConnect();
+            })      // non-nls
+            .on("disconnect", () => {
+                this._isConnected = false;
+                this.connection.onDisconnect();
+            })   // non-nls
 
             .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectBound)
 
@@ -83,6 +92,14 @@ export default class MCSocket implements vscode.Disposable {
             ;
     }
 
+    public get isConnected(): boolean {
+        return this._isConnected;
+    }
+
+    public get isAuthorized(): boolean {
+        return this._isAuthorized;
+    }
+
     /**
      * This MUST be called when the connection is removed.
      * If there are multiple sockets listening on the same connection,
@@ -91,6 +108,8 @@ export default class MCSocket implements vscode.Disposable {
     public async dispose(): Promise<void> {
         this.connection.onDisconnect();
         this.socket.disconnect();
+        this._isConnected = false;
+        this._isAuthorized = false;
     }
 
     public async authenticate(token: string): Promise<void> {
@@ -105,6 +124,8 @@ export default class MCSocket implements vscode.Disposable {
 
             this.socket.on("authenticated", () => {
                 Log.i(`Successfully authenticated ${this}`);
+                // The authorization stays valid until we call socket.disconnect()
+                this._isAuthorized = true;
                 clearTimeout(timeout);
                 resolve();
             });

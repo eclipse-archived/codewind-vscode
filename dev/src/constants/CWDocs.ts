@@ -18,7 +18,7 @@ export namespace CWDocs {
 }
 
 export enum CWDocs {
-    TEMPLATE_MANAGEMENT = "mdt-vsc-usingadifferenttemplate.html",
+    TEMPLATE_MANAGEMENT = "mdt-vsc-workingwithtemplates.html",
     INSTALL_INFO = "mdt-vsc-installinfo.html",
     DOCKER_REGISTRY = "dockerregistry.html",
     PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",

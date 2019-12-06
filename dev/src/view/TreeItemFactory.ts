@@ -101,16 +101,16 @@ namespace TreeItemFactory {
                 }
             }];
         }
-        else if (connection.state === ConnectionStates.NETWORK_ERROR) {
+        else if (connection.state === ConnectionStates.INITIALIZING) {
             return [{
-                label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
+                label: "Connecting...",
                 iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
             }];
         }
-        else if (connection.state === ConnectionStates.INITIALIZING) {
+        else if (!connection.isConnected) {
             return [{
-                label: "Connecting...",
+                label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
                 iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
             }];

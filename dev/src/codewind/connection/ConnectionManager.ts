@@ -68,10 +68,8 @@ export default class ConnectionManager implements vscode.Disposable {
         });
 
         if (existing) {
-            const alreadyExistsMsg = "Connection already exists at " + ingressUrl.toString();
-            Log.i(alreadyExistsMsg);
-            vscode.window.showWarningMessage(alreadyExistsMsg);
-            return existing;
+            const alreadyExistsMsg = `${existing.label} is already connected to ${ingressUrl.toString()}`;
+            throw new Error(alreadyExistsMsg);
         }
 
         const newConnID = await ConnectionMemento.addConnection(label, ingressUrl, username);
@@ -123,7 +121,6 @@ export default class ConnectionManager implements vscode.Disposable {
 
         // pass undefined here to refresh the tree from its root
         CodewindEventListener.onChange(undefined);
-        await newConnection.initPromise;
     }
 
     public async removeConnection(connection: Connection): Promise<boolean> {
