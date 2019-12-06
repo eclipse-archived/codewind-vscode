@@ -103,7 +103,16 @@ export namespace CLILifecycleWrapper {
 
     export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"stopped" | "started-wrong-version" | "started-correct-version"> {
         if (!status) {
-            status = await CLICommandRunner.status();
+            try {
+                status = await CLICommandRunner.status();
+            }
+            catch (err) {
+                if (err.toString().toLowerCase().includes("docker daemon")) {
+                    // Work around exception when docker is not running
+                    return "stopped";
+                }
+                throw err;
+            }
         }
         if (status.started.length > 0) {
             if (status.started.includes(getTag())) {
