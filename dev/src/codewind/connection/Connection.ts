@@ -49,6 +49,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private _sourcesPage: SourcesPageWrapper  | undefined;
     private _registriesPage: RegistriesPageWrapper | undefined;
 
+    private _hasHadPushRegistry: boolean = false;
+
     constructor(
         /**
          * Connection ID as returned by `cwctl connections add`
@@ -336,10 +338,18 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // The local connection does not ever need a push registry since the images are deployed to docker for desktop
             return false;
         }
+        else if (this._hasHadPushRegistry) {
+            // Once the push registry is configured once, we skip that step to save time, if we had one and then the user removed it, it will fail.
+            return false;
+        }
 
         const pushRegistryRes = await Requester.getPushRegistry(this);
         // If the imagePushRegistry IS set, we do NOT need a push registry (since we already have one)
-        return !pushRegistryRes.imagePushRegistry;
+        const hasPushRegistry = !pushRegistryRes.imagePushRegistry;
+        if (hasPushRegistry) {
+            this._hasHadPushRegistry = true;
+        }
+        return hasPushRegistry;
     }
 
     public async refresh(): Promise<void> {
