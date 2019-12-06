@@ -14,7 +14,6 @@ import * as path from "path";
 import * as child_process from "child_process";
 import * as fs from "fs";
 import * as os from "os";
-import { promisify } from "util";
 
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
@@ -65,8 +64,26 @@ namespace CLIWrapper {
         const binarySourceDir = path.dirname(cwctlSourcePath);
         const cwctlBasename = path.basename(cwctlSourcePath);
 
-        const binaryTargetDir = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR, global.extVersion);
-        await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
+        const dotCodewindPath = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR);
+        const binaryTargetDir = path.join(dotCodewindPath, global.extVersion);
+
+        // fails on windows, see note about electron https://github.com/nodejs/node/issues/24698#issuecomment-486405542
+        // await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
+        try {
+            await fs.promises.access(dotCodewindPath);
+        }
+        catch (err) {
+            await fs.promises.mkdir(dotCodewindPath);
+            Log.d(`Created ${dotCodewindPath}`);
+        }
+
+        try {
+            await fs.promises.access(binaryTargetDir);
+        }
+        catch (err) {
+            await fs.promises.mkdir(binaryTargetDir);
+            Log.d(`Created ${binaryTargetDir}`);
+        }
 
         const cwctlTargetPath = path.join(binaryTargetDir, cwctlBasename);
         await copyIfDestNotExist(cwctlSourcePath, cwctlTargetPath);
@@ -85,12 +102,12 @@ namespace CLIWrapper {
 
     async function copyIfDestNotExist(sourcePath: string, destPath: string): Promise<void> {
         try {
-            await promisify(fs.access)(destPath);
+            await fs.promises.access(destPath);
             Log.d(`${_cwctlPath} already exists`);
         }
         catch (err) {
             Log.d(`Copying ${sourcePath} to ${destPath}`);
-            await promisify(fs.copyFile)(sourcePath, destPath);
+            await fs.promises.copyFile(sourcePath, destPath);
         }
     }
 
