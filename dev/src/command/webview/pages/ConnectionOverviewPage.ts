@@ -55,7 +55,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    <label for="input-url">URL</label>
+                    <label for="input-url">Codewind Gatekeeper URL</label>
                     <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}

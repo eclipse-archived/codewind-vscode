@@ -27,12 +27,13 @@ namespace InputUtil {
         validator?: (value: string) => string | undefined;
     }
 
-    export async function runMultiStepInput(title: string, steps: InputStep[]): Promise<string[]> {
+    export async function runMultiStepInput(title: string, steps: InputStep[]): Promise<string[] | undefined> {
         const ib = vscode.window.createInputBox();
         ib.title = title;
         ib.totalSteps = steps.length;
         ib.ignoreFocusOut = true;
-        ib.show();
+        // Log.d("IB SHOW");
+        // ib.show();
 
         const results = [];
 
@@ -47,7 +48,8 @@ namespace InputUtil {
                 const result = await runInputStep(ib, i, prompt, step);
                 if (result == null) {
                     // quit
-                    break;
+                    ib.hide();
+                    return undefined;
                 }
                 results[i] = result;
             }
@@ -57,11 +59,13 @@ namespace InputUtil {
                     continue;
                 }
                 else {
+                    // Log.d("IB hide - error");
                     ib.hide();
                     throw err;
                 }
             }
         }
+        // Log.d("IB Hide - Done");
         ib.hide();
 
         return results;
@@ -97,9 +101,14 @@ namespace InputUtil {
             ib.onDidChangeValue(() => { /* nothing */ });
         }
 
-        return new Promise((resolve, reject) => {
+        // We should only have to show the IB once, but in theia, the IB is hidden after accept
+        ib.show();
+        return new Promise<string | undefined>((resolve, reject) => {
             ib.onDidTriggerButton((_btn) => {
                 return reject(BTN_BACK);
+            });
+            ib.onDidHide(() => {
+                return resolve(undefined);
             });
             ib.onDidAccept(() => {
                 // We COULD block acceptance, if there is a validation message, here

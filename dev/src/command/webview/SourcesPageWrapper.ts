@@ -69,7 +69,10 @@ export class ManageSourcesPage {
             localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
         };
 
-        const title = SOURCES_PAGE_TITLE + ` (${connection.label})`;
+        let title = SOURCES_PAGE_TITLE;
+        if (!global.isTheia) {
+            title += ` (${connection.label})`;
+        }
 
         this.sourcesPage = vscode.window.createWebviewPanel(
             title,

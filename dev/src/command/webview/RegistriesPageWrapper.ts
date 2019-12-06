@@ -51,7 +51,10 @@ export class ManageRegistriesPageWrapper {
             localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
         };
 
-        const title = REGISTRIES_PAGE_TITLE + ` (${connection.label})`;
+        let title = REGISTRIES_PAGE_TITLE;
+        if (!global.isTheia) {
+            title += ` (${connection.label})`;
+        }
 
         this.registriesPage = vscode.window.createWebviewPanel(
             title,
@@ -158,7 +161,8 @@ export class ManageRegistriesPageWrapper {
 
                 if (registry.isPushRegistry) {
                     const continueBtn = "Remove Anyway";
-                    const confirm = await vscode.window.showWarningMessage(`${registry.fullAddress} is currently set as your image push registry. ` +
+                    const confirm = await vscode.window.showWarningMessage(
+                        `${registry.fullAddress} is currently set as your image push registry. \n` +
                         `Removing it will cause Codewind-style project builds to fail until a new image push registry is selected.`,
                         { modal: true },
                         continueBtn
@@ -186,6 +190,7 @@ export class ManageRegistriesPageWrapper {
             }
             case ManageRegistriesWVMessages.REFRESH: {
                 await this.refresh();
+                vscode.window.showInformationMessage(`Refreshed Image Registries`);
                 break;
             }
             default: {

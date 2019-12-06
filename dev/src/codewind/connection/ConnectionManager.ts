@@ -105,7 +105,7 @@ export default class ConnectionManager implements vscode.Disposable {
         }
         Log.i("Creating connection to " + url);
 
-        const label = global.isTheia ? "Codewind" : "Local Codewind";
+        const label = global.isTheia ? "Codewind in Che" : "Local Codewind";
         const newConnection = new Connection(LOCAL_CONNECTION_ID, url, label, false);
         this.onNewConnection(newConnection);
         return newConnection;

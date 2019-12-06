@@ -106,7 +106,11 @@ namespace RegistryUtils {
             return validateAddress(input, existingRegistries.map((reg) => reg.address));
         };
 
-        const [ address, username, password ]: string[] = await InputUtil.runMultiStepInput(wizardTitle, newRegistryWizardSteps);
+        const inputResult: string[] | undefined = await InputUtil.runMultiStepInput(wizardTitle, newRegistryWizardSteps);
+        if (inputResult == null) {
+            return;
+        }
+        const [ address, username, password ]: string[] = inputResult;
 
         const isFirstRegistry = existingRegistries.length === 0;
         let setAsPushRegistry: boolean;
@@ -147,7 +151,16 @@ namespace RegistryUtils {
             return newRegistry_;
         });
 
+
+        if (newRegistry == null) {
+            Log.e(`New registry secret appeared to be created but was null`);
+        }
+
         if (setAsPushRegistry) {
+            if (newRegistry == null) {
+                throw new Error(`Unknown error creating new registry secret`);
+            }
+
             let didSetPush = false;
             try {
                 didSetPush = (await setPushRegistry(connection, newRegistry, false)) != null;

@@ -38,11 +38,11 @@ export default function getManageRegistriesPage(connectionLabel: string, registr
     <body>
 
     <div id="top-section">
-        <div class="title-section title-section-subtitled">
+        <div class="title-section ${global.isTheia ? "" : "title-section-subtitled"}">
             <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
             <div>
                 <h1 id="title">Image Registries</h1>
-                <h2 id="subtitle">${connectionLabel}</h2>
+                ${global.isTheia ? "" : `<h2 id="subtitle">${connectionLabel}</h2>`}
             </div>
         </div>
         <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageRegistriesWVMessages.HELP}')">

@@ -125,11 +125,11 @@ namespace Requester {
 
     export async function getImageRegistries(connection: Connection): Promise<ContainerRegistry[]> {
         const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "GET");
+        // Log.d(`Container registry response:`, response);
         const registries = response.map((reg) => asContainerRegistry(reg));
-        // Log.d(`${registries.length} image registries`);
 
         const pushRegistryRes = await getPushRegistry(connection);
-        // Log.d(`Image push registry response`, pushRegistryRes);
+        Log.d(`Image push registry response`, pushRegistryRes);
 
         // tslint:disable-next-line: no-boolean-literal-compare
         if (pushRegistryRes.imagePushRegistry === true) {
@@ -160,8 +160,13 @@ namespace Requester {
             credentials: credentialsEncoded,
         };
 
-        const response = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "POST", { body });
-        return asContainerRegistry(response);
+        const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "POST", { body });
+        const match = response.find((reg) => reg.address === address);
+        if (match == null) {
+            Log.e("Got success response when adding new registry secret, but was not found in api response");
+            throw new Error(`Error adding new registry secret`);
+        }
+        return asContainerRegistry(match);
     }
 
     export async function removeRegistrySecret(connection: Connection, toRemove: ContainerRegistry): Promise<ContainerRegistry[]> {
