@@ -44,9 +44,6 @@
     "cmdID_separator": "ext.cw.separator",
     "cmdTitle_separator": "Separator",
 
-    "cmdID_setRegistry": "ext.cw.setRegistry",
-    "cmdTitle_setRegistry": "Set Deployment Registry",
-
     "cmdID_openTekton": "ext.cw.openTekton",
     "cmdTitle_openTekton": "Open Tekton Dashboard",
 

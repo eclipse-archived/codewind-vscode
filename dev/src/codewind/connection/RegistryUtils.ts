@@ -65,10 +65,12 @@ namespace RegistryUtils {
     export async function doesNeedPushRegistry(projectType: string, connection: Connection): Promise<boolean> {
         // The local (non-kube) connection never needs a push registry because the images are run locally
         if (doesUsePushRegistry(projectType) && await connection.needsPushRegistry()) {
-            const manageRegistriesBtn = "Manage Registries";
+            const manageRegistriesBtn = "Image Registry Manager";
 
-            vscode.window.showErrorMessage(`Codewind style projects require an Image Push Registry to be configured. Add a registry using the Manage Registries page.`,
-                manageRegistriesBtn)
+            vscode.window.showErrorMessage(`Codewind style projects on Kubernetes require an Image Push Registry to be configured. ` +
+                `Add a push registry using the Image Registry Manager.`,
+                manageRegistriesBtn
+            )
             .then((res) => {
                 if (res === manageRegistriesBtn) {
                     manageRegistriesCmd(connection);
