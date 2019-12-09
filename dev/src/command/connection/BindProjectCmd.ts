@@ -92,7 +92,7 @@ async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri):
         projectTypeInfo = userProjectType;
     }
 
-    if (RegistryUtils.doesNeedPushRegistry(projectTypeInfo.projectType, connection)) {
+    if (await RegistryUtils.doesNeedPushRegistry(projectTypeInfo.projectType, connection)) {
         return;
     }
 
@@ -104,7 +104,7 @@ async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri):
     await vscode.window.withProgress({
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: `Adding ${projectName}...`
+        title: `Adding ${projectName} to ${connection.label}...`
     }, () => {
         return CLICommandRunner.bindProject(connection.id, projectName, pathToBind, projectTypeInfo);
     });
