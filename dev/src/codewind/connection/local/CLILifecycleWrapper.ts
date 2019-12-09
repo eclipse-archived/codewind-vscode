@@ -35,7 +35,7 @@ const TAG_OPTION = "-t";
 const TAG_LATEST = "latest";
 // Codewind tag to install if CW_TAG is not set in env
 // UPDATE THIS on release branches to eg "0.6.0"
-const DEFAULT_CW_TAG = TAG_LATEST;
+const DEFAULT_CW_TAG = "0.7.0";
 
 export namespace CLILifecycleWrapper {
 
@@ -103,7 +103,16 @@ export namespace CLILifecycleWrapper {
 
     export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"stopped" | "started-wrong-version" | "started-correct-version"> {
         if (!status) {
-            status = await CLICommandRunner.status();
+            try {
+                status = await CLICommandRunner.status();
+            }
+            catch (err) {
+                if (err.toString().toLowerCase().includes("docker daemon")) {
+                    // Work around exception when docker is not running
+                    return "stopped";
+                }
+                throw err;
+            }
         }
         if (status.started.length > 0) {
             if (status.started.includes(getTag())) {
