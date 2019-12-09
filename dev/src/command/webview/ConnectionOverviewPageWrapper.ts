@@ -195,6 +195,7 @@ export default class ConnectionOverview {
                     } else {
                         vscode.window.showInformationMessage("Create a new connection");
                     }
+                    break;
                 }
 
                 case ConnectionOverviewWVMessages.SOURCES: {
@@ -203,6 +204,7 @@ export default class ConnectionOverview {
                     } else {
                         vscode.window.showInformationMessage("Create a new connection");
                     }
+                    break;
                 }
                 default:
                     Log.e("Received unexpected WebView message in Connection Overview page", msg);

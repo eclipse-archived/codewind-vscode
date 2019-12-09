@@ -78,7 +78,7 @@ body {
     margin: auto;
     height: 40px;
     text-indent: 15px;
-    padding-top: 12px;
+    padding-top: 15px;
 }
 
 #link-container-box .btn {
@@ -103,7 +103,7 @@ body {
     float: right;
     width: 20px;
     margin-right: 345px;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 #deployment-box p {
@@ -122,13 +122,20 @@ body {
     margin-top: 0px;
     height: 40px;
     text-indent: 15px;
-    padding-top: 12px;
+    padding-top: 15px;
 }
 
 #deployment-box h3 img {
     width: 25px;
     float: right;
     margin-right: 15px;
+}
+
+#deployment-box .learn-more-btn {
+    width: 20px;
+    float: right;
+    margin-right: 15px;
+    margin-top: 2px;
 }
 
 #deployment-box .input {
@@ -192,7 +199,7 @@ body {
  }
 
  #toggle-connect-btn {
-    color: #fff;
+    color: var(--vscode-editor-foreground);
     background: var(--vscode-sideBarSectionHeader-background);
     font-size: .875rem;
     font-weight: 400;

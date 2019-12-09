@@ -48,7 +48,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             <div id="deployment-box">
                 <h3>Codewind Connection
                 <div tabindex="0" id="learn-more-btn-remote" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
-                    <img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
+                    <a href=""><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
                 </div>
                     ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
                     `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`}
@@ -81,13 +81,13 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
 
             <div>
                 <div id="link-container-box">
-                    <h3>Select Sources<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
+                    <h3>Select Sources <a href=""><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p>Select sources to fetch new project templates from.</p><br>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
                 </div>
 
                 <div id="link-container-box">
-                    <h3>Add Registries<img alt="Learn More" onclick="sendMsg()" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></h3>
+                    <h3>Add Registries <a href=""><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p> Log in to Container Image Registries to push project images and pull private template images.</p>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager (optional)</div>
                 </div>
