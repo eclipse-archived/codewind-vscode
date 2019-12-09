@@ -47,7 +47,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
         <div style="display: flex;">
             <div id="deployment-box">
                 <h3>Codewind Connection
-                <div tabindex="0" id="learn-more-btn-remote" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
+                <div tabindex="0" id="learn-more-btn-remote">
                     <a href=""><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
                 </div>
                     ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
@@ -55,7 +55,9 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    ${connectionExists ? `<label for="input-url">Codewind Gatekeeper URL</label><img id="copy_url" onclick="copyURL()" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/>` : 
+                    ${connectionExists ? `<label for="input-url">Codewind Gatekeeper URL</label>
+                    <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
+                    :
                     `<label for="input-url">Codewind Gatekeeper URL</label>` }
                     <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
@@ -167,10 +169,18 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             }
         });
 
-        function copyURL() {
+        function copyURL(e) {
             const url = document.querySelector("#ingress-url")
             const tempTextArea = document.createElement("textarea");
             tempTextArea.value = url.value;
+
+            let copiedURLToolTip = document.getElementById('copy_url_tooltip');
+            copiedURLToolTip.style.display = "inline";
+            copiedURLToolTip.style.position = "absolute";
+            copiedURLToolTip.style.left = e.pageX + 10 + 'px';
+            copiedURLToolTip.style.top = e.pageY - 10 +'px';
+
+            setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 3000);
 
             document.body.appendChild(tempTextArea);
             tempTextArea.select();

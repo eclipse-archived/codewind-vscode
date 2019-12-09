@@ -193,7 +193,7 @@ export default class ConnectionOverview {
                     if (this.connection) {
                         manageRegistriesCmd(this.connection);
                     } else {
-                        vscode.window.showInformationMessage("Create a new connection");
+                        vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
                     }
                     break;
                 }
@@ -202,7 +202,7 @@ export default class ConnectionOverview {
                     if (this.connection) {
                         manageSourcesCmd(this.connection);
                     } else {
-                        vscode.window.showInformationMessage("Create a new connection");
+                        vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
                     }
                     break;
                 }
