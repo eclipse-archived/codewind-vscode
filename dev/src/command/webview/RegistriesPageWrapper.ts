@@ -100,6 +100,9 @@ export class ManageRegistriesPageWrapper {
 
         const html = getManageRegistriesHtml(this.connection.label, this.registries, this.connection.isKubeConnection);
         WebviewUtil.debugWriteOutWebview(html, "manage-registries");
+        // Setting the html to "" seems to clear the page state, otherwise there is some caching done
+        // which causes eg. the selected radiobutton to not be updated https://github.com/eclipse/codewind/issues/1413
+        this.registriesPage.webview.html = "";
         this.registriesPage.webview.html = html;
     }
 
