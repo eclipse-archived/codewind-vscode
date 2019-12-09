@@ -208,6 +208,10 @@ export namespace CLICommandRunner {
      */
     export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
         const connections = await CLIWrapper.cliExec(ConnectionCommands.LIST);
+        if (!connections.connections) {
+            Log.e(`Received no connections back from connections list`);
+            return [];
+        }
         return connections.connections.filter((conn: CLIConnectionData) => conn.id !== "local");
     }
 
