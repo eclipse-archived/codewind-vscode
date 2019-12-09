@@ -350,17 +350,27 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             return false;
         }
         else if (this._hasHadPushRegistry) {
-            // Once the push registry is configured once, we skip that step to save time, if we had one and then the user removed it, it will fail.
+            // Once the push registry is configured once, we skip that step to save time.
+            // if we had one and then the user removed it, codewind-style builds will fail, but the user was warned
             return false;
         }
 
+        // const pushRegistryRes = await vscode.window.withProgress({
+        //     cancellable: false,
+        //     location: vscode.ProgressLocation.Notification,
+        //     title: `Checking for image push registry...`,
+        // }, () => {
+        //     return Requester.getPushRegistry(this);
+        // });
+
         const pushRegistryRes = await Requester.getPushRegistry(this);
-        // If the imagePushRegistry IS set, we do NOT need a push registry (since we already have one)
-        const hasPushRegistry = !pushRegistryRes.imagePushRegistry;
+
+        const hasPushRegistry = pushRegistryRes.imagePushRegistry;
         if (hasPushRegistry) {
             this._hasHadPushRegistry = true;
         }
-        return hasPushRegistry;
+        // If the imagePushRegistry IS set, we do NOT need a push registry (since we already have one)
+        return !hasPushRegistry;
     }
 
     public async refresh(): Promise<void> {

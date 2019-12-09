@@ -71,8 +71,6 @@ export default class RemoteConnection extends Connection {
         const canPing = await Requester.ping(this.url);
         if (!canPing) {
             Log.w(`Failed to ping ${this} when enabling`);
-            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
-            // so the user sees the connection has to be re-connected by hand after fixing the problem
             this.setState(ConnectionStates.DISABLED);
             throw new Error(`Could not connect to ${this.label}: failed to ping ${this.url}`);
         }
