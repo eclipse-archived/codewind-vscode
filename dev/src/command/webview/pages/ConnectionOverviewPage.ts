@@ -177,10 +177,10 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             let copiedURLToolTip = document.getElementById('copy_url_tooltip');
             copiedURLToolTip.style.display = "inline";
             copiedURLToolTip.style.position = "absolute";
-            copiedURLToolTip.style.left = e.pageX + 10 + 'px';
+            copiedURLToolTip.style.left = e.pageX + 15 + 'px';
             copiedURLToolTip.style.top = e.pageY - 10 +'px';
 
-            setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 3000);
+            setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 1000);
 
             document.body.appendChild(tempTextArea);
             tempTextArea.select();
