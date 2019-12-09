@@ -33,14 +33,6 @@ import { refreshProjectOverview } from "../../command/webview/pages/ProjectOverv
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 
-/**
- * Used to determine App Monitor URL
- */
-const langToPathMap = new Map<string, string>();
-langToPathMap.set("java", "javametrics-dash");
-langToPathMap.set("nodejs", "appmetrics-dash");
-langToPathMap.set("swift", "swiftmetrics-dash");
-
 const STRING_NS = StringNamespaces.PROJECT;
 
 /**
@@ -73,6 +65,7 @@ export default class Project implements vscode.QuickPickItem {
     private _state: ProjectState;
     private _containerID: string | undefined;
     private _contextRoot: string;
+    private _appMonitorUrl: string | undefined;
     private readonly _ports: IProjectPorts;
     private appBaseURL: vscode.Uri | undefined;
     private _autoBuildEnabled: boolean;
@@ -129,6 +122,8 @@ export default class Project implements vscode.QuickPickItem {
         this._lastImgBuild = new Date(Number(projectInfo.appImgLastBuild));
 
         this._injectMetricsEnabled = projectInfo.injectMetrics || false;
+
+        this._appMonitorUrl = projectInfo.appMonitorUrl;
 
         this._ports = {
             appPort: undefined,
@@ -190,6 +185,10 @@ export default class Project implements vscode.QuickPickItem {
                 Log.e(`Bad appBaseURL "${projectInfo.appBaseURL}" provided; missing scheme or authority`);
             }
             this.appBaseURL = asUri;
+        }
+
+        if (projectInfo.appMonitorUrl) {
+            this._appMonitorUrl = projectInfo.appMonitorUrl;
         }
 
         // note oldState can be null if this is the first time update is being invoked.
@@ -593,17 +592,7 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public get appMonitorUrl(): string | undefined {
-        const appMetricsPath = langToPathMap.get(this.type.language);
-        const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
-        Log.d(`${this.name} supports metrics ? ${supported}`);
-        if (!supported || !this.appUrl) {
-            return undefined;
-        }
-        let monitorPageUrlStr = this.appUrl.toString();
-        if (!monitorPageUrlStr.endsWith("/")) {
-            monitorPageUrlStr += "/";
-        }
-        return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
+        return this._appMonitorUrl;
     }
 
     public get canContainerShell(): boolean {
