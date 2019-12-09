@@ -86,29 +86,20 @@ namespace CLIWrapper {
         }
 
         const cwctlTargetPath = path.join(binaryTargetDir, cwctlBasename);
-        await copyIfDestNotExist(cwctlSourcePath, cwctlTargetPath);
+        Log.d(`Copying ${cwctlSourcePath} to ${cwctlTargetPath}`);
+        await fs.promises.copyFile(cwctlSourcePath, cwctlTargetPath);
         _cwctlPath = cwctlTargetPath;
 
         Log.d("Copying CLI prerequisites");
         for (const prereq of CLI_PREREQS[cwctlBasename]) {
             const source = path.join(binarySourceDir, prereq);
             const target = path.join(binaryTargetDir, prereq);
-            await copyIfDestNotExist(source, target);
+            Log.d(`Copying ${source} to ${target}`);
+            await fs.promises.copyFile(source, target);
         }
         Log.i("Binary copy-out succeeded to " + _cwctlPath);
         cliOutputChannel.appendLine(`cwctl is available at ${_cwctlPath}`);
         return _cwctlPath;
-    }
-
-    async function copyIfDestNotExist(sourcePath: string, destPath: string): Promise<void> {
-        try {
-            await fs.promises.access(destPath);
-            Log.d(`${_cwctlPath} already exists`);
-        }
-        catch (err) {
-            Log.d(`Copying ${sourcePath} to ${destPath}`);
-            await fs.promises.copyFile(sourcePath, destPath);
-        }
     }
 
     export async function getExecutablePath(): Promise<string> {
@@ -177,7 +168,12 @@ namespace CLIWrapper {
             cwctlProcess.on("close", (code: number | null) => {
                 if (code == null) {
                     // this happens in SIGTERM case, not sure what else may cause it
-                    Log.d(`CLI command ${cmdStr} did not exit normally, likely was cancelled`);
+                    Log.w(`CLI command ${cmdStr} did not exit normally`);
+                    Log.w(`Stdout:`, outStr);
+                    if (errStr) {
+                        Log.e(`Stderr:`, errStr);
+                    }
+                    resolve(outStr);
                 }
                 else if (code !== 0) {
                     Log.e(`Error running ${cmdStr}`);
