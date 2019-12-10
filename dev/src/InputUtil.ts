@@ -18,6 +18,7 @@ namespace InputUtil {
     export interface InputStep {
         // title: string;
         // prompt?: string;
+        allowEmpty?: boolean;
         promptGenerator: (...previousValues: string[]) => string;
         placeholder?: string;
         value?: string;
@@ -111,6 +112,10 @@ namespace InputUtil {
                 return resolve(undefined);
             });
             ib.onDidAccept(() => {
+                if (ib.value === "" && step.allowEmpty !== true) {
+                    ib.validationMessage = "The input cannot be empty.";
+                    return;
+                }
                 // We COULD block acceptance, if there is a validation message, here
                 return resolve(ib.value);
             });
