@@ -60,6 +60,11 @@ export default class MCSocket implements vscode.Disposable {
             timeout,
         };
 
+        if (!connection.isRemote) {
+            Log.d(`${this} does not require authorization`);
+            this._isAuthorized = true;
+        }
+
         this.socket = io(this.uri, options);
 
         this.socket.connect();
@@ -100,6 +105,10 @@ export default class MCSocket implements vscode.Disposable {
         return this._isAuthorized;
     }
 
+    public get isReady(): boolean {
+        return this._isConnected && this._isAuthorized;
+    }
+
     /**
      * This MUST be called when the connection is removed.
      * If there are multiple sockets listening on the same connection,
@@ -119,7 +128,7 @@ export default class MCSocket implements vscode.Disposable {
 
             const timeoutS = 10;
             const timeout = setTimeout(() => {
-                reject(`Socket at ${this.uri} did not respond to authentication request within ${timeoutS} seconds.`);
+                reject(`Socket at ${this.uri} did not respond to authentication request within ${timeoutS} seconds. Try refreshing the connection.`);
             }, timeoutS * 1000);
 
             this.socket.on("authenticated", () => {
