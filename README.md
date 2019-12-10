@@ -14,6 +14,7 @@ For more information, see [the Codewind website](https://www.eclipse.org/codewin
 - Pull in your existing applications and use Codewind to help get them cloud ready.
 - See code changes reflected in your containerized application almost instantaneously. The Codewind advanced inner loop manages your application updates efficiently.
 - Develop in containers without feeling like you're developing in containers. Development flow within the IDE feels the same as traditional application development.
+- Free up space on your local computer by building and running Codewind applications with cloud resources.
 
 ## Features
 - Create new containerized projects or add existing ones.
@@ -24,6 +25,7 @@ For more information, see [the Codewind website](https://www.eclipse.org/codewin
 - Open a shell session into an application container.
 - Toggle the project auto build setting and manually initiate project builds.
 - Open your application or the application monitor in a browser.
+- Develop your code locally and build and run it remotely and securely in the cloud.
 
 ## Getting started with Codewind
 For more information about getting started with Codewind, see [Getting started with Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
