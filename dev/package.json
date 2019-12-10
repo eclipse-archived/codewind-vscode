@@ -432,6 +432,11 @@
                     "group": "ext.cw.conn.d@1"
                 },
                 {
+                    "command": "%cmdID_refreshConnection%",
+                    "when": "%isDisconnectedRemoteConnection%",
+                    "group": "inline"
+                },
+                {
                     "command": "%cmdID_enableConnection%",
                     "when": "%isDisabledRemoteConnection%",
                     "group": "ext.cw.conn.d@2"
