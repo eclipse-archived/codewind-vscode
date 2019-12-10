@@ -42,19 +42,23 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
     <!--div id="description">
         <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
     </div-->
-    <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
-        Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
-    </div>
     </div>
     <div id="main">
+        <div style="display: flex;">
             <div id="deployment-box">
                 <h3>Codewind Connection
+                <div tabindex="0" id="learn-more-btn-remote">
+                    <a href=""><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
+                </div>
                     ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
                     `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`}
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    <label for="input-url">Codewind Gatekeeper URL</label>
+                    ${connectionExists ? `<label for="input-url">Codewind Gatekeeper URL</label>
+                    <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
+                    :
+                    `<label for="input-url">Codewind Gatekeeper URL</label>` }
                     <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}
@@ -77,11 +81,27 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
                 </div>
             </div>
 
+            <div>
+                <div id="link-container-box">
+                    <h3>Select Sources <a href=""><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p>Select sources to fetch new project templates from.</p><br>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
+                </div>
+
+                <div id="link-container-box">
+                    <h3>Add Registries <a href=""><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p> Log in to Container Image Registries to push project images and pull private template images.</p>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager (optional)</div>
+                </div>
+            </div>
+
+            </div>
+
             <div class="remote-connection-btn-group">
                 <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
-                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/></div>
+                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${WebviewUtil.getIcon(Resources.Icons.Delete)}"/></div>
                 <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/></div>
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${WebviewUtil.getIcon(Resources.Icons.Edit_Connection)}"/></div>
                 <div type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</div>
                 <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
@@ -133,6 +153,41 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             document.querySelector("#cancel-btn").style.display = "inline";
             document.querySelector("#save-btn").style.display = "inline";
             document.querySelector("#test-btn").style.display = "inline";
+        }
+
+        let passwordInput = document.querySelector("#input-password");
+        passwordInput.addEventListener("keyup", (ev) => {
+            if (ev.key === "Enter") {
+               submitNewConnection();
+            }
+        });
+
+        let usernameInput = document.querySelector("#ingress-username");
+        usernameInput.addEventListener("keyup", (ev) => {
+            if (ev.key === "Enter") {
+               submitNewConnection();
+            }
+        });
+
+        function copyURL(e) {
+            const url = document.querySelector("#ingress-url")
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = url.value;
+
+            let copiedURLToolTip = document.getElementById('copy_url_tooltip');
+            copiedURLToolTip.style.display = "inline";
+            copiedURLToolTip.style.position = "absolute";
+            copiedURLToolTip.style.left = e.pageX + 15 + 'px';
+            copiedURLToolTip.style.top = e.pageY - 10 +'px';
+
+            setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 1000);
+
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+
+            document.execCommand('copy');
+
+            document.body.removeChild(tempTextArea);
         }
 
         function toggleConnection() {
