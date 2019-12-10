@@ -143,7 +143,14 @@ export default class ConnectionOverview {
                             vscode.window.showErrorMessage(`Enter a password`);
                         }
                         else {
-                            this.connection.updateCredentials(newInfo.username, newInfo.password);
+                            try {
+                                await this.connection.updateCredentials(newInfo.username, newInfo.password);
+                            }
+                            catch (err) {
+                                const errMsg = `Error updating ${this.connection.label}:`;
+                                vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+                                Log.e(errMsg, err);
+                            }
                             this.refresh(this.connection.memento);
                         }
                     }
