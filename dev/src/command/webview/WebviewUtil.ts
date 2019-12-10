@@ -60,7 +60,7 @@ namespace WebviewUtil {
             return "";
         }
         return `<meta http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource:;"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource: 'unsafe-inline';"
         >`;
     }
 
