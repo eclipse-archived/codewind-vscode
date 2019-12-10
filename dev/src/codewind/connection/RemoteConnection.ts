@@ -208,6 +208,7 @@ export default class RemoteConnection extends Connection {
             }
             if (this.state === ConnectionStates.AUTH_ERROR) {
                 this.setState(ConnectionStates.READY);
+                await this.refresh();
             }
             return this._accessToken;
         }
