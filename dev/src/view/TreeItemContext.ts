@@ -33,7 +33,7 @@ enum TreeItemContextValues {
     // Connection
     CONN_BASE = "connection",
     CONN_CONNECTED = "connected",
-    // CONN_ERRORED = "errored",
+    CONN_DISCONNECTED = "disconnected",
     REMOTECONN_ENABLED = "remote.enabled",
     REMOTECONN_DISABLED = "remote.disabled",
 
@@ -96,6 +96,10 @@ namespace TreeItemContext {
 
         if (connection.isConnected) {
             contextValues.push(TreeItemContextValues.CONN_CONNECTED);
+        }
+        else if (connection.enabled) {
+            // Enabled but not connected -> Disconnected
+            contextValues.push(TreeItemContextValues.CONN_DISCONNECTED);
         }
 
         return contextValues;
