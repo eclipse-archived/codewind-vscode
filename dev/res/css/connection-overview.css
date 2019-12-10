@@ -32,7 +32,6 @@ body {
 }
 
 #url {
-    font-family: IBMPlexSans;
     font-size: 0.9rem;
     word-break: break-all;
     margin-top: 5px;
@@ -45,7 +44,6 @@ body {
 }
 
 #ingress-username-label {
-    font-family: IBMPlexSans;
     font-size: 0.9rem;
     word-break: break-all;
     margin-top: 5px;
@@ -94,7 +92,6 @@ body {
 
 #link-container-box p {
     margin-left: 1rem;
-    font-family: IBMPlexSans;
     font-size: 14px;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -108,11 +105,9 @@ body {
 }
 
 #deployment-box p {
-    font-family: IBMPlexSans;
     font-size: 1rem;
 }
 #deployment-box label {
-    font-family: IBMPlexSans;
     font-size: 1rem;
 }
 
@@ -154,7 +149,6 @@ body {
     height: 2.5rem;
     margin-top: 5px;
     margin-bottom: 5px;
-    font-family: IBMPlexSans;
     font-size: 0.9rem;
     background-color: var(--vscode-sideBarSectionHeader-background);
     border: 0;
@@ -169,7 +163,6 @@ body {
     margin-top: 5px;
     margin-bottom: 5px;
     font-size: 1rem;
-    font-family: IBMPlexSans;
     background-color: var(--vscode-sideBarSectionHeader-background);
     border: 0;
     text-indent: 1rem;
@@ -277,7 +270,6 @@ body {
 }
 
 .bx--text-input {
-    font-family: IBMPlexSans;
     background-color: #161616;
     height: 32px;
     padding: 0 1rem;
@@ -304,7 +296,6 @@ body {
 }
 
 .connection-name {
-    font-family: IBMPlexSans;
     font-size: 32px;
     white-space: nowrap;
 }
@@ -317,6 +308,5 @@ body {
 }
 
 #copy_url_tooltip {
-    font-family: IBMPlexSans;
     display: none;
 }
