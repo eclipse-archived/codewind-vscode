@@ -129,7 +129,7 @@ namespace Requester {
         const registries = response.map((reg) => asContainerRegistry(reg));
 
         const pushRegistryRes = await getPushRegistry(connection);
-        Log.d(`Image push registry response`, pushRegistryRes);
+        // Log.d(`Image push registry response`, pushRegistryRes);
 
         // tslint:disable-next-line: no-boolean-literal-compare
         if (pushRegistryRes.imagePushRegistry === true) {
