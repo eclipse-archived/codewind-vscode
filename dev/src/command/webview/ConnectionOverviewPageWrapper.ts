@@ -63,6 +63,7 @@ export default class ConnectionOverview {
 
     public static showForExistingConnection(connection: RemoteConnection): ConnectionOverview {
         if (connection.overviewPage) {
+            connection.overviewPage.reveal();
             return connection.overviewPage;
         }
         return new ConnectionOverview(connection.memento, connection);
@@ -117,10 +118,12 @@ export default class ConnectionOverview {
         this.connectionOverviewPage.webview.html = html;
     }
 
+    public reveal(): void {
+        this.connectionOverviewPage.reveal();
+    }
+
     public dispose(): void {
-        if (this.connectionOverviewPage) {
-            this.connectionOverviewPage.dispose();
-        }
+        this.connectionOverviewPage.dispose();
     }
 
     private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {

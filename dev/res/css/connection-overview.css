@@ -31,6 +31,11 @@ body {
     outline: none;
 }
 
+.info-label {
+    font-size: 110%;
+    font-weight: bold;
+}
+
 #url {
     font-size: 0.9rem;
     word-break: break-all;
