@@ -17,6 +17,7 @@ import Log from "../../Logger";
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import MCUtil from "../../MCUtil";
 import remoteConnectionSettingsCmd from "./ConnectionOverviewCmd";
+import refreshConnectionCmd from "./RefreshConnectionCmd";
 
 export default async function toggleConnectionEnablementCmd(connection_: Connection, enable: boolean): Promise<void> {
     if (!connection_.isRemote) {
@@ -26,35 +27,40 @@ export default async function toggleConnectionEnablementCmd(connection_: Connect
 
     const connection = connection_ as RemoteConnection;
 
+    if (connection.enabled) {
+        if (enable) {
+            vscode.window.showWarningMessage(`${connection.label} is already enabled.`);
+            return;
+        }
+    }
+    else if (!enable) {
+        vscode.window.showWarningMessage(`${connection.label} is already disabled.`);
+        return;
+    }
+
+    Log.i(`${enable ? "Enable" : "Disable"} ${connection.label}`);
+
     try {
-        if (connection.enabled) {
-            if (enable) {
-                vscode.window.showWarningMessage(`${connection.label} is already enabled.`);
-                return;
-            }
-            await connection.disable();
-        }
-        else {
-            if (!enable) {
-                vscode.window.showWarningMessage(`${connection.label} is already disabled.`);
-                return;
-            }
-            await connection.enable();
-        }
-        vscode.window.showInformationMessage(`Successfully ${enable ? "connected to" : "disconnected from"} ${connection.url}`);
+        await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `${enable ? "Connecting to" : "Disconnecting from"} ${connection.label}...`
+        }, async () => {
+            await (enable ? connection.enable() : connection.disable());
+        });
     }
     catch (err) {
         const errMsg = `Failed to ${enable ? "connect to" : "disconnect from"} ${connection.label}: ${MCUtil.errToString(err)}`;
         Log.e(errMsg, err);
         const openConnSettingsBtn = "Open Connection Settings";
-        const retryBtn = "Retry";
-        vscode.window.showErrorMessage(errMsg, openConnSettingsBtn, retryBtn)
+        const refreshBtn = "Refresh";
+        vscode.window.showErrorMessage(errMsg, openConnSettingsBtn, refreshBtn)
         .then((res) => {
             if (res === openConnSettingsBtn) {
                 remoteConnectionSettingsCmd(connection);
             }
-            else if (res === retryBtn) {
-                toggleConnectionEnablementCmd(connection, enable);
+            else if (res === refreshBtn) {
+                refreshConnectionCmd(connection);
             }
         });
     }
