@@ -107,7 +107,7 @@ function buildTable(registries: ContainerRegistry[], needsPushRegistry: boolean)
     if (registries.length === 0) {
         return `
             <h2 id="no-registries-msg">
-                You have not yet added any image registries. Click <a onclick="addNew()">Add New.</a> <br><br>
+                You have not yet added any image registries. Click <a title="Add New" onclick="addNew()">Add New.</a> <br><br>
                 ${needsPushRegistry ? "At least one image registry is required in order to build Codewind-style projects." : ""}
             </h2>
         `;
