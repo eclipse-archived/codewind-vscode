@@ -47,33 +47,36 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
         <div style="display: flex;">
             <div id="deployment-box">
                 <h3>Codewind Connection
-                <div tabindex="0" id="learn-more-btn-remote">
-                    <a href=""><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
-                </div>
-                    ${isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
-                    `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`}
+                    <div tabindex="0" id="learn-more-btn-remote">
+                        <a href="https://codewind.dev"><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
+                    </div>
+                    ${isConnected ? `<img alt="Connected" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
+                        `<img alt="Disconnected" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`
+                    }
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    ${connectionExists ? `<label for="input-url">Codewind Gatekeeper URL</label>
-                    <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
-                    :
-                    `<label for="input-url">Codewind Gatekeeper URL</label>` }
+                    ${connectionExists ?
+`<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
+                        <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
+                        :
+                        `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
+                    }
                     <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}
                         value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"/>
 
-                    <div style="float: left; margin-top: 10px;">
-                        <label for="input-username">Username</label>
+                    <div style="float: left; margin-top: 2em">
+                        <label class="info-label" for="input-username">Username</label>
                         <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.username}</div>
                         <input type="text" id="ingress-username" class="input-username" name="ingress-username"
                             ${connectionExists ? "style='display: none;'" : ""}
                             value='${connectionInfo.username || "developer"}'/>
                     </div>
-                    <div style="overflow: hidden; margin-top: 10px;">
+                    <div style="overflow: hidden; margin-top: 2em">
                         <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
-                            <label for="input-password" style="margin-left: 10px;">Password</label>
+                            <label class="info-label" for="input-password" style="margin-left: 10px;">Password</label>
                             <input type="password" id="ingress-password" class="input-password" name="ingress-password" placeholder="**************"/>
                         </div>
                     </div>
@@ -83,15 +86,15 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
 
             <div>
                 <div id="link-container-box">
-                    <h3>Select Sources <a href=""><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Select Sources <a href="https://codewind.dev"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p>Select sources to fetch new project templates from.</p><br>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
                 </div>
 
                 <div id="link-container-box">
-                    <h3>Add Registries <a href=""><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
-                    <p> Log in to Container Image Registries to push project images and pull private template images.</p>
-                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager (optional)</div>
+                    <h3>Add Registries <a href="https://codewind.dev"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p> (Optional) Log in to Container Image Registries to push project images and pull private template images.</p>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</div>
                 </div>
             </div>
 
