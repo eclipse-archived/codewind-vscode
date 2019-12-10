@@ -144,6 +144,7 @@
     "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.*/",
     "isConnectedConnection": "viewItem =~ /ext\\.cw\\.connection\\..*connected.*/",
     "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote.*/",
+    "isDisconnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\..*\\.disconnected.*/",
     "isEnabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*/",
     "isDisabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.disabled.*/",
     "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection.*\\.registry.*connected.*/",
