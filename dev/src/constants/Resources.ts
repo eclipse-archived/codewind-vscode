@@ -97,6 +97,7 @@ namespace Resources {
         ConnectionConnectedCheckmark = "connection_connected_checkmark.svg",
         ConnectionDisconnectedCheckmark = "connection_disconnected_checkmark.svg",
         ConnectionWarningCheckmark = "connection_warning.svg",
+        Copy = "copy.svg",
         ServerError = "server_error.svg",
         Error = "error.svg",
         Edit = "edit.svg",
@@ -112,6 +113,8 @@ namespace Resources {
         ToggleOnThin = "toggle_on_thin.svg",
         ToggleOffThin = "toggle_off_thin.svg",
         Trash = "trash.svg",
+        Delete = "trash_can.svg",
+        Edit_Connection = "edit_connection.svg",
         Warning = "warning.svg",
 
         Generic      = "project-types/generic.svg",
