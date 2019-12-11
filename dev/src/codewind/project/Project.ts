@@ -32,6 +32,8 @@ import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import { refreshProjectOverview } from "../../command/webview/pages/ProjectOverviewPage";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
+import { getCodewindIngress } from "../../command/project/OpenPerfDashboard"
+import EndpointUtil from "../../constants/Endpoints"
 
 /**
  * Used to determine App Monitor URL
@@ -595,15 +597,28 @@ export default class Project implements vscode.QuickPickItem {
     public get appMonitorUrl(): string | undefined {
         const appMetricsPath = langToPathMap.get(this.type.language);
         const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
-        Log.d(`${this.name} supports metrics ? ${supported}`);
-        if (!supported || !this.appUrl) {
+        if ((!this._injectMetricsEnabled) && supported) {
+            Log.d(`${this.name} supports metrics ? ${supported}`);
+            if (this.appUrl === undefined) {
+                return undefined;
+            }
+            let monitorPageUrlStr = this.appUrl.toString();
+            if (!monitorPageUrlStr.endsWith("/")) {
+                monitorPageUrlStr += "/";
+            }
+            return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
+        }
+        try {
+            const cwBaseUrl = global.isTheia ? getCodewindIngress() : this.connection.url;
+            const dashboardUrl = EndpointUtil.getPerformanceMonitor(cwBaseUrl, this.language, this.id);
+            Log.d(`Monitor Dashboard url for ${this.name} is ${dashboardUrl}`);
+            return dashboardUrl.toString();
+        }
+        catch (err) {
+            vscode.window.showErrorMessage(MCUtil.errToString(err));
             return undefined;
         }
-        let monitorPageUrlStr = this.appUrl.toString();
-        if (!monitorPageUrlStr.endsWith("/")) {
-            monitorPageUrlStr += "/";
-        }
-        return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
+        
     }
 
     public get canContainerShell(): boolean {

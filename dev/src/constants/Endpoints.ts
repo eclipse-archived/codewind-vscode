@@ -78,6 +78,15 @@ export namespace EndpointUtil {
             query: `project=${projectID}`,
         });
     }
+
+    export function getPerformanceMonitor(pfeUrl: vscode.Uri, projectLanguage: string, projectID: string): vscode.Uri {
+        // return value looks like http://localhost:9090/performance/monitor/dashboard/java?theme=dark&projectID=bacd4760-70ce-11e9-af94-d39edf21b705
+
+        return pfeUrl.with({
+            path: "/performance/monitor/dashboard/" + projectLanguage,
+            query: `theme=dark&projectID=${projectID}`,
+        });
+    }
 }
 
 export default EndpointUtil;

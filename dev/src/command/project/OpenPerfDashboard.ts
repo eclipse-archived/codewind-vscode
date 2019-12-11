@@ -41,7 +41,7 @@ export default async function openPerformanceDashboard(project: Project): Promis
 
 const CW_INGRESS_NAME = "codewind";         // :(
 
-function getCodewindIngress(): vscode.Uri {
+export function getCodewindIngress(): vscode.Uri {
 
     // See https://github.com/eclipse/codewind-vscode/issues/123
     // Hopefully, this is temporary. This is how we assemble the URL to the codewind ingress/route without a kube/OC client.
