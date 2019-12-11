@@ -59,11 +59,14 @@ export namespace ConnectionMemento {
 
         // Convert the connection datas from the CLI to ConnectionMementos
         const mementos: Array<ConnectionMemento | undefined> = loaded.map((cliData) => {
-            const memento = globalState.get(getKey(cliData.id)) as ConnectionMemento | undefined;
+            const key = getKey(cliData.id);
+            const memento = globalState.get(key) as ConnectionMemento | undefined;
             if (memento == null) {
-                const errMsg = `Error loading connection: ${cliData.label}; saved connection data was not found.`;
+                const errMsg = `Error loading connection ${cliData.label}: saved connection data was not found.`;
                 vscode.window.showErrorMessage(errMsg);
                 Log.e(errMsg, `Data from CLI was`, cliData);
+                // Clear this invalid connection from the extension memory
+                globalState.update(key, undefined);
             }
             return memento;
         });

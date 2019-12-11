@@ -37,17 +37,11 @@ export default class RemoteConnection extends Connection {
 
     constructor(
         ingressUrl: vscode.Uri,
-        memento: ConnectionMemento,
-        password?: string,
+        memento: ConnectionMemento
     ) {
         super(memento.id, ingressUrl, memento.label, true);
-
         this._username = memento.username;
-
-        if (password) {
-            Log.i("Doing initial credentials update for new connection");
-            this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, this._username, password);
-        }
+        ConnectionMemento.save(memento);
     }
 
     public async enable(): Promise<void> {

@@ -73,6 +73,7 @@ export default class ConnectionManager implements vscode.Disposable {
         }
 
         const newConnID = await ConnectionMemento.addConnection(label, ingressUrl, username);
+        await CLICommandRunner.updateKeyringCredentials(newConnID, username, password);
 
         const newMemento: ConnectionMemento = {
             id: newConnID,
@@ -80,7 +81,7 @@ export default class ConnectionManager implements vscode.Disposable {
             label: label,
             username: username,
         };
-        const newConnection = new RemoteConnection(ingressUrl, newMemento, password);
+        const newConnection = new RemoteConnection(ingressUrl, newMemento);
         await this.onNewConnection(newConnection);
         return newConnection;
     }
