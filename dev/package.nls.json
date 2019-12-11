@@ -133,7 +133,7 @@
 
     "// None of items below are exposed to user": [
         "These regexes match Context IDs for Projects and Connections to determine command enablement",
-        "See TreeItemFactory for how the Context IDs are set"
+        "See TreeItemFactory / TreeItemContext for how the Context IDs are set"
     ],
 
     "isTreeRoot": "viewItem == ext.cw.root",
@@ -142,13 +142,13 @@
     "isStartedLocalCodewind": "viewItem =~ /.*local\\.started.*/",
 
     "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.*/",
-    "isConnectedConnection": "viewItem =~ /ext\\.cw\\.connection\\..*connected.*/",
+    "isConnectedConnection": "viewItem =~ /ext\\.cw\\.connection\\..*connection-good.*/",
     "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote.*/",
-    "isDisconnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\..*\\.disconnected.*/",
+    "isDisconnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled\\.connection-bad.*/",
     "isEnabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*/",
     "isDisabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.disabled.*/",
-    "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection.*\\.registry.*connected.*/",
-    "isConnectionWithTekton": "viewItem =~ /ext\\.cw\\.connection.*\\.tekton.*connected.*/",
+    "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection.*\\.registry.*/",
+    "isConnectionWithTekton": "viewItem =~ /ext\\.cw\\.connection.*\\.tekton.*/",
 
     "isProject":                        "viewItem =~ /ext\\.cw\\.project.*/",
     "isEnabledProject":                 "viewItem =~ /ext\\.cw\\.project\\.enabled.*/",
