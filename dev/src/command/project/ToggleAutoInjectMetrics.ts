@@ -16,7 +16,7 @@ import Requester from "../../codewind/project/Requester";
 
 export default async function toggleInjectMetricsCmd(project: Project): Promise<void> {
     if (!project.type.canInjectMetrics) {
-        vscode.window.showWarningMessage(`This project type does not support Appmetrics injection.`);
+        vscode.window.showWarningMessage(`This project type does not support Codewind Application Metrics injection.`);
         return;
     }
     return Requester.requestToggleInjectMetrics(project);
