@@ -96,8 +96,9 @@ namespace RegistryUtils {
             promptGenerator: (address) => `Enter the username for ${address}.`,
         },
         {
-            promptGenerator: (address, username) => `Enter the password for ${username} @ ${address}.`,
+            promptGenerator: (address, username) => `Enter the password or an API key for ${username} @ ${address}.`,
             password: true,
+            allowEmpty: true,
         },
     ];
 

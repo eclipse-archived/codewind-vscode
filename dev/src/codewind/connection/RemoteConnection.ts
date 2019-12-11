@@ -17,7 +17,6 @@ import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { CLICommandRunner, AccessToken } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
-import Requester from "../project/Requester";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 
@@ -47,7 +46,7 @@ export default class RemoteConnection extends Connection {
 
         if (password) {
             Log.i("Doing initial credentials update for new connection");
-            this.updateCredentialsPromise = this.updateCredentials(memento.username, password);
+            this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, this._username, password);
         }
     }
 
@@ -68,13 +67,7 @@ export default class RemoteConnection extends Connection {
     }
 
     private async enableInner(): Promise<void> {
-        const canPing = await Requester.ping(this.url);
-        if (!canPing) {
-            Log.w(`Failed to ping ${this} when enabling`);
-            this.setState(ConnectionStates.DISABLED);
-            throw new Error(`Could not connect to ${this.label}: failed to ping ${this.url}`);
-        }
-        Log.d(`Successfully pinged ${this}`);
+        Log.d(`${this.label} starting remote enable`);
 
         let token: string;
         try {
@@ -103,6 +96,8 @@ export default class RemoteConnection extends Connection {
             this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
         }
+
+        this.setState(ConnectionStates.READY);
         Log.d(`${this} finished remote enable`);
     }
 
@@ -127,8 +122,13 @@ export default class RemoteConnection extends Connection {
         if (this.overviewPage) {
             this.overviewPage.dispose();
         }
+        if (this.sourcesPage) {
+            this.sourcesPage.dispose();
+        }
+        if (this.registriesPage) {
+            this.registriesPage.dispose();
+        }
         await super.dispose();
-
     }
 
     protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
@@ -148,7 +148,8 @@ export default class RemoteConnection extends Connection {
     }
 
     /**
-     * Block enable/disable when one of those is already in progress.
+     * Returns true if there is NOT currently an enable/disable operation in progress.
+     * If there is one, shows a message, and enable/disable should be blocked by the caller.
      */
     private shouldToggle(): boolean {
         if (this.currentToggleOperation) {
@@ -164,24 +165,30 @@ export default class RemoteConnection extends Connection {
     }
 
     public async updateCredentials(username: string, password: string): Promise<void> {
-        Log.i(`Updating keyring credentials for ${this}`);
+        Log.i(`Start updateCredentials for ${this}`);
+
         this._username = username;
         await ConnectionMemento.save(this.memento);
-        // Invalidate the old access token which used the old credentials
-        this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
-        this._accessToken = undefined;
 
-        if (this.state !== ConnectionStates.DISABLED) {
-            try {
+        // Just in case there are multiple quick credentials updates
+        await this.updateCredentialsPromise;
+
+        // Invalidate the old access token which used the old credentials
+        this._accessToken = undefined;
+        this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
+        await this.updateCredentialsPromise;
+        Log.i("Finished updating keyring credentials");
+
+        try {
+            if (this.state !== ConnectionStates.DISABLED) {
                 Log.d(`Refreshing access token after credentials update`);
                 await this.getAccessToken();
             }
-            catch (err) {
-                // Nothing, getAccessToken will display the error
-            }
         }
-        Log.i("Finished updating keyring credentials");
-        this.tryRefreshOverview();
+        finally {
+            this.tryRefreshOverview();
+            Log.d(`Finished updateCredentials`);
+        }
     }
 
     public async getAccessToken(): Promise<AccessToken> {
@@ -199,14 +206,12 @@ export default class RemoteConnection extends Connection {
             if (this._socket && this._socket.isConnected && !this._socket.isAuthorized) {
                 await this._socket.authenticate(this._accessToken.access_token);
             }
-            this.setState(ConnectionStates.READY);
+            if (this.state === ConnectionStates.AUTH_ERROR) {
+                this.setState(ConnectionStates.READY);
+            }
             return this._accessToken;
         }
         catch (err) {
-            const errMsg = `Error getting access token for ${this.label}`;
-            Log.e(errMsg, err);
-            // vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-
             this._accessToken = undefined;
             this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
@@ -231,9 +236,11 @@ export default class RemoteConnection extends Connection {
             await super.refresh();
             return;
         }
+        if (!this.shouldToggle()) {
+            return;
+        }
         await this.disable();
         await this.enable();
-        await super.refresh();
     }
 
     public get overviewPage(): ConnectionOverview | undefined {

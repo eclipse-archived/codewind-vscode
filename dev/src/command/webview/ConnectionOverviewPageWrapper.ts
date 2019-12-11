@@ -24,13 +24,17 @@ import { URL } from "url";
 import Requester from "../../codewind/project/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
+import manageRegistriesCmd from "../connection/ManageRegistriesCmd";
+import manageSourcesCmd from "../connection/ManageSourcesCmd";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
     SAVE_CONNECTION_INFO = "save-connection",
     TOGGLE_CONNECTED = "toggleConnected",
     DELETE = "delete",
-    CANCEL = "cancel"
+    CANCEL = "cancel",
+    REGISTRY = "registry",
+    SOURCES = "sources"
 }
 
 /**
@@ -59,6 +63,7 @@ export default class ConnectionOverview {
 
     public static showForExistingConnection(connection: RemoteConnection): ConnectionOverview {
         if (connection.overviewPage) {
+            connection.overviewPage.reveal();
             return connection.overviewPage;
         }
         return new ConnectionOverview(connection.memento, connection);
@@ -108,14 +113,17 @@ export default class ConnectionOverview {
             isConnnected = this.connection.isConnected;
         }
         const html = getConnectionInfoHtml(connectionInfo, isConnnected);
-        // MCUtil.debugWriteOutWebview(html, "connection-overview");
+        // WebviewUtil.debugWriteOutWebview(html, "connection-overview");
+        this.connectionOverviewPage.webview.html = "";
         this.connectionOverviewPage.webview.html = html;
     }
 
+    public reveal(): void {
+        this.connectionOverviewPage.reveal();
+    }
+
     public dispose(): void {
-        if (this.connectionOverviewPage) {
-            this.connectionOverviewPage.dispose();
-        }
+        this.connectionOverviewPage.dispose();
     }
 
     private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
@@ -135,7 +143,14 @@ export default class ConnectionOverview {
                             vscode.window.showErrorMessage(`Enter a password`);
                         }
                         else {
-                            this.connection.updateCredentials(newInfo.username, newInfo.password);
+                            try {
+                                await this.connection.updateCredentials(newInfo.username, newInfo.password);
+                            }
+                            catch (err) {
+                                const errMsg = `Error updating ${this.connection.label}:`;
+                                vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+                                Log.e(errMsg, err);
+                            }
                             this.refresh(this.connection.memento);
                         }
                     }
@@ -180,6 +195,24 @@ export default class ConnectionOverview {
                     }
                     else {
                         vscode.window.showInformationMessage(`Creating new connection cancelled`);
+                    }
+                    break;
+                }
+
+                case ConnectionOverviewWVMessages.REGISTRY: {
+                    if (this.connection) {
+                        manageRegistriesCmd(this.connection);
+                    } else {
+                        vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
+                    }
+                    break;
+                }
+
+                case ConnectionOverviewWVMessages.SOURCES: {
+                    if (this.connection) {
+                        manageSourcesCmd(this.connection);
+                    } else {
+                        vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
                     }
                     break;
                 }

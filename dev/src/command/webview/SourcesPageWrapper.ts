@@ -106,13 +106,28 @@ export class ManageSourcesPage {
     }
 
     public async refresh(): Promise<void> {
-        const html = generateManageReposHtml(this.connection.label, await this.connection.getSources());
+        let sources;
+        try {
+            sources = await this.connection.getSources();
+        }
+        catch (err) {
+            const errMsg = `Error getting template sources for ${this.connection.label}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            return;
+        }
+
+        const html = generateManageReposHtml(this.connection.label, sources);
         WebviewUtil.debugWriteOutWebview(html, "sources-page");
         this.sourcesPage.webview.html = html;
     }
 
     public reveal(): void {
         this.sourcesPage.reveal();
+    }
+
+    public dispose(): void {
+        this.sourcesPage.dispose();
     }
 
     private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {

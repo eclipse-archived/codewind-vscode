@@ -18,6 +18,7 @@ namespace InputUtil {
     export interface InputStep {
         // title: string;
         // prompt?: string;
+        allowEmpty?: boolean;
         promptGenerator: (...previousValues: string[]) => string;
         placeholder?: string;
         value?: string;
@@ -89,31 +90,45 @@ namespace InputUtil {
             ib.buttons = [];
         }
 
+        const disposables: vscode.Disposable[] = [];
+
         if (step.validator) {
-            ib.onDidChangeValue((value) => {
-                if (step.validator) {
-                    const invalidMsg = step.validator(value);
-                    ib.validationMessage = invalidMsg;
-                }
-            });
-        }
-        else {
-            ib.onDidChangeValue(() => { /* nothing */ });
+            disposables.push(
+                ib.onDidChangeValue((value) => {
+                    if (step.validator) {
+                        const invalidMsg = step.validator(value);
+                        ib.validationMessage = invalidMsg;
+                    }
+                })
+            );
         }
 
         // We should only have to show the IB once, but in theia, the IB is hidden after accept
         ib.show();
         return new Promise<string | undefined>((resolve, reject) => {
-            ib.onDidTriggerButton((_btn) => {
-                return reject(BTN_BACK);
-            });
-            ib.onDidHide(() => {
-                return resolve(undefined);
-            });
-            ib.onDidAccept(() => {
-                // We COULD block acceptance, if there is a validation message, here
-                return resolve(ib.value);
-            });
+            disposables.push(
+                ib.onDidTriggerButton((_btn) => {
+                    return reject(BTN_BACK);
+                })
+            );
+            disposables.push(
+                ib.onDidHide(() => {
+                    return resolve(undefined);
+                })
+            );
+            disposables.push(
+                ib.onDidAccept(() => {
+                    if (ib.value === "" && step.allowEmpty !== true) {
+                        ib.validationMessage = "The input cannot be empty.";
+                        return;
+                    }
+                    // We COULD block acceptance, if there is a validation message, here
+                    return resolve(ib.value);
+                })
+            );
+        })
+        .finally(() => {
+            disposables.forEach((d) => d.dispose());
         });
     }
 

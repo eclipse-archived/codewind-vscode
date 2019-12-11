@@ -96,6 +96,7 @@ export class ManageRegistriesPageWrapper {
             const errMsg = `Error getting image registries for ${this.connection.label}`;
             Log.e(errMsg, err);
             vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            return;
         }
 
         const html = getManageRegistriesHtml(this.connection.label, this.registries, this.connection.isKubeConnection);
@@ -108,6 +109,10 @@ export class ManageRegistriesPageWrapper {
 
     public reveal(): void {
         this.registriesPage.reveal();
+    }
+
+    public dispose(): void {
+        this.registriesPage.dispose();
     }
 
     private lookupRegistry(fullAddress: string): ContainerRegistry {

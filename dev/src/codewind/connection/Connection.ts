@@ -66,9 +66,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         public readonly label: string,
         public readonly isRemote: boolean,
     ) {
+        Log.d(`Creating new connection ${this.label} @ ${this.url}`);
         this._state = ConnectionStates.INITIALIZING;
         this.host = this.getHost(url);
-        this.enable();
+        this.enable()
+        .catch((err) => {
+            const errMsg = `Error initializing ${this.label}:`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+        });
     }
 
     public get enabled(): boolean {
@@ -90,7 +96,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     protected async enable(): Promise<void> {
-        Log.i(`Enable connection ${this.label} @ ${this.url}`);
+        Log.i(`${this.label} starting base enable`);
 
         const readyTimeoutS = 60;
         const ready = await Requester.waitForReady(this, readyTimeoutS);
@@ -116,7 +122,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         this.hasInitialized = true;
-        if (this._socket.isConnected) {
+        if (this._socket.isReady) {
             Log.d(`${this} is now ready - enable finished after connect`);
             this.setState(ConnectionStates.READY);
         }
@@ -375,7 +381,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public async refresh(): Promise<void> {
         await this.forceUpdateProjectList(true);
-        vscode.window.showInformationMessage(`Refreshed ${this.label}`);
     }
 
     public get detail(): string {
@@ -398,7 +403,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this._registriesPage = page;
     }
 
-    public get sourcesPage(): SourcesPageWrapper  | undefined {
+    public get sourcesPage(): SourcesPageWrapper | undefined {
         return this._sourcesPage;
     }
 
