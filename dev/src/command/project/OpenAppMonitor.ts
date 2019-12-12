@@ -21,7 +21,7 @@ import CodewindEventListener from "../../codewind/connection/CodewindEventListen
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
     try {
-        if (project.appUrl == null) {
+        if (!(project.state.isStarted || project.state.isStarting)) {
             vscode.window.showWarningMessage(`Cannot open application monitor - ${project.name} is not currently running.`);
             return;
         }
