@@ -212,8 +212,8 @@ namespace RegistryUtils {
         const namespace = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             placeHolder: pushRegistry.username,
-            prompt: `Enter the namespace to push to ${pushRegistry.address} under. ` +
-                `The namespace may be empty. For example, to push to docker.io/eclipse, the namespace is "eclipse".` ,
+            prompt: `Enter the namespace to push to ${pushRegistry.address} under, or leave the namespace empty. ` +
+                `For example, to push to docker.io/eclipse, enter the "eclipse" namespace.`,
             validateInput: validateIsOnlyUrlChars,
         });
 
