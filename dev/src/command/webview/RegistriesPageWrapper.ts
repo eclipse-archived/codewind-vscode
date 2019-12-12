@@ -20,6 +20,8 @@ import getManageRegistriesHtml from "./pages/RegistriesPage";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import RegistryUtils, { ContainerRegistry } from "../../codewind/connection/RegistryUtils";
+import CWDocs from "../../constants/CWDocs";
+import Commands from "../../constants/Commands";
 
 export enum ManageRegistriesWVMessages {
     ADD_NEW = "add-new",
@@ -193,7 +195,7 @@ export class ManageRegistriesPageWrapper {
                 break;
             }
             case ManageRegistriesWVMessages.HELP: {
-                vscode.window.showInformationMessage("Help");
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.REGISTRIES));
                 break;
             }
             case ManageRegistriesWVMessages.REFRESH: {
