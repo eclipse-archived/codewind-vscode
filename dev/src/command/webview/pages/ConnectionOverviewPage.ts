@@ -14,6 +14,7 @@
 import Resources from "../../../constants/Resources";
 import WebviewUtil from "../WebviewUtil";
 import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "../ConnectionOverviewPageWrapper";
+import CWDocs from "../../../constants/CWDocs";
 
 export default function getConnectionInfoHtml(connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
@@ -48,7 +49,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             <div id="deployment-box">
                 <h3>Codewind Connection
                     <div tabindex="0" id="learn-more-btn-remote">
-                        <a href="https://codewind.dev"><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
+                        <a href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}"><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
                     </div>
                     ${isConnected ? `<img alt="Connected" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
                         `<img alt="Disconnected" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`
@@ -86,14 +87,14 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
 
             <div>
                 <div id="link-container-box">
-                    <h3>Select Sources <a href="https://codewind.dev"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
-                    <p>Select sources to fetch new project templates from.</p><br>
+                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
                 </div>
 
                 <div id="link-container-box">
-                    <h3>Add Registries <a href="https://codewind.dev"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
-                    <p> (Optional) Log in to Container Image Registries to push project images and pull private template images.</p>
+                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p>Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</div>
                 </div>
             </div>
