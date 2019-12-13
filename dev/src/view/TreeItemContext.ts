@@ -138,7 +138,7 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
         }
 
-        if (project.capabilities.metricsAvailable) {
+        if (project.capabilities.metricsAvailable || project.language === 'java') {
             contextValues.push(TreeItemContextValues.PROJ_METRICS);
         }
 

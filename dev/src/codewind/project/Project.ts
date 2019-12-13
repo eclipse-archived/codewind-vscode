@@ -598,6 +598,7 @@ export default class Project implements vscode.QuickPickItem {
         const appMetricsPath = langToPathMap.get(this.type.language);
         const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
         if ((!this._injectMetricsEnabled) && supported) {
+            // open app monitor in Application container
             Log.d(`${this.name} supports metrics ? ${supported}`);
             if (this.appUrl === undefined) {
                 return undefined;
@@ -609,6 +610,7 @@ export default class Project implements vscode.QuickPickItem {
             return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
         }
         try {
+            // open app monitor in Performance container
             const cwBaseUrl = global.isTheia ? getCodewindIngress() : this.connection.url;
             const dashboardUrl = EndpointUtil.getPerformanceMonitor(cwBaseUrl, this.language, this.id);
             Log.d(`Monitor Dashboard url for ${this.name} is ${dashboardUrl}`);
@@ -730,7 +732,7 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    public setInjectMetrics(newInjectMetrics: boolean | undefined): boolean {
+    public async setInjectMetrics(newInjectMetrics: boolean | undefined): Promise<boolean> {
         if (newInjectMetrics == null) {
             return false;
         }
@@ -741,6 +743,7 @@ export default class Project implements vscode.QuickPickItem {
         if (changed) {
             // onChange has to be invoked explicitly because this function can be called outside of update()
             Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._injectMetricsEnabled}`);
+            this.capabilities.metricsAvailable = await Requester.areMetricsAvailable(this);
             this.onChange();
         }
 
