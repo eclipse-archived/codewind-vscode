@@ -139,8 +139,10 @@ export class ProjectType {
     public get canInjectMetrics(): boolean {
         // This should be the job of the capabilities API
         return [
-            'java', 'nodejs',
-        ].includes(this.language);
+            ProjectType.InternalTypes.MICROPROFILE,
+            ProjectType.InternalTypes.NODE,
+            ProjectType.InternalTypes.SPRING
+        ].includes(this.internalType);
     }
 }
 
