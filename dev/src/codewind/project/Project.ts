@@ -597,8 +597,7 @@ export default class Project implements vscode.QuickPickItem {
     public get appMonitorUrl(): string | undefined {
         const appMetricsPath = langToPathMap.get(this.type.language);
         const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
-        if ((!this._injectMetricsEnabled) && supported && 
-            !(this.type.type === ProjectType.Types.GENERIC_DOCKER && this.type.language === 'java')) {
+        if ((!this._injectMetricsEnabled) && supported ) {
             // open app monitor in Application container
             Log.d(`${this.name} supports metrics ? ${supported}`);
             if (this.appUrl === undefined) {
