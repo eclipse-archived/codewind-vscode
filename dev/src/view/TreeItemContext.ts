@@ -57,7 +57,9 @@ enum TreeItemContextValues {
     PROJ_AUTOBUILD_OFF = "autoBuildOff",
 
     PROJ_RESTARTABLE = "restartable",
-    PROJ_METRICS = "metricsAvailable",
+
+    PROJ_APP_MONITOR = "appMonitor",
+    PROJ_PERF_DASHBOARD = "perfDashboard",
 
     PROJ_SHELLABLE = "shellable",
 
@@ -138,8 +140,12 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
         }
 
-        if (project.capabilities.metricsAvailable) {
-            contextValues.push(TreeItemContextValues.PROJ_METRICS);
+        if (project.hasAppMonitor) {
+            contextValues.push(TreeItemContextValues.PROJ_APP_MONITOR);
+        }
+
+        if (project.hasPerfDashboard) {
+            contextValues.push(TreeItemContextValues.PROJ_PERF_DASHBOARD);
         }
 
         if (project.canContainerShell) {
