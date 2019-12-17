@@ -21,6 +21,8 @@ export interface WebviewResourceProvider {
     getIcon(icon: Resources.Icons): string;
 }
 
+const VSC_RESOURCE_SCHEME = "vscode-resource:";
+
 export abstract class WebviewWrapper {
 
     protected readonly webPanel: vscode.WebviewPanel;
@@ -56,12 +58,18 @@ export abstract class WebviewWrapper {
 
         this.resourceProvider = {
             getIcon: (icon: Resources.Icons) => {
-                const fsPath = Resources.getIconPaths(icon).dark;
-                return this.webPanel.webview.asWebviewUri(fsPath).toString();
+                const fsUri = Resources.getIconPaths(icon).dark;
+                if (global.isTheia) {
+                    return VSC_RESOURCE_SCHEME + fsUri.fsPath;
+                }
+                return this.webPanel.webview.asWebviewUri(fsUri).toString();
             },
             getStylesheet: (filename: string) => {
-                const fsPath = Resources.getCss(filename);
-                return this.webPanel.webview.asWebviewUri(fsPath).toString();
+                const fsUri = Resources.getCss(filename);
+                if (global.isTheia) {
+                    return VSC_RESOURCE_SCHEME + fsUri.fsPath;
+                }
+                return this.webPanel.webview.asWebviewUri(fsUri).toString();
             }
         };
     }
