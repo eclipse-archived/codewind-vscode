@@ -144,6 +144,16 @@ export class ProjectType {
             ProjectType.InternalTypes.SPRING
         ].includes(this.internalType);
     }
+
+    public get alwaysHasAppMonitor(): boolean {
+        // This should be the job of the capabilities API
+        return [
+            ProjectType.Languages.JAVA,
+            ProjectType.Languages.NODE,
+        ]
+        .map((lang) => lang.toString().toLowerCase())
+        .includes(this.language.toLowerCase());
+    }
 }
 
 export namespace ProjectType {

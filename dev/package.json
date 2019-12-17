@@ -488,12 +488,12 @@
                 },
                 {
                     "command": "%cmdID_openAppMonitor%",
-                    "when": "%isProjectWithMetrics%",
+                    "when": "%isProjectWithAppMonitor%",
                     "group": "ext.cw.b@3"
                 },
                 {
                     "command": "%cmdID_openPerfDashboard%",
-                    "when": "%isProjectWithMetrics%",
+                    "when": "%isProjectWithPerfDashboard%",
                     "group": "ext.cw.b@4"
                 },
                 {
