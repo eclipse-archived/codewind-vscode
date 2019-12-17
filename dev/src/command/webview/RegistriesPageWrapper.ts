@@ -22,6 +22,7 @@ import MCUtil from "../../MCUtil";
 import RegistryUtils, { ContainerRegistry } from "../../codewind/connection/RegistryUtils";
 import CWDocs from "../../constants/CWDocs";
 import Commands from "../../constants/Commands";
+import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 
 export enum ManageRegistriesWVMessages {
     ADD_NEW = "add-new",
@@ -36,97 +37,44 @@ interface ManageRegistriesMsgData {
     readonly fullAddress: string;
 }
 
-const REGISTRIES_PAGE_TITLE = "Image Registries";
+function getTitle(connectionLabel: string): string {
+    let title = "Image Registries";
+    if (!global.isTheia) {
+        title += ` (${connectionLabel})`;
+    }
+    return title;
+}
 
-export class ManageRegistriesPageWrapper {
-
-    private readonly registriesPage: vscode.WebviewPanel;
+export class RegistriesPageWrapper extends WebviewWrapper {
 
     private registries: ContainerRegistry[] = [];
 
     constructor(
         private readonly connection: Connection
     ) {
-        const wvOptions: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
-        };
-
-        let title = REGISTRIES_PAGE_TITLE;
-        if (!global.isTheia) {
-            title += ` (${connection.label})`;
-        }
-
-        this.registriesPage = vscode.window.createWebviewPanel(
-            title,
-            title,
-            vscode.ViewColumn.Active,
-            wvOptions
-        );
-
-        this.registriesPage.reveal();
-        this.registriesPage.onDidDispose(() => {
-            connection.onDidCloseRegistriesPage();
-        });
-
-        const icons = Resources.getIconPaths(Resources.Icons.Logo);
-        this.registriesPage.iconPath = {
-            light: vscode.Uri.file(icons.light),
-            dark:  vscode.Uri.file(icons.dark)
-        };
-
-        this.registriesPage.webview.onDidReceiveMessage((msg: WebviewUtil.IWVMessage) => {
-            try {
-                this.handleWebviewMessage(msg);
-            }
-            catch (err) {
-                vscode.window.showErrorMessage(`Error running action ${msg.type}: ${MCUtil.errToString(err)}`);
-                Log.e("Error processing message from registries webview", err);
-                Log.e("Message was", msg);
-            }
-        });
-
+        super(getTitle(connection.label), Resources.Icons.Logo);
+        connection.onDidOpenRegistriesPage(this);
         this.refresh();
     }
 
-    public async refresh(): Promise<void> {
-        try {
-            this.registries = await Requester.getImageRegistries(this.connection);
-        }
-        catch (err) {
-            const errMsg = `Error getting image registries for ${this.connection.label}`;
-            Log.e(errMsg, err);
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-            return;
-        }
+    protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
+        this.registries = await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: `Fetching image registries...`,
+        }, async () => {
+            return Requester.getImageRegistries(this.connection);
+        });
 
-        const html = getManageRegistriesHtml(this.connection.label, this.registries, this.connection.isKubeConnection);
-        WebviewUtil.debugWriteOutWebview(html, "manage-registries");
-        // Setting the html to "" seems to clear the page state, otherwise there is some caching done
-        // which causes eg. the selected radiobutton to not be updated https://github.com/eclipse/codewind/issues/1413
-        this.registriesPage.webview.html = "";
-        this.registriesPage.webview.html = html;
+        const html = getManageRegistriesHtml(resourceProvider, this.connection.label, this.registries, this.connection.isKubeConnection);
+        return html;
     }
 
-    public reveal(): void {
-        this.registriesPage.reveal();
+    protected onDidDispose(): void {
+        this.connection.onDidCloseRegistriesPage();
     }
 
-    public dispose(): void {
-        this.registriesPage.dispose();
-    }
-
-    private lookupRegistry(fullAddress: string): ContainerRegistry {
-        const matchingRegistry = this.registries.find((registry) => registry.fullAddress === fullAddress);
-        if (!matchingRegistry) {
-            Log.e(`No matching registry found, expected to find fullAddress ${fullAddress}, registries are:`, this.registries);
-            throw new Error(`No registry was found with full address "${fullAddress}"`);
-        }
-        return matchingRegistry;
-    }
-
-    private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
+    protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
         switch (msg.type as ManageRegistriesWVMessages) {
             case ManageRegistriesWVMessages.ADD_NEW: {
                 try {
@@ -200,12 +148,20 @@ export class ManageRegistriesPageWrapper {
             }
             case ManageRegistriesWVMessages.REFRESH: {
                 await this.refresh();
-                vscode.window.showInformationMessage(`Refreshed Image Registries`);
                 break;
             }
             default: {
                 Log.e("Received unknown event from manage templates webview:", msg);
             }
         }
+    }
+
+    private lookupRegistry(fullAddress: string): ContainerRegistry {
+        const matchingRegistry = this.registries.find((registry) => registry.fullAddress === fullAddress);
+        if (!matchingRegistry) {
+            Log.e(`No matching registry found, expected to find fullAddress ${fullAddress}, registries are:`, this.registries);
+            throw new Error(`No registry was found with full address "${fullAddress}"`);
+        }
+        return matchingRegistry;
     }
 }

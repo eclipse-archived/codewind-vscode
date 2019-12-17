@@ -26,6 +26,7 @@ import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
 import manageRegistriesCmd from "../connection/ManageRegistriesCmd";
 import manageSourcesCmd from "../connection/ManageSourcesCmd";
+import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
@@ -48,85 +49,54 @@ interface ConnectionInfoFields {
 
 export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields;
 
-export default class ConnectionOverview {
+export default class ConnectionOverviewWrapper extends WebviewWrapper {
 
     private readonly label: string;
     /**
      * The Connection we are showing the info for. If it's undefined, we are creating a new connection.
      */
     private connection: RemoteConnection | undefined;
-    private readonly connectionOverviewPage: vscode.WebviewPanel;
 
-    public static showForNewConnection(label: string): ConnectionOverview {
-        return new ConnectionOverview({ label });
+    public static showForNewConnection(label: string): ConnectionOverviewWrapper {
+        return new ConnectionOverviewWrapper({ label });
     }
 
-    public static showForExistingConnection(connection: RemoteConnection): ConnectionOverview {
+    public static showForExistingConnection(connection: RemoteConnection): ConnectionOverviewWrapper {
         if (connection.overviewPage) {
             connection.overviewPage.reveal();
             return connection.overviewPage;
         }
-        return new ConnectionOverview(connection.memento, connection);
+        return new ConnectionOverviewWrapper(connection.memento, connection);
     }
+
+    /////
 
     private constructor(
         connectionInfo: ConnectionOverviewFields,
         connection?: RemoteConnection,
     ) {
+        super(connectionInfo.label, Resources.Icons.Logo);
         this.label = connectionInfo.label;
         this.connection = connection;
-
-        const wvOptions: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
-        };
-
-        if (this.connection) {
-            this.connection.onDidOpenOverview(this);
-        }
-
-        this.connectionOverviewPage = vscode.window.createWebviewPanel(
-            connectionInfo.label, connectionInfo.label, vscode.ViewColumn.Active, wvOptions
-        );
-
-        this.connectionOverviewPage.reveal();
-        this.connectionOverviewPage.onDidDispose(() => {
-            if (this.connection) {
-                this.connection.onDidCloseOverview();
-            }
-        });
-
-        const icons = Resources.getIconPaths(Resources.Icons.Logo);
-        this.connectionOverviewPage.iconPath = {
-            light: vscode.Uri.file(icons.light),
-            dark:  vscode.Uri.file(icons.dark)
-        };
-
-        this.refresh(connectionInfo);
-        this.connectionOverviewPage.webview.onDidReceiveMessage(this.handleWebviewMessage);
+        this.refresh();
     }
 
-    public refresh(connectionInfo: ConnectionOverviewFields): void {
+    protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
         let isConnnected = false;
         if (this.connection) {
             isConnnected = this.connection.isConnected;
         }
-        const html = getConnectionInfoHtml(connectionInfo, isConnnected);
-        // WebviewUtil.debugWriteOutWebview(html, "connection-overview");
-        this.connectionOverviewPage.webview.html = "";
-        this.connectionOverviewPage.webview.html = html;
+        const connectionInfo = this.connection ? this.connection.memento : { label: this.label };
+        return getConnectionInfoHtml(resourceProvider, connectionInfo, isConnnected);
     }
 
-    public reveal(): void {
-        this.connectionOverviewPage.reveal();
+    protected onDidDispose(): void {
+        if (this.connection) {
+            this.connection.onDidCloseOverview();
+        }
     }
 
-    public dispose(): void {
-        this.connectionOverviewPage.dispose();
-    }
-
-    private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
+    protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
         try {
             switch (msg.type) {
                 case ConnectionOverviewWVMessages.HELP: {
@@ -151,7 +121,7 @@ export default class ConnectionOverview {
                                 vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
                                 Log.e(errMsg, err);
                             }
-                            this.refresh(this.connection.memento);
+                            this.refresh();
                         }
                     }
                     else {
@@ -160,7 +130,7 @@ export default class ConnectionOverview {
                             this.connection = newConnection;
                             this.connection.onDidOpenOverview(this);
                             vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newConnection.url}`);
-                            this.refresh(this.connection.memento);
+                            this.refresh();
                         }
                         catch (err) {
                             // the err from createNewConnection is user-friendly
@@ -180,7 +150,7 @@ export default class ConnectionOverview {
                 }
                 case ConnectionOverviewWVMessages.CANCEL: {
                     if (this.connection) {
-                        this.refresh(this.connection.memento);
+                        this.refresh();
                     } else {
                         this.dispose();
                     }

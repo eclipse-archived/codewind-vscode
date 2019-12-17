@@ -15,11 +15,12 @@ import Resources from "../../../constants/Resources";
 // import MCUtil from "../../MCUtil";
 import WebviewUtil from "../WebviewUtil";
 import { ITemplateSource, ManageSourcesWVMessages } from "../SourcesPageWrapper";
+import { WebviewResourceProvider } from "../WebviewWrapper";
 
 const SOURCE_ID_ATTR = "data-id";
 const SOURCE_ENABLED_ATTR = "data-enabled";
 
-export default function getManageSourcesPage(connectionLabel: string, sources: ITemplateSource[]): string {
+export default function getManageSourcesPage(rp: WebviewResourceProvider, connectionLabel: string, sources: ITemplateSource[]): string {
     return `
     <!DOCTYPE html>
 
@@ -29,41 +30,41 @@ export default function getManageSourcesPage(connectionLabel: string, sources: I
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         ${WebviewUtil.getCSP()}
 
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("sources-registries-tables.css")}"/>
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
+        <link rel="stylesheet" href="${rp.getStylesheet("sources-registries-tables.css")}"/>
+        <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
         ${global.isTheia ?
-            `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
+            `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
     </head>
     <body>
 
     <div id="top-section">
         <div class="title-section ${global.isTheia ? "" : "title-section-subtitled"}">
-            <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+            <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
             <div>
                 <h1 id="title">Template Sources</h1>
                 ${global.isTheia ? "" : `<h2 id="subtitle">${connectionLabel}</h2>`}
             </div>
         </div>
         <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageSourcesWVMessages.HELP}')">
-            Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
+            Learn More<img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
         </div>
     </div>
 
     <div id="toolbar">
         <!--div class="btn" onclick="onEnableAllOrNone(event, true)">
-            Enable All<img alt="Enable All" src="${WebviewUtil.getIcon(Resources.Icons.Play)}"/>
+            Enable All<img alt="Enable All" src="${rp.getIcon(Resources.Icons.Play)}"/>
         </div-->
         <div id="toolbar-right-buttons">
             <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageSourcesWVMessages.REFRESH}')">
-                Refresh<img alt="Refresh" src="${WebviewUtil.getIcon(Resources.Icons.Refresh)}"/>
+                Refresh<img alt="Refresh" src="${rp.getIcon(Resources.Icons.Refresh)}"/>
             </div>
             <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${ManageSourcesWVMessages.ADD_NEW}')">
-                Add New<img alt="Add New" src="${WebviewUtil.getIcon(Resources.Icons.New)}"/>
+                Add New<img alt="Add New" src="${rp.getIcon(Resources.Icons.New)}"/>
             </div>
         </div>
     </div>
 
-    ${buildTemplateTable(sources)}
+    ${buildTemplateTable(rp, sources)}
 
     <script>
         const vscode = acquireVsCodeApi();
@@ -75,11 +76,11 @@ export default function getManageSourcesPage(connectionLabel: string, sources: I
 
             let newToggleImg, newToggleAlt;
             if (newEnablement) {
-                newToggleImg = "${getStatusToggleIconSrc(true, true)}";
+                newToggleImg = "${getStatusToggleIconSrc(rp, true, true)}";
                 newToggleAlt = "${getStatusToggleAlt(true)}";
             }
             else {
-                newToggleImg = "${getStatusToggleIconSrc(false, true)}";
+                newToggleImg = "${getStatusToggleIconSrc(rp, false, true)}";
                 newToggleAlt = "${getStatusToggleAlt(false)}";
             }
             toggleBtn.src = newToggleImg;
@@ -117,9 +118,9 @@ export default function getManageSourcesPage(connectionLabel: string, sources: I
     `;
 }
 
-function buildTemplateTable(sources: ITemplateSource[]): string {
+function buildTemplateTable(rp: WebviewResourceProvider, sources: ITemplateSource[]): string {
 
-    const repoRows = sources.map(buildRow);
+    const repoRows = sources.map((source) => buildRow(rp, source));
 
     return `
     <table>
@@ -146,7 +147,7 @@ function buildTemplateTable(sources: ITemplateSource[]): string {
     `;
 }
 
-function buildRow(source: ITemplateSource): string {
+function buildRow(rp: WebviewResourceProvider, source: ITemplateSource): string {
     const name = source.name || "No name available";
     const descr = source.description || "No description available";
     return `
@@ -154,16 +155,16 @@ function buildRow(source: ITemplateSource): string {
         <td class="name-cell"><a href="${source.url}">${name}</a></td>
         <td class="style-cell">${source.projectStyles.join(", ")}</td-->
         <td class="descr-cell">${descr}</td>
-        ${getStatusToggleTD(source)}
-        ${getDeleteBtnTD(source)}
+        ${getStatusToggleTD(rp, source)}
+        ${getDeleteBtnTD(rp, source)}
     </tr>
     `;
 }
 
-function getStatusToggleTD(source: ITemplateSource): string {
+function getStatusToggleTD(rp: WebviewResourceProvider, source: ITemplateSource): string {
     return `<td class="btn-cell">
         <input type="image" alt="${getStatusToggleAlt(source.enabled)}" ${SOURCE_ID_ATTR}="${source.url}" ${SOURCE_ENABLED_ATTR}="${source.enabled}"
-            class="source-toggle btn" src="${getStatusToggleIconSrc(source.enabled)}" onclick="onToggleSource(this)"/>
+            class="source-toggle btn" src="${getStatusToggleIconSrc(rp, source.enabled)}" onclick="onToggleSource(this)"/>
     </td>`;
 }
 
@@ -171,8 +172,8 @@ function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = false): string {
-    let toggleIcon = WebviewUtil.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, escapeBackslash: boolean = false): string {
+    let toggleIcon = rp.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
     if (escapeBackslash) {
         // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
         // https://github.com/eclipse/codewind/issues/476
@@ -181,7 +182,7 @@ function getStatusToggleIconSrc(enabled: boolean, escapeBackslash: boolean = fal
     return toggleIcon;
 }
 
-function getDeleteBtnTD(source: ITemplateSource): string {
+function getDeleteBtnTD(rp: WebviewResourceProvider, source: ITemplateSource): string {
     let title = "Delete";
     let deleteBtnClass = "btn";
     let onClick = "deleteRepo(this)";
@@ -192,7 +193,7 @@ function getDeleteBtnTD(source: ITemplateSource): string {
     }
 
     const deleteBtn = `<input type="image" ${SOURCE_ID_ATTR}="${source.url}" alt="Delete ${source.description}" title="${title}"
-        onclick="${onClick}" class="${deleteBtnClass}" src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/>`;
+        onclick="${onClick}" class="${deleteBtnClass}" src="${rp.getIcon(Resources.Icons.Trash)}"/>`;
 
     return `
     <td class="btn-cell">

@@ -15,7 +15,6 @@ import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
 import Resources from "../../constants/Resources";
-import generateManageReposHtml from "./pages/SourcesPage";
 import WebviewUtil from "./WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
@@ -23,6 +22,8 @@ import MCUtil from "../../MCUtil";
 import Commands from "../../constants/Commands";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import CWDocs from "../../constants/CWDocs";
+import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
+import getManageSourcesPage from "./pages/SourcesPage";
 
 /**
  * Template repository/source data as provided by the backend
@@ -54,83 +55,36 @@ export interface ISourceEnablement {
     }>;
 }
 
+function getTitle(connectionLabel: string): string {
+    let title = SOURCES_PAGE_TITLE;
+    if (!global.isTheia) {
+        title += ` (${connectionLabel})`;
+    }
+    return title;
+}
+
 const SOURCES_PAGE_TITLE = "Template Sources";
 
-export class ManageSourcesPage {
-
-    private readonly sourcesPage: vscode.WebviewPanel;
+export class SourcesPageWrapper extends WebviewWrapper {
 
     constructor(
         private readonly connection: Connection,
     ) {
-        const wvOptions: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
-            enableScripts: true,
-            retainContextWhenHidden: true,
-            localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
-        };
-
-        let title = SOURCES_PAGE_TITLE;
-        if (!global.isTheia) {
-            title += ` (${connection.label})`;
-        }
-
-        this.sourcesPage = vscode.window.createWebviewPanel(
-            title,
-            title,
-            vscode.ViewColumn.Active,
-            wvOptions
-        );
-
-        this.sourcesPage.reveal();
-        this.sourcesPage.onDidDispose(() => {
-            connection.onDidCloseSourcesPage();
-        });
-
-        const icons = Resources.getIconPaths(Resources.Icons.Logo);
-        this.sourcesPage.iconPath = {
-            light: vscode.Uri.file(icons.light),
-            dark:  vscode.Uri.file(icons.dark)
-        };
-
-        this.sourcesPage.webview.onDidReceiveMessage((msg: WebviewUtil.IWVMessage) => {
-            try {
-                this.handleWebviewMessage(msg);
-            }
-            catch (err) {
-                Log.e("Error processing message from manage templates webview", err);
-                Log.e("Message was", msg);
-            }
-        });
-
+        super(getTitle(connection.label), Resources.Icons.Logo);
+        connection.onDidOpenSourcesPage(this);
         this.refresh();
     }
 
-    public async refresh(): Promise<void> {
-        let sources;
-        try {
-            sources = await this.connection.getSources();
-        }
-        catch (err) {
-            const errMsg = `Error getting template sources for ${this.connection.label}`;
-            Log.e(errMsg, err);
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-            return;
-        }
-
-        const html = generateManageReposHtml(this.connection.label, sources);
-        WebviewUtil.debugWriteOutWebview(html, "sources-page");
-        this.sourcesPage.webview.html = html;
+    protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
+        const sources = await this.connection.getSources();
+        return getManageSourcesPage(resourceProvider, this.connection.label, sources);
     }
 
-    public reveal(): void {
-        this.sourcesPage.reveal();
+    protected onDidDispose(): void {
+        this.connection.onDidCloseSourcesPage();
     }
 
-    public dispose(): void {
-        this.sourcesPage.dispose();
-    }
-
-    private readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
+    protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
         switch (msg.type as ManageSourcesWVMessages) {
             case ManageSourcesWVMessages.ENABLE_DISABLE: {
                 const enablement = msg.data as ISourceEnablement;

@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import ConnectionOverview from "../../command/webview/ConnectionOverviewPageWrapper";
+import ConnectionOverviewWrapper from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { CLICommandRunner, AccessToken } from "./CLICommandRunner";
 import Log from "../../Logger";
@@ -28,7 +28,7 @@ export default class RemoteConnection extends Connection {
     // private _username: string | undefined;
     private _accessToken: AccessToken | undefined;
 
-    private _activeOverviewPage: ConnectionOverview | undefined;
+    private _activeOverviewPage: ConnectionOverviewWrapper | undefined;
 
     /**
      * Do not allow toggling (enabling or disabling) the connection when a toggle is already in progress
@@ -238,11 +238,11 @@ export default class RemoteConnection extends Connection {
         await this.enable();
     }
 
-    public get overviewPage(): ConnectionOverview | undefined {
+    public get overviewPage(): ConnectionOverviewWrapper | undefined {
         return this._activeOverviewPage;
     }
 
-    public onDidOpenOverview(overviewPage: ConnectionOverview): void {
+    public onDidOpenOverview(overviewPage: ConnectionOverviewWrapper): void {
         this._activeOverviewPage = overviewPage;
     }
 
@@ -254,7 +254,7 @@ export default class RemoteConnection extends Connection {
 
     public tryRefreshOverview(): void {
         if (this._activeOverviewPage) {
-            this._activeOverviewPage.refresh(this.memento);
+            this._activeOverviewPage.refresh();
         }
     }
 }

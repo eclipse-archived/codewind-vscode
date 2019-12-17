@@ -19,7 +19,7 @@ export class ProjectType {
     // public readonly userFriendlyType: string;
     public readonly debugType: ProjectType.DebugTypes | undefined;
 
-    public readonly icon: Resources.IconPaths;
+    public readonly icon: Resources.Icons;
 
     constructor(
         public readonly internalType: ProjectType.InternalTypes,
@@ -93,30 +93,30 @@ export class ProjectType {
         }
     }
 
-    private static getProjectIcon(type: ProjectType.Types, language: string): Resources.IconPaths {
+    private static getProjectIcon(type: ProjectType.Types, language: string): Resources.Icons {
         switch (language.toLowerCase()) {
             case this.Languages.JAVA:
                 if (type === ProjectType.Types.MICROPROFILE) {
-                    return Resources.getIconPaths(Resources.Icons.Microprofile);
+                    return Resources.Icons.Microprofile;
                 }
                 else if (type === ProjectType.Types.SPRING) {
-                    return Resources.getIconPaths(Resources.Icons.Spring);
+                    return Resources.Icons.Spring;
                 }
                 else {
-                    return Resources.getIconPaths(Resources.Icons.Java);
+                    return Resources.Icons.Java;
                 }
             case this.Languages.NODE:
             case "javascript":
             case "js":
-                return Resources.getIconPaths(Resources.Icons.NodeJS);
+                return Resources.Icons.NodeJS;
             case this.Languages.SWIFT:
-                return Resources.getIconPaths(Resources.Icons.Swift);
+                return Resources.Icons.Swift;
             case this.Languages.PYTHON:
-                return Resources.getIconPaths(Resources.Icons.Python);
+                return Resources.Icons.Python;
             case this.Languages.GO:
-                return Resources.getIconPaths(Resources.Icons.Go);
+                return Resources.Icons.Go;
             default:
-                return Resources.getIconPaths(Resources.Icons.Generic);
+                return Resources.Icons.Generic;
         }
     }
 
