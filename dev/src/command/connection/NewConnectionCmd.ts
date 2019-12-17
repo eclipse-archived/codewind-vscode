@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import ConnectionOverview from "../webview/ConnectionOverviewPageWrapper";
+import ConnectionOverviewWrapper from "../webview/ConnectionOverviewPageWrapper";
 
 const NEW_CONNECTION_TITLE = "New Codewind Connection";
 // const NEW_CONNECTION_NO_STEPS = 2;
@@ -48,7 +48,7 @@ export async function newRemoteConnectionCmd(): Promise<void> {
     if (!connectionLabel) {
         return;
     }
-    ConnectionOverview.showForNewConnection(connectionLabel);
+    ConnectionOverviewWrapper.showForNewConnection(connectionLabel);
 }
 
 async function getConnectionLabel(): Promise<string | undefined> {

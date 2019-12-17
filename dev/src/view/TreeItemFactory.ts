@@ -152,7 +152,7 @@ namespace TreeItemFactory {
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             tooltip: label,
             contextValue: TreeItemContext.getProjectContext(project),
-            iconPath: project.type.icon,
+            iconPath: Resources.getIconPaths(project.type.icon),
             // command run on single-click (or double click - depends on a user setting - https://github.com/Microsoft/vscode/issues/39601)
             command,
         };

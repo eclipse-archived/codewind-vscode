@@ -19,18 +19,16 @@ import { IWVOpenable } from "./pages/ProjectOverviewPage";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 
-const RESOURCE_SCHEME = "vscode-resource:";
-
 namespace WebviewUtil {
 
-    export function getStylesheetPath(filename: string): string {
-        return RESOURCE_SCHEME + Resources.getCss(filename);
-    }
-
-    export function getIcon(icon: Resources.Icons): string {
-        const iconPaths = Resources.getIconPaths(icon);
-        // return RESOURCE_SCHEME + dark ? iconPaths.dark : iconPaths.light;
-        return RESOURCE_SCHEME + iconPaths.dark;
+    export function getWebviewOptions(): vscode.WebviewOptions & vscode.WebviewPanelOptions  {
+        return {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [
+                vscode.Uri.file(Resources.getBaseResourcePath())
+            ],
+        };
     }
 
     export interface IWVMessage {
@@ -66,12 +64,12 @@ namespace WebviewUtil {
 
     /**
      * For debugging in the browser, write out the html to an html file on disk and point to the resources on disk.
-     * The file will be stored in ~/filename.html.
+     * The file will be stored in the path in process.env.WEBVIEW_DEBUG_DIR, or ~.
      *
-     * If CW_ENV=dev is not set, this function does nothing.
+     * If CW_ENV=dev or WEBVIEW_DEBUG_DIR is not set, this function does nothing.
      */
-    export function debugWriteOutWebview(html: string, filename: string): void {
-        if (!MCUtil.isDevEnv()) {
+    export async function debugWriteOutWebview(html: string, filename: string): Promise<void> {
+        if (!MCUtil.isDevEnv() && !process.env.WEBVIEW_DEBUG_DIR) {
             return;
         }
 
@@ -79,20 +77,29 @@ namespace WebviewUtil {
             filename = filename + ".html";
         }
 
-        const destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");
-        const destFile = path.join(destDir, filename);
-        const htmlWithFileProto = html.replace(/vscode-resource:\//g, "file:///");
+        let destDir = process.env.WEBVIEW_DEBUG_DIR;
+        if (!destDir) {
+            destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");
+        }
 
-        fs.writeFile(destFile, htmlWithFileProto,
-            (err) => {
-                if (err) {
-                    Log.e(`Error writing out debug webview ${filename}`, err);
-                }
-                else {
-                    Log.d(`Wrote out debug webview to ${destFile}`);
-                }
-            }
-        );
+        try {
+            await fs.promises.access(destDir);
+        }
+        catch (err) {
+            Log.d(`Creating ${destDir}`);
+            await fs.promises.mkdir(destDir, { recursive: true });
+        }
+
+        const destFile = path.join(destDir, filename);
+        const htmlWithFileProto = html.replace(/vscode-resource:\/\/file\/\//g, "file://");
+
+        try {
+            await fs.promises.writeFile(destFile, htmlWithFileProto);
+            Log.d(`Wrote out debug webview to ${destFile}`);
+        }
+        catch (err) {
+            Log.e(`Error writing out debug webview ${filename}`, err);
+        }
     }
 }
 

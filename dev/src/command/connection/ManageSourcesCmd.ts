@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import Connection from "../../codewind/connection/Connection";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
-import { ManageSourcesPage } from "../webview/SourcesPageWrapper";
+import { SourcesPageWrapper } from "../webview/SourcesPageWrapper";
 
 export default async function manageSourcesCmd(connection: Connection): Promise<void> {
     try {
@@ -24,8 +24,8 @@ export default async function manageSourcesCmd(connection: Connection): Promise<
             return;
         }
 
-        const manageSourcesPage = new ManageSourcesPage(connection);
-        connection.onDidOpenSourcesPage(manageSourcesPage);
+        // tslint:disable-next-line: no-unused-expression
+        new SourcesPageWrapper(connection);
     }
     catch (err) {
         const errMsg = `Error opening Manage Template Sources page:`;

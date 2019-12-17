@@ -15,8 +15,9 @@ import Resources from "../../../constants/Resources";
 import WebviewUtil from "../WebviewUtil";
 import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "../ConnectionOverviewPageWrapper";
 import CWDocs from "../../../constants/CWDocs";
+import { WebviewResourceProvider } from "../WebviewWrapper";
 
-export default function getConnectionInfoHtml(connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
+export default function getConnectionInfoHtml(rp: WebviewResourceProvider, connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
     const connectionExists = !!connectionInfo.ingressUrl;
     return `
@@ -27,16 +28,16 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         ${WebviewUtil.getCSP()}
 
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("connection-overview.css")}"/>
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
+        <link rel="stylesheet" href="${rp.getStylesheet("connection-overview.css")}"/>
+        <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
         ${global.isTheia ?
-            `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
+            `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
     </head>
     <body>
     <div id="top-section">
         <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
-                src="${isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
+                src="${isConnected ? rp.getIcon(Resources.Icons.ConnectionConnected) : rp.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>
         </div>
     </div>
@@ -49,17 +50,17 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
             <div id="deployment-box">
                 <h3>Codewind Connection
                     <div tabindex="0" id="learn-more-btn-remote">
-                        <a href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}"><img class="learn-more-btn" alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a>
+                        <a href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}"><img class="learn-more-btn" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a>
                     </div>
-                    ${isConnected ? `<img alt="Connected" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
-                        `<img alt="Disconnected" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`
+                    ${isConnected ? `<img alt="Connected" src="${rp.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
+                        `<img alt="Disconnected" src="${rp.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`
                     }
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
                     ${connectionExists ?
 `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
-                        <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${WebviewUtil.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
+                        <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${rp.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
                         :
                         `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
                     }
@@ -87,13 +88,13 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
 
             <div>
                 <div id="link-container-box">
-                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
                 </div>
 
                 <div id="link-container-box">
-                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</div>
                 </div>
@@ -103,9 +104,9 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
 
             <div class="remote-connection-btn-group">
                 <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
-                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${WebviewUtil.getIcon(Resources.Icons.Delete)}"/></div>
+                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${rp.getIcon(Resources.Icons.Delete)}"/></div>
                 <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${WebviewUtil.getIcon(Resources.Icons.Edit_Connection)}"/></div>
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${rp.getIcon(Resources.Icons.Edit_Connection)}"/></div>
                 <div type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</div>
                 <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"

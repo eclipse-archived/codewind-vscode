@@ -9,6 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import { Uri } from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -35,8 +36,15 @@ namespace Resources {
         return path.join(getBaseResourcePath(), ...paths);
     }
 
-    export function getCss(filename: string): string {
-        return getResourcePath(STYLE_FOLDER_NAME, filename);
+    export function getCss(filename: string): Uri {
+        return Uri.file(getResourcePath(STYLE_FOLDER_NAME, filename));
+    }
+
+    // VSC allows providing a separate icon for dark or light themes.
+    // This is the format the API expects when icons are set.
+    export interface IconPaths {
+        readonly light: Uri;
+        readonly dark: Uri;
     }
 
     /**
@@ -44,20 +52,22 @@ namespace Resources {
      * which can then be assigned to a vscode iconPath (eg on a TreeItem).
      * If an icon cannot be found, an error is will be logged.
      *
-     * A requested icon is assumed to have a file in both 'dark' and 'light' folders.
+     * If a matching icon exists in the 'themeless' folder, the icon will be returned from there, with the dark and light paths matching.
+     * Else, a requested icon is assumed to have a file in both 'dark' and 'light' folders.
      *
      */
     export function getIconPaths(icon: Icons): IconPaths {
-        const bothPath = getResourcePath(IMG_FOLDER_NAME, BOTH_FOLDER_NAME, icon);
+        const themeless = getResourcePath(IMG_FOLDER_NAME, BOTH_FOLDER_NAME, icon);
         try {
-            fs.accessSync(bothPath, fs.constants.R_OK);
+            fs.accessSync(themeless, fs.constants.R_OK);
+            const themelessUri = Uri.parse(themeless);
             return {
-                dark: bothPath,
-                light: bothPath,
+                dark: themelessUri,
+                light: themelessUri,
             };
         }
         catch (err) {
-            // if it doesn't exist in the both folder, it must exist in both dark and light folders
+            // if it doesn't exist in the themeless folder, it must exist in both dark and light folders
         }
 
         const darkPath = getResourcePath(IMG_FOLDER_NAME, DARK_FOLDER_NAME, icon);
@@ -75,19 +85,15 @@ namespace Resources {
             }
         });
 
+        const lightUri = Uri.file(lightPath);
+        const darkUri = Uri.file(darkPath);
         return {
-            light: lightPath,
-            dark: darkPath
+            light: lightUri,
+            dark: darkUri,
         };
     }
 
-    // VSC allows providing a separate icon for dark or light themes.
-    // This is the format the API expects when icons are set.
-    // tslint:disable-next-line: interface-name
-    export interface IconPaths {
-        readonly light: string;
-        readonly dark: string;
-    }
+
 
     export enum Icons {
         Logo = "codewind.svg",

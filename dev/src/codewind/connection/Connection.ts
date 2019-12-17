@@ -25,8 +25,8 @@ import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventList
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { CLICommandRunner } from "./CLICommandRunner";
-import { ManageSourcesPage as SourcesPageWrapper , ITemplateSource } from "../../command/webview/SourcesPageWrapper";
-import { ManageRegistriesPageWrapper as RegistriesPageWrapper, ManageRegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
+import { SourcesPageWrapper, ITemplateSource } from "../../command/webview/SourcesPageWrapper";
+import { RegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -399,7 +399,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this._sourcesPage = page;
     }
 
-    public onDidOpenRegistriesPage(page: ManageRegistriesPageWrapper): void {
+    public onDidOpenRegistriesPage(page: RegistriesPageWrapper): void {
         this._registriesPage = page;
     }
 
@@ -407,7 +407,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this._sourcesPage;
     }
 
-    public get registriesPage(): ManageRegistriesPageWrapper | undefined {
+    public get registriesPage(): RegistriesPageWrapper | undefined {
         return this._registriesPage;
     }
 

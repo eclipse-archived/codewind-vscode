@@ -15,7 +15,7 @@ import * as vscode from "vscode";
 import Connection from "../../codewind/connection/Connection";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
-import { ManageRegistriesPageWrapper } from "../webview/RegistriesPageWrapper";
+import { RegistriesPageWrapper } from "../webview/RegistriesPageWrapper";
 
 export default async function manageRegistriesCmd(connection: Connection): Promise<void> {
     if (!connection.isKubeConnection) {
@@ -29,11 +29,11 @@ export default async function manageRegistriesCmd(connection: Connection): Promi
             connection.registriesPage.reveal();
             return;
         }
-        const manageRegistriesPage = new ManageRegistriesPageWrapper(connection);
-        connection.onDidOpenRegistriesPage(manageRegistriesPage);
+        // tslint:disable-next-line: no-unused-expression
+        new RegistriesPageWrapper(connection);
     }
     catch (err) {
-        const errMsg = `Error opening Manage image registries page:`;
+        const errMsg = `Error opening Image Registries page:`;
         vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
         Log.e(errMsg, err);
     }

@@ -13,89 +13,23 @@ import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
 
-import * as ProjectOverview from "../webview/pages/ProjectOverviewPage";
 import Log from "../../Logger";
-import toggleAutoBuildCmd from "./ToggleAutoBuildCmd";
-import toggleEnablementCmd from "./ToggleEnablementCmd";
-import toggleInjectMetricsCmd from "./ToggleAutoInjectMetrics";
-import requestBuildCmd from "./RequestBuildCmd";
-import Resources from "../../constants/Resources";
-import { removeProject } from "./RemoveProjectCmd";
-import WebviewUtil from "../webview/WebviewUtil";
+import ProjectOverviewPageWrapper from "../webview/ProjectOverviewPageWrapper";
+import MCUtil from "../../MCUtil";
 
 export default async function projectOverviewCmd(project: Project): Promise<void> {
-    const wvOptions: vscode.WebviewOptions & vscode.WebviewPanelOptions = {
-        enableScripts: true,
-        retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.file(Resources.getBaseResourcePath())]
-    };
-
-    const webPanel = vscode.window.createWebviewPanel(project.name, project.name, vscode.ViewColumn.Active, wvOptions);
-
-    const existingPI = project.onDidOpenProjectInfo(webPanel);
-    if (existingPI != null) {
-        // Just focus them on the existing one, and do nothing more.
-        existingPI.reveal();
-        webPanel.dispose();
-        return;
-    }
-
-    webPanel.reveal();
-    webPanel.onDidDispose(() => {
-        // this will dispose the webview a second time, but that seems to be fine
-        project.onDidCloseProjectInfo();
-    });
-
-    const icons = project.type.icon;
-    webPanel.iconPath = {
-        light: vscode.Uri.file(icons.light),
-        dark:  vscode.Uri.file(icons.dark)
-    };
-
-    // const ed = vscode.window.activeTextEditor;
-    webPanel.webview.html = ProjectOverview.refreshProjectOverview(webPanel, project);
-    webPanel.webview.onDidReceiveMessage(handleWebviewMessage.bind(project));
-}
-
-function handleWebviewMessage(this: Project, msg: WebviewUtil.IWVMessage): void {
-    const project = this;
-    // Log.d(`Got message from ProjectInfo for project ${project.name}: ${msg.type} data ${JSON.stringify(msg.data)}`);
     try {
-        switch (msg.type) {
-            case ProjectOverview.ProjectOverviewWVMessages.OPEN: {
-                WebviewUtil.onRequestOpen(msg);
-                break;
-            }
-            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_AUTOBUILD: {
-                toggleAutoBuildCmd(project);
-                break;
-            }
-            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_ENABLEMENT: {
-                toggleEnablementCmd(project);
-                break;
-            }
-            case ProjectOverview.ProjectOverviewWVMessages.BUILD: {
-                requestBuildCmd(project);
-                break;
-            }
-            case ProjectOverview.ProjectOverviewWVMessages.UNBIND: {
-                removeProject(project);
-                break;
-            }
-            case ProjectOverview.ProjectOverviewWVMessages.EDIT: {
-                project.tryOpenSettingsFile();
-                break;
-            }
-            case ProjectOverview.ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS: {
-                toggleInjectMetricsCmd(project);
-                break;
-            }
-            default: {
-                Log.e("Received unknown event from project info webview:", msg);
-            }
+        if (project.overviewPage) {
+            project.overviewPage.reveal();
+            return;
         }
+
+        // tslint:disable-next-line: no-unused-expression
+        new ProjectOverviewPageWrapper(project);
     }
     catch (err) {
-        Log.e("Error processing msg from WebView", err);
+        const errMsg = `Error opening Project Info page for ${project.name}:`;
+        vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+        Log.e(errMsg, err);
     }
 }
