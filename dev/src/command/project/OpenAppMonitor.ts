@@ -26,7 +26,7 @@ export default async function openAppMonitorCmd(project: Project): Promise<void>
             return;
         }
 
-        if (project.appMonitorUrl == null || !(await testPingAppMonitor(project))) {
+        if (!project.hasAppMonitor || project.appMonitorUrl == null) {
             vscode.window.showWarningMessage(getAppMetricsNotSupportedMsg(project.name));
             return;
         }

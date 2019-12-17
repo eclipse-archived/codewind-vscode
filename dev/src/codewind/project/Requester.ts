@@ -320,7 +320,7 @@ namespace Requester {
         return new ProjectCapabilities(result.startModes, result.controlCommands, metricsAvailable);
     }
 
-    async function areMetricsAvailable(project: Project): Promise<boolean> {
+    export async function areMetricsAvailable(project: Project): Promise<boolean> {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
         const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, "GET", msg, true);
         return res.metricsAvailable;
@@ -338,7 +338,7 @@ namespace Requester {
         };
 
         await doProjectRequest(project, ProjectEndpoints.METRICS_INJECTION, body, "POST", newAutoInjectMetricsUserStr);
-        project.setInjectMetrics(newInjectMetrics);
+        await project.setInjectMetrics(newInjectMetrics);
     }
 
     /**
