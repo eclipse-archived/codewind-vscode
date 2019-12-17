@@ -475,7 +475,6 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public onDidCloseOverviewPage(): void {
-        this._overviewPage?.dispose();
         this._overviewPage = undefined;
     }
 
