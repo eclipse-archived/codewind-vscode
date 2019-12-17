@@ -476,6 +476,7 @@ export default class Project implements vscode.QuickPickItem {
 
     public onDidCloseOverviewPage(): void {
         this._overviewPage?.dispose();
+        this._overviewPage = undefined;
     }
 
     ///// Getters
@@ -596,6 +597,7 @@ export default class Project implements vscode.QuickPickItem {
             return dashboardUrl.toString();
         }
         catch (err) {
+            Log.e("Error determining monitor dashboard URL", err);
             vscode.window.showErrorMessage(MCUtil.errToString(err));
             return undefined;
         }

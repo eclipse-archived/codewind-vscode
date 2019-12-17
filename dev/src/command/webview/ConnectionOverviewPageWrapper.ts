@@ -91,9 +91,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
     }
 
     protected onDidDispose(): void {
-        if (this.connection) {
-            this.connection.onDidCloseOverview();
-        }
+        this.connection?.onDidCloseOverview();
     }
 
     protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
