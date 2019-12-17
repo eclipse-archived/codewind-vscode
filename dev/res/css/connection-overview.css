@@ -99,7 +99,11 @@ body {
     margin-left: 1rem;
     font-size: 14px;
     margin-top: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
+}
+
+#link-container-box .registry-help-label {
+    margin-bottom: 15px;
 }
 
 #link-container-box img {

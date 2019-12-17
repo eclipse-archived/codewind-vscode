@@ -94,7 +94,7 @@ export default function getConnectionInfoHtml(connectionInfo: ConnectionOverview
 
                 <div id="link-container-box">
                     <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}"><img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/></a></h3>
-                    <p>Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
+                    <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
                     <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</div>
                 </div>
             </div>
