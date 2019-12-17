@@ -32,8 +32,8 @@ import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import { refreshProjectOverview } from "../../command/webview/pages/ProjectOverviewPage";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
-import { getCodewindIngress } from "../../command/project/OpenPerfDashboard"
-import EndpointUtil from "../../constants/Endpoints"
+import { getCodewindIngress } from "../../command/project/OpenPerfDashboard";
+import EndpointUtil from "../../constants/Endpoints";
 
 /**
  * Used to determine App Monitor URL
@@ -552,6 +552,14 @@ export default class Project implements vscode.QuickPickItem {
         return this._capabilities;
     }
 
+    public get hasAppMonitor(): boolean {
+        return this.type.alwaysHasAppMonitor || this.capabilities.metricsAvailable;
+    }
+
+    public get hasPerfDashboard(): boolean {
+        return this.capabilities.metricsAvailable || this.injectMetricsEnabled;
+    }
+
     public get appUrl(): vscode.Uri | undefined {
         // If the backend has provided us with a baseUrl already, use that
         if (this.appBaseURL) {
@@ -618,10 +626,10 @@ export default class Project implements vscode.QuickPickItem {
             return dashboardUrl.toString();
         }
         catch (err) {
+            Log.e(`${this} error determining app monitor URL`, err);
             vscode.window.showErrorMessage(MCUtil.errToString(err));
             return undefined;
         }
-
     }
 
     public get canContainerShell(): boolean {
