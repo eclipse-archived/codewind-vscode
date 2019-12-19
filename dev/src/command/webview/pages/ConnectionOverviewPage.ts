@@ -88,31 +88,31 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
 
             <div>
                 <div id="link-container-box">
-                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}" tabindex="0"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
-                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
+                    <button type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</button>
                 </div>
 
                 <div id="link-container-box">
-                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}" tabindex="0"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
-                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</div>
+                    <button type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</button>
                 </div>
             </div>
 
             </div>
 
             <div class="remote-connection-btn-group">
-                <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
-                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${rp.getIcon(Resources.Icons.Delete)}"/></div>
-                <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${rp.getIcon(Resources.Icons.Edit_Connection)}"/></div>
-                <div type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</div>
-                <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save</div>
-                <div type="button" id="cancel-btn" class="btn btn-prominent"  onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Cancel</div>
+                <button type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
+                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${rp.getIcon(Resources.Icons.Delete)}"/></button>
+                <button type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${rp.getIcon(Resources.Icons.Edit_Connection)}"/></button>
+                <button type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</button>
+                <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
+                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save</button>
+                <button type="button" id="cancel-btn" class="btn btn-prominent"  onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
+                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Cancel</button>
             </div>
     </div>
 
