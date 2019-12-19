@@ -46,7 +46,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
     </div-->
     </div>
     <div id="main">
-        <div style="display: flex;">
+        <div style="display: inline-block;">
             <div id="deployment-box">
                 <h3>Codewind Connection
                     <div tabindex="0" id="learn-more-btn-remote">
@@ -86,7 +86,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                 </div>
             </div>
 
-            <div>
+            <div style="float: right;">
                 <div id="link-container-box">
                     <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}" tabindex="0"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
                     <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
@@ -157,7 +157,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             document.querySelector("#toggle-connect-btn").style.display = "none";
             document.querySelector("#cancel-btn").style.display = "inline";
             document.querySelector("#save-btn").style.display = "inline";
-            document.querySelector("#test-btn").style.display = "inline";
+            // document.querySelector("#test-btn").style.display = "inline";
         }
 
         let passwordInput = document.querySelector("#input-password");
