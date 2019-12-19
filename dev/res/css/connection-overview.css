@@ -61,6 +61,7 @@ body {
 }
 
 #deployment-box {
+    float: left;
     margin-top: 1em;
     width: 550px;
     height: 340px;
@@ -71,7 +72,7 @@ body {
     margin-top: 1em;
     width: 530px;
     height: 162px;
-    margin-left: 35px;
+    margin-left: 25px;
     background-color: var(--vscode-sideBar-background);
 }
 
@@ -307,6 +308,10 @@ body {
 .connection-name {
     font-size: 32px;
     white-space: nowrap;
+}
+
+.remote-connection-btn-group {
+    display: block;
 }
 
 .remote-connection-btn-group .btn img {
