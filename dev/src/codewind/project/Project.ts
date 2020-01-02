@@ -29,9 +29,11 @@ import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
 import Requester from "./Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
-import { refreshProjectOverview } from "../../command/webview/ProjectOverviewPage";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
+import { getCodewindIngress } from "../../command/project/OpenPerfDashboard";
+import EndpointUtil from "../../constants/Endpoints";
+import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
 
 /**
  * Used to determine App Monitor URL
@@ -92,7 +94,7 @@ export default class Project implements vscode.QuickPickItem {
 
     // Active ProjectInfo webviewPanel. Only one per project. Undefined if no project overview page is active.
     // Track this so we can refresh it when update() is called, and prevent multiple webviews being open for one project.
-    private activeProjectInfo: vscode.WebviewPanel | undefined;
+    private _overviewPage: ProjectOverviewPageWrapper | undefined;
 
     public readonly logManager: MCLogManager;
 
@@ -150,6 +152,10 @@ export default class Project implements vscode.QuickPickItem {
         });
 
         Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
+    }
+
+    public toString(): string {
+        return this.name;
     }
 
     /**
@@ -230,7 +236,7 @@ export default class Project implements vscode.QuickPickItem {
      */
     private onChange(): void {
         this.connection.onChange(this);
-        this.tryRefreshProjectInfoPage();
+        this._overviewPage?.refresh();
     }
 
     /**
@@ -410,7 +416,7 @@ export default class Project implements vscode.QuickPickItem {
         await Promise.all([
             this.clearValidationErrors(),
             this.logManager.destroyAllLogs(),
-            this.activeProjectInfo != null ? this.activeProjectInfo.dispose() : Promise.resolve(),
+            this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
         ]);
         this.connection.onChange(this);
     }
@@ -460,35 +466,16 @@ export default class Project implements vscode.QuickPickItem {
 
     ///// ProjectOverview
 
-    /**
-     * To be called when the user tries to open this project's Project Info page.
-     *
-     * If the user already has a Project Info page open for this project, returns the existing page.
-     * In this case, the webview should be re-revealed, but a new one should not be created.
-     * If the user does not already have an info page open for this project, returns undefined,
-     * and sets the given webview to be this project's project info panel.
-     */
-    public onOpenProjectInfo(wvPanel: vscode.WebviewPanel): vscode.WebviewPanel | undefined {
-        if (this.activeProjectInfo != null) {
-            return this.activeProjectInfo;
-        }
-        // Log.d(`Info opened for project ${this.name}`);
-        this.activeProjectInfo = wvPanel;
-        return undefined;
+    public onDidOpenOverviewPage(overviewPage: ProjectOverviewPageWrapper): void {
+        this._overviewPage = overviewPage;
     }
 
-    public closeProjectInfo(): void {
-        if (this.activeProjectInfo != null) {
-            this.activeProjectInfo.dispose();
-            this.activeProjectInfo = undefined;
-        }
+    public get overviewPage(): ProjectOverviewPageWrapper | undefined {
+        return this._overviewPage;
     }
 
-    private tryRefreshProjectInfoPage(): void {
-        if (this.activeProjectInfo != null) {
-            // Log.d("Refreshing projectinfo");
-            refreshProjectOverview(this.activeProjectInfo, this);
-        }
+    public onDidCloseOverviewPage(): void {
+        this._overviewPage = undefined;
     }
 
     ///// Getters
@@ -546,6 +533,14 @@ export default class Project implements vscode.QuickPickItem {
         return this._capabilities;
     }
 
+    public get hasAppMonitor(): boolean {
+        return this.type.alwaysHasAppMonitor || this.capabilities.metricsAvailable;
+    }
+
+    public get hasPerfDashboard(): boolean {
+        return this.capabilities.metricsAvailable || this.injectMetricsEnabled;
+    }
+
     public get appUrl(): vscode.Uri | undefined {
         // If the backend has provided us with a baseUrl already, use that
         if (this.appBaseURL) {
@@ -591,15 +586,31 @@ export default class Project implements vscode.QuickPickItem {
     public get appMonitorUrl(): string | undefined {
         const appMetricsPath = langToPathMap.get(this.type.language);
         const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
-        Log.d(`${this.name} supports metrics ? ${supported}`);
-        if (!supported || !this.appUrl) {
+        if ((!this._injectMetricsEnabled) && supported) {
+            // open app monitor in Application container
+            Log.d(`${this.name} supports metrics ? ${supported}`);
+            if (this.appUrl === undefined) {
+                return undefined;
+            }
+            let monitorPageUrlStr = this.appUrl.toString();
+            if (!monitorPageUrlStr.endsWith("/")) {
+                monitorPageUrlStr += "/";
+            }
+            return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
+        }
+
+        try {
+            // open app monitor in Performance container
+            const cwBaseUrl = global.isTheia ? getCodewindIngress() : this.connection.url;
+            const dashboardUrl = EndpointUtil.getPerformanceMonitor(cwBaseUrl, this.language, this.id);
+            Log.d(`Perf container Monitor Dashboard url for ${this.name} is ${dashboardUrl}`);
+            return dashboardUrl.toString();
+        }
+        catch (err) {
+            Log.e(`${this} error determining app monitor URL`, err);
+            vscode.window.showErrorMessage(MCUtil.errToString(err));
             return undefined;
         }
-        let monitorPageUrlStr = this.appUrl.toString();
-        if (!monitorPageUrlStr.endsWith("/")) {
-            monitorPageUrlStr += "/";
-        }
-        return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
     }
 
     public get canContainerShell(): boolean {
@@ -711,7 +722,7 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    public setInjectMetrics(newInjectMetrics: boolean | undefined): boolean {
+    public async setInjectMetrics(newInjectMetrics: boolean | undefined): Promise<boolean> {
         if (newInjectMetrics == null) {
             return false;
         }
@@ -722,9 +733,9 @@ export default class Project implements vscode.QuickPickItem {
         if (changed) {
             // onChange has to be invoked explicitly because this function can be called outside of update()
             Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._injectMetricsEnabled}`);
+            this.capabilities.metricsAvailable = await Requester.areMetricsAvailable(this);
             this.onChange();
         }
-
         return changed;
     }
 

@@ -75,8 +75,8 @@ namespace SocketEvents {
 
     export type ILogsListChangedEvent = { projectID: string } & ILogResponse;
 
-    export interface IRegistryStatus {
-        readonly deploymentRegistryTest: boolean;
+    export interface IPushRegistryStatus {
+        readonly imagePushRegistryTest: boolean;
         readonly msg: string;
     }
 
@@ -107,7 +107,7 @@ namespace SocketEvents {
         PROJECT_VALIDATED = "projectValidated",
         PROJECT_CREATED = "projectCreation",
         PROJECT_BOUND = "projectBind",
-        REGISTRY_STATUS = "deploymentRegistryStatus",
+        REGISTRY_STATUS = "imagePushRegistryStatus",
     }
 
     /**

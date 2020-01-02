@@ -26,13 +26,9 @@ export enum MCEndpoints {
     TEMPLATE_REPOS = "api/v1/templates/repositories",
     BATCH_TEMPLATE_REPOS = "api/v1/batch/templates/repositories",
     PROJECTS = "api/v1/projects",
-    CREATE_FROM_TEMPLATE = "api/v1/projects/",
-    PREBIND_VALIDATE = "api/v1/validate",
-    BIND = "api/v1/projects/bind",
-    REMOTE_BIND_START = "api/v1/projects/remote-bind/start",
-
-    REGISTRY = "api/v1/registry",
-    PROJECT_TYPES = "api/v1/project-types"
+    PROJECT_TYPES = "api/v1/project-types",
+    REGISTRY_SECRETS = "api/v1/registrysecrets",
+    PUSH_REGISTRY = "api/v1/imagepushregistry",
 }
 
 /**
@@ -48,10 +44,6 @@ export enum ProjectEndpoints {
     OPEN = "open",
     CLOSE = "close",
     UNBIND = "unbind",
-
-    UPLOAD = "remote-bind/upload",
-    CLEAR = "remote-bind/clear",
-    REMOTE_BIND_END = "remote-bind/end",
 
     CAPABILITIES = "capabilities",
 }
@@ -84,6 +76,15 @@ export namespace EndpointUtil {
         return pfeUrl.with({
             path: "/performance/charts",
             query: `project=${projectID}`,
+        });
+    }
+
+    export function getPerformanceMonitor(pfeUrl: vscode.Uri, projectLanguage: string, projectID: string): vscode.Uri {
+        // return value looks like http://localhost:9090/performance/monitor/dashboard/java?theme=dark&projectID=bacd4760-70ce-11e9-af94-d39edf21b705
+
+        return pfeUrl.with({
+            path: "/performance/monitor/dashboard/" + projectLanguage,
+            query: `theme=dark&projectID=${projectID}`,
         });
     }
 }

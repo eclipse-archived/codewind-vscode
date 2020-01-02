@@ -44,9 +44,6 @@
     "cmdID_separator": "ext.cw.separator",
     "cmdTitle_separator": "Separator",
 
-    "cmdID_setRegistry": "ext.cw.setRegistry",
-    "cmdTitle_setRegistry": "Set Deployment Registry",
-
     "cmdID_openTekton": "ext.cw.openTekton",
     "cmdTitle_openTekton": "Open Tekton Dashboard",
 
@@ -56,8 +53,11 @@
     "cmdID_bindProject": "ext.cw.bindProject",
     "cmdTitle_bindProject": "Add Existing Project",
 
-    "cmdID_manageTemplateRepos": "ext.cw.manageTemplateRepos",
-    "cmdTitle_manageTemplateRepos": "Manage Template Sources",
+    "cmdID_manageTemplateRepos": "ext.cw.manageSources",
+    "cmdTitle_manageTemplateRepos": "Template Sources Manager",
+
+    "cmdID_manageRegistries": "ext.cw.manageRegistries",
+    "cmdTitle_manageRegistries": "Image Registry Manager",
 
     "cmdID_connectionOverview": "ext.cw.connectionOverview",
     "cmdTitle_connectionOverview": "Remote Connection Settings",
@@ -133,7 +133,7 @@
 
     "// None of items below are exposed to user": [
         "These regexes match Context IDs for Projects and Connections to determine command enablement",
-        "See TreeItemFactory for how the Context IDs are set"
+        "See TreeItemFactory / TreeItemContext for how the Context IDs are set"
     ],
 
     "isTreeRoot": "viewItem == ext.cw.root",
@@ -142,20 +142,21 @@
     "isStartedLocalCodewind": "viewItem =~ /.*local\\.started.*/",
 
     "isConnection": "viewItem =~ /ext\\.cw\\.connection\\.*/",
-    "isConnectedConnection": "viewItem =~ /ext\\.cw\\.connection\\..*connected.*/",
+    "isConnectedConnection": "viewItem =~ /ext\\.cw\\.connection\\..*connection-good.*/",
     "isRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote.*/",
+    "isDisconnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled\\.connection-bad.*/",
     "isEnabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled.*/",
     "isDisabledRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.disabled.*/",
-    "isConnectedRemoteConnection": "viewItem =~ /ext\\.cw\\.connection\\.remote\\.enabled\\.connected.*/",
-    "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection.*\\.registry.*connected.*/",
-    "isConnectionWithTekton": "viewItem =~ /ext\\.cw\\.connection.*\\.tekton.*connected.*/",
+    "isConnectionWithRegistry": "viewItem =~ /ext\\.cw\\.connection.*\\.registry.*/",
+    "isConnectionWithTekton": "viewItem =~ /ext\\.cw\\.connection.*\\.tekton.*/",
 
     "isProject":                        "viewItem =~ /ext\\.cw\\.project.*/",
     "isEnabledProject":                 "viewItem =~ /ext\\.cw\\.project\\.enabled.*/",
     "isDisabledProject":                "viewItem =~ /ext\\.cw\\.project\\.disabled.*/",
     "isStartedProject":                 "viewItem =~ /ext\\.cw\\.project\\.enabled\\.started.*/",
     "isDebuggableProject":              "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.debuggable.*/",
-    "isProjectWithMetrics":             "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.metricsAvailable.*/",
+    "isProjectWithAppMonitor":          "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.appMonitor.*/",
+    "isProjectWithPerfDashboard":       "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.perfDashboard.*/",
     "isRestartableProject":             "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.restartable.*/",
     "isShellableProject":               "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.shellable.*/",
     "isEnabledAutoBuildOn":             "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.autoBuildOn/",

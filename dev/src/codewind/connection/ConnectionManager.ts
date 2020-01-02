@@ -68,13 +68,12 @@ export default class ConnectionManager implements vscode.Disposable {
         });
 
         if (existing) {
-            const alreadyExistsMsg = "Connection already exists at " + ingressUrl.toString();
-            Log.i(alreadyExistsMsg);
-            vscode.window.showWarningMessage(alreadyExistsMsg);
-            return existing;
+            const alreadyExistsMsg = `${existing.label} is already connected to ${ingressUrl.toString()}`;
+            throw new Error(alreadyExistsMsg);
         }
 
         const newConnID = await ConnectionMemento.addConnection(label, ingressUrl, username);
+        await CLICommandRunner.updateKeyringCredentials(newConnID, username, password);
 
         const newMemento: ConnectionMemento = {
             id: newConnID,
@@ -82,7 +81,7 @@ export default class ConnectionManager implements vscode.Disposable {
             label: label,
             username: username,
         };
-        const newConnection = new RemoteConnection(ingressUrl, newMemento, password);
+        const newConnection = new RemoteConnection(ingressUrl, newMemento);
         await this.onNewConnection(newConnection);
         return newConnection;
     }
@@ -104,7 +103,9 @@ export default class ConnectionManager implements vscode.Disposable {
             return this.connections[0];
         }
         Log.i("Creating connection to " + url);
-        const newConnection = new Connection(LOCAL_CONNECTION_ID, url, "Local Codewind", false);
+
+        const label = global.isTheia ? "Codewind in Che" : "Local Codewind";
+        const newConnection = new Connection(LOCAL_CONNECTION_ID, url, label, false);
         this.onNewConnection(newConnection);
         return newConnection;
     }
@@ -119,7 +120,6 @@ export default class ConnectionManager implements vscode.Disposable {
         }
         Log.i("New Connection @ " + newConnection.url);
 
-        await newConnection.initPromise;
         // pass undefined here to refresh the tree from its root
         CodewindEventListener.onChange(undefined);
     }

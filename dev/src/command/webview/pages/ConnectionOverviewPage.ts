@@ -11,18 +11,13 @@
 
 // import * as vscode from "vscode";
 
-import Resources from "../../constants/Resources";
-import WebviewUtil from "./WebviewUtil";
-import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "./ConnectionOverview";
-import { ConnectionState } from "../../codewind/connection/ConnectionState";
+import Resources from "../../../constants/Resources";
+import WebviewUtil from "../WebviewUtil";
+import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "../ConnectionOverviewPageWrapper";
+import CWDocs from "../../../constants/CWDocs";
+import { WebviewResourceProvider } from "../WebviewWrapper";
 
-// const csp = `<meta http-equiv="Content-Security-Policy"
-    // content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource:;"
-    // />`;
-
-const csp = "";
-
-export default function getConnectionInfoPage(connectionInfo: ConnectionOverviewFields, state: ConnectionState): string {
+export default function getConnectionInfoHtml(rp: WebviewResourceProvider, connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
     const connectionExists = !!connectionInfo.ingressUrl;
     return `
@@ -30,53 +25,60 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
     <html>
     <head>
         <meta charset="UTF-8">
-        ${global.isTheia ? "" : csp}
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("connection-overview.css")}"/>
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
+        ${WebviewUtil.getCSP()}
+
+        <link rel="stylesheet" href="${rp.getStylesheet("connection-overview.css")}"/>
+        <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
         ${global.isTheia ?
-            `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
-        <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>
+            `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
     </head>
     <body>
     <div id="top-section">
-        <div class="title">
+        <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
-                src="${state.isConnected ? WebviewUtil.getIcon(Resources.Icons.ConnectionConnected) : WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
+                src="${isConnected ? rp.getIcon(Resources.Icons.ConnectionConnected) : rp.getIcon(Resources.Icons.ConnectionDisconnected)}"/>
             <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>
         </div>
     </div>
     <!--div id="description">
         <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
     </div-->
-    <div tabindex="0" id="learn-more-btn-remote" class="btn" onclick="sendMsg('${ConnectionOverviewWVMessages.HELP}')">
-        Learn More<img alt="Learn More" src="${WebviewUtil.getIcon(Resources.Icons.Help)}"/>
-    </div>
     </div>
     <div id="main">
+        <div style="display: flex;">
             <div id="deployment-box">
                 <h3>Codewind Connection
-                    ${state.isConnected ? `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
-                    `<img alt="remote connection" src="${WebviewUtil.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`}
+                    <div tabindex="0" id="learn-more-btn-remote">
+                        <a href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}"><img class="learn-more-btn" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a>
+                    </div>
+                    ${isConnected ? `<img alt="Connected" src="${rp.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
+                        `<img alt="Disconnected" src="${rp.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`
+                    }
                 </h3>
                 <div class="input">
                     <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    <label for="input-url">URL</label>
+                    ${connectionExists ?
+`<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
+                        <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${rp.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
+                        :
+                        `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
+                    }
                     <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}
                         value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"/>
 
-                    <div style="float: left; margin-top: 10px;">
-                        <label for="input-username">Username</label>
+                    <div style="float: left; margin-top: 2em">
+                        <label class="info-label" for="input-username">Username</label>
                         <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.username}</div>
                         <input type="text" id="ingress-username" class="input-username" name="ingress-username"
                             ${connectionExists ? "style='display: none;'" : ""}
                             value='${connectionInfo.username || "developer"}'/>
                     </div>
-                    <div style="overflow: hidden; margin-top: 10px;">
+                    <div style="overflow: hidden; margin-top: 2em">
                         <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
-                            <label for="input-password" style="margin-left: 10px;">Password</label>
+                            <label class="info-label" for="input-password" style="margin-left: 10px;">Password</label>
                             <input type="password" id="ingress-password" class="input-password" name="ingress-password" placeholder="**************"/>
                         </div>
                     </div>
@@ -84,13 +86,29 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
                 </div>
             </div>
 
+            <div>
+                <div id="link-container-box">
+                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</div>
+                </div>
+
+                <div id="link-container-box">
+                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
+                    <div type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</div>
+                </div>
+            </div>
+
+            </div>
+
             <div class="remote-connection-btn-group">
                 <div type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
-                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${WebviewUtil.getIcon(Resources.Icons.Trash)}"/></div>
+                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${rp.getIcon(Resources.Icons.Delete)}"/></div>
                 <div type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/></div>
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${rp.getIcon(Resources.Icons.Edit_Connection)}"/></div>
                 <div type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${state.isConnected ? "Disconnect" : "Connect"}</div>
+                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</div>
                 <div type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
                     ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save</div>
                 <div type="button" id="cancel-btn" class="btn btn-prominent"  onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
@@ -142,24 +160,47 @@ export default function getConnectionInfoPage(connectionInfo: ConnectionOverview
             document.querySelector("#test-btn").style.display = "inline";
         }
 
+        let passwordInput = document.querySelector("#input-password");
+        passwordInput.addEventListener("keyup", (ev) => {
+            if (ev.key === "Enter") {
+               submitNewConnection();
+            }
+        });
+
+        let usernameInput = document.querySelector("#ingress-username");
+        usernameInput.addEventListener("keyup", (ev) => {
+            if (ev.key === "Enter") {
+               submitNewConnection();
+            }
+        });
+
+        function copyURL(e) {
+            const url = document.querySelector("#ingress-url")
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = url.value;
+
+            let copiedURLToolTip = document.getElementById('copy_url_tooltip');
+            copiedURLToolTip.style.display = "inline";
+            copiedURLToolTip.style.position = "absolute";
+            copiedURLToolTip.style.left = e.pageX + 15 + 'px';
+            copiedURLToolTip.style.top = e.pageY - 10 +'px';
+
+            setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 1000);
+
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+
+            document.execCommand('copy');
+
+            document.body.removeChild(tempTextArea);
+        }
+
         function toggleConnection() {
             sendMsg("${ConnectionOverviewWVMessages.TOGGLE_CONNECTED}");
         }
 
         function deleteConnection() {
             sendMsg("${ConnectionOverviewWVMessages.DELETE}");
-        }
-
-        function testNewDockerRegistry() {
-            const dockerRegistryURL = document.querySelector("#docker-url");
-            const dockerRegistryUsername = document.querySelector("#docker-username");
-            const dockerRegistryPassword = document.querySelector("#docker-password");
-
-            sendMsg("${ConnectionOverviewWVMessages.SAVE_REGISTRY}", {
-                registryUrl: dockerRegistryURL.value,
-                registryUsername: dockerRegistryUsername.value,
-                registryPassword: dockerRegistryPassword.value
-            });
         }
 
         function sendMsg(type, data = undefined) {

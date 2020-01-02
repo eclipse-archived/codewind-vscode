@@ -12,24 +12,23 @@
 import * as vscode from "vscode";
 
 import Connection from "./Connection";
-import ConnectionOverview from "../../command/webview/ConnectionOverview";
+import ConnectionOverviewWrapper from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner, AccessToken } from "./CLICommandRunner";
 import Log from "../../Logger";
 import { ConnectionMemento } from "./ConnectionMemento";
-import Requester from "../project/Requester";
+import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
+import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 
 export default class RemoteConnection extends Connection {
 
     private _username: string;
-    private _registryUrl: string | undefined;
-    private _registryUsername: string | undefined;
 
     private updateCredentialsPromise: Promise<void> = Promise.resolve();
     // private _username: string | undefined;
-    private _accessToken: string | undefined;
+    private _accessToken: AccessToken | undefined;
 
-    private _activeOverviewPage: ConnectionOverview | undefined;
+    private _activeOverviewPage: ConnectionOverviewWrapper | undefined;
 
     /**
      * Do not allow toggling (enabling or disabling) the connection when a toggle is already in progress
@@ -38,19 +37,11 @@ export default class RemoteConnection extends Connection {
 
     constructor(
         ingressUrl: vscode.Uri,
-        memento: ConnectionMemento,
-        password?: string,
+        memento: ConnectionMemento
     ) {
         super(memento.id, ingressUrl, memento.label, true);
-
         this._username = memento.username;
-        this._registryUrl = memento.registryUrl;
-        this._registryUsername = memento.registryUsername;
-
-        if (password) {
-            Log.i("Doing initial credentials update for new connection");
-            this.updateCredentialsPromise = this.updateCredentials(memento.username, password);
-        }
+        ConnectionMemento.save(memento);
     }
 
     public async enable(): Promise<void> {
@@ -70,19 +61,11 @@ export default class RemoteConnection extends Connection {
     }
 
     private async enableInner(): Promise<void> {
-        const canPing = await Requester.ping(this.url);
-        if (!canPing) {
-            Log.w(`Failed to ping ${this} when enabling`);
-            // if the initial enablement fails, we use DISABLED instead of NETWORK_ERROR
-            // so the user sees the connection has to be re-connected by hand after fixing the problem
-            this.setState(ConnectionStates.DISABLED);
-            throw new Error(`Could not connect to ${this.label}: failed to ping ${this.url}`);
-        }
-        Log.d(`Successfully pinged ${this}`);
+        Log.d(`${this.label} starting remote enable`);
 
         let token: string;
         try {
-            token = await this.getAccessToken();
+            token = (await this.getAccessToken()).access_token;
         }
         catch (err) {
             this.setState(ConnectionStates.AUTH_ERROR);
@@ -107,6 +90,9 @@ export default class RemoteConnection extends Connection {
             this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
         }
+
+        this.setState(ConnectionStates.READY);
+        Log.d(`${this} finished remote enable`);
     }
 
     public async disable(): Promise<void> {
@@ -126,8 +112,38 @@ export default class RemoteConnection extends Connection {
         }
     }
 
+    public async dispose(): Promise<void> {
+        if (this.overviewPage) {
+            this.overviewPage.dispose();
+        }
+        if (this.sourcesPage) {
+            this.sourcesPage.dispose();
+        }
+        if (this.registriesPage) {
+            this.registriesPage.dispose();
+        }
+        await super.dispose();
+    }
+
+    protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
+        return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath, {
+            getLatestAuthToken: (): FWAuthToken | undefined => {
+                if (!this._accessToken) {
+                    return undefined;
+                }
+                return new FWAuthToken(this._accessToken.access_token, this._accessToken.token_type);
+            },
+            informReceivedInvalidAuthToken: () => {
+                this._accessToken = undefined;
+                // Invalidate and retart the process of getting a new access token
+                this.getAccessToken();
+            }
+        });
+    }
+
     /**
-     * Block enable/disable when one of those is already in progress.
+     * Returns true if there is NOT currently an enable/disable operation in progress.
+     * If there is one, shows a message, and enable/disable should be blocked by the caller.
      */
     private shouldToggle(): boolean {
         if (this.currentToggleOperation) {
@@ -143,35 +159,33 @@ export default class RemoteConnection extends Connection {
     }
 
     public async updateCredentials(username: string, password: string): Promise<void> {
-        Log.i(`Updating keyring credentials for ${this}`);
+        Log.i(`Start updateCredentials for ${this}`);
+
         this._username = username;
         await ConnectionMemento.save(this.memento);
-        // Invalidate the old access token which used the old credentials
-        this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
-        this._accessToken = undefined;
 
-        if (this.state !== ConnectionStates.DISABLED) {
-            try {
+        // Just in case there are multiple quick credentials updates
+        await this.updateCredentialsPromise;
+
+        // Invalidate the old access token which used the old credentials
+        this._accessToken = undefined;
+        this.updateCredentialsPromise = CLICommandRunner.updateKeyringCredentials(this.id, username, password);
+        await this.updateCredentialsPromise;
+        Log.i("Finished updating keyring credentials");
+
+        try {
+            if (this.state !== ConnectionStates.DISABLED) {
                 Log.d(`Refreshing access token after credentials update`);
                 await this.getAccessToken();
             }
-            catch (err) {
-                // Nothing, getAccessToken will display the error
-            }
         }
-        Log.i("Finished updating keyring credentials");
-        this.tryRefreshOverview();
+        finally {
+            this.tryRefreshOverview();
+            Log.d(`Finished updateCredentials`);
+        }
     }
 
-    public async updateRegistry(registryUrl: string, registryUser: string, _registryPass: string): Promise<void> {
-        // TODO create the secret, test the registry
-        this._registryUrl = registryUrl;
-        this._registryUsername = registryUser;
-        Log.d(`Update registry for ${this.label}`);
-        await ConnectionMemento.save(this.memento);
-    }
-
-    public async getAccessToken(): Promise<string> {
+    public async getAccessToken(): Promise<AccessToken> {
 
         // if a credential update is in progress, let that complete before trying to get the access token, or we'll get an invalid result
         await this.updateCredentialsPromise;
@@ -183,14 +197,16 @@ export default class RemoteConnection extends Connection {
         Log.d(`${this.label} looking up access token for user "${this._username}"`);
         try {
             this._accessToken = await CLICommandRunner.getAccessToken(this.id, this._username);
-            this.setState(ConnectionStates.CONNECTED);
+            if (this._socket && this._socket.isConnected && !this._socket.isAuthorized) {
+                await this._socket.authenticate(this._accessToken.access_token);
+            }
+            if (this.state === ConnectionStates.AUTH_ERROR) {
+                this.setState(ConnectionStates.READY);
+                await this.refresh();
+            }
             return this._accessToken;
         }
         catch (err) {
-            const errMsg = `Error getting access token for ${this.label}`;
-            Log.e(errMsg, err);
-            // vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-
             this._accessToken = undefined;
             this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
@@ -207,30 +223,30 @@ export default class RemoteConnection extends Connection {
             label: this.label,
             ingressUrl: this.url.toString(),
             username: this._username,
-            registryUrl: this._registryUrl,
-            registryUsername: this._registryUsername,
         };
     }
 
     public async refresh(): Promise<void> {
         if (this.isConnected) {
-            super.refresh();
+            await super.refresh();
+            return;
+        }
+        if (!this.shouldToggle()) {
             return;
         }
         await this.disable();
         await this.enable();
-        vscode.window.showInformationMessage(`Successfully reconnected to ${this.label}`);
     }
 
-    public get activeOverviewPage(): ConnectionOverview | undefined {
+    public get overviewPage(): ConnectionOverviewWrapper | undefined {
         return this._activeOverviewPage;
     }
 
-    public onOverviewOpened(overviewPage: ConnectionOverview): void {
+    public onDidOpenOverview(overviewPage: ConnectionOverviewWrapper): void {
         this._activeOverviewPage = overviewPage;
     }
 
-    public onOverviewClosed(): void {
+    public onDidCloseOverview(): void {
         if (this._activeOverviewPage) {
             this._activeOverviewPage = undefined;
         }
@@ -238,7 +254,7 @@ export default class RemoteConnection extends Connection {
 
     public tryRefreshOverview(): void {
         if (this._activeOverviewPage) {
-            this._activeOverviewPage.refresh(this.memento);
+            this._activeOverviewPage.refresh();
         }
     }
 }

@@ -18,12 +18,13 @@ export namespace CWDocs {
 }
 
 export enum CWDocs {
-    TEMPLATE_MANAGEMENT = "mdt-vsc-usingadifferenttemplate.html",
+    TEMPLATE_MANAGEMENT = "mdt-vsc-workingwithtemplates.html",
     INSTALL_INFO = "mdt-vsc-installinfo.html",
-    DOCKER_REGISTRY = "dockerregistry.html",
     PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",
     INSTALL_ON_CLOUD = "installoncloud.html",
     WORKSPACE_NEWS = "news06.html#codewind-workspace-updates",
+    REGISTRIES = "image-registry-credentials.html",
+    REMOTE_SETUP = "remoteconfiguring.html",
 }
 
 export default CWDocs;

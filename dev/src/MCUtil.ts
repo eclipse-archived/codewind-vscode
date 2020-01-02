@@ -113,6 +113,7 @@ namespace MCUtil {
         return s.toLowerCase()
             .replace(/\s+/g, "-")           // spaces to -
             .replace(/\./g, "-")            // literal . to -
+            .replace(/\(|\)/g, "")           // remove ( and )
             .replace(toRemoveRx, "")        // remove other special chars
             // .replace(/[^\w\-]+/g, "")    // remove all non-words
             .replace(/\-\-+/g, "-")         // replace multiple - with single
@@ -232,6 +233,32 @@ namespace MCUtil {
             joined = joined.replace(lastItem, "and " + lastItem);
         }
         return joined;
+    }
+
+    export function isDevEnv(): boolean {
+        return process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV;
+    }
+
+    export async function promptForProjectDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {
+        const selectedDirs = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: btnLabel,
+            defaultUri
+        });
+        if (selectedDirs == null) {
+            return undefined;
+        }
+        // canSelectMany is false so we just use [0]
+        const selectedDir = selectedDirs[0];
+
+        const cwDataPath = MCUtil.getCWDataPath();
+        if (selectedDir.fsPath.startsWith(cwDataPath)) {
+            vscode.window.showErrorMessage(`You cannot create or add a project under ${cwDataPath}. Select a different directory.`);
+            return undefined;
+        }
+        return selectedDir;
     }
 }
 

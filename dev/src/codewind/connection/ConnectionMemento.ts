@@ -59,11 +59,14 @@ export namespace ConnectionMemento {
 
         // Convert the connection datas from the CLI to ConnectionMementos
         const mementos: Array<ConnectionMemento | undefined> = loaded.map((cliData) => {
-            const memento = globalState.get(getKey(cliData.id)) as ConnectionMemento | undefined;
+            const key = getKey(cliData.id);
+            const memento = globalState.get(key) as ConnectionMemento | undefined;
             if (memento == null) {
-                const errMsg = `Error loading connection: ${cliData.label}; saved connection data was not found.`;
+                const errMsg = `Error loading connection ${cliData.label}: saved connection data was not found.`;
                 vscode.window.showErrorMessage(errMsg);
                 Log.e(errMsg, `Data from CLI was`, cliData);
+                // Clear this invalid connection from the extension memory
+                globalState.update(key, undefined);
             }
             return memento;
         });
@@ -82,12 +85,13 @@ export namespace ConnectionMemento {
             const errMsg = `Error loading connection ${memento.label}`;
             Log.e(errMsg, err);
 
-            const retryBtn = "Retry";
+            // const retryBtn = "Retry";
             const openSettingsBtn = "Open Connection Settings";
             const rmBtn = "Remove Connection";
 
             const loadedConn = ConnectionManager.instance.remoteConnections.find((conn) => conn.id === memento.id);
-            const btns = [ retryBtn ];
+            // const btns = [ retryBtn ];
+            const btns = [];
             if (loadedConn) {
                 // The load did succeed, there is just a promise with the connection
                 btns.push(openSettingsBtn);
@@ -99,12 +103,12 @@ export namespace ConnectionMemento {
 
             vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, ...btns)
             .then((res) => {
-                if (res === retryBtn) {
-                    loadConnection(memento);
-                }
-                else if (res === rmBtn) {
+                if (res === rmBtn) {
                     CLICommandRunner.removeConnection(memento.id);
                 }
+                // else if (res === retryBtn) {
+                    // loadConnection(memento);
+                // }
                 // loadedConn will be non-null from the btns condition above
                 else if (res === openSettingsBtn && loadedConn) {
                     remoteConnectionOverviewCmd(loadedConn);

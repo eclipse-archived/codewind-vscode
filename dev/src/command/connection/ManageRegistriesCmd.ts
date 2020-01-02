@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2019 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -10,25 +10,30 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+// import * as fs from "fs";
 
-import Project from "../../codewind/project/Project";
-
+import Connection from "../../codewind/connection/Connection";
 import Log from "../../Logger";
-import ProjectOverviewPageWrapper from "../webview/ProjectOverviewPageWrapper";
 import MCUtil from "../../MCUtil";
+import { RegistriesPageWrapper } from "../webview/RegistriesPageWrapper";
 
-export default async function projectOverviewCmd(project: Project): Promise<void> {
+export default async function manageRegistriesCmd(connection: Connection): Promise<void> {
+    if (!connection.isKubeConnection) {
+        vscode.window.showWarningMessage(`The local connection does not use container image registries.`);
+        return;
+    }
+
     try {
-        if (project.overviewPage) {
-            project.overviewPage.reveal();
+        if (connection.registriesPage) {
+            // Show existing page
+            connection.registriesPage.reveal();
             return;
         }
-
         // tslint:disable-next-line: no-unused-expression
-        new ProjectOverviewPageWrapper(project);
+        new RegistriesPageWrapper(connection);
     }
     catch (err) {
-        const errMsg = `Error opening Project Info page for ${project.name}:`;
+        const errMsg = `Error opening Image Registries page:`;
         vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
         Log.e(errMsg, err);
     }

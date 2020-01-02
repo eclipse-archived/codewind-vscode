@@ -25,13 +25,12 @@ import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
 import openAppMonitorCmd from "./project/OpenAppMonitor";
 import refreshConnectionCmd from "./connection/RefreshConnectionCmd";
 import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
-import createProject from "./connection/CreateUserProjectCmd";
-import bindProject from "./connection/BindProjectCmd";
+import createProjectCmd from "./connection/CreateUserProjectCmd";
+import bindProjectCmd from "./connection/BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
 import connectLocalCodewindCmd from "./StartCodewindCmd";
 import stopLocalCodewindCmd from "./StopCodewindCmd";
 import removeImagesCmd from "./RemoveImagesCmd";
-import { setRegistryCmd } from "./connection/SetRegistryCmd";
 import Connection from "../codewind/connection/Connection";
 import Project from "../codewind/project/Project";
 import ProjectState from "../codewind/project/ProjectState";
@@ -39,7 +38,7 @@ import attachDebuggerCmd from "./project/AttachDebuggerCmd";
 import containerShellCmd from "./project/ContainerShellCmd";
 import removeProjectCmd from "./project/RemoveProjectCmd";
 import addProjectToWorkspaceCmd from "./project/AddToWorkspaceCmd";
-import manageTemplateReposCmd from "./connection/ManageTemplateReposCmd";
+import manageSourcesCmd from "./connection/ManageSourcesCmd";
 import { openTektonDashboard } from "./connection/OpenTektonCmd";
 import ConnectionManager from "../codewind/connection/ConnectionManager";
 import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
@@ -47,6 +46,7 @@ import LocalCodewindManager from "../codewind/connection/local/LocalCodewindMana
 import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnablement";
+import manageRegistriesCmd from "./connection/ManageRegistriesCmd";
 import toggleInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
 
 export function createCommands(): vscode.Disposable[] {
@@ -62,22 +62,22 @@ export function createCommands(): vscode.Disposable[] {
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
 
         // the separator is just for display purposes and has no command bound to it
-        // tslint:disable-next-line: no-empty
-        vscode.commands.registerCommand(Commands.SEPARATOR, () => {}),
+        vscode.commands.registerCommand(Commands.SEPARATOR, () => { /**/ }),
 
         vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
+
+        // For connection commands, make sure the connected-ness requirement matches the context enablement regex used in package.json
         registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined, false, true),
         registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablementCmd, true, false, true),
         registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, false, false, true),
-
-        registerConnectionCommand(Commands.CREATE_PROJECT, createProject, undefined, true, false),
-        registerConnectionCommand(Commands.BIND_PROJECT, bindProject, undefined, true, false),
-
         registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined, false, false),
-        registerConnectionCommand(Commands.MANAGE_TEMPLATE_REPOS, manageTemplateReposCmd, undefined, false, false),
-        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined, false, true),
 
-        registerConnectionCommand(Commands.SET_REGISTRY, setRegistryCmd, undefined, true, false),
+        registerConnectionCommand(Commands.CREATE_PROJECT, createProjectCmd, undefined, true, false),
+        registerConnectionCommand(Commands.BIND_PROJECT, bindProjectCmd, undefined, true, false),
+
+        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined, false, true),
+        registerConnectionCommand(Commands.MANAGE_TEMPLATE_SOURCES, manageSourcesCmd, undefined, true, false),
+        registerConnectionCommand(Commands.MANAGE_REGISTRIES, manageRegistriesCmd, undefined, true, false),
         registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined, true, true),
 
         registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),

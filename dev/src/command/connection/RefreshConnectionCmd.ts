@@ -29,7 +29,13 @@ export default async function refreshConnectionCmd(connection: Connection): Prom
             }
         }
 
-        await connection.refresh();
+        await vscode.window.withProgress({
+            cancellable: false,
+            location: vscode.ProgressLocation.Notification,
+            title: `Refreshing ${connection.label}...`,
+        }, () => {
+            return connection.refresh();
+        });
     }
     catch (err) {
         const errMsg = `Error refreshing ${connection.label}`;

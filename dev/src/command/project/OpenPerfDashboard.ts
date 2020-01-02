@@ -21,7 +21,7 @@ import Constants from "../../constants/Constants";
 import { testPingAppMonitor, getAppMetricsNotSupportedMsg } from "./OpenAppMonitor";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
-    const supportsMetrics = project.capabilities.metricsAvailable;
+    const supportsMetrics = project.hasPerfDashboard;
     Log.d(`${project.name} supports perfmonitor ? ${supportsMetrics}`);
     if (!supportsMetrics || !(await testPingAppMonitor(project))) {
         vscode.window.showWarningMessage(getAppMetricsNotSupportedMsg(project.name));
@@ -41,7 +41,7 @@ export default async function openPerformanceDashboard(project: Project): Promis
 
 const CW_INGRESS_NAME = "codewind";         // :(
 
-function getCodewindIngress(): vscode.Uri {
+export function getCodewindIngress(): vscode.Uri {
 
     // See https://github.com/eclipse/codewind-vscode/issues/123
     // Hopefully, this is temporary. This is how we assemble the URL to the codewind ingress/route without a kube/OC client.

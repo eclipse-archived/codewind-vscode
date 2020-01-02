@@ -10,10 +10,9 @@
  *******************************************************************************/
 
 import CLIWrapper from "./CLIWrapper";
-import { IInitializationResponse, IDetectedProjectType } from "./UserProjectCreator";
 import Log from "../../Logger";
-import { ITemplateRepo } from "../../command/connection/ManageTemplateReposCmd";
 import MCUtil from "../../MCUtil";
+import { ITemplateSource } from "../../command/webview/SourcesPageWrapper";
 
 export interface CLIConnectionData {
     readonly id: string;
@@ -24,12 +23,16 @@ export interface CLIConnectionData {
     readonly clientid: string;
 }
 
-interface WorkspaceUpgradeResult {
-    readonly migrated: string[];
-    readonly failed: Array<{
-        error: string,
-        projectName: string
-    }>;
+export interface IDetectedProjectType {
+    language: string;
+    projectType: string;
+    projectSubtype?: string;
+}
+
+export interface IInitializationResponse {
+    status: string;
+    result: IDetectedProjectType | string | { error: string };
+    projectPath?: string;
 }
 
 export interface CLIStatus {
@@ -37,6 +40,12 @@ export interface CLIStatus {
     "installed-versions": string[];
     started: string[];
     url?: string;   // only set when started
+}
+
+export interface AccessToken {
+    readonly access_token: string;
+    readonly expires_in: number;
+    readonly token_type: string;
 }
 
 export interface CLICommandOptions {
@@ -166,6 +175,14 @@ export namespace CLICommandRunner {
         return bindRes;
     }
 
+    interface WorkspaceUpgradeResult {
+        readonly migrated: string[];
+        readonly failed: Array<{
+            error: string,
+            projectName: string
+        }>;
+    }
+
     /**
      * Perform a workspace upgrade from a version older than 0.6
      */
@@ -191,6 +208,10 @@ export namespace CLICommandRunner {
      */
     export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
         const connections = await CLIWrapper.cliExec(ConnectionCommands.LIST);
+        if (!connections.connections) {
+            Log.e(`Received no connections back from connections list`);
+            return [];
+        }
         return connections.connections.filter((conn: CLIConnectionData) => conn.id !== "local");
     }
 
@@ -203,7 +224,7 @@ export namespace CLICommandRunner {
     }
 
     // https://github.com/eclipse/codewind/issues/941
-    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateRepo[]> {
+    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateSource[]> {
         const args = [
             "--conid", connectionID,
             "--url", url,
@@ -218,7 +239,7 @@ export namespace CLICommandRunner {
     }
 
     let hasFetchedTemplates = false;
-    export async function getTemplateSources(connectionID: string): Promise<ITemplateRepo[]> {
+    export async function getTemplateSources(connectionID: string): Promise<ITemplateSource[]> {
         // The first time we fetch template sources per-codewind instance can be very slow, so we show a progress notification just once
         const progress = hasFetchedTemplates ? undefined : "Fetching template sources...";
 
@@ -230,7 +251,7 @@ export namespace CLICommandRunner {
         return result;
     }
 
-    export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateRepo[]> {
+    export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateSource[]> {
         return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
             "--conid", connectionID,
             "--url", url
@@ -248,13 +269,13 @@ export namespace CLICommandRunner {
 
     export const INVALID_CREDS_ERR = "Invalid user credentials";
 
-    export async function getAccessToken(connectionID: string, username: string): Promise<string> {
+    export async function getAccessToken(connectionID: string, username: string): Promise<AccessToken> {
         try {
-            const result: { access_token: string, expires_in: number, token_type: string } = await CLIWrapper.cliExec(AuthCommands.GET_SECTOKEN, [
+            const result = await CLIWrapper.cliExec(AuthCommands.GET_SECTOKEN, [
                 "--conid", connectionID,
                 "--username", username,
             ]);
-            return result.access_token;
+            return result;
         }
         catch (err) {
             if (err.toString().includes(INVALID_CREDS_ERR)) {

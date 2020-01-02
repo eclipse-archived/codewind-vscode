@@ -19,8 +19,6 @@ import stopLocalCodewindCmd from "../StopCodewindCmd";
 import MCUtil from "../../MCUtil";
 
 export default async function removeConnectionCmd(connection: Connection): Promise<boolean> {
-    Log.i("Removing connection " + connection.url);
-
     if (connection === LocalCodewindManager.instance.localConnection) {
         const stopCodewindBtn = "Stop Local Codewind";
         vscode.window.showWarningMessage("You cannot remove the local connection. Stop Codewind instead.", stopCodewindBtn)
@@ -37,6 +35,8 @@ export default async function removeConnectionCmd(connection: Connection): Promi
     if (confirm !== yesBtn) {
         return false;
     }
+
+    Log.i("Removing connection " + connection.url);
 
     try {
         await ConnectionManager.instance.removeConnection(connection);

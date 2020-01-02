@@ -18,19 +18,19 @@ enum Commands {
     ENABLE_CONNECTION = "ext.cw.enableConnection",
     DISABLE_CONNECTION = "ext.cw.disableConnection",
     SEPARATOR = "ext.cw.separator",
+    REFRESH_CONNECTION = "ext.cw.refreshConnection",
 
     START_LOCAL_CODEWIND = "ext.cw.startCodewind",
     STOP_LOCAL_CODEWIND = "ext.cw.stopCodewind",
     REMOVE_LOCAL_IMAGES = "ext.cw.removeImages",
 
-    REFRESH_CONNECTION = "ext.cw.refreshConnection",
-    SET_REGISTRY = "ext.cw.setRegistry",
-    OPEN_TEKTON = "ext.cw.openTekton",
-
     CREATE_PROJECT = "ext.cw.createProject",
     BIND_PROJECT = "ext.cw.bindProject",
-    MANAGE_TEMPLATE_REPOS = "ext.cw.manageTemplateRepos",
+
     CONNECTION_OVERVIEW = "ext.cw.connectionOverview",
+    OPEN_TEKTON = "ext.cw.openTekton",
+    MANAGE_TEMPLATE_SOURCES = "ext.cw.manageSources",
+    MANAGE_REGISTRIES = "ext.cw.manageRegistries",
 
     OPEN_WS_FOLDER = "ext.cw.openWorkspaceFolder",
 

@@ -101,7 +101,14 @@ namespace TreeItemFactory {
                 }
             }];
         }
-        else if (connection.state === ConnectionStates.NETWORK_ERROR) {
+        else if (connection.state === ConnectionStates.INITIALIZING) {
+            return [{
+                label: "Connecting...",
+                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+            }];
+        }
+        else if (!connection.isConnected) {
             return [{
                 label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
                 iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
@@ -145,7 +152,7 @@ namespace TreeItemFactory {
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             tooltip: label,
             contextValue: TreeItemContext.getProjectContext(project),
-            iconPath: project.type.icon,
+            iconPath: Resources.getIconPaths(project.type.icon),
             // command run on single-click (or double click - depends on a user setting - https://github.com/Microsoft/vscode/issues/39601)
             command,
         };

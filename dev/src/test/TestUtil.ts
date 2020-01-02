@@ -18,8 +18,8 @@ import Project from "../codewind/project/Project";
 import Connection from "../codewind/connection/Connection";
 import ProjectObserver from "./ProjectObserver";
 import ProjectState from "../codewind/project/ProjectState";
-import UserProjectCreator, { ICWTemplateData } from "../codewind/connection/UserProjectCreator";
 import TestConfig from "./TestConfig";
+import { CWTemplateData, createProject } from "../command/connection/CreateUserProjectCmd";
 
 namespace TestUtil {
 
@@ -29,14 +29,14 @@ namespace TestUtil {
 
     const PROJECT_PREFIX = "test";
 
-    export async function createProject(connection: Connection, type: ProjectType): Promise<Project> {
+    export async function createTestProject(connection: Connection, type: ProjectType): Promise<Project> {
         // acquireProject below will only look for projects starting with the project prefix
         const projectName: string = PROJECT_PREFIX + type.type.toLowerCase().replace(".", "") + Date.now().toString().slice(-4);
         Log.t(`Create project of type ${type} at ${connection.url} named ${projectName}`);
 
         try {
             // turn our internal project type into a user project type which we can pass to the project creator
-            const typeForCreation: ICWTemplateData = {
+            const typeForCreation: CWTemplateData = {
                 url: TestConfig.getUrl(type),
                 language: type.language,
                 projectType: type.internalType,
@@ -48,7 +48,7 @@ namespace TestUtil {
             if (workspaceFolders == null) {
                 throw new Error("No active workspace folder!");
             }
-            await UserProjectCreator.createProject(connection, typeForCreation, workspaceFolders[0].uri, projectName);
+            await createProject(connection, typeForCreation, workspaceFolders[0].uri, projectName);
         }
         catch (err) {
             Log.t("Create project failure!", err);

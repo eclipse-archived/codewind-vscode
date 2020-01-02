@@ -11,28 +11,13 @@
 
 import * as vscode from "vscode";
 
-import Resources from "../../constants/Resources";
-import MCUtil from "../../MCUtil";
-import Project from "../../codewind/project/Project";
-import WebviewUtil from "../webview/WebviewUtil";
-import CWDocs from "../../constants/CWDocs";
-
-// This file does have a bunch of strings that should be translated,
-// but the stringfinder is not smart enough to pick them out from the regular html strings. So, do this file by hand.
-// non-nls-file
-
-/**
- * These are the messages the WebView can send back to its creator in ProjectInfoCmd
- */
-export enum ProjectOverviewWVMessages {
-    BUILD = "build",
-    TOGGLE_AUTOBUILD = "toggleAutoBuild",
-    OPEN = "open",
-    UNBIND = "unbind",
-    TOGGLE_ENABLEMENT = "toggleEnablement",
-    EDIT = "edit",
-    TOGGLE_INJECT_METRICS = "toggleInjectMetrics",
-}
+import Resources from "../../../constants/Resources";
+import MCUtil from "../../../MCUtil";
+import Project from "../../../codewind/project/Project";
+import WebviewUtil from "../WebviewUtil";
+import CWDocs from "../../../constants/CWDocs";
+import { ProjectOverviewWVMessages } from "../ProjectOverviewPageWrapper";
+import { WebviewResourceProvider } from "../WebviewWrapper";
 
 enum OpenableTypes {
     WEB = "web",
@@ -48,17 +33,11 @@ export interface IWVOpenable {
     value: string;
 }
 
-export function refreshProjectOverview(webviewPanel: vscode.WebviewPanel, project: Project): string {
-    const html = generateHtml(project);
-    webviewPanel.webview.html = html;
-    return html;
-}
-
 const NOT_AVAILABLE = "Not available";
 const NOT_RUNNING = "Not running";
 const NOT_DEBUGGING = "Not debugging";
 
-function generateHtml(project: Project): string {
+export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Project): string {
 
     // const emptyRow =
     // `
@@ -74,18 +53,18 @@ function generateHtml(project: Project): string {
         <html>
         <head>
             <meta charset="UTF-8">
-            <!--meta http-equiv="Content-Security-Policy" content="default-src 'self' ;"-->
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            ${WebviewUtil.getCSP()}
 
-            <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("common.css")}"/>
-            <link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("project-overview.css")}"/>
+            <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
+            <link rel="stylesheet" href="${rp.getStylesheet("project-overview.css")}"/>
             ${global.isTheia ?
-                `<link rel="stylesheet" href="${WebviewUtil.getStylesheetPath("theia.css")}"/>` : ""}
+                `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
         </head>
         <body>
 
-        <div class="title">
-            <img id="logo" alt="Codewind Logo" src="${WebviewUtil.getIcon(Resources.Icons.Logo)}"/>
+        <div class="title-section">
+            <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
             <h1>Project ${project.name}</h1>
         </div>
         <div id="top-section">
@@ -107,10 +86,10 @@ function generateHtml(project: Project): string {
         <div class="section">
             <h3>Project Information</h3>
             <table>
-                ${buildRow("Type", project.type.toString())}
-                ${buildRow("Language", MCUtil.uppercaseFirstChar(project.language))}
-                ${buildRow("Project ID", project.id)}
-                ${buildRow("Local Path", project.localPath.fsPath, global.isTheia ? undefined : OpenableTypes.FOLDER)}
+                ${buildRow(rp, "Type", project.type.toString())}
+                ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
+                ${buildRow(rp, "Project ID", project.id)}
+                ${buildRow(rp, "Local Path", project.localPath.fsPath, global.isTheia ? undefined : OpenableTypes.FOLDER)}
             </table>
         </div>
         <div class="section">
@@ -136,10 +115,10 @@ function generateHtml(project: Project): string {
                         />
                     </td>
                 </tr>
-                ${buildRow("Application Status", project.state.getAppStatusWithDetail())}
-                ${buildRow("Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
-                ${buildRow("Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
-                ${buildRow("Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
+                ${buildRow(rp, "Application Status", project.state.getAppStatusWithDetail())}
+                ${buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
+                ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
+                ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
             </table>
         </div>
         <div class="section">
@@ -152,21 +131,21 @@ function generateHtml(project: Project): string {
             <!-- Hide Container ID in theia -->
             ${global.isTheia ? "" : `
                 <table class="bottom-padded">
-                    ${buildRow("Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
+                    ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
                 </table>`
             }
 
             <table>
-                ${buildRow("Application Endpoint",
+                ${buildRow(rp, "Application Endpoint",
                     normalize(project.appUrl, NOT_RUNNING),
                     (project.appUrl != null ? OpenableTypes.WEB : undefined), true)}
-                ${buildRow("Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
-                ${buildRow("Internal App Port",
+                ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
+                ${buildRow(rp, "Internal App Port",
                     normalize(project.ports.internalPort, NOT_AVAILABLE),
                     undefined, true)}
 
                 <!-- buildDebugSection must also close the <table> -->
-                ${buildDebugSection(project)}
+                ${buildDebugSection(rp, project)}
             <!-- /table -->
         </div>
 
@@ -188,7 +167,7 @@ function generateHtml(project: Project): string {
     `;
 }
 
-function buildRow(label: string, data: string, openable?: OpenableTypes, editable: boolean = false): string {
+function buildRow(rp: WebviewResourceProvider, label: string, data: string, openable?: OpenableTypes, editable: boolean = false): string {
     let secondColTdContents: string = "";
     let thirdColTdContents: string = "";
     if (openable) {
@@ -204,7 +183,7 @@ function buildRow(label: string, data: string, openable?: OpenableTypes, editabl
 
         thirdColTdContents = `
             <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick}` +
-                `src="${WebviewUtil.getIcon(Resources.Icons.Edit)}"/>
+                `src="${rp.getIcon(Resources.Icons.Edit)}"/>
         `;
     }
 
@@ -213,7 +192,7 @@ function buildRow(label: string, data: string, openable?: OpenableTypes, editabl
     const fourthTd = openable === OpenableTypes.WEB ?
         `
         <td>
-            <input type="image" title="Open" src="${WebviewUtil.getIcon(Resources.Icons.OpenExternal)}" onclick="vscOpen('${openable}', '${data}')"/>
+            <input type="image" title="Open" src="${rp.getIcon(Resources.Icons.OpenExternal)}" onclick="vscOpen('${openable}', '${data}')"/>
         </td>
         `
         : "";
@@ -264,7 +243,7 @@ function normalizeDate(d: Date, fallback: string): string {
     }
 }
 
-function buildDebugSection(project: Project): string {
+function buildDebugSection(rp: WebviewResourceProvider, project: Project): string {
     if (global.isTheia) {
         return `
             </table>
@@ -287,11 +266,11 @@ function buildDebugSection(project: Project): string {
     }
 
     return `
-        ${buildRow("Exposed Debug Port", normalize(project.ports.debugPort, NOT_DEBUGGING))}
-        ${buildRow("Internal Debug Port",
+        ${buildRow(rp, "Exposed Debug Port", normalize(project.ports.debugPort, NOT_DEBUGGING))}
+        ${buildRow(rp, "Internal Debug Port",
             normalize(project.ports.internalDebugPort, NOT_AVAILABLE),
             undefined, true)}
         </table>
     `;
-        // ${buildRow("Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
+        // ${buildRow(rp, "Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
 }

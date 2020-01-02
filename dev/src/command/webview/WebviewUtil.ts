@@ -10,29 +10,29 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 
 import Resources from "../../constants/Resources";
 import Commands from "../../constants/Commands";
-import { ProjectOverviewWVMessages, IWVOpenable } from "./ProjectOverviewPage";
-import { ManageReposWVMessages } from "../connection/ManageTemplateReposCmd";
-import { ConnectionOverviewWVMessages } from "./ConnectionOverview";
-
-const RESOURCE_SCHEME = "vscode-resource:";
+import { IWVOpenable } from "./pages/ProjectOverviewPage";
+import MCUtil from "../../MCUtil";
+import Log from "../../Logger";
 
 namespace WebviewUtil {
 
-    export function getStylesheetPath(filename: string): string {
-        return RESOURCE_SCHEME + Resources.getCss(filename);
-    }
-
-    export function getIcon(icon: Resources.Icons): string {
-        const iconPaths = Resources.getIconPaths(icon);
-        // return RESOURCE_SCHEME + dark ? iconPaths.dark : iconPaths.light;
-        return RESOURCE_SCHEME + iconPaths.dark;
+    export function getWebviewOptions(): vscode.WebviewOptions & vscode.WebviewPanelOptions  {
+        return {
+            enableScripts: true,
+            retainContextWhenHidden: true,
+            localResourceRoots: [
+                vscode.Uri.file(Resources.getBaseResourcePath())
+            ],
+        };
     }
 
     export interface IWVMessage {
-        type: ProjectOverviewWVMessages | ManageReposWVMessages | ConnectionOverviewWVMessages;
+        type: string;
         data: any;
     }
 
@@ -51,6 +51,55 @@ namespace WebviewUtil {
         // Log.i("The uri is:", uri);
         const cmd: string = openable.type === "folder" ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
         vscode.commands.executeCommand(cmd, uri);
+    }
+
+    export function getCSP(): string {
+        if (global.isTheia || MCUtil.isDevEnv()) {
+            return "";
+        }
+        return `<meta http-equiv="Content-Security-Policy"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource: 'unsafe-inline';"
+        >`;
+    }
+
+    /**
+     * For debugging in the browser, write out the html to an html file on disk and point to the resources on disk.
+     * The file will be stored in the path in process.env.WEBVIEW_DEBUG_DIR, or ~.
+     *
+     * If CW_ENV=dev or WEBVIEW_DEBUG_DIR is not set, this function does nothing.
+     */
+    export async function debugWriteOutWebview(html: string, filename: string): Promise<void> {
+        if (!MCUtil.isDevEnv() && !process.env.WEBVIEW_DEBUG_DIR) {
+            return;
+        }
+
+        if (!filename.endsWith(".html")) {
+            filename = filename + ".html";
+        }
+
+        let destDir = process.env.WEBVIEW_DEBUG_DIR;
+        if (!destDir) {
+            destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");
+        }
+
+        try {
+            await fs.promises.access(destDir);
+        }
+        catch (err) {
+            Log.d(`Creating ${destDir}`);
+            await fs.promises.mkdir(destDir, { recursive: true });
+        }
+
+        const destFile = path.join(destDir, filename);
+        const htmlWithFileProto = html.replace(/vscode-resource:\/\/file\/\//g, "file://");
+
+        try {
+            await fs.promises.writeFile(destFile, htmlWithFileProto);
+            Log.d(`Wrote out debug webview to ${destFile}`);
+        }
+        catch (err) {
+            Log.e(`Error writing out debug webview ${filename}`, err);
+        }
     }
 }
 

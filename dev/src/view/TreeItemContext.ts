@@ -32,8 +32,9 @@ enum TreeItemContextValues {
 
     // Connection
     CONN_BASE = "connection",
-    CONN_CONNECTED = "connected",
-    // CONN_ERRORED = "errored",
+    CONN_CONNECTED = "connection-good",
+    // CONN_CONNECTED must not be a substring of CONN_DISCONNECTED
+    CONN_DISCONNECTED = "connection-bad",
     REMOTECONN_ENABLED = "remote.enabled",
     REMOTECONN_DISABLED = "remote.disabled",
 
@@ -56,7 +57,9 @@ enum TreeItemContextValues {
     PROJ_AUTOBUILD_OFF = "autoBuildOff",
 
     PROJ_RESTARTABLE = "restartable",
-    PROJ_METRICS = "metricsAvailable",
+
+    PROJ_APP_MONITOR = "appMonitor",
+    PROJ_PERF_DASHBOARD = "perfDashboard",
 
     PROJ_SHELLABLE = "shellable",
 
@@ -89,13 +92,16 @@ namespace TreeItemContext {
             }
         }
 
-        if (connection.isKubeConnection) {
-            contextValues.push(TreeItemContextValues.CONN_WITH_TEKTON);
-            contextValues.push(TreeItemContextValues.CONN_WITH_REGISTRY);
-        }
-
         if (connection.isConnected) {
+            if (connection.isKubeConnection) {
+                contextValues.push(TreeItemContextValues.CONN_WITH_TEKTON);
+                contextValues.push(TreeItemContextValues.CONN_WITH_REGISTRY);
+            }
             contextValues.push(TreeItemContextValues.CONN_CONNECTED);
+        }
+        else if (connection.enabled) {
+            // Enabled but not connected -> Disconnected
+            contextValues.push(TreeItemContextValues.CONN_DISCONNECTED);
         }
 
         return contextValues;
@@ -134,8 +140,12 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
         }
 
-        if (project.capabilities.metricsAvailable) {
-            contextValues.push(TreeItemContextValues.PROJ_METRICS);
+        if (project.hasAppMonitor) {
+            contextValues.push(TreeItemContextValues.PROJ_APP_MONITOR);
+        }
+
+        if (project.hasPerfDashboard) {
+            contextValues.push(TreeItemContextValues.PROJ_PERF_DASHBOARD);
         }
 
         if (project.canContainerShell) {

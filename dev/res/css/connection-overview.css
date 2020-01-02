@@ -25,12 +25,33 @@ body {
 }
 
 #learn-more-btn-remote {
-    color: #0f62fe;
-    float: right;
+    display: inline;
+    position: absolute;
+    margin-left: 5px;
+    outline: none;
+}
+
+.info-label {
+    font-size: 110%;
+    font-weight: bold;
 }
 
 #url {
-    font-family: IBMPlexSans;
+    font-size: 0.9rem;
+    word-break: break-all;
+    margin-top: 5px;
+}
+
+#copy_url {
+    width: 15px;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+#ingress-username-label {
+    font-size: 0.9rem;
+    word-break: break-all;
+    margin-top: 5px;
 }
 
 #connection-logo {
@@ -41,17 +62,62 @@ body {
 
 #deployment-box {
     margin-top: 1em;
-    width: 530px;
+    width: 550px;
     height: 340px;
-    display: inline-table;
     background-color: var(--vscode-sideBar-background);
 }
 
+#link-container-box {
+    margin-top: 1em;
+    width: 530px;
+    height: 162px;
+    margin-left: 35px;
+    background-color: var(--vscode-sideBar-background);
+}
+
+#link-container-box h3 {
+    background: var(--vscode-sideBarSectionHeader-background);
+    font-size: 20px;
+    width: 100%;
+    margin: auto;
+    height: 40px;
+    text-indent: 15px;
+    padding-top: 15px;
+}
+
+#link-container-box .btn {
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-sideBarSectionHeader-background);
+    border-radius: 0;
+    font-size: 1rem;
+    line-height: 1rem;
+    width: 380px;
+    margin: auto;
+}
+
+#link-container-box p {
+    margin-left: 1rem;
+    font-size: 14px;
+    margin-top: 10px;
+    margin-bottom: 0px;
+}
+
+#link-container-box .registry-help-label {
+    margin-bottom: 15px;
+}
+
+#link-container-box img {
+    float: right;
+    width: 20px;
+    margin-right: 340px;
+    margin-top: 2px;
+}
+
 #deployment-box p {
-    font-family: IBMPlexSans;
+    font-size: 1rem;
 }
 #deployment-box label {
-    font-family: IBMPlexSans;
+    font-size: 1rem;
 }
 
 #deployment-box h3 {
@@ -61,15 +127,25 @@ body {
     margin-top: 0px;
     height: 40px;
     text-indent: 15px;
-    padding-top: 12px;
+    padding-top: 15px;
 }
 
 #deployment-box h3 img {
     width: 25px;
     float: right;
     margin-right: 15px;
-    margin-top: 2px;
+}
 
+#deployment-box .learn-more-btn {
+    width: 20px;
+    float: right;
+    margin-right: 15px;
+    margin-top: 2px;
+    margin-left: 10px;
+}
+
+#deployment-box .learn-more-btn :focus {
+    cursor: pointer;
 }
 
 #deployment-box .input {
@@ -82,8 +158,7 @@ body {
     height: 2.5rem;
     margin-top: 5px;
     margin-bottom: 5px;
-    font-family: IBMPlexSans;
-    font-size: 1rem;
+    font-size: 0.9rem;
     background-color: var(--vscode-sideBarSectionHeader-background);
     border: 0;
     text-indent: 1rem;
@@ -91,13 +166,12 @@ body {
 }
 
 #deployment-box .input-username {
-    width: 240px;
+    width: 250px;
     display: block;
     height: 40px;
     margin-top: 5px;
     margin-bottom: 5px;
     font-size: 1rem;
-    font-family: IBMPlexSans;
     background-color: var(--vscode-sideBarSectionHeader-background);
     border: 0;
     text-indent: 1rem;
@@ -105,7 +179,7 @@ body {
 }
 
 #deployment-box .input-password {
-    width: 95%;
+    width: 250px;
     display: block;
     height: 40px;
     margin-top: 5px;
@@ -133,8 +207,8 @@ body {
  }
 
  #toggle-connect-btn {
-    color: #fff;
-    background: #262626;
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-sideBarSectionHeader-background);
     font-size: .875rem;
     font-weight: 400;
     line-height: 1.125rem;
@@ -205,7 +279,6 @@ body {
 }
 
 .bx--text-input {
-    font-family: IBMPlexSans;
     background-color: #161616;
     height: 32px;
     padding: 0 1rem;
@@ -232,7 +305,6 @@ body {
 }
 
 .connection-name {
-    font-family: IBMPlexSans;
     font-size: 32px;
     white-space: nowrap;
 }
@@ -242,4 +314,8 @@ body {
     vertical-align: text-top;
     height: 17px;
     padding: 0px;
+}
+
+#copy_url_tooltip {
+    display: none;
 }

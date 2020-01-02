@@ -30,6 +30,9 @@ export default class MCSocket implements vscode.Disposable {
     public readonly uri: string;
     private readonly socket: SocketIOClient.Socket;
 
+    private _isConnected: boolean = false;
+    private _isAuthorized: boolean = false;
+
     /**
      * Create a SocketIO connection to the server at the given URI.
      * Can throw an error.
@@ -57,13 +60,24 @@ export default class MCSocket implements vscode.Disposable {
             timeout,
         };
 
+        if (!connection.isRemote) {
+            Log.d(`${this} does not require authorization`);
+            this._isAuthorized = true;
+        }
+
         this.socket = io(this.uri, options);
 
         this.socket.connect();
 
         this.socket
-            .on("connect",      this.connection.onConnect)      // non-nls
-            .on("disconnect",   this.connection.onDisconnect)   // non-nls
+            .on("connect", () => {
+                this._isConnected = true;
+                this.connection.onConnect();
+            })      // non-nls
+            .on("disconnect", () => {
+                this._isConnected = false;
+                this.connection.onDisconnect();
+            })   // non-nls
 
             .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectBound)
 
@@ -79,8 +93,20 @@ export default class MCSocket implements vscode.Disposable {
             .on(SocketEvents.Types.PROJECT_SETTING_CHANGED, this.onProjectSettingsChanged)
             .on(SocketEvents.Types.LOG_UPDATE,              this.onLogUpdate)
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
-            // .on(SocketEvents.Types.REGISTRY_STATUS,         this.onRegistryStatus)
+            .on(SocketEvents.Types.REGISTRY_STATUS,         this.onPushRegistryStatus)
             ;
+    }
+
+    public get isConnected(): boolean {
+        return this._isConnected;
+    }
+
+    public get isAuthorized(): boolean {
+        return this._isAuthorized;
+    }
+
+    public get isReady(): boolean {
+        return this._isConnected && this._isAuthorized;
     }
 
     /**
@@ -91,6 +117,8 @@ export default class MCSocket implements vscode.Disposable {
     public async dispose(): Promise<void> {
         this.connection.onDisconnect();
         this.socket.disconnect();
+        this._isConnected = false;
+        this._isAuthorized = false;
     }
 
     public async authenticate(token: string): Promise<void> {
@@ -100,11 +128,13 @@ export default class MCSocket implements vscode.Disposable {
 
             const timeoutS = 10;
             const timeout = setTimeout(() => {
-                reject(`${this.uri} did not respond to authentication request within ${timeoutS} seconds.`);
+                reject(`Socket at ${this.uri} did not respond to authentication request within ${timeoutS} seconds. Try refreshing the connection.`);
             }, timeoutS * 1000);
 
             this.socket.on("authenticated", () => {
                 Log.i(`Successfully authenticated ${this}`);
+                // The authorization stays valid until we call socket.disconnect()
+                this._isAuthorized = true;
                 clearTimeout(timeout);
                 resolve();
             });
@@ -248,15 +278,17 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
-    /*
-    private readonly onRegistryStatus = async (payload: SocketEvents.IRegistryStatus): Promise<void> => {
-        // tslint:disable-next-line: no-boolean-literal-compare
-        if (payload.deploymentRegistryTest === false) {
-            Log.i("Deployment registry is not correctly configured", payload.msg);
-            vscode.window.showErrorMessage("Deployment registry error: " + payload.msg);
+    private readonly onPushRegistryStatus = async (payload: SocketEvents.IPushRegistryStatus): Promise<void> => {
+        Log.d(`Received push registry status`, payload);
+        if (payload.msg) {
+            if (payload.imagePushRegistryTest) {
+                vscode.window.showInformationMessage(payload.msg);
+            }
+            else {
+                vscode.window.showErrorMessage(payload.msg);
+            }
         }
     }
-    */
 
     // prevents multiple events from simultaneously requesting a projects refresh
     private refreshingProjectsProm: Promise<void> | undefined;

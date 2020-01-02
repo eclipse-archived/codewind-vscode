@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import ConnectionOverview from "../webview/ConnectionOverview";
+import ConnectionOverviewWrapper from "../webview/ConnectionOverviewPageWrapper";
 
 const NEW_CONNECTION_TITLE = "New Codewind Connection";
 // const NEW_CONNECTION_NO_STEPS = 2;
@@ -48,7 +48,7 @@ export async function newRemoteConnectionCmd(): Promise<void> {
     if (!connectionLabel) {
         return;
     }
-    ConnectionOverview.showForNewConnection(connectionLabel);
+    ConnectionOverviewWrapper.showForNewConnection(connectionLabel);
 }
 
 async function getConnectionLabel(): Promise<string | undefined> {
@@ -60,8 +60,8 @@ async function getConnectionLabel(): Promise<string | undefined> {
     // labelIb.totalSteps = NEW_CONNECTION_NO_STEPS;
     labelIb.title = NEW_CONNECTION_TITLE;
     labelIb.onDidChangeValue((input) => {
-        if (!input) {
-            labelIb.validationMessage = "The label cannot be empty.";
+        if (!input || input.trim() === "") {
+            labelIb.validationMessage = "The label cannot be empty or contain only whitespace.";
         }
         else {
             labelIb.validationMessage = undefined;
@@ -78,7 +78,11 @@ async function getConnectionLabel(): Promise<string | undefined> {
         // });
         labelIb.onDidHide(() => resolve(undefined));
         labelIb.onDidAccept(async () => {
-            resolve(labelIb.value);
+            if (labelIb.validationMessage) {
+                // prevent saving invalid
+                return;
+            }
+            resolve(labelIb.value.trim());
         });
     })
     .finally(() => labelIb.hide());
