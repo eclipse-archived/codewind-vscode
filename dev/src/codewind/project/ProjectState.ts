@@ -12,69 +12,54 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import SocketEvents from "../connection/SocketEvents";
 import ProjectCapabilities from "./ProjectCapabilities";
+
+interface DetailedAppStatus {
+    readonly severity: "INFO" | "WARN" | "ERROR";
+    readonly message?: string;
+    notify: boolean;
+}
+
+interface ProjectStateInfo {
+    appStatus?: string;
+    detailedAppStatus?: DetailedAppStatus;
+    buildStatus?: string;
+    detailedBuildStatus?: string;
+    startMode?: string;
+    state?: string;
+}
 
 /**
  * Represents the project's state. This means app state, build state, and any status details.
- * Immutable.
  */
 export class ProjectState {
-    public readonly appState: ProjectState.AppStates;
-    public readonly appDetail: SocketEvents.AppStatusDetail | undefined;
-    public readonly buildState: ProjectState.BuildStates;
-    public readonly buildDetail: string;
+    public appState: ProjectState.AppStates = ProjectState.AppStates.UNKNOWN;
+    public appDetail: DetailedAppStatus | undefined;
+    public buildState: ProjectState.BuildStates | undefined;
+    public buildDetail: string | undefined;
 
     constructor(
         private readonly projectName: string,
-        projectInfoPayload: any,
-        // Use oldState if the projectInfoPayload is missing state information (eg. from a restart success event)
-        // It will be used as fallback values if the new state is null or UNKNOWN.
-        oldState: ProjectState | undefined
     ) {
-        if (projectInfoPayload != null) {
-            if (oldState != null) {
-                if (projectInfoPayload[SocketEvents.Keys.APP_STATE] == null) {
-                    projectInfoPayload[SocketEvents.Keys.APP_STATE] = oldState.appState.toString();
-                }
-                if (projectInfoPayload[SocketEvents.Keys.APP_DETAIL] == null) {
-                    if (oldState.appDetail) {
-                        // Only show a given notification once
-                        oldState.appDetail.notify = false;
-                    }
-                    projectInfoPayload[SocketEvents.Keys.APP_DETAIL] = oldState.appDetail;
-                }
-                if (projectInfoPayload[SocketEvents.Keys.BUILD_STATE] == null) {
-                    projectInfoPayload[SocketEvents.Keys.BUILD_STATE] = oldState.buildState.toString();
-                }
-                if (!projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL]) {
-                    projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL] = oldState.buildDetail;
-                }
-            }
+        // call update() right away
+    }
 
-            this.appState = ProjectState.getAppState(projectInfoPayload);
-            if (this.appState !== ProjectState.AppStates.DISABLED) {
-                this.appDetail = projectInfoPayload[SocketEvents.Keys.APP_DETAIL];
-            }
-            else {
-                this.appDetail = undefined;
-            }
-            this.buildState = ProjectState.getBuildState(projectInfoPayload);
-            this.buildDetail = (projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL] || "").trim();
-
-            if (this.appDetail) {
-                vscode.window.showInformationMessage(`APP DETAIL FOR ${this.projectName} ${JSON.stringify(this.appDetail)}`);
-            }
-
-            if (this.appDetail && this.appDetail.notify) {
-                this.notify();
-            }
+    public update(projectStateInfo: ProjectStateInfo): void {
+        this.appState = ProjectState.getAppState(projectStateInfo);
+        if (this.appState !== ProjectState.AppStates.DISABLED) {
+            this.appDetail = projectStateInfo.detailedAppStatus;
+            this.buildState = ProjectState.getBuildState(projectStateInfo.buildStatus);
+            this.buildDetail = projectStateInfo.detailedBuildStatus;
         }
         else {
-            Log.e("ProjectState received null ProjectInfo");
-            this.appState = ProjectState.AppStates.UNKNOWN;
-            this.buildState = ProjectState.BuildStates.UNKNOWN;
-            this.buildDetail = "";
+            // the disabled app state has no other states.
+            this.appDetail = undefined;
+            this.buildState = undefined;
+            this.buildDetail = undefined;
+        }
+
+        if (this.appDetail && this.appDetail.notify) {
+            this.notify();
         }
     }
 
@@ -136,13 +121,7 @@ export class ProjectState {
 
         if (this.buildDetail != null && this.buildDetail.trim() !== "") {
             // a detailed status is available
-            if (this.buildState === ProjectState.BuildStates.BUILDING) {
-                // Don't show "building" because the detail will have "building" in it already
-                return this.buildDetail;
-            }
-            else {
-                buildStateStr = `${this.buildState} - ${this.buildDetail}`;
-            }
+            buildStateStr = `${this.buildState} - ${this.buildDetail}`;
         }
         // Don't display the build state if it's unknown
         else if (this.buildState !== ProjectState.BuildStates.UNKNOWN) {
@@ -152,6 +131,10 @@ export class ProjectState {
     }
 
     public getAppStatusWithDetail(): string {
+        if (!this.appState || this.appState === ProjectState.AppStates.UNKNOWN) {
+            return "";
+        }
+
         let status = this.appState.toString();
         if (this.appDetail && this.appDetail.message) {
             status += ` - ${this.appDetail.message}`;
@@ -194,7 +177,7 @@ export namespace ProjectState {
         DEBUG_STARTING = "Starting - Debug",
 
         DISABLED = "Disabled",
-        UNKNOWN = "Unknown"
+        UNKNOWN = "N/A"
     }
 
     export enum BuildStates {
@@ -203,7 +186,7 @@ export namespace ProjectState {
         BUILD_FAILED = "Build Failed",
         BUILD_QUEUED = "Build Queued",
 
-        UNKNOWN = "Unknown"
+        UNKNOWN = "N/A"
     }
 
     export function getAllAppStates(): AppStates[] {
@@ -242,18 +225,18 @@ export namespace ProjectState {
     /**
      * Convert a project info object into a ProjectState.
      */
-    export function getAppState(projectInfoPayload: any): ProjectState.AppStates {
+    export function getAppState(projectStateInfo: ProjectStateInfo): ProjectState.AppStates {
 
         // Logger.log("PIP", projectInfoPayload);
-        const appStatus: string = projectInfoPayload[SocketEvents.Keys.APP_STATE] as string || "";
+        const appStatus = projectStateInfo.appStatus;
 
-        const closedState: string | undefined = projectInfoPayload[SocketEvents.Keys.CLOSED_STATE];
-        const startMode:   string | undefined = projectInfoPayload[SocketEvents.Keys.START_MODE];
+        const openClosedState = projectStateInfo.state;
+        const startMode = projectStateInfo.startMode;
 
         // Logger.log(`Convert - appStatus=${appStatus}, closedState=${closedState}, startMode=${startMode}`);
 
         // First, check if the project is closed (aka Disabled)
-        if (closedState === "closed") {                                                                                         // non-nls
+        if (openClosedState === "closed") {                                                                                         // non-nls
             return ProjectState.AppStates.DISABLED;
         }
         // Now, check the app states. Compare against both the value we expect from MC,
@@ -285,9 +268,7 @@ export namespace ProjectState {
         }
     }
 
-    export function getBuildState(projectInfoPayload: any): BuildStates {
-        const buildStatus: string | undefined = projectInfoPayload[SocketEvents.Keys.BUILD_STATE];
-
+    export function getBuildState(buildStatus: string | undefined): BuildStates {
         if (buildStatus === "success" || buildStatus === BuildStates.BUILD_SUCCESS) {           // non-nls
             return BuildStates.BUILD_SUCCESS;
         }

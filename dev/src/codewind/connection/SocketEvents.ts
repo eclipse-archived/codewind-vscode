@@ -85,12 +85,6 @@ namespace SocketEvents {
         readonly status: string;
     }
 
-    export interface AppStatusDetail {
-        readonly severity: "INFO" | "WARN" | "ERROR";
-        readonly message?: string;
-        notify: boolean;
-    }
-
     /**
      * Socket events we listen for from Portal
      * See MCSocket
@@ -108,18 +102,6 @@ namespace SocketEvents {
         PROJECT_CREATED = "projectCreation",
         PROJECT_BOUND = "projectBind",
         REGISTRY_STATUS = "imagePushRegistryStatus",
-    }
-
-    /**
-     * Property keys we check in socket events
-     */
-    export enum Keys {
-        APP_STATE = "appStatus",
-        BUILD_STATE = "buildStatus",
-        CLOSED_STATE = "state",
-        START_MODE = "startMode",
-        BUILD_DETAIL = "detailedBuildStatus",
-        APP_DETAIL = "detailedAppStatus",
     }
 }
 

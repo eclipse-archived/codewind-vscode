@@ -64,17 +64,20 @@ describe(`Extended tests`, async function() {
             Log.t("Requesting a build for " + project.name);
             await vscode.commands.executeCommand(Commands.REQUEST_BUILD, project);
 
+            // see ProjectState.ts
+            const buildStateKey = "buildState";
+
             await SocketTestUtil.expectSocketEvent({
                 eventType: SocketEvents.Types.PROJECT_STATUS_CHANGED,
                 projectID: project.id,
-                expectedData: { key: SocketEvents.Keys.BUILD_STATE, value: "inProgress" }
+                expectedData: { key: buildStateKey, value: "inProgress" }
             });
 
             Log.t(project.name + " is building");
             await SocketTestUtil.expectSocketEvent({
                 eventType: SocketEvents.Types.PROJECT_STATUS_CHANGED,
                 projectID: project.id,
-                expectedData: { key: SocketEvents.Keys.BUILD_STATE, value: "success" }
+                expectedData: { key: buildStateKey, value: "success" }
             });
 
             await ProjectObserver.instance.awaitProjectStarted(project.id);
