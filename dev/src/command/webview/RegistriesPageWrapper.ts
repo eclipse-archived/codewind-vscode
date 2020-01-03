@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 
 import Connection from "../../codewind/connection/Connection";
 import Resources from "../../constants/Resources";
-import WebviewUtil from "./WebviewUtil";
+import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
 import Requester from "../../codewind/project/Requester";
@@ -23,14 +23,11 @@ import RegistryUtils, { ContainerRegistry } from "../../codewind/connection/Regi
 import CWDocs from "../../constants/CWDocs";
 import Commands from "../../constants/Commands";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
+import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 
 export enum ManageRegistriesWVMessages {
-    ADD_NEW = "add-new",
-    DELETE = "delete",
     // EDIT = "edit",
     CHANGE_PUSH = "change-push",
-    HELP = "help",
-    REFRESH = "refresh",
 }
 
 interface ManageRegistriesMsgData {
@@ -75,20 +72,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
     }
 
     protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
-        switch (msg.type as ManageRegistriesWVMessages) {
-            case ManageRegistriesWVMessages.ADD_NEW: {
-                try {
-                    await RegistryUtils.addNewRegistry(this.connection, this.registries);
-                }
-                catch (err) {
-                    const errMsg = `Failed to add new image registry`;
-                    Log.e(errMsg, err);
-                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-                }
-
-                await this.refresh();
-                break;
-            }
+        switch (msg.type as (ManageRegistriesWVMessages | CommonWVMessages)) {
             case ManageRegistriesWVMessages.CHANGE_PUSH: {
                 const data = msg.data as ManageRegistriesMsgData;
                 const pushRegistryToSet = this.lookupRegistry(data.fullAddress);
@@ -113,7 +97,20 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 // this.registriesPage.webview.postMessage({ command: ManageRegistriesWVMessages.CHANGE_PUSH, fullAddress: );
                 break;
             }
-            case ManageRegistriesWVMessages.DELETE: {
+            case CommonWVMessages.ADD_NEW: {
+                try {
+                    await RegistryUtils.addNewRegistry(this.connection, this.registries);
+                }
+                catch (err) {
+                    const errMsg = `Failed to add new image registry`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+                }
+
+                await this.refresh();
+                break;
+            }
+            case CommonWVMessages.DELETE: {
                 const data = msg.data as ManageRegistriesMsgData;
                 const registry = this.lookupRegistry(data.fullAddress);
 
@@ -142,12 +139,16 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 await this.refresh();
                 break;
             }
-            case ManageRegistriesWVMessages.HELP: {
+            case CommonWVMessages.HELP: {
                 vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.REGISTRIES));
                 break;
             }
-            case ManageRegistriesWVMessages.REFRESH: {
+            case CommonWVMessages.REFRESH: {
                 await this.refresh();
+                break;
+            }
+            case CommonWVMessages.OPEN_CONNECTION: {
+                remoteConnectionOverviewCmd(this.connection);
                 break;
             }
             default: {

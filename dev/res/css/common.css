@@ -25,7 +25,7 @@
 
 #subtitle {
     margin-top: 0;
-    color: var(--vscode-editorLineNumber-foreground)
+    color: var(--vscode-editorLineNumber-foreground);
 }
 
 #learn-more-btn {
@@ -73,12 +73,12 @@ input[type="checkbox"]:disabled {
     border: 1px solid var(--vscode-sideBar-background);
 }
 
-.btn:hover, a:hover  {
+.btn:hover, a:hover, .clickable:hover {
     text-decoration: underline;
     cursor: pointer;
 }
 
-.btn:focus, a:focus, input[type="checkbox"]:focus, input[type="image"]:focus {
+.btn:focus, a:focus, input[type="checkbox"]:focus, input[type="image"]:focus, .clickable:focus {
     text-decoration: underline;
     cursor: pointer;
     outline: var(--vscode-button-background) solid 1px;

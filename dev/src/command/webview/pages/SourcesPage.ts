@@ -13,14 +13,16 @@
 
 import Resources from "../../../constants/Resources";
 // import MCUtil from "../../MCUtil";
-import WebviewUtil from "../WebviewUtil";
+import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ITemplateSource, ManageSourcesWVMessages } from "../SourcesPageWrapper";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 
 const SOURCE_ID_ATTR = "data-id";
 const SOURCE_ENABLED_ATTR = "data-enabled";
 
-export default function getManageSourcesPage(rp: WebviewResourceProvider, connectionLabel: string, sources: ITemplateSource[]): string {
+export default function getManageSourcesPage(
+    rp: WebviewResourceProvider, connectionLabel: string, isRemoteConnection: boolean, sources: ITemplateSource[]): string {
+
     return `
     <!DOCTYPE html>
 
@@ -42,10 +44,10 @@ export default function getManageSourcesPage(rp: WebviewResourceProvider, connec
             <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
             <div>
                 <h1 id="title">Template Sources</h1>
-                ${global.isTheia ? "" : `<h2 id="subtitle">${connectionLabel}</h2>`}
+                ${WebviewUtil.buildSubtitle(connectionLabel, isRemoteConnection)}
             </div>
         </div>
-        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageSourcesWVMessages.HELP}')">
+        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${CommonWVMessages.HELP}')">
             Learn More<img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
         </div>
     </div>
@@ -55,10 +57,10 @@ export default function getManageSourcesPage(rp: WebviewResourceProvider, connec
             Enable All<img alt="Enable All" src="${rp.getIcon(Resources.Icons.Play)}"/>
         </div-->
         <div id="toolbar-right-buttons">
-            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageSourcesWVMessages.REFRESH}')">
+            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${CommonWVMessages.REFRESH}')">
                 Refresh<img alt="Refresh" src="${rp.getIcon(Resources.Icons.Refresh)}"/>
             </div>
-            <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${ManageSourcesWVMessages.ADD_NEW}')">
+            <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${CommonWVMessages.ADD_NEW}')">
                 Add New<img alt="Add New" src="${rp.getIcon(Resources.Icons.New)}"/>
             </div>
         </div>
@@ -103,7 +105,7 @@ export default function getManageSourcesPage(rp: WebviewResourceProvider, connec
 
         function deleteRepo(repoDeleteBtn) {
             const repoID = repoDeleteBtn.getAttribute("${SOURCE_ID_ATTR}");
-            sendMsg("${ManageSourcesWVMessages.DELETE}", repoID);
+            sendMsg("${CommonWVMessages.DELETE}", repoID);
         }
 
         function sendMsg(type, data = undefined) {

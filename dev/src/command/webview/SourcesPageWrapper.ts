@@ -15,7 +15,7 @@ import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
 import Resources from "../../constants/Resources";
-import WebviewUtil from "./WebviewUtil";
+import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
@@ -24,6 +24,7 @@ import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import CWDocs from "../../constants/CWDocs";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import getManageSourcesPage from "./pages/SourcesPage";
+import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 
 /**
  * Template repository/source data as provided by the backend
@@ -38,10 +39,6 @@ export interface ITemplateSource {
 }
 
 export enum ManageSourcesWVMessages {
-    ADD_NEW = "add-new",
-    DELETE = "delete",
-    HELP = "help",
-    REFRESH = "refresh",
     ENABLE_DISABLE = "enableOrDisable",
 }
 
@@ -77,7 +74,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
 
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
         const sources = await this.connection.getSources();
-        return getManageSourcesPage(resourceProvider, this.connection.label, sources);
+        return getManageSourcesPage(resourceProvider, this.connection.label, this.connection.isRemote, sources);
     }
 
     protected onDidDispose(): void {
@@ -85,28 +82,32 @@ export class SourcesPageWrapper extends WebviewWrapper {
     }
 
     protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
-        switch (msg.type as ManageSourcesWVMessages) {
+        switch (msg.type as (ManageSourcesWVMessages | CommonWVMessages)) {
             case ManageSourcesWVMessages.ENABLE_DISABLE: {
                 const enablement = msg.data as ISourceEnablement;
                 await this.enableDisable(enablement);
                 break;
             }
-            case ManageSourcesWVMessages.ADD_NEW: {
+            case CommonWVMessages.ADD_NEW: {
                 await this.addNew();
                 break;
             }
-            case ManageSourcesWVMessages.DELETE: {
+            case CommonWVMessages.DELETE: {
                 const sourceUrl = msg.data as string;
                 await this.removeSource(sourceUrl);
                 break;
             }
-            case ManageSourcesWVMessages.HELP: {
+            case CommonWVMessages.HELP: {
                 vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT));
                 break;
             }
-            case ManageSourcesWVMessages.REFRESH: {
+            case CommonWVMessages.REFRESH: {
                 // vscode.window.showInformationMessage("Refreshed repository list");
                 await this.refresh();
+                break;
+            }
+            case CommonWVMessages.OPEN_CONNECTION: {
+                remoteConnectionOverviewCmd(this.connection);
                 break;
             }
             default: {

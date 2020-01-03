@@ -14,7 +14,7 @@
 // import * as vscode from "vscode";
 
 import Resources from "../../../constants/Resources";
-import WebviewUtil from "../WebviewUtil";
+import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
 import { ContainerRegistry } from "../../../codewind/connection/RegistryUtils";
 import { WebviewResourceProvider } from "../WebviewWrapper";
@@ -48,17 +48,19 @@ export default function getManageRegistriesPage(
             <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
             <div>
                 <h1 id="title">Image Registries</h1>
-                ${global.isTheia ? "" : `<h2 id="subtitle">${connectionLabel}</h2>`}
+                ${global.isTheia ? "" :
+                    `<h2 id="subtitle" class="clickable" onclick="sendMsg('${CommonWVMessages.OPEN_CONNECTION}')">${connectionLabel}</h2>`
+                }
             </div>
         </div>
-        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${ManageRegistriesWVMessages.HELP}')">
+        <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${CommonWVMessages.HELP}')">
             Learn More<img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
         </div>
     </div>
 
     <div id="toolbar">
         <div id="toolbar-right-buttons">
-            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${ManageRegistriesWVMessages.REFRESH}')">
+            <div tabindex="0" class="btn btn-background" onclick="sendMsg('${CommonWVMessages.REFRESH}')">
                 Refresh<img alt="Refresh" src="${rp.getIcon(Resources.Icons.Refresh)}"/>
             </div>
             <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="addNew()">
@@ -73,7 +75,7 @@ export default function getManageRegistriesPage(
         const vscode = acquireVsCodeApi();
 
         function addNew() {
-            sendMsg('${ManageRegistriesWVMessages.ADD_NEW}');
+            sendMsg('${CommonWVMessages.ADD_NEW}');
         }
 
         function changePushRegistry(selectPushBtn) {
@@ -83,7 +85,7 @@ export default function getManageRegistriesPage(
 
         function deleteRegistry(deleteBtn) {
             const fullAddress = deleteBtn.getAttribute("${FULL_ADDRESS_ATTR}");
-            sendMsg("${ManageRegistriesWVMessages.DELETE}", { fullAddress });
+            sendMsg("${CommonWVMessages.DELETE}", { fullAddress });
         }
 
         function sendMsg(type, data = undefined) {

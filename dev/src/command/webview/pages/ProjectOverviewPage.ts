@@ -181,17 +181,17 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
     let fourthColTd: string = "";
 
     if (options.openable) {
-        let cssClass: string  = "";
+        let classAttr: string  = "";
         let href: string = "";
         let onclick: string = "";
         if (options.openable === OpenableTypes.WEB) {
             href = `href="${data}"`;
-            cssClass = `class="url"`;
+            classAttr = `class="url"`;
         }
         else {
             onclick = `onclick="vscOpen('${options.openable}', '${data}')"`;
         }
-        secondColTdContents += `<a title="${label}" ${cssClass} ${href} ${onclick}>${data}</a>`;
+        secondColTdContents += `<a title="${label}" ${classAttr} ${href} ${onclick}>${data}</a>`;
     }
     else {
         secondColTdContents = `${data}`;

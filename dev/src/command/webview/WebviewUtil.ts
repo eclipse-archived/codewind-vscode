@@ -19,6 +19,14 @@ import { IWVOpenable } from "./pages/ProjectOverviewPage";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 
+export enum CommonWVMessages {
+    OPEN_CONNECTION = "openConnection",
+    ADD_NEW = "add-new",
+    DELETE = "delete",
+    HELP = "help",
+    REFRESH = "refresh",
+}
+
 namespace WebviewUtil {
 
     export function getWebviewOptions(): vscode.WebviewOptions & vscode.WebviewPanelOptions  {
@@ -62,24 +70,36 @@ namespace WebviewUtil {
         >`;
     }
 
+    export function buildSubtitle(connectionLabel: string, isRemoteConnection: boolean): string {
+        if (global.isTheia) {
+            return "";
+        }
+
+        let classAttr = "";
+        let onClick = "";
+
+        if (isRemoteConnection) {
+            classAttr = `class="clickable"`;
+            onClick = `onclick="sendMsg('${CommonWVMessages.OPEN_CONNECTION}')"`;
+        }
+        return `<h2 id="subtitle" ${classAttr} ${onClick}>${connectionLabel}</h2>`;
+    }
+
     /**
      * For debugging in the browser, write out the html to an html file on disk and point to the resources on disk.
      * The file will be stored in the path in process.env.WEBVIEW_DEBUG_DIR, or ~.
      *
-     * If CW_ENV=dev or WEBVIEW_DEBUG_DIR is not set, this function does nothing.
+     * If WEBVIEW_DEBUG_DIR is not set, this function does nothing.
      */
     export async function debugWriteOutWebview(html: string, filename: string): Promise<void> {
-        if (!MCUtil.isDevEnv() && !process.env.WEBVIEW_DEBUG_DIR) {
+        const destDir = process.env.WEBVIEW_DEBUG_DIR;
+        if (!destDir) {
             return;
+            // destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");
         }
 
         if (!filename.endsWith(".html")) {
             filename = filename + ".html";
-        }
-
-        let destDir = process.env.WEBVIEW_DEBUG_DIR;
-        if (!destDir) {
-            destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");
         }
 
         try {
