@@ -33,40 +33,39 @@ export interface IWVOpenable {
     value: string;
 }
 
+interface RowOptions {
+    openable?: OpenableTypes;
+    editable?: boolean;
+    copyable?: boolean;
+}
+
 const NOT_AVAILABLE = "Not available";
 const NOT_RUNNING = "Not running";
 const NOT_DEBUGGING = "Not debugging";
 
 export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Project): string {
-
-    // const emptyRow =
-    // `
-    // <tr>
-    //     <td>&nbsp;</td>
-    //     <td>&nbsp;</td>
-    // </tr>
-    // `;
-
     return `
-        <!DOCTYPE html>
+    <!DOCTYPE html>
 
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            ${WebviewUtil.getCSP()}
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${WebviewUtil.getCSP()}
 
-            <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
-            <link rel="stylesheet" href="${rp.getStylesheet("project-overview.css")}"/>
-            ${global.isTheia ?
-                `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
-        </head>
-        <body>
+        <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
+        <link rel="stylesheet" href="${rp.getStylesheet("project-overview.css")}"/>
+        ${global.isTheia ?
+            `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
+    </head>
+    <body>
 
-        <div class="title-section">
-            <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
-            <h1>Project ${project.name}</h1>
-        </div>
+    <div class="title-section">
+        <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
+        <h1>Project ${project.name}</h1>
+    </div>
+
+    <div id="main">
         <div id="top-section">
             <input type="button" value="Build"
                 class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"
@@ -89,7 +88,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 ${buildRow(rp, "Type", project.type.toString())}
                 ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow(rp, "Project ID", project.id)}
-                ${buildRow(rp, "Local Path", project.localPath.fsPath, global.isTheia ? undefined : OpenableTypes.FOLDER)}
+                ${buildRow(rp, "Local Path", project.localPath.fsPath, { openable: global.isTheia ? undefined : OpenableTypes.FOLDER })}
             </table>
         </div>
         <div class="section">
@@ -130,79 +129,102 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             </div>
             <!-- Hide Container ID in theia -->
             ${global.isTheia ? "" : `
-                <table class="bottom-padded">
+                <table>
                     ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
                 </table>`
             }
 
             <table>
-                ${buildRow(rp, "Application Endpoint",
-                    normalize(project.appUrl, NOT_RUNNING),
-                    (project.appUrl != null ? OpenableTypes.WEB : undefined), true)}
+                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING),
+                    { editable: true, openable: (project.appUrl != null ? OpenableTypes.WEB : undefined) })
+                }
                 ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
                 ${buildRow(rp, "Internal App Port",
                     normalize(project.ports.internalPort, NOT_AVAILABLE),
-                    undefined, true)}
+                    { editable: true })
+                }
 
                 <!-- buildDebugSection must also close the <table> -->
                 ${buildDebugSection(rp, project)}
             <!-- /table -->
         </div>
+    <!-- end main -->
+    </div>
 
-        <script type="text/javascript">
-            const vscode = acquireVsCodeApi();
+    <script type="text/javascript">
+        const vscode = acquireVsCodeApi();
 
-            function vscOpen(type, value) {
-                sendMsg("${ProjectOverviewWVMessages.OPEN}", { type, value });
-            }
+        function vscOpen(type, value) {
+            sendMsg("${ProjectOverviewWVMessages.OPEN}", { type, value });
+        }
 
-            function sendMsg(type, data = undefined) {
-                // See IWebViewMsg in ProjectOverviewCmd
-                vscode.postMessage({ type: type, data: data });
-            }
-        </script>
+        function sendMsg(type, data = undefined) {
+            // See IWebViewMsg in ProjectOverviewCmd
+            vscode.postMessage({ type: type, data: data });
+        }
+    </script>
 
-        </body>
-        </html>
+    </body>
+    </html>
     `;
 }
 
-function buildRow(rp: WebviewResourceProvider, label: string, data: string, openable?: OpenableTypes, editable: boolean = false): string {
+const DEFAULT_ROW_OPTIONS: RowOptions = {
+    copyable: false,
+    editable: false,
+    openable: undefined,
+};
+
+function buildRow(rp: WebviewResourceProvider, label: string, data: string, options: RowOptions = DEFAULT_ROW_OPTIONS): string {
     let secondColTdContents: string = "";
-    let thirdColTdContents: string = "";
-    if (openable) {
-        secondColTdContents += `<a title="${label}" onclick="vscOpen('${openable}', '${data}')">${data}</a>`;
+    let thirdColTd: string = "";
+    let fourthColTd: string = "";
+
+    if (options.openable) {
+        let cssClass: string  = "";
+        let href: string = "";
+        let onclick: string = "";
+        if (options.openable === OpenableTypes.WEB) {
+            href = `href="${data}"`;
+            cssClass = `class="url"`;
+        }
+        else {
+            onclick = `onclick="vscOpen('${options.openable}', '${data}')"`;
+        }
+        secondColTdContents += `<a title="${label}" ${cssClass} ${href} ${onclick}>${data}</a>`;
     }
     else {
         secondColTdContents = `${data}`;
     }
 
-    if (editable) {
+    if (options.editable) {
         const tooltip = `title="Edit Project Settings"`;
-        const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}', { type: '${editable}' })"`;
+        const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}')"`;
 
-        thirdColTdContents = `
-            <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick}` +
-                `src="${rp.getIcon(Resources.Icons.Edit)}"/>
+        thirdColTd = `
+            <td class="btn-cell">
+                <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick} src="${rp.getIcon(Resources.Icons.Edit)}"/>
+            </td>
+        `;
+    }
+
+    if (options.openable === OpenableTypes.WEB) {
+        // add an 'open' button if this row's data is a web link
+        fourthColTd = `
+            <td class="btn-cell">
+                <input type="image" title="Open" src="${rp.getIcon(Resources.Icons.OpenExternal)}" onclick="vscOpen('${options.openable}', '${data}')"/>
+            </td>
         `;
     }
 
     const secondTd = `<td title="${label}">${secondColTdContents}</td>`;
-    const thirdTd = thirdColTdContents ? `<td>${thirdColTdContents}</td>` : "";
-    const fourthTd = openable === OpenableTypes.WEB ?
-        `
-        <td>
-            <input type="image" title="Open" src="${rp.getIcon(Resources.Icons.OpenExternal)}" onclick="vscOpen('${openable}', '${data}')"/>
-        </td>
-        `
-        : "";
 
     return `
         <tr class="info-row">
             <td class="info-label">${label}:</td>
             ${secondTd}
-            ${thirdTd}
-            ${fourthTd}
+            ${thirdColTd}
+            ${fourthColTd}
         </tr>
     `;
 }
@@ -268,8 +290,7 @@ function buildDebugSection(rp: WebviewResourceProvider, project: Project): strin
     return `
         ${buildRow(rp, "Exposed Debug Port", normalize(project.ports.debugPort, NOT_DEBUGGING))}
         ${buildRow(rp, "Internal Debug Port",
-            normalize(project.ports.internalDebugPort, NOT_AVAILABLE),
-            undefined, true)}
+            normalize(project.ports.internalDebugPort, NOT_AVAILABLE), { editable: true })}
         </table>
     `;
         // ${buildRow(rp, "Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
