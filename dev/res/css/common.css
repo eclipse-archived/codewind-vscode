@@ -64,13 +64,13 @@ input[type="checkbox"]:disabled {
 .btn-prominent {
     color: var(--vscode-sideBar-foreground);
     background-color: var(--vscode-button-background);
-    border: 1x solid var(--vscode-button-background);
+    border: 1px solid var(--vscode-button-background);
 }
 
 .btn-background {
     color: var(--vscode-sideBar-foreground);
     background-color: var(--vscode-sideBar-background);
-    border: 1x solid var(--vscode-sideBar-background);
+    border: 1px solid var(--vscode-sideBar-background);
 }
 
 .btn:hover, a:hover  {
