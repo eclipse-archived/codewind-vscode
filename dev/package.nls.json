@@ -14,7 +14,7 @@
     "// All these cmdIDs must match the enum in Commands.ts": "",
 
     "cmdID_newConnection": "ext.cw.newConnection",
-    "cmdTitle_newConnection": "New Codewind Connection",
+    "cmdTitle_newConnection": "New Remote Codewind Connection",
 
     "cmdID_startCodewind": "ext.cw.startCodewind",
     "// See Commands.ts for explanation of the duplicated start/stop": "",
