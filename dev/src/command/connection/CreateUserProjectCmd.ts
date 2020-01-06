@@ -145,24 +145,24 @@ async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
 async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
-    const repos = await CLICommandRunner.getTemplateSources(connection.id);
+    const sources = await connection.templateSourcesList.get();
 
-    if (repos.length === 0) {
+    if (sources.length === 0) {
         // Should not be possible because Codewind templates are always present.
         throw new Error("No template sources are configured. Use the Manage Template Sources command to add the Codewind templates.");
     }
-    if (repos.length === 1) {
+    if (sources.length === 1) {
         // if there is exactly one repo, just enable it and move on.
-        await Requester.enableTemplateRepos(connection, {
+        await connection.templateSourcesList.toggleEnablement({
             repos: [{
                 enable: true,
-                repoID: repos[0].url,
+                repoID: sources[0].url,
             }]
         });
         return "selected";
     }
 
-    const qpis: Array<({ url: string } & vscode.QuickPickItem)> = repos.map((repo) => {
+    const qpis: Array<({ url: string } & vscode.QuickPickItem)> = sources.map((repo) => {
         const label = repo.name || repo.description || "No name available";
         const description = repo.name ? repo.description : undefined;
 
@@ -192,14 +192,14 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     }
 
     // enable the selected repo, only
-    const repoEnablement: Array<{ enable: boolean, repoID: string }> = repos.map((repo) => {
+    const repoEnablement: Array<{ enable: boolean, repoID: string }> = sources.map((repo) => {
         return {
             enable: repo.url === selection.url,
             repoID: repo.url,
         };
     });
 
-    await Requester.enableTemplateRepos(connection, { repos: repoEnablement });
+    await connection.templateSourcesList.toggleEnablement({ repos: repoEnablement });
 
     vscode.window.showInformationMessage(
         `Set template source to ${selection.label}. The other sources have been disabled. You can change this setting at any time with the Manage Template Sources command. `

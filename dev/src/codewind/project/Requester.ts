@@ -74,7 +74,11 @@ namespace Requester {
         value: string;
     }
 
-    export async function enableTemplateRepos(connection: Connection, enablements: ISourceEnablement): Promise<void> {
+    /**
+     * Change the 'enabled' state of the given set of template sources.
+     * Should only be called by TemplateSourceList to ensure it is refreshed appropriately.
+     */
+    export async function toggleSourceEnablement(connection: Connection, enablements: ISourceEnablement): Promise<void> {
         const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
             return {
                 op: "enable",

@@ -24,9 +24,9 @@ import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
 import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import { CLICommandRunner } from "./CLICommandRunner";
-import { SourcesPageWrapper, ITemplateSource } from "../../command/webview/SourcesPageWrapper";
+import { SourcesPageWrapper } from "../../command/webview/SourcesPageWrapper";
 import { RegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
+import TemplateSourcesList from "./TemplateSourceList";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -44,6 +44,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     private _projects: Project[] = [];
     private needProjectUpdate: boolean = true;
+
+    public readonly templateSourcesList: TemplateSourcesList = new TemplateSourcesList(this);
 
     private _sourcesPage: SourcesPageWrapper  | undefined;
     private _registriesPage: RegistriesPageWrapper | undefined;
@@ -383,6 +385,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         await this.forceUpdateProjectList(true);
     }
 
+    // QuickPick detail
     public get detail(): string {
         return this.url.toString();
     }
@@ -391,9 +394,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this._socket ? this._socket.uri : undefined;
     }
 
-    public getSources(): Promise<ITemplateSource[]> {
-        return CLICommandRunner.getTemplateSources(this.id);
-    }
+    ///// Webview management
 
     public onDidOpenSourcesPage(page: SourcesPageWrapper): void {
         this._sourcesPage = page;

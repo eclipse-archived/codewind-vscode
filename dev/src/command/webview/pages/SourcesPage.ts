@@ -14,14 +14,15 @@
 import Resources from "../../../constants/Resources";
 // import MCUtil from "../../MCUtil";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
-import { ITemplateSource, ManageSourcesWVMessages } from "../SourcesPageWrapper";
+import { ManageSourcesWVMessages } from "../SourcesPageWrapper";
 import { WebviewResourceProvider } from "../WebviewWrapper";
+import { TemplateSource } from "../../../codewind/connection/TemplateSourceList";
 
 const SOURCE_ID_ATTR = "data-id";
 const SOURCE_ENABLED_ATTR = "data-enabled";
 
 export default function getManageSourcesPage(
-    rp: WebviewResourceProvider, connectionLabel: string, isRemoteConnection: boolean, sources: ITemplateSource[]): string {
+    rp: WebviewResourceProvider, connectionLabel: string, isRemoteConnection: boolean, sources: TemplateSource[]): string {
 
     return `
     <!DOCTYPE html>
@@ -120,7 +121,7 @@ export default function getManageSourcesPage(
     `;
 }
 
-function buildTemplateTable(rp: WebviewResourceProvider, sources: ITemplateSource[]): string {
+function buildTemplateTable(rp: WebviewResourceProvider, sources: TemplateSource[]): string {
 
     const repoRows = sources.map((source) => buildRow(rp, source));
 
@@ -149,7 +150,7 @@ function buildTemplateTable(rp: WebviewResourceProvider, sources: ITemplateSourc
     `;
 }
 
-function buildRow(rp: WebviewResourceProvider, source: ITemplateSource): string {
+function buildRow(rp: WebviewResourceProvider, source: TemplateSource): string {
     const name = source.name || "No name available";
     const descr = source.description || "No description available";
     return `
@@ -163,7 +164,7 @@ function buildRow(rp: WebviewResourceProvider, source: ITemplateSource): string 
     `;
 }
 
-function getStatusToggleTD(rp: WebviewResourceProvider, source: ITemplateSource): string {
+function getStatusToggleTD(rp: WebviewResourceProvider, source: TemplateSource): string {
     return `<td class="btn-cell">
         <input type="image" alt="${getStatusToggleAlt(source.enabled)}" ${SOURCE_ID_ATTR}="${source.url}" ${SOURCE_ENABLED_ATTR}="${source.enabled}"
             class="source-toggle btn" src="${getStatusToggleIconSrc(rp, source.enabled)}" onclick="onToggleSource(this)"/>
@@ -184,7 +185,7 @@ function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, e
     return toggleIcon;
 }
 
-function getDeleteBtnTD(rp: WebviewResourceProvider, source: ITemplateSource): string {
+function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): string {
     let title = "Delete";
     let deleteBtnClass = "btn";
     let onClick = "deleteRepo(this)";
