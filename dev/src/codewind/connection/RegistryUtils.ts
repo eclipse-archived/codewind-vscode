@@ -50,7 +50,10 @@ export class ContainerRegistry {
     }
 
     public get fullAddress(): string {
-        return `${this.address}/${this.namespace}`;
+        if (this.namespace) {
+            return `${this.address}/${this.namespace}`;
+        }
+        return this.address;
     }
 }
 
@@ -63,7 +66,6 @@ namespace RegistryUtils {
      * shows an error message and returns true.
      */
     export async function doesNeedPushRegistry(projectType: string, connection: Connection): Promise<boolean> {
-        // The local (non-kube) connection never needs a push registry because the images are run locally
         if (doesUsePushRegistry(projectType) && await connection.needsPushRegistry()) {
             const manageRegistriesBtn = "Image Registry Manager";
 
@@ -102,7 +104,11 @@ namespace RegistryUtils {
         },
     ];
 
-    export async function addNewRegistry(connection: Connection, existingRegistries: ContainerRegistry[]): Promise<void> {
+    /**
+     * Run the Add New Image Registry wizard.
+     * @returns true if a new registry was successfully added, false if the user cancelled.
+     */
+    export async function addNewRegistry(connection: Connection, existingRegistries: ContainerRegistry[]): Promise<boolean> {
         const wizardTitle = "Sign in to a new Image Registry";
 
         newRegistryWizardSteps[0].validator = (input: string) => {
@@ -111,37 +117,32 @@ namespace RegistryUtils {
 
         const inputResult: string[] | undefined = await InputUtil.runMultiStepInput(wizardTitle, newRegistryWizardSteps);
         if (inputResult == null) {
-            return;
+            return false;
         }
         const [ address, username, password ]: string[] = inputResult;
 
-        const isFirstRegistry = existingRegistries.length === 0;
-        let setAsPushRegistry: boolean;
-        if (isFirstRegistry) {
+        // https://github.com/eclipse/codewind/issues/1469
+        const hasPushRegistry = existingRegistries.some((registry) => registry.isPushRegistry);
+        const needsPushRegistry = !hasPushRegistry && await connection.templateSourcesList.hasCodewindSourceEnabled();
+
+        let setAsPushRegistry: boolean | undefined;
+        let namespace: string | undefined;
+        if (needsPushRegistry) {
             setAsPushRegistry = true;
         }
         else {
-            const setAsPushOption: vscode.QuickPickItem = {
-                label: `Set ${address} as your image push registry`,
-                detail: `Codewind-style project images will be pushed to this registry.`
-            };
-            const dontSetAsPushOption: vscode.QuickPickItem = {
-                label: `Don't set ${address} as image push registry`,
-                detail: `This registry can still be used to pull private images.`
-            };
+            setAsPushRegistry = await promptSetAsPushRegistry(address);
 
-            const response = await vscode.window.showQuickPick([
-                setAsPushOption, dontSetAsPushOption,
-            ], {
-                canPickMany: false,
-                ignoreFocusOut: true,
-                placeHolder: `Would you like to push your built project images to this registry?`
-            });
-
-            if (response == null) {
-                return;
+            if (setAsPushRegistry == null) {
+                return false;
             }
-            setAsPushRegistry = response === setAsPushOption;
+            else if (setAsPushRegistry) {
+                namespace = await promptForNamespace(address, username);
+                if (namespace == null) {
+                    // cancel
+                    return false;
+                }
+            }
         }
 
         const newRegistry = await vscode.window.withProgress({
@@ -154,7 +155,6 @@ namespace RegistryUtils {
             return newRegistry_;
         });
 
-
         if (newRegistry == null) {
             Log.e(`New registry secret appeared to be created but was null`);
         }
@@ -166,7 +166,8 @@ namespace RegistryUtils {
 
             let didSetPush = false;
             try {
-                didSetPush = (await setPushRegistry(connection, newRegistry, false)) != null;
+                const currentPushRegistry = existingRegistries.find((reg) => reg.isPushRegistry);
+                didSetPush = (await setPushRegistry(connection, currentPushRegistry, newRegistry, false, namespace)) != null;
             }
             catch (err) {
                 const errMsg = `Failed to set push registry to ${newRegistry.fullAddress} after adding`;
@@ -174,15 +175,55 @@ namespace RegistryUtils {
                 vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
             }
 
-            if (!didSetPush && isFirstRegistry) {
+            if (!didSetPush && needsPushRegistry) {
                 vscode.window.showWarningMessage(`You added a registry secret, but did not set it as your image push registry. ` +
                     `Codewind-style projects will be unable to build until you add a push registry.`);
             }
         }
+
+        return true;
     }
 
-    export async function setPushRegistry(connection: Connection, pushRegistry: ContainerRegistry, showProgress: boolean)
-        : Promise<ContainerRegistry | undefined> {
+    async function promptSetAsPushRegistry(address: string): Promise<boolean | undefined> {
+        const setAsPushOption: vscode.QuickPickItem = {
+            label: `Set ${address} as your image push registry`,
+            detail: `Codewind-style project images will be pushed to this registry.`
+        };
+        const dontSetAsPushOption: vscode.QuickPickItem = {
+            label: `Don't set ${address} as image push registry`,
+            detail: `This registry can still be used to pull private images.`
+        };
+
+        const response = await vscode.window.showQuickPick([
+            setAsPushOption, dontSetAsPushOption,
+        ], {
+            canPickMany: false,
+            ignoreFocusOut: true,
+            placeHolder: `Would you like to push your built Codewind project images to this registry?`
+        });
+
+        if (response == null) {
+            return undefined;
+        }
+
+        return response === setAsPushOption;
+    }
+
+    async function promptForNamespace(registryAddress: string, registryUsername: string): Promise<string | undefined> {
+        const namespace = await vscode.window.showInputBox({
+            ignoreFocusOut: true,
+            placeHolder: registryUsername,
+            prompt: `Enter the namespace to push to ${registryAddress} under, or leave the namespace empty. ` +
+                `For example, to push to docker.io/eclipse, enter the "eclipse" namespace.`,
+            validateInput: validateIsOnlyUrlChars,
+        });
+
+        return namespace;
+    }
+
+    export async function setPushRegistry(
+        connection: Connection, currentPushRegistry: ContainerRegistry | undefined, newPushRegistry: ContainerRegistry,
+        showProgress: boolean, namespace?: string): Promise<ContainerRegistry | undefined> {
 
         // the secret for this registry must already have been created
 
@@ -209,25 +250,33 @@ namespace RegistryUtils {
         }
         */
 
-        const namespace = await vscode.window.showInputBox({
-            ignoreFocusOut: true,
-            placeHolder: pushRegistry.username,
-            prompt: `Enter the namespace to push to ${pushRegistry.address} under, or leave the namespace empty. ` +
-                `For example, to push to docker.io/eclipse, enter the "eclipse" namespace.`,
-            validateInput: validateIsOnlyUrlChars,
-        });
+        if (currentPushRegistry) {
+            const confirmBtn = "Change Push Registry";
+            const confirmRes = await vscode.window.showInformationMessage(
+                `Codewind project images will not be pushed to ${newPushRegistry.fullAddress} until the next build. ` +
+                `\nAlso note that if you wish to switch your push registry back, you will have to re-enter the namespace.`,
+                { modal: true },
+                confirmBtn);
 
-        if (namespace == null) {
-            return undefined;
+            if (confirmRes !== confirmBtn) {
+                return;
+            }
         }
-        pushRegistry.namespace = namespace;
 
-        const setPushProm = Requester.setPushRegistry(connection, pushRegistry);
+        if (!namespace) {
+            namespace = await promptForNamespace(newPushRegistry.address, newPushRegistry.username);
+            if (namespace == null) {
+                return undefined;
+            }
+        }
+        newPushRegistry.namespace = namespace;
+
+        const setPushProm = Requester.setPushRegistry(connection, newPushRegistry);
         if (showProgress) {
             await vscode.window.withProgress({
                 cancellable: false,
                 location: vscode.ProgressLocation.Notification,
-                title: `Setting image push registry to ${pushRegistry.fullAddress}...`,
+                title: `Setting image push registry to ${newPushRegistry.fullAddress}...`,
             }, async () => {
                 await setPushProm;
             });
@@ -236,8 +285,8 @@ namespace RegistryUtils {
             await setPushProm;
         }
 
-        Log.i(`Push registry set successfully for ${connection.url} to ${pushRegistry.fullAddress}`);
-        return pushRegistry;
+        Log.i(`Push registry set successfully for ${connection.url} to ${newPushRegistry.fullAddress}`);
+        return newPushRegistry;
     }
 
     /*

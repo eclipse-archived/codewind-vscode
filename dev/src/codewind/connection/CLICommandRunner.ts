@@ -12,7 +12,7 @@
 import CLIWrapper from "./CLIWrapper";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
-import { ITemplateSource } from "../../command/webview/SourcesPageWrapper";
+import { TemplateSource } from "./TemplateSourceList";
 
 export interface CLIConnectionData {
     readonly id: string;
@@ -192,6 +192,8 @@ export namespace CLICommandRunner {
         ]);
     }
 
+    ///// Connection management commands
+
     /**
      * @returns The data for the new Connection
      */
@@ -223,8 +225,9 @@ export namespace CLICommandRunner {
         await CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--conid", id ]);
     }
 
-    // https://github.com/eclipse/codewind/issues/941
-    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<ITemplateSource[]> {
+    ///// Template source management commands - These should only be used by the TemplateSourceList
+
+    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<TemplateSource[]> {
         const args = [
             "--conid", connectionID,
             "--url", url,
@@ -238,25 +241,22 @@ export namespace CLICommandRunner {
         return CLIWrapper.cliExec(TemplateRepoCommands.ADD, args);
     }
 
-    let hasFetchedTemplates = false;
-    export async function getTemplateSources(connectionID: string): Promise<ITemplateSource[]> {
-        // The first time we fetch template sources per-codewind instance can be very slow, so we show a progress notification just once
-        const progress = hasFetchedTemplates ? undefined : "Fetching template sources...";
+    export async function getTemplateSources(connectionID: string, showProgress: boolean): Promise<TemplateSource[]> {
+        const progress = showProgress ? undefined : "Fetching template sources...";
 
-        const result = await CLIWrapper.cliExec(TemplateRepoCommands.LIST, [
+        return CLIWrapper.cliExec(TemplateRepoCommands.LIST, [
             "--conid", connectionID,
         ], progress);
-
-        hasFetchedTemplates = true;
-        return result;
     }
 
-    export async function removeTemplateSource(connectionID: string, url: string): Promise<ITemplateSource[]> {
+    export async function removeTemplateSource(connectionID: string, url: string): Promise<TemplateSource[]> {
         return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
             "--conid", connectionID,
             "--url", url
         ]);
     }
+
+    ///// Auth/credential commands
 
     export async function updateKeyringCredentials(connectionID: string, username: string, password: string): Promise<void> {
         // in the success case, the output is just an OK status

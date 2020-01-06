@@ -82,7 +82,8 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 }
 
                 try {
-                    const updatedPushRegistry = await RegistryUtils.setPushRegistry(this.connection, pushRegistryToSet, true);
+                    const currentPushRegistry = this.registries.find((reg) => reg.isPushRegistry);
+                    const updatedPushRegistry = await RegistryUtils.setPushRegistry(this.connection, currentPushRegistry, pushRegistryToSet, true);
                     if (updatedPushRegistry) {
                         vscode.window.showInformationMessage(`Successfully changed push registry to ${updatedPushRegistry.fullAddress}`);
                     }
@@ -99,7 +100,11 @@ export class RegistriesPageWrapper extends WebviewWrapper {
             }
             case CommonWVMessages.ADD_NEW: {
                 try {
-                    await RegistryUtils.addNewRegistry(this.connection, this.registries);
+                    const added = await RegistryUtils.addNewRegistry(this.connection, this.registries);
+                    if (!added) {
+                        Log.d(`User cancelled added new image registry`);
+                        return;
+                    }
                 }
                 catch (err) {
                     const errMsg = `Failed to add new image registry`;
@@ -115,14 +120,25 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 const registry = this.lookupRegistry(data.fullAddress);
 
                 if (registry.isPushRegistry) {
-                    const continueBtn = "Remove Anyway";
-                    const confirm = await vscode.window.showWarningMessage(
+                    const confirmBtn = "Remove Anyway";
+                    const confirmRes = await vscode.window.showWarningMessage(
                         `${registry.fullAddress} is currently set as your image push registry. \n` +
                         `Removing it will cause Codewind-style project builds to fail until a new image push registry is selected.`,
                         { modal: true },
-                        continueBtn
+                        confirmBtn
                     );
-                    if (confirm !== continueBtn) {
+                    if (confirmRes !== confirmBtn) {
+                        return;
+                    }
+                }
+                else {
+                    const confirmBtn = "Remove";
+                    const confirmRes = await vscode.window.showWarningMessage(
+                        `Are you sure you want to remove ${registry.fullAddress}?`,
+                        { modal: true },
+                        confirmBtn
+                    );
+                    if (confirmRes !== confirmBtn) {
                         return;
                     }
                 }

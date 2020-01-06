@@ -89,7 +89,7 @@ export abstract class WebviewWrapper {
             newHtml = await this.generateHtml(this.resourceProvider);
         }
         catch (err) {
-            const errMsg = `Error with wizard page ${this.title}:`;
+            const errMsg = `${this.title} error:`;
             Log.e(errMsg, err);
             vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
             return;

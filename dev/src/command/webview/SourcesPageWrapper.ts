@@ -17,26 +17,12 @@ import Connection from "../../codewind/connection/Connection";
 import Resources from "../../constants/Resources";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
-import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Commands from "../../constants/Commands";
-import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import CWDocs from "../../constants/CWDocs";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import getManageSourcesPage from "./pages/SourcesPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
-
-/**
- * Template repository/source data as provided by the backend
- */
-export interface ITemplateSource {
-    readonly url: string;
-    readonly name?: string;
-    readonly description?: string;
-    readonly enabled: boolean;
-    readonly projectStyles: string[];
-    readonly protected: boolean;
-}
 
 export enum ManageSourcesWVMessages {
     ENABLE_DISABLE = "enableOrDisable",
@@ -73,7 +59,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
     }
 
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
-        const sources = await this.connection.getSources();
+        const sources = await this.connection.templateSourcesList.get(true);
         return getManageSourcesPage(resourceProvider, this.connection.label, this.connection.isRemote, sources);
     }
 
@@ -119,7 +105,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
     private async enableDisable(enablement: ISourceEnablement): Promise<void> {
         Log.i("Enable/Disable repos:", enablement);
         try {
-            await Requester.enableTemplateRepos(this.connection, enablement);
+            await this.connection.templateSourcesList.toggleEnablement(enablement);
         }
         catch (err) {
             // If any of the enablements fail, the checkboxes will be out of sync with the backend state, so refresh the page to reset
@@ -136,7 +122,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
         }
 
         try {
-            await CLICommandRunner.addTemplateSource(this.connection.id, repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
+            await this.connection.templateSourcesList.add(repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
             await this.refresh();
         }
         catch (err) {
@@ -160,7 +146,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
         }
 
         try {
-            await CLICommandRunner.removeTemplateSource(this.connection.id, sourceUrl);
+            await this.connection.templateSourcesList.remove(sourceUrl);
             await this.refresh();
         }
         catch (err) {
