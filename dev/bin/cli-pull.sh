@@ -3,15 +3,51 @@
 set -e
 set -o pipefail
 
+cli_basename="cwctl"
+
 cli_branch=${CW_CLI_BRANCH}
+
+# Platforms to download can be specified as command-line args, or in CW_CLI_PLATFORM. Args take precedence if both are used.
+if [[ -n $1 ]]; then
+    cli_platform_input=$@
+else
+    cli_platform_input=${CW_CLI_PLATFORM}
+fi
 
 if [[ -z $cli_branch ]]; then
     cli_branch="master"
 fi
 
-echo "Downloading latest Codewind CLI built from $cli_branch"
+all_platforms=("linux" "darwin" "windows" "ppc64le")
+if [[ -z $cli_platform_input ]]; then
+    # Default platforms if no override given
+    cli_platforms=("linux" "darwin" "windows")
+else
+    # Args are platforms to download; make sure we have a matching platform binary.
+    for platform in ${cli_platform_input[*]}; do
+        found=0
+        for supported_platform in ${all_platforms[*]}; do
+            if [[ $platform == $supported_platform ]]; then
+                found=1
+                break
+            fi
+        done
+        if [[ $found != 1 ]]; then
+            echo "Unsupported platform '$platform', supported platforms are: ${all_platforms[*]}"
+        else
+            cli_platforms="${cli_platforms} $platform"
+        fi
+    done
 
-cli_basename="cwctl"
+    if [[ -z $cli_platforms ]]; then
+        # No platforms were valid
+        exit 1
+    fi
+    # convert from space-delimited string to array
+    cli_platforms=($cli_platforms)
+fi
+
+echo "Downloading latest Codewind CLI built from $cli_branch for platforms: ${cli_platforms[*]}"
 
 download () {
     local url=$1
@@ -53,7 +89,7 @@ is_cli_upgrade_available () {
     fi
 
     if [[ $latest_sha == $actual_sha ]]; then
-        echo "Shasums match; your current cli version is up-to-date with $cli_branch"
+        echo "Shasums match; your current $test_file version is up-to-date with $cli_branch"
         return 1
     else
         echo "Current shasum $actual_sha doesn't match latest $latest_sha"
@@ -88,10 +124,9 @@ if ! is_cli_upgrade_available; then
     exit 0
 fi
 
-platforms=("linux" "darwin" "windows")
-for platform in ${platforms[*]}; do
+for platform in ${cli_platforms[*]}; do
     mkdir -p $platform
     get_cli $platform
 done
 
-echo "Successfully pulled Codewind CLI"
+echo "Successfully pulled Codewind CLI for ${cli_platforms[*]}"
