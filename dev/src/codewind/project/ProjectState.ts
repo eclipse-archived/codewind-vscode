@@ -9,53 +9,64 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
+
 import Log from "../../Logger";
-import SocketEvents from "../connection/SocketEvents";
 import ProjectCapabilities from "./ProjectCapabilities";
+
+interface DetailedAppStatus {
+    readonly severity: "INFO" | "WARN" | "ERROR";
+    readonly message?: string;
+    notify: boolean;
+}
+
+interface ProjectStateInfo {
+    appStatus?: string;
+    detailedAppStatus?: DetailedAppStatus;
+    buildStatus?: string;
+    detailedBuildStatus?: string;
+    startMode?: string;
+    state?: string;
+}
 
 /**
  * Represents the project's state. This means app state, build state, and any status details.
- * Immutable.
  */
 export class ProjectState {
-    public readonly appState: ProjectState.AppStates;
-    public readonly buildState: ProjectState.BuildStates;
-    public readonly buildDetail: string;
+    public appState: ProjectState.AppStates = ProjectState.AppStates.UNKNOWN;
+    public appDetail: DetailedAppStatus | undefined;
+    public buildState: ProjectState.BuildStates | undefined;
+    public buildDetail: string | undefined;
 
     constructor(
-        projectInfoPayload: any,
-        // Use oldState if the projectInfoPayload is missing state information (eg. from a restart success event)
-        // It will be used as fallback values if the new state is null or UNKNOWN.
-        oldState?: ProjectState
+        private readonly projectName: string,
     ) {
-        if (projectInfoPayload != null) {
-            if (oldState != null) {
-                if (projectInfoPayload[SocketEvents.Keys.APP_STATE] == null) {
-                    projectInfoPayload[SocketEvents.Keys.APP_STATE] = oldState.appState.toString();
-                }
-                if (projectInfoPayload[SocketEvents.Keys.BUILD_STATE] == null) {
-                    projectInfoPayload[SocketEvents.Keys.BUILD_STATE] = oldState.buildState.toString();
-                }
-                if (!projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL]) {
-                    projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL] = oldState.buildDetail;
-                }
-            }
+        // call update() right away
+    }
 
-            this.appState = ProjectState.getAppState(projectInfoPayload);
-            this.buildState = ProjectState.getBuildState(projectInfoPayload);
-            this.buildDetail = projectInfoPayload[SocketEvents.Keys.BUILD_DETAIL] || "";
+    public update(projectStateInfo: ProjectStateInfo): void {
+        this.appState = ProjectState.getAppState(projectStateInfo);
+        if (this.appState !== ProjectState.AppStates.DISABLED) {
+            this.appDetail = projectStateInfo.detailedAppStatus;
+            this.buildState = ProjectState.getBuildState(projectStateInfo.buildStatus);
+            this.buildDetail = projectStateInfo.detailedBuildStatus;
         }
         else {
-            Log.e("ProjectState received null ProjectInfo");
-            this.appState = ProjectState.AppStates.UNKNOWN;
-            this.buildState = ProjectState.BuildStates.UNKNOWN;
-            this.buildDetail = "";
+            // the disabled app state has no other states.
+            this.appDetail = undefined;
+            this.buildState = undefined;
+            this.buildDetail = undefined;
+        }
+
+        if (this.appDetail && this.appDetail.notify) {
+            this.notify();
         }
     }
 
     public equals(other: ProjectState): boolean {
         return other != null &&
             this.appState === other.appState &&
+            this.appDetail === other.appDetail &&
             this.buildState === other.buildState &&
             this.buildDetail === other.buildDetail;
     }
@@ -110,7 +121,7 @@ export class ProjectState {
 
         if (this.buildDetail != null && this.buildDetail.trim() !== "") {
             // a detailed status is available
-            buildStateStr = `${this.buildState} - ${this.buildDetail}`;         // non-nls
+            buildStateStr = `${this.buildState} - ${this.buildDetail}`;
         }
         // Don't display the build state if it's unknown
         else if (this.buildState !== ProjectState.BuildStates.UNKNOWN) {
@@ -118,14 +129,44 @@ export class ProjectState {
         }
         return buildStateStr;
     }
+
+    public getAppStatusWithDetail(): string {
+        if (!this.appState || this.appState === ProjectState.AppStates.UNKNOWN) {
+            return "";
+        }
+
+        let status = this.appState.toString();
+        if (this.appDetail && this.appDetail.message) {
+            status += ` - ${this.appDetail.message}`;
+        }
+        return status;
+    }
+
+    private notify(): void {
+        // https://github.com/eclipse/codewind/issues/1297
+        if (!this.appDetail || !this.appDetail.notify) {
+            return;
+        }
+
+        Log.i(`Showing user detailed app status ${this.appDetail.message} for project ${this.projectName}`);
+        const notificationMsg = `${this.projectName} - ${this.appDetail.message}`;
+
+        if (this.appDetail.severity === "ERROR") {
+            vscode.window.showErrorMessage(notificationMsg);
+        }
+        else if (this.appDetail.severity === "WARN") {
+            vscode.window.showWarningMessage(notificationMsg);
+        }
+        else {
+            vscode.window.showInformationMessage(notificationMsg);
+        }
+    }
 }
 
 export namespace ProjectState {
 
     // The AppStates and BuildStates string values are all exposed to the user.
 
-    // These _should_ be translated, but since you can't put computed values in a string enum,
-    // we can cross that bridge when we come to it :)
     export enum AppStates {
         STARTED = "Running",
         STARTING = "Starting",
@@ -136,7 +177,7 @@ export namespace ProjectState {
         DEBUG_STARTING = "Starting - Debug",
 
         DISABLED = "Disabled",
-        UNKNOWN = "Unknown"
+        UNKNOWN = "N/A"
     }
 
     export enum BuildStates {
@@ -145,7 +186,7 @@ export namespace ProjectState {
         BUILD_FAILED = "Build Failed",
         BUILD_QUEUED = "Build Queued",
 
-        UNKNOWN = "Unknown"
+        UNKNOWN = "N/A"
     }
 
     export function getAllAppStates(): AppStates[] {
@@ -184,18 +225,18 @@ export namespace ProjectState {
     /**
      * Convert a project info object into a ProjectState.
      */
-    export function getAppState(projectInfoPayload: any): ProjectState.AppStates {
+    export function getAppState(projectStateInfo: ProjectStateInfo): ProjectState.AppStates {
 
         // Logger.log("PIP", projectInfoPayload);
-        const appStatus: string = projectInfoPayload[SocketEvents.Keys.APP_STATE] as string || "";
+        const appStatus = projectStateInfo.appStatus;
 
-        const closedState: string | undefined = projectInfoPayload[SocketEvents.Keys.CLOSED_STATE];
-        const startMode:   string | undefined = projectInfoPayload[SocketEvents.Keys.START_MODE];
+        const openClosedState = projectStateInfo.state;
+        const startMode = projectStateInfo.startMode;
 
         // Logger.log(`Convert - appStatus=${appStatus}, closedState=${closedState}, startMode=${startMode}`);
 
         // First, check if the project is closed (aka Disabled)
-        if (closedState === "closed") {                                                                                         // non-nls
+        if (openClosedState === "closed") {                                                                                         // non-nls
             return ProjectState.AppStates.DISABLED;
         }
         // Now, check the app states. Compare against both the value we expect from MC,
@@ -227,9 +268,7 @@ export namespace ProjectState {
         }
     }
 
-    export function getBuildState(projectInfoPayload: any): BuildStates {
-        const buildStatus: string | undefined = projectInfoPayload[SocketEvents.Keys.BUILD_STATE];
-
+    export function getBuildState(buildStatus: string | undefined): BuildStates {
         if (buildStatus === "success" || buildStatus === BuildStates.BUILD_SUCCESS) {           // non-nls
             return BuildStates.BUILD_SUCCESS;
         }

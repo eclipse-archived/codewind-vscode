@@ -72,7 +72,7 @@ export default class Project implements vscode.QuickPickItem {
     private _capabilities: ProjectCapabilities | undefined;
 
     // Mutable project data, will change with calls to update() and similar functions. Prefixed with _ because these all have getters.
-    private _state: ProjectState;
+    private readonly _state: ProjectState;
     private _containerID: string | undefined;
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
@@ -139,6 +139,7 @@ export default class Project implements vscode.QuickPickItem {
             internalDebugPort: undefined,
         };
 
+        this._state = new ProjectState(this.name);
         this._state = this.update(projectInfo);
 
         this.logManager = new MCLogManager(this);
@@ -194,9 +195,8 @@ export default class Project implements vscode.QuickPickItem {
             this.appBaseURL = asUri;
         }
 
-        // note oldState can be null if this is the first time update is being invoked.
         const oldState = this._state;
-        this._state = new ProjectState(projectInfo, oldState != null ? oldState : undefined);
+        this.state.update(projectInfo);
 
         if (!this._state.equals(oldState)) {
             const startModeMsg = projectInfo.startMode == null ? "" : `, startMode=${projectInfo.startMode}`;

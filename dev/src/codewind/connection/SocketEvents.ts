@@ -103,17 +103,6 @@ namespace SocketEvents {
         PROJECT_BOUND = "projectBind",
         REGISTRY_STATUS = "imagePushRegistryStatus",
     }
-
-    /**
-     * Property keys we check in socket events
-     */
-    export enum Keys {
-        APP_STATE = "appStatus",
-        BUILD_STATE = "buildStatus",
-        CLOSED_STATE = "state",
-        START_MODE = "startMode",
-        BUILD_DETAIL = "detailedBuildStatus",
-    }
 }
 
 export interface ILogResponse {

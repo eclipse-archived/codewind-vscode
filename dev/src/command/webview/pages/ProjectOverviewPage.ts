@@ -115,7 +115,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                         />
                     </td>
                 </tr>
-                ${buildRow(rp, "Application Status", project.state.appState)}
+                ${buildRow(rp, "Application Status", normalize(project.state.getAppStatusWithDetail(), NOT_AVAILABLE))}
                 ${buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
                 ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
                 ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
