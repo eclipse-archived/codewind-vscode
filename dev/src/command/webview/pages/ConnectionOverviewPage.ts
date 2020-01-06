@@ -44,23 +44,25 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
     <!--div id="description">
         <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
     </div-->
-    </div>
     <div id="main">
         <div style="display: inline-block;">
             <div id="deployment-box">
                 <h3>Codewind Connection
-                    <div tabindex="0" id="learn-more-btn-remote">
-                        <a href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}"><img class="learn-more-btn" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a>
+                    <div id="learn-more-btn-remote">
+                        <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}">
+                            <input type="image" class="learn-more-btn" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
+                        </a>
                     </div>
                     ${isConnected ? `<img alt="Connected" src="${rp.getIcon(Resources.Icons.ConnectionConnectedCheckmark)}"/>` :
                         `<img alt="Disconnected" src="${rp.getIcon(Resources.Icons.ConnectionDisconnectedCheckmark)}"/>`
                     }
                 </h3>
-                <div class="input">
-                    <p ${connectionExists ? "style='display: none;'" : ""}>Fill in the fields about the connection that you're starting from.</p>
-                    ${connectionExists ?
-`<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
-                        <img id="copy_url" onclick="copyURL(event)" alt="copy url" src="${rp.getIcon(Resources.Icons.Copy)}"/><div id="copy_url_tooltip">Copied</div>`
+                <div class="input-section">
+                    <p ${connectionExists ? "style='display: none;'" : ""}>Enter the URL to your Codewind Gatekeeper ingress.</p>
+                    ${connectionExists ? `
+                        <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
+                        <input type="image" id="copy_url" onclick="copyURL(event)" alt="Copy URL" src="${rp.getIcon(Resources.Icons.Copy)}"/>
+                        <div id="copy_url_tooltip">Copied</div>`
                         :
                         `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
                     }
@@ -88,32 +90,46 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
 
             <div style="float: right;">
                 <div id="link-container-box">
-                    <h3>Select Sources <a href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}" tabindex="0"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Select Sources
+                        <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}">
+                            <input type="image" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
+                        </a>
+                    </h3>
                     <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
-                    <button type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</button>
+                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</button>
                 </div>
 
                 <div id="link-container-box">
-                    <h3>Add Registries <a href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}" tabindex="0"><img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/></a></h3>
+                    <h3>Add Registries
+                        <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}">
+                            <input type="image" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
+                        </a>
+                    </h3>
                     <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
-                    <button type="button" class="btn btn-prominent" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</button>
+                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</button>
                 </div>
             </div>
+        </div>
 
-            </div>
-
-            <div class="remote-connection-btn-group">
-                <button type="button" id="delete-btn" class="btn btn-prominent" onclick="deleteConnection()"
-                    ${connectionExists ? `style="display: inline-block;"` : `style="display: none;"`}>Remove Connection<img src="${rp.getIcon(Resources.Icons.Delete)}"/></button>
-                <button type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit<img src="${rp.getIcon(Resources.Icons.Edit_Connection)}"/></button>
-                <button type="button" id="toggle-connect-btn" class="btn btn-prominent" onclick="toggleConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}</button>
-                <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save</button>
-                <button type="button" id="cancel-btn" class="btn btn-prominent"  onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Cancel</button>
-            </div>
+        <div class="remote-connection-btn-group">
+            <button type="button" id="delete-btn" class="btn btn-red" onclick="deleteConnection()"
+                ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Remove Connection
+                <img src="${rp.getIcon(Resources.Icons.Delete)}"/>
+            </button>
+            <button type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
+                ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Edit
+                <img src="${rp.getIcon(Resources.Icons.Edit_Connection)}"/>
+            </button>
+            <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
+                ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save
+            </button>
+            <button type="button" id="toggle-connect-btn" class="btn btn-background" onclick="toggleConnection()"
+                ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}
+            </button>
+            <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}" onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
+                ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Cancel
+            </button>
+        </div>
     </div>
 
     <script>

@@ -1,6 +1,6 @@
 
-body {
-    max-width: 700px;
+#main {
+    max-width: 1000px;
 }
 
 #top-section {
@@ -25,14 +25,14 @@ body {
 
 .section {
     border-bottom: 1px solid #aaa;
-    padding-top: 1em;
-    padding-bottom: 1em;
-    padding-left: 2em;
+    padding-top: .5em;
+    padding-bottom: .5em;
+    padding-left: 1em;
 }
 
 .section h3 {
     padding: 0;
-    padding-bottom: .75em;
+    padding-bottom: .25em;
     margin: 0;
 }
 
@@ -46,30 +46,38 @@ body {
 }
 
 table {
-    border-spacing: 0;
+    width: 100%;
+    border-spacing: 0 0.5em;
 }
 
 td {
     padding: 0;
-    padding-bottom: 0.5em;
+    text-align: left;
 }
 
 .info-label {
     font-weight: bold;
     padding-right: 1em;
+
+    /* https://stackoverflow.com/a/11267268/3666734 */
+    width: 1%;
+    white-space: nowrap;
 }
 
-td > input[type="image"] {
+.url {
+    overflow-wrap: anywhere;
+}
+
+.btn-cell {
+    width: 1%;
+}
+
+.btn-cell > input[type="image"] {
     height: 1.5em;
     margin: 0;
     padding: 0;
     margin-left: 1em;
 }
-
-.bottom-padded {
-    padding-bottom: 1em;
-}
-
 
 #bottom-section {
     margin-top: 2em;

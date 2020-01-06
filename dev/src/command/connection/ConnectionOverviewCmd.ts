@@ -18,7 +18,7 @@ import ConnectionOverviewWrapper from "../webview/ConnectionOverviewPageWrapper"
 export default async function remoteConnectionOverviewCmd(connection: Connection): Promise<void> {
     // if (!(connection instanceof RemoteConnection)) {
     if (!(connection.isRemote)) {
-        vscode.window.showWarningMessage("The Local connection does not have any data to show in the overview.");
+        vscode.window.showWarningMessage("The Local connection does not have any connection settings.");
         return;
     }
 
