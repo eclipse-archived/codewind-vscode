@@ -1,4 +1,4 @@
-### cli-pull
+### `cli-pull.sh`
 
 Downloads `cwctl` from [https://download.eclipse.org/codewind/codewind-installer](https://download.eclipse.org/codewind/codewind-installer/).
 By default, the CLI version is the latest available from master.
@@ -14,10 +14,11 @@ eg: `./cli-pull.sh ppc64le`
 or in the environment, eg.
 `export CW_CLI_PLATFORM=ppc64le`
 
-### appsody-pull
+### `appsody-pull.sh`
 
-The Appsody version must be set with `APPSODY_VERSION` in the env, or passed as the first argument to the script.
-If no version override is provided, the version to use is fetched from the [Jenkinsfile](https://github.com/eclipse/codewind-vscode/blob/master/Jenkinsfile#L42).
+Downloads `appsody` from [https://github.com/appsody/appsody/releases/](https://github.com/appsody/appsody/releases/).
+By default the version to use is fetched from the [Jenkinsfile](https://github.com/eclipse/codewind-vscode/blob/master/Jenkinsfile#L42).
+The Appsody version can be overridden with `APPSODY_VERSION` in the env, or passed as the first argument to the script.
 The download will always proceed and overwrite the version on disk if necessary.
 
-`pull.sh` invokes both `cli-pull.sh` and `appsody-pull.sh`.
+`pull.sh` invokes both `cli-pull.sh` and `appsody-pull.sh`, but will ignore positional arguments.
