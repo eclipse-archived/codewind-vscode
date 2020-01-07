@@ -19,11 +19,10 @@ import { ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
 import { ContainerRegistry } from "../../../codewind/connection/RegistryUtils";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 
-const FULL_ADDRESS_ATTR = "data-full-address";
-
 export default function getManageRegistriesPage(
     rp: WebviewResourceProvider,
     connectionLabel: string,
+    isRemoteConnection: boolean,
     registries: ContainerRegistry[],
     needsPushRegistry: boolean): string {
 
@@ -48,9 +47,7 @@ export default function getManageRegistriesPage(
             <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
             <div>
                 <h1 id="title">Image Registries</h1>
-                ${global.isTheia ? "" :
-                    `<h2 id="subtitle" class="clickable" onclick="sendMsg('${CommonWVMessages.OPEN_CONNECTION}')">${connectionLabel}</h2>`
-                }
+                ${WebviewUtil.buildSubtitle(connectionLabel, isRemoteConnection)}
             </div>
         </div>
         <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${CommonWVMessages.HELP}')">
@@ -78,13 +75,13 @@ export default function getManageRegistriesPage(
             sendMsg('${CommonWVMessages.ADD_NEW}');
         }
 
-        function changePushRegistry(selectPushBtn) {
-            const fullAddress = selectPushBtn.getAttribute("${FULL_ADDRESS_ATTR}");
+        function onToggle(selectPushBtn) {
+            const fullAddress = selectPushBtn.getAttribute("${WebviewUtil.ATTR_ID}");
             sendMsg("${ManageRegistriesWVMessages.CHANGE_PUSH}", { fullAddress });
         }
 
         function deleteRegistry(deleteBtn) {
-            const fullAddress = deleteBtn.getAttribute("${FULL_ADDRESS_ATTR}");
+            const fullAddress = deleteBtn.getAttribute("${WebviewUtil.ATTR_ID}");
             sendMsg("${CommonWVMessages.DELETE}", { fullAddress });
         }
 
@@ -99,7 +96,8 @@ export default function getManageRegistriesPage(
             const message = event.data; // The JSON data our extension sent
 
             switch (message.command) {
-
+                default:
+                    console.error("Received unrecognized command from webview: ", message);
             }
         });
 
@@ -157,20 +155,24 @@ function buildRow(rp: WebviewResourceProvider, registry: ContainerRegistry, need
     let namespaceTD = "";
     let pushRegistryTD = "";
     if (needsPushRegistry) {
-        // Namespace is greyed out if it's not the current push registry (because it's only used for pushing)
+        // Only the current push registry has a namespace. Otherwise we show "not applicable", greyed out.
+        let namespace;
+        if (!registry.isPushRegistry) {
+            namespace = "Not applicable";
+        }
+        else if (registry.namespace === "") {
+            namespace = "No namespace";
+        }
+        else {
+            namespace = registry.namespace;
+        }
         namespaceTD = `
             <td class="${registry.isPushRegistry ? "" : "namespace-disabled"}">
-                ${registry.namespace || "N/A"}
+                ${namespace}
             </td>
         `;
-        pushRegistryTD = `
-            <td class="btn-cell">
-                <input type="radio" ${FULL_ADDRESS_ATTR}="${registry.fullAddress}" class="push-registry-radiobtn" name="push-registry"
-                    onclick="changePushRegistry(this)"
-                    ${registry.isPushRegistry ? "checked" : ""}
-                />
-            </td>
-        `;
+
+        pushRegistryTD = WebviewUtil.buildToggleTD(rp, registry.isPushRegistry, "Set as Image Push Registry", registry.fullAddress);
     }
 
     return `
@@ -180,12 +182,12 @@ function buildRow(rp: WebviewResourceProvider, registry: ContainerRegistry, need
         ${namespaceTD}
         ${pushRegistryTD}
         <!--td class="btn-cell">
-            <input type="image" ${FULL_ADDRESS_ATTR}="${registry.fullAddress}" alt="Edit ${registry.fullAddress}" title="Edit"
+            <input type="image" ${WebviewUtil.ATTR_ID}="${registry.fullAddress}" alt="Edit ${registry.fullAddress}" title="Edit"
                 onclick="" class="btn" src="${rp.getIcon(Resources.Icons.Edit)}"
             />
         </td-->
         <td class="btn-cell">
-            <input type="image" ${FULL_ADDRESS_ATTR}="${registry.fullAddress}" alt="Delete ${registry.fullAddress}" title="Delete ${registry.fullAddress}"
+            <input type="image" ${WebviewUtil.ATTR_ID}="${registry.fullAddress}" alt="Delete ${registry.fullAddress}" title="Delete ${registry.fullAddress}"
                 onclick="deleteRegistry(this)" class="btn" src="${rp.getIcon(Resources.Icons.Trash)}"
             />
         </td>

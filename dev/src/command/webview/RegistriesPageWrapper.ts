@@ -63,7 +63,13 @@ export class RegistriesPageWrapper extends WebviewWrapper {
             return Requester.getImageRegistries(this.connection);
         });
 
-        const html = getManageRegistriesHtml(resourceProvider, this.connection.label, this.registries, this.connection.isKubeConnection);
+        const html = getManageRegistriesHtml(resourceProvider,
+            this.connection.label,
+            this.connection.isRemote,
+            this.registries,
+            this.connection.isKubeConnection
+        );
+
         return html;
     }
 
@@ -75,27 +81,29 @@ export class RegistriesPageWrapper extends WebviewWrapper {
         switch (msg.type as (ManageRegistriesWVMessages | CommonWVMessages)) {
             case ManageRegistriesWVMessages.CHANGE_PUSH: {
                 const data = msg.data as ManageRegistriesMsgData;
-                const pushRegistryToSet = this.lookupRegistry(data.fullAddress);
-                if (pushRegistryToSet.isPushRegistry) {
-                    // shouldn't happen, but nothing to do in this case
+                const newPushRegistry = this.lookupRegistry(data.fullAddress);
+                if (newPushRegistry.isPushRegistry) {
+                    // This is not ideal but once there is a push registry the only way to remove it is to select a new one
+                    vscode.window.showWarningMessage(`To stop using the current push registry ${newPushRegistry.fullAddress}, select a new push registry.`);
                     return;
                 }
 
                 try {
                     const currentPushRegistry = this.registries.find((reg) => reg.isPushRegistry);
-                    const updatedPushRegistry = await RegistryUtils.setPushRegistry(this.connection, currentPushRegistry, pushRegistryToSet, true);
-                    if (updatedPushRegistry) {
-                        vscode.window.showInformationMessage(`Successfully changed push registry to ${updatedPushRegistry.fullAddress}`);
+                    const didUpdatePushRegistry = await RegistryUtils.setPushRegistry(this.connection, currentPushRegistry, newPushRegistry, true);
+                    if (!didUpdatePushRegistry) {
+                        Log.d(`User cancelled changing push registry`);
+                        return;
                     }
+                    vscode.window.showInformationMessage(`Successfully changed push registry to ${didUpdatePushRegistry.fullAddress}`);
                 }
                 catch (err) {
-                    const errMsg = `Failed to update push registry to ${pushRegistryToSet.fullAddress}`;
+                    const errMsg = `Failed to update push registry to ${newPushRegistry.fullAddress}`;
                     Log.e(errMsg, err);
                     vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
                 }
 
                 await this.refresh();
-                // this.registriesPage.webview.postMessage({ command: ManageRegistriesWVMessages.CHANGE_PUSH, fullAddress: );
                 break;
             }
             case CommonWVMessages.ADD_NEW: {

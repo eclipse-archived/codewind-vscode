@@ -107,9 +107,11 @@ thead > tr > td {
     height: 1.75em;
 }
 
-.btn-cell > .source-toggle {
+.btn-cell > .toggle-btn {
     min-height: 1.25em;
     height: 125%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .namespace-disabled {
