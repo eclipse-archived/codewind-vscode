@@ -19,6 +19,7 @@ import Log from "../../Logger";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";
+import Requester from "../project/Requester";
 
 export default class RemoteConnection extends Connection {
 
@@ -61,6 +62,21 @@ export default class RemoteConnection extends Connection {
 
     private async enableInner(): Promise<void> {
         Log.d(`${this.label} starting remote enable`);
+
+        // Make sure the ingress is reachable before trying anything else
+        // https://github.com/eclipse/codewind/issues/1547
+        let canPing = false;
+        try {
+            canPing = await Requester.ping(this.url);
+        }
+        catch (err) {
+            // ping failed
+        }
+
+        if (!canPing) {
+            this.setState(ConnectionStates.DISABLED);
+            throw new Error(`Failed to connect to ${this.url}. Make sure the Codewind instance is running, and reachable from your machine.`);
+        }
 
         let token: string;
         try {
