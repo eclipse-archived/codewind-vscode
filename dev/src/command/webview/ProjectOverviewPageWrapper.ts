@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
-import WebviewUtil from "./WebviewUtil";
+import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Project from "../../codewind/project/Project";
 import toggleInjectMetricsCmd from "../project/ToggleAutoInjectMetrics";
 import Log from "../../Logger";
@@ -19,6 +19,7 @@ import toggleEnablementCmd from "../project/ToggleEnablementCmd";
 import requestBuildCmd from "../project/RequestBuildCmd";
 import { removeProject } from "../project/RemoveProjectCmd";
 import { getProjectOverviewHtml } from "./pages/ProjectOverviewPage";
+import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 
 export enum ProjectOverviewWVMessages {
     BUILD = "build",
@@ -49,7 +50,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
     }
 
     protected handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
-        switch (msg.type as ProjectOverviewWVMessages) {
+        switch (msg.type as ProjectOverviewWVMessages | CommonWVMessages) {
             case ProjectOverviewWVMessages.OPEN: {
                 WebviewUtil.onRequestOpen(msg);
                 break;
@@ -67,7 +68,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 break;
             }
             case ProjectOverviewWVMessages.UNBIND: {
-                removeProject(this.project);
+                removeProject(this.project, undefined);
                 break;
             }
             case ProjectOverviewWVMessages.EDIT: {
@@ -78,6 +79,9 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 toggleInjectMetricsCmd(this.project);
                 break;
             }
+            case CommonWVMessages.OPEN_CONNECTION:
+                remoteConnectionOverviewCmd(this.project.connection);
+                break;
             default: {
                 Log.e("Received unknown event from project info webview:", msg);
             }

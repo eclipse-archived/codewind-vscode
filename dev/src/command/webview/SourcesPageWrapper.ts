@@ -38,22 +38,22 @@ export interface ISourceEnablement {
     }>;
 }
 
-function getTitle(connectionLabel: string): string {
+const SOURCES_PAGE_TITLE = "Template Source Manager";
+
+function getTitle(connection: Connection): string {
     let title = SOURCES_PAGE_TITLE;
     if (!global.isTheia) {
-        title += ` (${connectionLabel})`;
+        title += ` (${connection.label})`;
     }
     return title;
 }
-
-const SOURCES_PAGE_TITLE = "Template Sources";
 
 export class SourcesPageWrapper extends WebviewWrapper {
 
     constructor(
         private readonly connection: Connection,
     ) {
-        super(getTitle(connection.label), Resources.Icons.Logo);
+        super(getTitle(connection), Resources.Icons.Logo);
         connection.onDidOpenSourcesPage(this);
         this.refresh();
     }
