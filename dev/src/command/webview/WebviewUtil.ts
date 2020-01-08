@@ -18,6 +18,7 @@ import Commands from "../../constants/Commands";
 import { IWVOpenable } from "./pages/ProjectOverviewPage";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
+import { WebviewResourceProvider } from "./WebviewWrapper";
 
 export enum CommonWVMessages {
     OPEN_CONNECTION = "openConnection",
@@ -84,6 +85,28 @@ namespace WebviewUtil {
         }
         return `<h2 id="subtitle" ${classAttr} ${onClick}>${connectionLabel}</h2>`;
     }
+
+    export const ATTR_ID = "data-id";
+    export const ATTR_ENABLED = "data-enabled";
+    export const TOGGLE_BTN_CLASS = "toggle-btn";
+
+    export function buildToggleTD(rp: WebviewResourceProvider, enabled: boolean, title: string, idAttrValue: string): string {
+        return `<td class="btn-cell">
+            <input type="image" title="${title}" alt="${title}" ${ATTR_ID}="${idAttrValue}" ${ATTR_ENABLED}="${enabled}"
+                class="${TOGGLE_BTN_CLASS} btn" src="${getStatusToggleIconSrc(rp, enabled)}" onclick="onToggle(this)"/>
+        </td>`;
+    }
+
+    export function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, escapeBackslash: boolean = false): string {
+        let toggleIcon = rp.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+        if (escapeBackslash) {
+            // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
+            // https://github.com/eclipse/codewind/issues/476
+            toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
+        }
+        return toggleIcon;
+    }
+
 
     /**
      * For debugging in the browser, write out the html to an html file on disk and point to the resources on disk.

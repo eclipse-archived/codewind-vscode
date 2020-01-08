@@ -18,9 +18,6 @@ import { ManageSourcesWVMessages } from "../SourcesPageWrapper";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import { TemplateSource } from "../../../codewind/connection/TemplateSourceList";
 
-const SOURCE_ID_ATTR = "data-id";
-const SOURCE_ENABLED_ATTR = "data-enabled";
-
 export default function getManageSourcesPage(
     rp: WebviewResourceProvider, connectionLabel: string, isRemoteConnection: boolean, sources: TemplateSource[]): string {
 
@@ -72,18 +69,18 @@ export default function getManageSourcesPage(
     <script>
         const vscode = acquireVsCodeApi();
 
-        function onToggleSource(toggleBtn) {
+        function onToggle(toggleBtn) {
             // update the enable attr, and switch the toggle image
-            const newEnablement = toggleBtn.getAttribute("${SOURCE_ENABLED_ATTR}") != "true";
-            toggleBtn.setAttribute("${SOURCE_ENABLED_ATTR}", newEnablement);
+            const newEnablement = toggleBtn.getAttribute("${WebviewUtil.ATTR_ENABLED}") != "true";
+            toggleBtn.setAttribute("${WebviewUtil.ATTR_ENABLED}", newEnablement);
 
             let newToggleImg, newToggleAlt;
             if (newEnablement) {
-                newToggleImg = "${getStatusToggleIconSrc(rp, true, true)}";
+                newToggleImg = "${WebviewUtil.getStatusToggleIconSrc(rp, true, true)}";
                 newToggleAlt = "${getStatusToggleAlt(true)}";
             }
             else {
-                newToggleImg = "${getStatusToggleIconSrc(rp, false, true)}";
+                newToggleImg = "${WebviewUtil.getStatusToggleIconSrc(rp, false, true)}";
                 newToggleAlt = "${getStatusToggleAlt(false)}";
             }
             toggleBtn.src = newToggleImg;
@@ -96,8 +93,8 @@ export default function getManageSourcesPage(
          * Generate data field to pass back in IRepoEnablementEvent (see ManageTemplateReposCmd)
          */
         function getRepoEnablementObj(toggleBtn) {
-            const repoID = toggleBtn.getAttribute("${SOURCE_ID_ATTR}");
-            const enable = toggleBtn.getAttribute("${SOURCE_ENABLED_ATTR}") == "true";
+            const repoID = toggleBtn.getAttribute("${WebviewUtil.ATTR_ID}");
+            const enable = toggleBtn.getAttribute("${WebviewUtil.ATTR_ENABLED}") == "true";
             return {
                 repoID,
                 enable,
@@ -105,7 +102,7 @@ export default function getManageSourcesPage(
         }
 
         function deleteRepo(repoDeleteBtn) {
-            const repoID = repoDeleteBtn.getAttribute("${SOURCE_ID_ATTR}");
+            const repoID = repoDeleteBtn.getAttribute("${WebviewUtil.ATTR_ID}");
             sendMsg("${CommonWVMessages.DELETE}", repoID);
         }
 
@@ -153,37 +150,23 @@ function buildTemplateTable(rp: WebviewResourceProvider, sources: TemplateSource
 function buildRow(rp: WebviewResourceProvider, source: TemplateSource): string {
     const name = source.name || "No name available";
     const descr = source.description || "No description available";
+    const toggleTitle = source.enabled ? "Disable source" : "Enable source";
+
     return `
     <tr>
         <td class="name-cell"><a href="${source.url}">${name}</a></td>
         <td class="style-cell">${source.projectStyles.join(", ")}</td-->
         <td class="descr-cell">${descr}</td>
-        ${getStatusToggleTD(rp, source)}
+        ${WebviewUtil.buildToggleTD(rp, source.enabled, toggleTitle, source.url)}
         ${getDeleteBtnTD(rp, source)}
     </tr>
     `;
-}
-
-function getStatusToggleTD(rp: WebviewResourceProvider, source: TemplateSource): string {
-    return `<td class="btn-cell">
-        <input type="image" alt="${getStatusToggleAlt(source.enabled)}" ${SOURCE_ID_ATTR}="${source.url}" ${SOURCE_ENABLED_ATTR}="${source.enabled}"
-            class="source-toggle btn" src="${getStatusToggleIconSrc(rp, source.enabled)}" onclick="onToggleSource(this)"/>
-    </td>`;
 }
 
 function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, escapeBackslash: boolean = false): string {
-    let toggleIcon = rp.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
-    if (escapeBackslash) {
-        // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
-        // https://github.com/eclipse/codewind/issues/476
-        toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
-    }
-    return toggleIcon;
-}
 
 function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): string {
     let title = "Delete";
@@ -195,7 +178,7 @@ function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): st
         onClick = "";
     }
 
-    const deleteBtn = `<input type="image" ${SOURCE_ID_ATTR}="${source.url}" alt="Delete ${source.description}" title="${title}"
+    const deleteBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Delete ${source.description}" title="${title}"
         onclick="${onClick}" class="${deleteBtnClass}" src="${rp.getIcon(Resources.Icons.Trash)}"/>`;
 
     return `

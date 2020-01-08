@@ -30,6 +30,7 @@ export interface ConnectionMemento {
     readonly registryUrl?: string;
     readonly registryUsername?: string;
 }
+
 export namespace ConnectionMemento {
 
     /**
