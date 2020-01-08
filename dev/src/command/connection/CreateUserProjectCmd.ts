@@ -43,16 +43,26 @@ export default async function createProjectCmd(connection: Connection): Promise<
         const extState = global.extGlobalState as vscode.Memento;
         const hasSelectedSource = extState.get(HAS_SELECTED_SOURCE_KEY) as boolean;
         if (!hasSelectedSource) {
-            const selectedSource = await showTemplateSourceQuickpick(connection);
-            if (selectedSource == null) {
+            try {
+                const selectedSource = await showTemplateSourceQuickpick(connection);
+                if (selectedSource == null) {
+                    return;
+                }
+
+                extState.update(HAS_SELECTED_SOURCE_KEY, true);
+                if (selectedSource === "managed") {
+                    manageSourcesCmd(connection);
+                    // Don't continue with the create in this case.
+                    return;
+                }
+            }
+            catch (err) {
+                const errMsg = `Error fetching template sources`;
+                Log.e(errMsg, err);
+                vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
                 return;
             }
-            extState.update(HAS_SELECTED_SOURCE_KEY, true);
-            if (selectedSource === "managed") {
-                manageSourcesCmd(connection);
-                // Don't continue with the create in this case.
-                return;
-            }
+
             if (connection.sourcesPage) {
                 connection.sourcesPage.refresh();
             }
