@@ -14,11 +14,11 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import ConnectionOverviewWrapper from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import { CLICommandRunner, AccessToken } from "./CLICommandRunner";
+import { CLICommandRunner, AccessToken, CLIConnectionData } from "./CLICommandRunner";
 import Log from "../../Logger";
-import { ConnectionMemento } from "./ConnectionMemento";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
+import { ConnectionMemento } from "./ConnectionMemento";
 
 export default class RemoteConnection extends Connection {
 
@@ -37,11 +37,10 @@ export default class RemoteConnection extends Connection {
 
     constructor(
         ingressUrl: vscode.Uri,
-        memento: ConnectionMemento
+        cliData: CLIConnectionData,
     ) {
-        super(memento.id, ingressUrl, memento.label, true);
-        this._username = memento.username;
-        ConnectionMemento.save(memento);
+        super(cliData.id, ingressUrl, cliData.label, true);
+        this._username = cliData.username;
     }
 
     public async enable(): Promise<void> {
@@ -162,7 +161,7 @@ export default class RemoteConnection extends Connection {
         Log.i(`Start updateCredentials for ${this}`);
 
         this._username = username;
-        await ConnectionMemento.save(this.memento);
+        await ConnectionMemento.save(this.cliData);
 
         // Just in case there are multiple quick credentials updates
         await this.updateCredentialsPromise;
@@ -217,11 +216,11 @@ export default class RemoteConnection extends Connection {
         return this._username;
     }
 
-    public get memento(): ConnectionMemento {
+    public get cliData(): CLIConnectionData {
         return {
             id: this.id,
             label: this.label,
-            ingressUrl: this.url.toString(),
+            url: this.url.toString(),
             username: this._username,
         };
     }

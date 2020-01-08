@@ -19,7 +19,7 @@ import { WebviewResourceProvider } from "../WebviewWrapper";
 
 export default function getConnectionInfoHtml(rp: WebviewResourceProvider, connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
-    const connectionExists = !!connectionInfo.ingressUrl;
+    const connectionExists = !!connectionInfo.url;
     return `
     <!DOCTYPE html>
     <html>
@@ -62,14 +62,14 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                     ${connectionExists ? `
                         <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
                         <input type="image" id="copy_url" onclick="copyURL(event)" alt="Copy URL" src="${rp.getIcon(Resources.Icons.Copy)}"/>
-                        <div id="copy_url_tooltip">Copied</div>`
+                        <div id="copy_url_tooltip">Copied!</div>`
                         :
                         `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
                     }
-                    <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.ingressUrl}</div>
+                    <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.url}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}
-                        value="${connectionInfo.ingressUrl ? connectionInfo.ingressUrl : ""}"/>
+                        value="${connectionInfo.url ? connectionInfo.url : ""}"/>
 
                     <div style="float: left; margin-top: 2em">
                         <label class="info-label" for="input-username">Username</label>
@@ -146,7 +146,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             }
 
             // If none of the fields changed, treat it the same as a cancel
-            if (ingressInput === '${connectionInfo.ingressUrl}'
+            if (ingressInput === '${connectionInfo.url}'
                 && ingressUsername === '${connectionInfo.username}'
                 && !ingressPassword) {
 
@@ -154,7 +154,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             } else {
                 // Data body is IConnectionInfoFields
                 sendMsg("${ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO}", {
-                    ingressUrl: ingressInput,
+                    url: ingressInput,
                     username: ingressUsername,
                     password: ingressPassword,
                     label: connectionName
@@ -198,7 +198,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             let copiedURLToolTip = document.getElementById('copy_url_tooltip');
             copiedURLToolTip.style.display = "inline";
             copiedURLToolTip.style.position = "absolute";
-            copiedURLToolTip.style.left = e.pageX + 15 + 'px';
+            copiedURLToolTip.style.left = e.pageX + 25 + 'px';
             copiedURLToolTip.style.top = e.pageY - 10 +'px';
 
             setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 1000);

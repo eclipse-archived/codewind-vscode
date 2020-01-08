@@ -17,7 +17,7 @@ import Project from "../project/Project";
 import CodewindEventListener from "./CodewindEventListener";
 import MCUtil from "../../MCUtil";
 import RemoteConnection from "./RemoteConnection";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner, CLIConnectionData } from "./CLICommandRunner";
 import { ConnectionMemento } from "./ConnectionMemento";
 
 export default class ConnectionManager implements vscode.Disposable {
@@ -75,13 +75,14 @@ export default class ConnectionManager implements vscode.Disposable {
         const newConnID = await ConnectionMemento.addConnection(label, ingressUrl, username);
         await CLICommandRunner.updateKeyringCredentials(newConnID, username, password);
 
-        const newMemento: ConnectionMemento = {
+        const newData: CLIConnectionData = {
             id: newConnID,
-            ingressUrl: ingressUrl.toString(),
+            url: ingressUrl.toString(),
             label: label,
             username: username,
         };
-        const newConnection = new RemoteConnection(ingressUrl, newMemento);
+
+        const newConnection = new RemoteConnection(ingressUrl, newData);
         await this.onNewConnection(newConnection);
         return newConnection;
     }
@@ -89,11 +90,11 @@ export default class ConnectionManager implements vscode.Disposable {
     /**
      * Set up a remote connection that was loaded from `cwctl connections`
      */
-    public async loadRemoteConnection(memento: ConnectionMemento): Promise<RemoteConnection> {
-        Log.i("Recreating connection to " + memento.ingressUrl);
+    public async loadRemoteConnection(connectionData: CLIConnectionData): Promise<RemoteConnection> {
+        Log.i("Recreating connection to " + connectionData.url);
 
-        const ingressUrl = vscode.Uri.parse(memento.ingressUrl);
-        const loadedConnection = new RemoteConnection(ingressUrl, memento);
+        const ingressUrl = vscode.Uri.parse(connectionData.url);
+        const loadedConnection = new RemoteConnection(ingressUrl, connectionData);
         await this.onNewConnection(loadedConnection);
         return loadedConnection;
     }

@@ -13,14 +13,17 @@ import CLIWrapper from "./CLIWrapper";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import { TemplateSource } from "./TemplateSourceList";
+import { CLICommands } from "./CLICommands";
 
 export interface CLIConnectionData {
     readonly id: string;
     readonly label: string;
     readonly url: string;
-    readonly auth: string;
-    readonly realm: string;
-    readonly clientid: string;
+    readonly username: string;
+    // These 3 are provided in the 'connections list' output but are not yet consumed.
+    readonly auth?: string;
+    readonly realm?: string;
+    readonly clientid?: string;
 }
 
 export interface IDetectedProjectType {
@@ -48,72 +51,10 @@ export interface AccessToken {
     readonly token_type: string;
 }
 
-export interface CLICommandOptions {
-    cancellable?: boolean;
-    hasJSONOutput?: boolean;
-    censorOutput?: boolean;
-}
-
-export class CLICommand {
-
-    public readonly cancellable: boolean = false;
-    public readonly hasJSONOutput: boolean = true;
-    public readonly censorOutput: boolean = false;
-
-    constructor(
-        public readonly command: string[],
-        options?: CLICommandOptions,
-    ) {
-        if (options) {
-            if (options.cancellable != null) {
-                this.cancellable = options.cancellable;
-            }
-            if (options.hasJSONOutput != null) {
-                this.hasJSONOutput = options.hasJSONOutput;
-            }
-            if (options.censorOutput != null) {
-                this.censorOutput = options.censorOutput;
-            }
-        }
-    }
-}
-
-const STATUS = new CLICommand([ "status" ]);
-const UPGRADE = new CLICommand([ "upgrade" ]);
-
-// tslint:disable-next-line: variable-name
-const ProjectCommands = {
-    CREATE: new CLICommand([ "project", "create" ]),
-    SYNC:   new CLICommand([ "project", "sync" ]),
-    BIND:   new CLICommand([ "project", "bind" ]),
-    MANAGE_CONN: new CLICommand([ "project", "connection" ]),
-};
-
-// tslint:disable-next-line: variable-name
-const ConnectionCommands = {
-    ADD:    new CLICommand([ "connections", "add" ]),
-    LIST:   new CLICommand([ "connections", "list" ]),
-    REMOVE: new CLICommand([ "connections", "remove" ]),
-};
-
-// tslint:disable-next-line: variable-name
-const TemplateRepoCommands = {
-    ADD: new CLICommand([ "templates", "repos", "add" ]),
-    LIST: new CLICommand([ "templates", "repos", "list" ]),
-    REMOVE: new CLICommand([ "templates", "repos", "remove" ]),
-};
-
-// tslint:disable-next-line: variable-name
-const AuthCommands = {
-    KEYRING_UPDATE: new CLICommand([ "seckeyring", "update" ]),
-    // KEYRING_VALIDATE: new CLICommand([ "seckeyring", "validate" ]),
-    GET_SECTOKEN: new CLICommand([ "sectoken", "get" ], { censorOutput: true }),
-};
-
 export namespace CLICommandRunner {
 
     export async function status(): Promise<CLIStatus> {
-        const statusObj = await CLIWrapper.cliExec(STATUS);
+        const statusObj = await CLIWrapper.cliExec(CLICommands.STATUS);
         // The CLI will leave out these fields if they are empty, but an empty array is easier to deal with.
         if (statusObj["installed-versions"] == null) {
             statusObj["installed-versions"] = [];
@@ -127,7 +68,7 @@ export namespace CLICommandRunner {
     export async function createProject(connectionID: string, projectPath: string, url: string)
         : Promise<IInitializationResponse> {
 
-        return CLIWrapper.cliExec(ProjectCommands.CREATE, [
+        return CLIWrapper.cliExec(CLICommands.PROJECT.CREATE, [
             projectPath,
             "--conid", connectionID,
             "--url", url
@@ -146,7 +87,7 @@ export namespace CLICommandRunner {
         if (desiredType) {
             args.push("--type", desiredType);
         }
-        return CLIWrapper.cliExec(ProjectCommands.CREATE, args, `Processing ${projectPath}...`);
+        return CLIWrapper.cliExec(CLICommands.PROJECT.CREATE, args, `Processing ${projectPath}...`);
     }
 
     /**
@@ -155,7 +96,7 @@ export namespace CLICommandRunner {
     export async function bindProject(connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType)
         : Promise<{ projectID: string, name: string }> {
 
-        const bindRes = await CLIWrapper.cliExec(ProjectCommands.BIND, [
+        const bindRes = await CLIWrapper.cliExec(CLICommands.PROJECT.BIND, [
             "--conid", connectionID,
             "--name", projectName,
             "--language", detectedType.language,
@@ -187,7 +128,7 @@ export namespace CLICommandRunner {
      * Perform a workspace upgrade from a version older than 0.6
      */
     export async function upgrade(): Promise<WorkspaceUpgradeResult> {
-        return CLIWrapper.cliExec(UPGRADE, [
+        return CLIWrapper.cliExec(CLICommands.UPGRADE, [
             "--ws", MCUtil.getCWWorkspacePath(),
         ]);
     }
@@ -198,7 +139,7 @@ export namespace CLICommandRunner {
      * @returns The data for the new Connection
      */
     export async function addConnection(label: string, url: string, username: string): Promise<CLIConnectionData> {
-        return await CLIWrapper.cliExec(ConnectionCommands.ADD, [
+        return await CLIWrapper.cliExec(CLICommands.CONNECTIONS.ADD, [
             "--label", label,
             "--url", url,
             "--username", username,
@@ -209,8 +150,9 @@ export namespace CLICommandRunner {
      * @returns The data for all current connections, except Local
      */
     export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
-        const connections = await CLIWrapper.cliExec(ConnectionCommands.LIST);
+        const connections = await CLIWrapper.cliExec(CLICommands.CONNECTIONS.LIST);
         if (!connections.connections) {
+            // the local connection should at least be there
             Log.e(`Received no connections back from connections list`);
             return [];
         }
@@ -222,7 +164,16 @@ export namespace CLICommandRunner {
      * @returns The data for all current connections, after removal.
      */
     export async function removeConnection(id: string): Promise<void> {
-        await CLIWrapper.cliExec(ConnectionCommands.REMOVE, [ "--conid", id ]);
+        await CLIWrapper.cliExec(CLICommands.CONNECTIONS.REMOVE, [ "--conid", id ]);
+    }
+
+    export async function updateConnection(newData: CLIConnectionData): Promise<void> {
+        await CLIWrapper.cliExec(CLICommands.CONNECTIONS.UPDATE, [
+            "--conid", newData.id,
+            "--label", newData.label,
+            "--url", newData.url,
+            "--username", newData.username
+        ]);
     }
 
     ///// Template source management commands - These should only be used by the TemplateSourceList
@@ -238,19 +189,19 @@ export namespace CLICommandRunner {
             args.push("--description", descr);
         }
 
-        return CLIWrapper.cliExec(TemplateRepoCommands.ADD, args);
+        return CLIWrapper.cliExec(CLICommands.TEMPLATE_SOURCES.ADD, args);
     }
 
     export async function getTemplateSources(connectionID: string, showProgress: boolean): Promise<TemplateSource[]> {
         const progress = showProgress ? undefined : "Fetching template sources...";
 
-        return CLIWrapper.cliExec(TemplateRepoCommands.LIST, [
+        return CLIWrapper.cliExec(CLICommands.TEMPLATE_SOURCES.LIST, [
             "--conid", connectionID,
         ], progress);
     }
 
     export async function removeTemplateSource(connectionID: string, url: string): Promise<TemplateSource[]> {
-        return CLIWrapper.cliExec(TemplateRepoCommands.REMOVE, [
+        return CLIWrapper.cliExec(CLICommands.TEMPLATE_SOURCES.REMOVE, [
             "--conid", connectionID,
             "--url", url
         ]);
@@ -260,7 +211,7 @@ export namespace CLICommandRunner {
 
     export async function updateKeyringCredentials(connectionID: string, username: string, password: string): Promise<void> {
         // in the success case, the output is just an OK status
-        await CLIWrapper.cliExec(AuthCommands.KEYRING_UPDATE, [
+        await CLIWrapper.cliExec(CLICommands.AUTHENTICATION.KEYRING_UPDATE, [
             "--conid", connectionID,
             "--username", username,
             "--password", password
@@ -271,7 +222,7 @@ export namespace CLICommandRunner {
 
     export async function getAccessToken(connectionID: string, username: string): Promise<AccessToken> {
         try {
-            const result = await CLIWrapper.cliExec(AuthCommands.GET_SECTOKEN, [
+            const result = await CLIWrapper.cliExec(CLICommands.AUTHENTICATION.GET_SECTOKEN, [
                 "--conid", connectionID,
                 "--username", username,
             ]);
