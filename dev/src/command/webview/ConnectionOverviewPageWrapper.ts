@@ -42,7 +42,7 @@ export enum ConnectionOverviewWVMessages {
  * The editable textfields in the Connection (left half) part of the overview
  */
 interface ConnectionInfoFields {
-    readonly ingressUrl?: string;
+    readonly url?: string;
     readonly username?: string;
     readonly password?: string;
 }
@@ -66,7 +66,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
             connection.overviewPage.reveal();
             return connection.overviewPage;
         }
-        return new ConnectionOverviewWrapper(connection.memento, connection);
+        return new ConnectionOverviewWrapper(connection.cliData, connection);
     }
 
     /////
@@ -86,7 +86,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
         if (this.connection) {
             isConnnected = this.connection.isConnected;
         }
-        const connectionInfo = this.connection ? this.connection.memento : { label: this.label };
+        const connectionInfo = this.connection ? this.connection.cliData : { label: this.label };
         return getConnectionInfoHtml(resourceProvider, connectionInfo, isConnnected);
     }
 
@@ -132,7 +132,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
                         }
                         catch (err) {
                             // the err from createNewConnection is user-friendly
-                            Log.w(`Error creating new connection to ${newInfo.ingressUrl}`, err);
+                            Log.w(`Error creating new connection to ${newInfo.url}`, err);
                             vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
                         }
                     }
@@ -200,12 +200,12 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
      * Returns the new Connection if it succeeds. Returns undefined if user cancels. Throws errors.
      */
     private async createNewConnection(newConnectionInfo: ConnectionInfoFields, label: string): Promise<RemoteConnection> {
-        if (!newConnectionInfo.ingressUrl) {
+        if (!newConnectionInfo.url) {
             throw new Error("Enter a Codewind Gatekeeper ingress host");
         }
-        Log.d("Ingress host is", newConnectionInfo.ingressUrl);
+        Log.d("Ingress host is", newConnectionInfo.url);
 
-        let ingressUrlStr = newConnectionInfo.ingressUrl.trim();
+        let ingressUrlStr = newConnectionInfo.url.trim();
         try {
             if (!ingressUrlStr.includes("://")) {
                 Log.d(`No protocol; assuming https`);

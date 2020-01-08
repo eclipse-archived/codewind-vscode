@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import { CodewindStates } from "./CodewindStates";
-import { CLICommand } from "../CLICommandRunner";
+import { CLICommand } from "../CLICommands";
 
 const TAG_PLACEHOLDER = `$tag$`;
 

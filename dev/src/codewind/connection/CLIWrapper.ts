@@ -19,8 +19,8 @@ import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
 import { CLILifecycleCommand } from "./local/CLILifecycleCommands";
-import { CLICommand } from "./CLICommandRunner";
 import Constants from "../../constants/Constants";
+import { CLICommand } from "./CLICommands";
 
 const BIN_DIR = "bin";
 const CLI_EXECUTABLE = "cwctl";
