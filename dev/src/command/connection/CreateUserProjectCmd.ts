@@ -49,6 +49,10 @@ export default async function createProjectCmd(connection: Connection): Promise<
                     return;
                 }
 
+                if (connection.sourcesPage) {
+                    connection.sourcesPage.refresh();
+                }
+
                 extState.update(HAS_SELECTED_SOURCE_KEY, true);
                 if (selectedSource === "managed") {
                     manageSourcesCmd(connection);
@@ -60,11 +64,6 @@ export default async function createProjectCmd(connection: Connection): Promise<
                 const errMsg = `Error fetching template sources`;
                 Log.e(errMsg, err);
                 vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-                return;
-            }
-
-            if (connection.sourcesPage) {
-                connection.sourcesPage.refresh();
             }
         }
     }
