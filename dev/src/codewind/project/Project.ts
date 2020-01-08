@@ -445,7 +445,7 @@ export default class Project implements vscode.QuickPickItem {
             return;
         }
 
-        Log.i(`${this} was deleted in Codewind`);
+        Log.i(`${this} was deleted from ${this.connection.label}`);
         DebugUtils.removeDebugLaunchConfigFor(this);
 
         const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
@@ -498,7 +498,7 @@ export default class Project implements vscode.QuickPickItem {
 
     // QuickPickItem
     public get detail(): string {
-        return this.connection.url.toString();
+        return this.connection.label;
     }
 
     public get isRestarting(): boolean {

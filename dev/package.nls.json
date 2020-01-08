@@ -54,7 +54,7 @@
     "cmdTitle_bindProject": "Add Existing Project",
 
     "cmdID_manageTemplateRepos": "ext.cw.manageSources",
-    "cmdTitle_manageTemplateRepos": "Template Sources Manager",
+    "cmdTitle_manageTemplateRepos": "Template Source Manager",
 
     "cmdID_manageRegistries": "ext.cw.manageRegistries",
     "cmdTitle_manageRegistries": "Image Registry Manager",
@@ -130,6 +130,9 @@
 
     "cmdID_disableAutoInjectMetrics": "ext.cw.disableInjectMetrics",
     "cmdTitle_disableAutoInjectMetrics": "Disable Inject Appmetrics",
+
+    "cmdID_changeProjectConnection": "ext.cw.changeProjectConnection",
+    "cmdTitle_changeProjectConnection": "Move Project",
 
     "// None of items below are exposed to user": [
         "These regexes match Context IDs for Projects and Connections to determine command enablement",

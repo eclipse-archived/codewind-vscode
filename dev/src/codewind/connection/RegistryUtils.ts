@@ -65,8 +65,8 @@ namespace RegistryUtils {
      * If the project type requires a push registry and the connection does not have a push registry,
      * shows an error message and returns true.
      */
-    export async function doesNeedPushRegistry(projectType: string, connection: Connection): Promise<boolean> {
-        if (doesUsePushRegistry(projectType) && await connection.needsPushRegistry()) {
+    export async function doesNeedPushRegistry(internalType: string, connection: Connection): Promise<boolean> {
+        if (doesUsePushRegistry(internalType) && await connection.needsPushRegistry()) {
             const manageRegistriesBtn = "Image Registry Manager";
 
             vscode.window.showErrorMessage(`Codewind style projects on Kubernetes require an Image Push Registry to be configured. ` +

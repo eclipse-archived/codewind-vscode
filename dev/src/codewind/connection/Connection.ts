@@ -385,6 +385,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         await this.forceUpdateProjectList(true);
     }
 
+    public get description(): string {
+        return `(${this.projects.length} projects)`;
+    }
+
     // QuickPick detail
     public get detail(): string {
         return this.url.toString();
