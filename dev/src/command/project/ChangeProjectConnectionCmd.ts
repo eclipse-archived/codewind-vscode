@@ -26,7 +26,7 @@ export default async function changeProjectConnectionCmd(project: Project): Prom
     try {
         const selectableConnections = ConnectionManager.instance.connections.filter((conn) =>
             // we show a given connection if the other connection is connected and does not already have this project
-            conn.isConnected && conn !== project.connection && !conn.projects.some((proj) => proj.localPath.fsPath === project.localPath.fsPath)
+            conn.isConnected && conn !== project.connection && !conn.hasProjectAtPath(project.localPath)
         );
 
         if (selectableConnections.length === 0) {

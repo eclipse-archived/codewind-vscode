@@ -259,6 +259,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this._projects;
     }
 
+    public hasProjectAtPath(path: vscode.Uri): boolean {
+        return this.projects.some((proj) => proj.localPath.fsPath === path.fsPath);
+    }
+
     private async updateProjects(): Promise<Project[]> {
         // Log.d("getProjects");
         if (!this.needProjectUpdate) {

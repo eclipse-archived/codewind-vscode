@@ -44,8 +44,7 @@ export async function removeProject(project: Project, deleteFiles: boolean | und
         }
 
         const projectDirPath: string = project.localPath.fsPath;
-        const isProjectBoundElsewhere = (await ConnectionManager.instance.allProjects)
-            .some((proj) => proj.id !== project.id && projectDirPath === project.localPath.fsPath);
+        const isProjectBoundElsewhere = ConnectionManager.instance.connections.some((conn) => conn.hasProjectAtPath(project.localPath));
 
         if (isProjectBoundElsewhere) {
             // Another connection is using this project, so we cannot delete its files.
