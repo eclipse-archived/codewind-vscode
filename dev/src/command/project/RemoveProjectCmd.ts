@@ -17,19 +17,24 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
+import ConnectionManager from "../../codewind/connection/ConnectionManager";
 
 export default async function removeProjectCmd(project: Project): Promise<void> {
-    await removeProject(project);
+    await removeProject(project, undefined);
 }
 
 /**
- * @param prompt - Set this to `false` to skip prompting the user, and instead just do the unbind & delete silently.
+ * @param deleteFiles - Set this to skip prompting the user, and instead just do the unbind silently.
  */
-export async function removeProject(project: Project, prompt: boolean = true): Promise<void> {
+export async function removeProject(project: Project, deleteFiles: boolean | undefined): Promise<void> {
     let doDeleteProjectDir: boolean;
 
-    if (prompt) {
-        const deleteMsg = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectMsg", { projectName: project.name });
+    if (deleteFiles == null) {
+        // ask the user
+        const deleteMsg = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectMsg", {
+            projectName: project.name,
+            connectionLabel: project.connection.label
+        });
         const deleteBtn = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteBtn", { projectName: project.name });
 
         const deleteRes = await vscode.window.showInformationMessage(deleteMsg, { modal: true }, deleteBtn);
@@ -39,25 +44,33 @@ export async function removeProject(project: Project, prompt: boolean = true): P
         }
 
         const projectDirPath: string = project.localPath.fsPath;
+        const isProjectBoundElsewhere = ConnectionManager.instance.connections.some((conn) => conn.hasProjectAtPath(project.localPath));
 
-        const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", { dirPath: projectDirPath });
-        const deleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirBtn");
-        // const dontDeleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "dontDeleteDirBtn");
-        // const deleteNeverBtn = Translator.t(StringNamespaces.CMD_MISC, "neverDeleteDirBtn");
-        // const deleteAlwaysBtn = Translator.t(StringNamespaces.CMD_MISC, "alwaysDeleteDirBtn");
-        const deleteDirRes = await vscode.window.showWarningMessage(deleteDirMsg, { modal: true },
-            deleteDirBtn, /* dontDeleteDirBtn  deleteNeverBtn, deleteAlwaysBtn */);
+        if (isProjectBoundElsewhere) {
+            // Another connection is using this project, so we cannot delete its files.
+            doDeleteProjectDir = false;
+        }
+        else {
+            // Ask user if they want to delete the files on disk too.
+            const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", { dirPath: projectDirPath });
+            const deleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirBtn");
+            // const dontDeleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "dontDeleteDirBtn");
+            // const deleteNeverBtn = Translator.t(StringNamespaces.CMD_MISC, "neverDeleteDirBtn");
+            // const deleteAlwaysBtn = Translator.t(StringNamespaces.CMD_MISC, "alwaysDeleteDirBtn");
+            const deleteDirRes = await vscode.window.showWarningMessage(deleteDirMsg, { modal: true },
+                deleteDirBtn, /* dontDeleteDirBtn  deleteNeverBtn, deleteAlwaysBtn */);
 
-        doDeleteProjectDir = deleteDirRes === deleteDirBtn;
+            doDeleteProjectDir = deleteDirRes === deleteDirBtn;
+        }
     }
     else {
-        doDeleteProjectDir = true;
+        doDeleteProjectDir = deleteFiles;
     }
 
     await vscode.window.withProgress({
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: `Removing ${project.name}...`
+        title: `Removing ${project.name} from ${project.connection.label}...`
     }, async () => {
         await project.deleteFromCodewind(doDeleteProjectDir);
     });

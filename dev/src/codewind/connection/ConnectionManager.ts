@@ -13,12 +13,12 @@ import * as vscode from "vscode";
 
 import Connection, { LOCAL_CONNECTION_ID } from "./Connection";
 import Log from "../../Logger";
-import Project from "../project/Project";
 import CodewindEventListener from "./CodewindEventListener";
 import MCUtil from "../../MCUtil";
 import RemoteConnection from "./RemoteConnection";
 import { CLICommandRunner, CLIConnectionData } from "./CLICommandRunner";
 import { ConnectionMemento } from "./ConnectionMemento";
+import Project from "../project/Project";
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;

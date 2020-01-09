@@ -48,6 +48,7 @@ import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnablement";
 import manageRegistriesCmd from "./connection/ManageRegistriesCmd";
 import toggleInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
+import changeProjectConnectionCmd from "./project/ChangeProjectConnectionCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -103,6 +104,7 @@ export function createCommands(): vscode.Disposable[] {
         registerProjectCommand(Commands.ENABLE_PROJECT, toggleEnablementCmd, undefined, [ ProjectState.AppStates.DISABLED ]),
         registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, undefined, ProjectState.getEnabledStates()),
         registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, undefined, ProjectState.getAllAppStates()),
+        registerProjectCommand(Commands.CHANGE_PROJECT_CONNECTION, changeProjectConnectionCmd, undefined, ProjectState.getAllAppStates()),
 
         registerProjectCommand(Commands.OPEN_APP_MONITOR, openAppMonitorCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),

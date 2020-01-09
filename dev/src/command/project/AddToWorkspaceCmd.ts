@@ -32,11 +32,19 @@ export default async function addProjectToWorkspaceCmd(project: Project): Promis
         name: path.basename(project.localPath.fsPath),
     };
 
-    vscode.workspace.updateWorkspaceFolders(wsFolders.length, 0, newWsFolder);
+    Log.i(`Adding ${project.localPath.fsPath} to workspace`);
 
-    vscode.window.showInformationMessage(`Added ${newWsFolder.uri.fsPath} to workspace folders.`);
-
-    vscode.workspace.onDidChangeWorkspaceFolders((e) => {
-        Log.d("ws folders changed", e);
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        cancellable: false,
+        title: `Adding ${project.name} to workspace...`,
+    }, () => {
+        vscode.workspace.updateWorkspaceFolders(wsFolders.length, 0, newWsFolder);
+        return new Promise((resolve) => {
+            vscode.workspace.onDidChangeWorkspaceFolders((_e) => {
+                resolve();
+            });
+        });
     });
+
 }

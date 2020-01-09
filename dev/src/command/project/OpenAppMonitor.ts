@@ -47,8 +47,8 @@ export function getAppMetricsNotSupportedMsg(projectName: string): string {
  * Extra test for extension projects - workaround for https://github.com/eclipse/codewind/issues/258
  */
 export async function testPingAppMonitor(project: Project): Promise<boolean> {
-    if (project.type.type !== ProjectType.Types.EXTENSION) {
-        // this test is not necessary for non-extension projects
+    if (project.type.type !== ProjectType.Types.EXTENSION_APPSODY) {
+        // this test is not necessary for non-appsody projects
         return true;
     }
     // this was checked above; just to satisfy the compiler

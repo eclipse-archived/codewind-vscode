@@ -71,11 +71,20 @@ namespace WebviewUtil {
         >`;
     }
 
-    export function buildSubtitle(connectionLabel: string, isRemoteConnection: boolean): string {
-        if (global.isTheia) {
-            return "";
-        }
+    export function buildTitleSection(rp: WebviewResourceProvider, title: string, connectionLabel: string, isRemoteConnection: boolean): string {
+        // the subtitle is ommitted in theia since there is only one connection
+        const hasSubtitle = !global.isTheia;
 
+        return `<div class="title-section ${hasSubtitle ? "" : "title-section-subtitled"}">
+            <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
+            <div>
+                <h1 id="title">${title}</h1>
+                ${hasSubtitle ? buildConnectionSubtitle(connectionLabel, isRemoteConnection) : ""}
+            </div>
+        </div>`;
+    }
+
+    function buildConnectionSubtitle(connectionLabel: string, isRemoteConnection: boolean): string {
         let classAttr = "";
         let onClick = "";
 
