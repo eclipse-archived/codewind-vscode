@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -44,7 +44,8 @@ export class ProjectState {
         // call update() right away
     }
 
-    public update(projectStateInfo: ProjectStateInfo): void {
+    public update(projectStateInfo: ProjectStateInfo): boolean {
+        const oldState = { ... this };
         this.appState = ProjectState.getAppState(projectStateInfo);
         if (this.appState !== ProjectState.AppStates.DISABLED) {
             this.appDetail = projectStateInfo.detailedAppStatus;
@@ -61,14 +62,11 @@ export class ProjectState {
         if (this.appDetail && this.appDetail.notify) {
             this.notify();
         }
-    }
 
-    public equals(other: ProjectState): boolean {
-        return other != null &&
-            this.appState === other.appState &&
-            this.appDetail === other.appDetail &&
-            this.buildState === other.buildState &&
-            this.buildDetail === other.buildDetail;
+        return !(this.appState === oldState.appState &&
+            this.appDetail === oldState.appDetail &&
+            this.buildState === oldState.buildState &&
+            this.buildDetail === oldState.buildDetail);
     }
 
     public get isEnabled(): boolean {
