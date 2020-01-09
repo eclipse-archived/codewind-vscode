@@ -8,6 +8,10 @@
     padding-bottom: 0.75em;
 }
 
+#subtitle {
+    font-size: 1.25em;
+}
+
 #top-right-btns {
     margin-left: auto;
     display: inline-flex;

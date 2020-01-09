@@ -27,7 +27,7 @@ import Requester from "../../codewind/project/Requester";
 export default async function bindProjectCmd(connection: Connection): Promise<void> {
     try {
         const defaultPath = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
-        const dirToBindUri = await MCUtil.promptForProjectDir("Add to Codewind", defaultPath);
+        const dirToBindUri = await MCUtil.promptForProjectDir(`Add to ${connection.label}`, defaultPath);
         if (dirToBindUri == null) {
             return;
         }
@@ -101,13 +101,8 @@ async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri):
     if (projectTypeInfo.projectSubtype) {
         await detectProjectType(connection, pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
     }
-    await vscode.window.withProgress({
-        cancellable: false,
-        location: vscode.ProgressLocation.Notification,
-        title: `Adding ${projectName} to ${connection.label}...`
-    }, () => {
-        return CLICommandRunner.bindProject(connection.id, projectName, pathToBind, projectTypeInfo);
-    });
+
+    await addProjectToConnection(connection, projectName, pathToBind, projectTypeInfo);
 
     return { projectName, projectPath: pathToBind };
 }
@@ -267,4 +262,16 @@ async function detectProjectType(connection: Connection, pathToBind: string, des
     return CLICommandRunner.detectProjectType(connection.id, pathToBind, desiredType);
     // Log.d("Detection response", detectResponse);
     // return detectResponse;
+}
+
+export async function addProjectToConnection(
+    connection: Connection, projectName: string, pathToBind: string, projectTypeInfo: IDetectedProjectType): Promise<void> {
+
+    await vscode.window.withProgress({
+        cancellable: false,
+        location: vscode.ProgressLocation.Notification,
+        title: `Adding ${projectName} to ${connection.label}...`
+    }, () => {
+        return CLICommandRunner.bindProject(connection.id, projectName, pathToBind, projectTypeInfo);
+    });
 }

@@ -38,13 +38,7 @@ export default function getManageSourcesPage(
     <body>
 
     <div id="top-section">
-        <div class="title-section ${global.isTheia ? "" : "title-section-subtitled"}">
-            <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
-            <div>
-                <h1 id="title">Template Sources</h1>
-                ${WebviewUtil.buildSubtitle(connectionLabel, isRemoteConnection)}
-            </div>
-        </div>
+        ${WebviewUtil.buildTitleSection(rp, "Template Source Manager", connectionLabel, isRemoteConnection)}
         <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${CommonWVMessages.HELP}')">
             Learn More<img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
         </div>

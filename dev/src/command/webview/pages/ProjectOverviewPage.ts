@@ -60,10 +60,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     </head>
     <body>
 
-    <div class="title-section">
-        <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
-        <h1>Project ${project.name}</h1>
-    </div>
+    ${WebviewUtil.buildTitleSection(rp, project.name, project.connection.label, project.connection.isRemote)}
 
     <div id="main">
         <div id="top-section">
@@ -127,8 +124,8 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                     <a onclick="vscOpen('${OpenableTypes.WEB}', '${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}')" title="More Info">More Info</a>
                 </div>
             </div>
-            <!-- Hide Container ID in theia -->
-            ${global.isTheia ? "" : `
+            <!-- Hide Container ID when it doesn't apply -->
+            ${project.connection.isKubeConnection ? "" : `
                 <table>
                     ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
                 </table>`

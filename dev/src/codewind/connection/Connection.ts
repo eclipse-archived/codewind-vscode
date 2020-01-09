@@ -259,6 +259,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this._projects;
     }
 
+    public hasProjectAtPath(path: vscode.Uri): boolean {
+        return this.projects.some((proj) => proj.localPath.fsPath === path.fsPath);
+    }
+
     private async updateProjects(): Promise<Project[]> {
         // Log.d("getProjects");
         if (!this.needProjectUpdate) {
@@ -383,6 +387,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public async refresh(): Promise<void> {
         await this.forceUpdateProjectList(true);
+    }
+
+    public get description(): string {
+        return `(${this.projects.length} projects)`;
     }
 
     // QuickPick detail

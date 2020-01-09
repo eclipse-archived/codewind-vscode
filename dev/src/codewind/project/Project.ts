@@ -445,7 +445,7 @@ export default class Project implements vscode.QuickPickItem {
             return;
         }
 
-        Log.i(`${this} was deleted in Codewind`);
+        Log.i(`${this} was deleted from ${this.connection.label}`);
         DebugUtils.removeDebugLaunchConfigFor(this);
 
         const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
@@ -498,7 +498,7 @@ export default class Project implements vscode.QuickPickItem {
 
     // QuickPickItem
     public get detail(): string {
-        return this.connection.url.toString();
+        return this.connection.label;
     }
 
     public get isRestarting(): boolean {
@@ -753,7 +753,7 @@ export default class Project implements vscode.QuickPickItem {
         if (settingsFileExists) {
             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(settingsFilePath));
         }
-        else if (this.type.type === ProjectType.Types.EXTENSION) {
+        else if (this.type.isExtensionType) {
             // this is expected; https://github.com/eclipse/codewind/issues/649
             vscode.window.showWarningMessage(`Application settings cannot be configured for ${this.type.toString()} projects.`);
         }

@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import Resources from "../../constants/Resources";
-import MCUtil from "../../MCUtil";
 // import Log from "../../Logger";
 
 export class ProjectType {
@@ -24,7 +23,7 @@ export class ProjectType {
     constructor(
         public readonly internalType: ProjectType.InternalTypes,
         public readonly language: string,
-        public readonly extensionName?: string,
+        extensionName?: string,
     ) {
         this.type = ProjectType.getType(internalType, extensionName);
         // this.userFriendlyType = ProjectType.getUserFriendlyType(this.type);
@@ -33,13 +32,13 @@ export class ProjectType {
     }
 
     public toString(): string {
-        if (this.extensionName) {
-            let ufExtension = this.extensionName.toLowerCase();
-            if (ufExtension.endsWith("extension")) {
-                ufExtension = ufExtension.substring(0, ufExtension.length - "extension".length);
-            }
-            return MCUtil.uppercaseFirstChar(ufExtension);
-        }
+        // if (this.extensionName) {
+        //     let ufExtension = this.extensionName.toLowerCase();
+        //     if (ufExtension.endsWith("extension")) {
+        //         ufExtension = ufExtension.substring(0, ufExtension.length - "extension".length);
+        //     }
+        //     return MCUtil.uppercaseFirstChar(ufExtension);
+        // }
         return this.type.toString();
     }
 
@@ -59,8 +58,11 @@ export class ProjectType {
         else if (internalType === this.InternalTypes.DOCKER) {
             return ProjectType.Types.GENERIC_DOCKER;
         }
-        else if (extensionName) {
-            return ProjectType.Types.EXTENSION;
+        else if (extensionName === this.InternalTypes.EXTENSION_APPSODY) {
+            return ProjectType.Types.EXTENSION_APPSODY;
+        }
+        else if (extensionName === this.InternalTypes.EXTENSION_ODO) {
+            return ProjectType.Types.EXTENSION_ODO;
         }
         else {
             // Log.e(`Unrecognized project type ${interalType}`);
@@ -79,7 +81,7 @@ export class ProjectType {
                 return this.DebugTypes.JAVA;
             case ProjectType.Types.NODE:
                 return this.DebugTypes.NODE;
-            case ProjectType.Types.EXTENSION:
+            case ProjectType.Types.EXTENSION_APPSODY:
                 // For extension types, we use the language to determine debug type
                 const lang = language.toLowerCase();
                 if (lang === this.Languages.JAVA) {
@@ -154,6 +156,13 @@ export class ProjectType {
         .map((lang) => lang.toString().toLowerCase())
         .includes(this.language.toLowerCase());
     }
+
+    public get isExtensionType(): boolean {
+        return [
+            ProjectType.Types.EXTENSION_APPSODY,
+            ProjectType.Types.EXTENSION_ODO,
+        ].includes(this.type);
+    }
 }
 
 export namespace ProjectType {
@@ -167,7 +176,8 @@ export namespace ProjectType {
         NODE = "Node.js",
         SWIFT = "Swift",
         GENERIC_DOCKER = "Docker",
-        EXTENSION = "Extension",
+        EXTENSION_APPSODY = "Appsody",
+        EXTENSION_ODO = "OpenShift Do",
         UNKNOWN = "Unknown"
     }
 
@@ -183,9 +193,8 @@ export namespace ProjectType {
         SWIFT = "swift",
         DOCKER = "docker",
         EXTENSION_APPSODY = "appsodyExtension",
-        EXTENSION_ODO = "odo",
+        EXTENSION_ODO = "odoExtension",
     }
-
 
     /**
      * Some possible values of the "language" internal attribute, for which we have special treatment such as nicer icons.

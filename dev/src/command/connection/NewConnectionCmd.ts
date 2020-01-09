@@ -54,7 +54,7 @@ export async function newRemoteConnectionCmd(): Promise<void> {
 async function getConnectionLabel(): Promise<string | undefined> {
     const labelIb = vscode.window.createInputBox();
     labelIb.ignoreFocusOut = true;
-    labelIb.placeholder = "My IBM Cloud";
+    labelIb.placeholder = "My Cluster";
     labelIb.prompt = `Enter a label for your new remote Codewind connection.`;
     // labelIb.step = 2;
     // labelIb.totalSteps = NEW_CONNECTION_NO_STEPS;

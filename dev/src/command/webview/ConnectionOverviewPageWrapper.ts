@@ -81,6 +81,10 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
         this.refresh();
     }
 
+    protected getTitle(): string {
+        return this.label;
+    }
+
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
         let isConnnected = false;
         if (this.connection) {

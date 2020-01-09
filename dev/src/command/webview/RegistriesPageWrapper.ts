@@ -34,10 +34,10 @@ interface ManageRegistriesMsgData {
     readonly fullAddress: string;
 }
 
-function getTitle(connectionLabel: string): string {
-    let title = "Image Registries";
+function getTitle(connection: Connection): string {
+    let title = "Image Registry Manager";
     if (!global.isTheia) {
-        title += ` (${connectionLabel})`;
+        title += ` (${connection.label})`;
     }
     return title;
 }
@@ -49,7 +49,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
     constructor(
         private readonly connection: Connection
     ) {
-        super(getTitle(connection.label), Resources.Icons.Logo);
+        super(getTitle(connection), Resources.Icons.Logo);
         connection.onDidOpenRegistriesPage(this);
         this.refresh();
     }
