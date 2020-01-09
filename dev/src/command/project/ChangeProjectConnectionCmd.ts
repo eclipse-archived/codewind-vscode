@@ -92,9 +92,20 @@ export default async function changeProjectConnectionCmd(project: Project): Prom
             await addProjectToConnection(targetConnection, project.name, project.localPath.fsPath, projectType);
         }
         catch (err) {
-            const errMsg = `Error adding ${project.name} to ${targetConnection.label}`;
+            const errMsg = `Failed to add ${project.name} to ${targetConnection.label}`;
             Log.e(errMsg, err);
-            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+
+            // We use regex instead .includes here because for some reason this error message uses non-breaking spaces
+            if (/type\sis\sinvalid/.test(err.toString() as string)) {
+                Log.i(`Cannot add ${project.type.internalType} project to ${targetConnection.label}`);
+                vscode.window.showErrorMessage(`${errMsg}: ${targetConnection.label} does not support ${project.type.type} projects.`);
+            }
+            else {
+                vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            }
+
+            // Don't clean up the project from the old instance if it failed to get added to the new one
+            return;
         }
 
         if (existingActionResponse === optionRemove) {
