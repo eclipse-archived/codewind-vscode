@@ -51,7 +51,7 @@ async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri):
     Log.i("Binding to", pathToBind);
 
     const projectName = path.basename(pathToBind);
-    const validateRes = await detectProjectType(connection, pathToBind);
+    const validateRes = await detectProjectType(pathToBind);
     if (validateRes.status !== SocketEvents.STATUS_SUCCESS) {
         // failed
         const failedResult = (validateRes.result as { error: string });
@@ -99,7 +99,7 @@ async function detectAndBind(connection: Connection, pathToBindUri: vscode.Uri):
     // validate once more with detected type and subtype (if defined),
     // to run any extension defined command involving subtype
     if (projectTypeInfo.projectSubtype) {
-        await detectProjectType(connection, pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
+        await detectProjectType(pathToBind, projectTypeInfo.projectType + ":" + projectTypeInfo.projectSubtype);
     }
 
     await addProjectToConnection(connection, projectName, pathToBind, projectTypeInfo);
@@ -258,8 +258,8 @@ async function promptForLanguageOrSubtype(choices: IProjectSubtypesDescriptor): 
     return language.id;
 }
 
-async function detectProjectType(connection: Connection, pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
-    return CLICommandRunner.detectProjectType(connection.id, pathToBind, desiredType);
+async function detectProjectType(pathToBind: string, desiredType?: string): Promise<IInitializationResponse> {
+    return CLICommandRunner.detectProjectType(pathToBind, desiredType);
     // Log.d("Detection response", detectResponse);
     // return detectResponse;
 }
