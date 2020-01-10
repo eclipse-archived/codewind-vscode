@@ -147,7 +147,7 @@ export default class MCSocket implements vscode.Disposable {
     }
 
     private readonly onProjectBound = async (payload: { success: boolean; projectID?: string; error?: string; }): Promise<void> => {
-        await this.connection.forceUpdateProjectList();
+        await this.connection.updateProjects();
 
         if (payload.projectID) {
             const newProject = await this.connection.getProjectByID(payload.projectID);
@@ -220,7 +220,7 @@ export default class MCSocket implements vscode.Disposable {
         }
 
         await project.onDeletionEvent(payload);
-        this.connection.forceUpdateProjectList();
+        this.connection.updateProjects();
     }
 
     private readonly onProjectRestarted = async (payload: SocketEvents.IProjectRestartedEvent): Promise<void> => {
@@ -291,7 +291,7 @@ export default class MCSocket implements vscode.Disposable {
     }
 
     // prevents multiple events from simultaneously requesting a projects refresh
-    private refreshingProjectsProm: Promise<void> | undefined;
+    private refreshingProjectsProm: Promise<unknown> | undefined;
 
     private readonly getProject = async (payload: { projectID: string }): Promise<Project | undefined> => {
         const projectID = payload.projectID;
@@ -309,7 +309,7 @@ export default class MCSocket implements vscode.Disposable {
         if (result == null) {
             Log.w(`${this} received socket event for nonexistent project`, projectID);
 
-            this.refreshingProjectsProm = this.connection.forceUpdateProjectList();
+            this.refreshingProjectsProm = this.connection.updateProjects();
             await this.refreshingProjectsProm;
             this.refreshingProjectsProm = undefined;
 

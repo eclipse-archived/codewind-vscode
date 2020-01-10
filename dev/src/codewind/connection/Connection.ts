@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -43,7 +43,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private hasConnected: boolean = false;
 
     private _projects: Project[] = [];
-    private needProjectUpdate: boolean = true;
 
     public readonly templateSourcesList: TemplateSourcesList = new TemplateSourcesList(this);
 
@@ -117,7 +116,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         try {
             Log.d("Updating projects list after ready");
-            await this.forceUpdateProjectList();
+            await this.updateProjects();
         }
         catch (err) {
             Log.e("Error updating projects list after ready", err);
@@ -263,12 +262,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this.projects.some((proj) => proj.localPath.fsPath === path.fsPath);
     }
 
-    private async updateProjects(): Promise<Project[]> {
-        // Log.d("getProjects");
-        if (!this.needProjectUpdate) {
-            return this._projects;
-        }
-
+    public async updateProjects(): Promise<Project[]> {
         const projectsData = await Requester.getProjects(this);
 
         const oldProjects = this._projects;
@@ -311,8 +305,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         // Log.d("Awaiting init promises " + Date.now());
         await Promise.all(initPromises);
-        // Log.d("Done awaiting init promises " + Date.now());
-        this.needProjectUpdate = false;
         Log.d("Done projects update");
         this.onChange();
         return this._projects;
@@ -324,28 +316,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             // Logger.logE(`Couldn't find project with ID ${projectID} on connection ${this}`);
         }
         return result;
-    }
-
-    public async forceUpdateProjectList(wipeProjects: boolean = false): Promise<void> {
-        // Log.d("forceUpdateProjectList");
-        if (wipeProjects) {
-            Log.d(`Connection ${this} wiping ${this._projects.length} projects`);
-            this._projects.forEach((p) => p.dispose());
-            this._projects = [];
-        }
-        this.needProjectUpdate = true;
-        try {
-            await this.updateProjects();
-        }
-        catch (err) {
-            Log.e(`Error updating projects for ${this}`, err);
-            vscode.window.showErrorMessage(`Error updating projects list for ${this.label}: ${MCUtil.errToString(err)}`);
-        }
-
-        if (wipeProjects) {
-            // refresh whole tree
-            this.onChange();
-        }
     }
 
     /**
@@ -386,7 +356,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public async refresh(): Promise<void> {
-        await this.forceUpdateProjectList(true);
+        await this.updateProjects();
     }
 
     public get description(): string {
