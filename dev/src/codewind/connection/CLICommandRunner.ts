@@ -65,12 +65,11 @@ export namespace CLICommandRunner {
         return statusObj;
     }
 
-    export async function createProject(connectionID: string, projectPath: string, url: string)
+    export async function createProject(projectPath: string, url: string)
         : Promise<IInitializationResponse> {
 
         return CLIWrapper.cliExec(CLICommands.PROJECT.CREATE, [
-            projectPath,
-            "--conid", connectionID,
+            "--path", projectPath,
             "--url", url
         ]);
     }
