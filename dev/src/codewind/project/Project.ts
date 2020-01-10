@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -195,21 +195,20 @@ export default class Project implements vscode.QuickPickItem {
             this.appBaseURL = asUri;
         }
 
-        const oldState = this._state;
-        this.state.update(projectInfo);
+        const wasEnabled = this.state.isEnabled;
+        const oldStateStr = this.state.toString();
+        const stateChanged = this.state.update(projectInfo);
 
-        if (!this._state.equals(oldState)) {
+        if (stateChanged) {
             const startModeMsg = projectInfo.startMode == null ? "" : `, startMode=${projectInfo.startMode}`;
-            Log.d(`${this.name} went from ${oldState} to ${this._state}${startModeMsg}`);
+            Log.d(`${this.name} went from ${oldStateStr} to ${this._state}${startModeMsg}`);
 
             // Check if the project was just enabled or disabled
-            if (oldState != null) {
-                if (oldState.isEnabled && !this._state.isEnabled) {
-                    this.onDisable();
-                }
-                else if (!oldState.isEnabled && this._state.isEnabled) {
-                    this.onEnable();
-                }
+            if (wasEnabled && !this.state.isEnabled) {
+                this.onDisable();
+            }
+            else if (!wasEnabled && this.state.isEnabled) {
+                this.onEnable();
             }
         }
 
@@ -394,7 +393,7 @@ export default class Project implements vscode.QuickPickItem {
         if (this.pendingRestart != null) {
             this.pendingRestart.onDisconnectOrDisable(true);
         }
-        this.logManager.onDisconnectOrDisable(true);
+        this.logManager.onDisconnect();
     }
 
     public async onEnable(): Promise<void> {
@@ -409,7 +408,7 @@ export default class Project implements vscode.QuickPickItem {
             this.pendingRestart.onDisconnectOrDisable(false);
         }
         // this.logManager.destroyAllLogs();
-        this.logManager.onDisconnectOrDisable(false);
+        this.logManager.destroyAllLogs();
     }
 
     public async dispose(): Promise<void> {

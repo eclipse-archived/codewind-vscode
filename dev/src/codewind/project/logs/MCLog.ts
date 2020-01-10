@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -9,29 +9,26 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 import * as vscode from "vscode";
+
 import Translator from "../../../constants/strings/translator";
 import StringNamespaces from "../../../constants/strings/StringNamespaces";
+import { LogTypes } from "./MCLogManager";
 
 const STRING_NS = StringNamespaces.LOGS;
 
 export default class MCLog implements vscode.QuickPickItem {
 
     public readonly displayName: string;
-
-    // quickPickItem
-    public readonly label: string;
-    // public readonly detail: string;
-
     private output: vscode.OutputChannel | undefined;
 
     constructor(
         projectName: string,
         // MUST match the logName provided in the log-update events
         public readonly logName: string,
+        public readonly type: LogTypes,
         public readonly logPath?: string,
     ) {
         this.displayName = `${projectName} - ${this.logName}`;
-        this.label = this.displayName;
         // this.detail = logPath;
         // this.description = `(${this.logType} log)`;
 
@@ -68,32 +65,39 @@ export default class MCLog implements vscode.QuickPickItem {
         }
     }
 
-    public showOutput(): void {
+    public createOutput(show: boolean): void {
         // Log.d("Show log " + this.displayName);
         if (!this.output) {
             // Log.d("Creating output for log " + this.displayName);
             this.output = vscode.window.createOutputChannel(this.displayName);
-            this.output.show();
             this.output.appendLine(Translator.t(STRING_NS, "waitingForLogs"));
+            if (show) {
+                this.output.show();
+            }
         }
     }
 
-    public onDisconnectOrDisable(disconnect: boolean): void {
+    public onDisconnect(): void {
         if (this.output) {
-            let notUpdatingReason: string;
-            if (disconnect) {
-                notUpdatingReason = Translator.t(STRING_NS, "notUpdatingReasonDisconnect");
-            }
-            else {
-                notUpdatingReason = Translator.t(STRING_NS, "notUpdatingReasonDisabled");
-            }
+            const notUpdatingReason = Translator.t(STRING_NS, "notUpdatingReasonDisconnect");
             const msg = "*".repeat(8) + " " + Translator.t(STRING_NS, "noLongerUpdating", { reason: notUpdatingReason });
-
             this.output.appendLine(msg);
         }
     }
 
-    public destroy(): void {
-        this.removeOutput();
+    public get label(): string {
+        return this.displayName;
+    }
+
+    public get description(): string | undefined {
+        if (this.type === "app") {
+            return "Application log";
+        }
+        else if (this.type === "build") {
+            return "Build log";
+        }
+        else {
+            return undefined;
+        }
     }
 }
