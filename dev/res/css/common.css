@@ -109,3 +109,8 @@ a {
     background: darkred;
     border: 1px solid darkred;
 }
+
+img {
+    /* Colour alt text to match */
+    color: var(--vscode-editor-foreground)
+}
