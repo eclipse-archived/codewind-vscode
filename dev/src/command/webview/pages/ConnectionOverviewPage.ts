@@ -106,7 +106,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                         </a>
                     </h3>
                     <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
-                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Container Registry Manager</button>
+                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Image Registry Manager</button>
                 </div>
             </div>
         </div>
