@@ -76,7 +76,7 @@ td {
     width: 1%;
 }
 
-.btn-cell > input[type="image"] {
+.btn-cell input[type="image"] {
     height: 1.5em;
     margin: 0;
     padding: 0;
