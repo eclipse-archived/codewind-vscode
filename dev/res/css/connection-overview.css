@@ -68,6 +68,10 @@ body {
     background-color: var(--vscode-sideBar-background);
 }
 
+.link-containers {
+    float: right;
+}
+
 #link-container-box {
     margin-top: 1em;
     width: 530px;
@@ -193,6 +197,10 @@ body {
     margin-top: 30px;
 }
 
+.remote-connection-btn-group .edit-connection-group {
+    display: inline;
+}
+
 #delete-btn {
     float: none;
     margin-left: 0;
@@ -249,7 +257,7 @@ body {
     display: none;
 }
 
-@media (max-width: 750px) {
+@media (max-width: 1230px) {
     #link-container-box {
         margin-left: 0px;
         float: left;
@@ -259,4 +267,19 @@ body {
         margin-top: 15px;
         margin-right: 20px;
     }
+
+    .link-containers {
+        float: none;
+    }
+
+    .link-containers-group {
+        display: inline-grid;
+    }
+
+
+    .remote-connection-btn-group .edit-connection-group {
+        display: inline-grid;
+        float: right;
+    }
+
   }
