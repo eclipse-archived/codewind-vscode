@@ -121,22 +121,6 @@ export class ProjectType {
         }
     }
 
-    /*
-    private static getUserFriendlyType(type: ProjectType.Types): string {
-        // For docker projects, return the language
-        /*
-        if (type === ProjectType.Types.GENERIC_DOCKER && language != null) {
-            return uppercaseFirstChar(language);
-        }
-
-        // For all other types, the enum's string value is user-friendly
-        return type.toString();
-    }*/
-
-    public get providesBuildLog(): boolean {
-        return !ProjectType.PROJECTS_WITHOUT_BUILDLOGS.includes(this.type);
-    }
-
     public get canInjectMetrics(): boolean {
         // This should be the job of the capabilities API
         return [
@@ -166,6 +150,13 @@ export class ProjectType {
             ProjectType.Types.EXTENSION_APPSODY,
             ProjectType.Types.EXTENSION_ODO,
         ].includes(this.type);
+    }
+
+    /**
+     * Whether or not this project type requires a delay between receiving the 'restart succeeded' event and attaching the debugger
+     */
+    public get requiresDebugDelay(): boolean {
+        return this.type === ProjectType.Types.MICROPROFILE;
     }
 }
 
@@ -222,10 +213,6 @@ export namespace ProjectType {
     }
 
     // non-nls-section-end
-
-    export const PROJECTS_WITHOUT_BUILDLOGS: ReadonlyArray<ProjectType.Types> = [
-        ProjectType.Types.NODE
-    ];
 }
 
 export interface IProjectSubtype {
