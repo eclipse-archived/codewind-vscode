@@ -65,7 +65,7 @@ export abstract class WebviewWrapper {
                 return this.webPanel.webview.asWebviewUri(fsUri).toString();
             },
             getStylesheet: (filename: string) => {
-                const fsUri = Resources.getCss(filename);
+                const fsUri = Resources.getCssPath(filename);
                 if (global.isTheia) {
                     return VSC_RESOURCE_SCHEME + fsUri.fsPath;
                 }

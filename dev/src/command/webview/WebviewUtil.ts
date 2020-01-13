@@ -35,7 +35,7 @@ namespace WebviewUtil {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [
-                vscode.Uri.file(Resources.getBaseResourcePath())
+                Resources.getBaseResourcePath()
             ],
         };
     }
