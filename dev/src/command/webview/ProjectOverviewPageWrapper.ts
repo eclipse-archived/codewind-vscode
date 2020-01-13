@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
+
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Project from "../../codewind/project/Project";
@@ -20,11 +22,12 @@ import requestBuildCmd from "../project/RequestBuildCmd";
 import { removeProject } from "../project/RemoveProjectCmd";
 import { getProjectOverviewHtml } from "./pages/ProjectOverviewPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
+import Commands from "../../constants/Commands";
 
 export enum ProjectOverviewWVMessages {
     BUILD = "build",
     TOGGLE_AUTOBUILD = "toggleAutoBuild",
-    OPEN = "open",
+    OPEN_FOLDER = "openFolder",
     UNBIND = "unbind",
     TOGGLE_ENABLEMENT = "toggleEnablement",
     EDIT = "edit",
@@ -51,8 +54,10 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
 
     protected handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
         switch (msg.type as ProjectOverviewWVMessages | CommonWVMessages) {
-            case ProjectOverviewWVMessages.OPEN: {
-                WebviewUtil.onRequestOpen(msg);
+            case ProjectOverviewWVMessages.OPEN_FOLDER: {
+                const targetPath: string = msg.data;
+                const uri = vscode.Uri.file(targetPath);
+                vscode.commands.executeCommand(Commands.VSC_REVEAL_IN_OS, uri);
                 break;
             }
             case ProjectOverviewWVMessages.TOGGLE_AUTOBUILD: {
