@@ -66,7 +66,7 @@
     "cmdTitle_addProjToWorkspace": "Add Project to Workspace",
 
     "cmdID_openInBrowser": "ext.cw.openInBrowser",
-    "cmdTitle_openInBrowser": "Open App",
+    "cmdTitle_openInBrowser": "Open Application",
 
     "cmdID_attachDebugger": "ext.cw.attachDebugger",
     "cmdTitle_attachDebugger": "Attach Debugger",
@@ -90,7 +90,7 @@
     "cmdTitle_hideAllLogs": "Hide all logs",
 
     "cmdID_projectOverview": "ext.cw.projectOverview",
-    "cmdTitle_projectOverview": "Open Project Overview",
+    "cmdTitle_projectOverview": "Project Overview",
 
     "cmdID_enable": "ext.cw.enable",
     "cmdTitle_enable": "Enable Project",
@@ -114,10 +114,10 @@
     "cmdTitle_disableAutoBuild": "Disable Auto Build",
 
     "cmdID_openAppMonitor": "ext.cw.openAppMonitor",
-    "cmdTitle_openAppMonitor": "Open Application Monitor",
+    "cmdTitle_openAppMonitor": "Application Monitor",
 
     "cmdID_openPerfDashboard": "ext.cw.openPerfDashboard",
-    "cmdTitle_openPerfDashboard": "Open Performance Dashboard",
+    "cmdTitle_openPerfDashboard": "Performance Dashboard",
 
     "cmdID_validate": "ext.cw.validate",
     "cmdTitle_validate": "Validate",
