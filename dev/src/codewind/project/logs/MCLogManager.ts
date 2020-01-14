@@ -25,7 +25,7 @@ export enum LogTypes {
 export default class MCLogManager {
 
     private _logs: MCLog[] = [];
-    public readonly initPromise: Promise<void>;
+    public readonly initPromise: Promise<void> = Promise.resolve();
 
     private readonly managerName: string;
 
@@ -33,8 +33,11 @@ export default class MCLogManager {
 
     constructor(
         private readonly project: Project,
+        doInitialize: boolean,
     ) {
-        this.initPromise = this.initialize();
+        if (doInitialize) {
+            this.initPromise = this.initialize();
+        }
         this.managerName = `${this.project.name} LogManager`;
     }
 
@@ -46,7 +49,7 @@ export default class MCLogManager {
         // Log.d("Initializing logs");
         try {
             const availableLogs = await Requester.requestAvailableLogs(this.project);
-            this.onLogsListChanged(availableLogs);
+            await this.onLogsListChanged(availableLogs);
             Log.i(`${this.managerName} has finished initializing logs: ${this.logs.map((l) => l.displayName).join(", ") || "<none>"}`);
         }
         catch (err) {

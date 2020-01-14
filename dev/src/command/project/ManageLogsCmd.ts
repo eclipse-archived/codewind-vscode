@@ -31,19 +31,21 @@ export async function manageLogs(project: Project): Promise<void> {
 async function manageLogsInner(project: Project, all?: "show" | "hide"): Promise<void> {
     // Wait for the logmanager to initialize, just in case it hasn't finished yet
     await project.logManager.initPromise;
+
     const logs = project.logManager.logs;
 
+    if (all === "hide") {
+        await project.logManager.hideAll();
+        return;
+    }
+
     if (logs.length === 0) {
-        vscode.window.showWarningMessage(`${project.name} does not have any logs available at this time.`);
+        vscode.window.showWarningMessage(`${project.name} does not have any logs available at this time. Wait for the project to build, and try again.`);
         return;
     }
 
     if (all === "show") {
         await project.logManager.showAll();
-        return;
-    }
-    else if (all === "hide") {
-        await project.logManager.hideAll();
         return;
     }
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 
 import * as vscode from "vscode";
 import * as request from "request-promise-native";
+import { StatusCodeError } from "request-promise-native/errors";
 
 import Project from "./Project";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
@@ -21,7 +22,6 @@ import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, MCEndpoints } from "../../constants/Endpoints";
 import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
 import Connection from "../connection/Connection";
-import { StatusCodeError } from "request-promise-native/errors";
 import { IProjectTypeDescriptor } from "./ProjectType";
 import { RawCWEnvData } from "../connection/CWEnvironment";
 import RemoteConnection from "../connection/RemoteConnection";

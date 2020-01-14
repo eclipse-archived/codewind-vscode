@@ -142,7 +142,9 @@ export default class Project implements vscode.QuickPickItem {
         this._state = new ProjectState(this.name);
         this._state = this.update(projectInfo);
 
-        this.logManager = new MCLogManager(this);
+        // if the inf data has logs and the project is enabled, logs are available now. Else, we have to wait for logsListChanged events.
+        const canGetLogs = this._state.isEnabled && projectInfo.logs != null;
+        this.logManager = new MCLogManager(this, canGetLogs);
 
         // Do any async initialization work that must be done before the project is ready, here.
         // The function calling the constructor must await on this promise before expecting the project to be ready.
