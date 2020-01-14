@@ -138,11 +138,14 @@ namespace MCUtil {
         else if (platf === "darwin") {
             currentOS = "darwin";
         }
-        else if (platf !== "linux") {
-            Log.w("Potentially unsupported platform: " + platf);
+        else if (platf === "linux") {
+            currentOS = "linux";
         }
-        // there are other possibilities, but let's just hope they're linux-like
-        currentOS = "linux";
+        else {
+            Log.w("Potentially unsupported platform: " + platf);
+            // our 'best guess' is linux
+            currentOS = "linux";
+        }
         return currentOS;
     }
 
