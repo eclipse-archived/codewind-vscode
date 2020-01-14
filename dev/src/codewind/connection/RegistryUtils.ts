@@ -128,20 +128,24 @@ namespace RegistryUtils {
         let setAsPushRegistry: boolean | undefined;
         let namespace: string | undefined;
         if (needsPushRegistry) {
+            Log.d(`Push registry is required`);
             setAsPushRegistry = true;
         }
         else {
             setAsPushRegistry = await promptSetAsPushRegistry(address);
-
             if (setAsPushRegistry == null) {
+                Log.d(`Push registry prompt cancelled; not adding registry.`);
+                // cancel
                 return false;
             }
-            else if (setAsPushRegistry) {
-                namespace = await promptForNamespace(address, username);
-                if (namespace == null) {
-                    // cancel
-                    return false;
-                }
+        }
+
+        if (setAsPushRegistry) {
+            namespace = await promptForNamespace(address, username);
+            if (namespace == null) {
+                Log.d(`Namespace prompt cancelled; not adding registry.`);
+                // cancel
+                return false;
             }
         }
 
@@ -262,6 +266,8 @@ namespace RegistryUtils {
                 return;
             }
         }
+
+        Log.d(`Setting push registry to ${newPushRegistry.address}`);
 
         if (!namespace) {
             namespace = await promptForNamespace(newPushRegistry.address, newPushRegistry.username);
