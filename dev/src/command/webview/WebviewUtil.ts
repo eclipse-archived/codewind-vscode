@@ -14,8 +14,6 @@ import * as fs from "fs";
 import * as path from "path";
 
 import Resources from "../../constants/Resources";
-import Commands from "../../constants/Commands";
-import { IWVOpenable } from "./pages/ProjectOverviewPage";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { WebviewResourceProvider } from "./WebviewWrapper";
@@ -35,7 +33,7 @@ namespace WebviewUtil {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [
-                vscode.Uri.file(Resources.getBaseResourcePath())
+                Resources.getBaseResourcePath()
             ],
         };
     }
@@ -43,23 +41,6 @@ namespace WebviewUtil {
     export interface IWVMessage {
         type: string;
         data: any;
-    }
-
-    export async function onRequestOpen(msg: WebviewUtil.IWVMessage): Promise<void> {
-        const openable = msg.data as IWVOpenable;
-        // Log.d("Got msg to open, data is ", msg.data);
-        let uri: vscode.Uri;
-        if (openable.type === "file" || openable.type === "folder") {
-            uri = vscode.Uri.file(openable.value);
-        }
-        else {
-            // default to web
-            uri = vscode.Uri.parse(openable.value);
-        }
-
-        // Log.i("The uri is:", uri);
-        const cmd: string = openable.type === "folder" ? Commands.VSC_REVEAL_IN_OS : Commands.VSC_OPEN;
-        vscode.commands.executeCommand(cmd, uri);
     }
 
     export function getCSP(): string {
@@ -107,13 +88,22 @@ namespace WebviewUtil {
     }
 
     export function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, escapeBackslash: boolean = false): string {
-        let toggleIcon = rp.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+        const toggleIcon = rp.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
         if (escapeBackslash) {
-            // The src that gets pulled directly into the frontend JS (for when the button is toggled) requires an extra escape on Windows
-            // https://github.com/eclipse/codewind/issues/476
-            toggleIcon = toggleIcon.replace(/\\/g, "\\\\");
+            return getEscapedPath(toggleIcon);
         }
         return toggleIcon;
+    }
+
+    /**
+     * Paths to be opened that are embedded into the webview HTML require an extra escape on Windows.
+     * https://github.com/eclipse/codewind/issues/476
+     */
+    export function getEscapedPath(path: string): string {
+        if (MCUtil.getOS() === "windows") {
+            return path.replace(/\\/g, "\\\\");
+        }
+        return path;
     }
 
 

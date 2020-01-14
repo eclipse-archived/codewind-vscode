@@ -23,28 +23,30 @@ const IMG_FOLDER_NAME = "img";
 const LIGHT_FOLDER_NAME = "light";
 const DARK_FOLDER_NAME = "dark";
 // for icons that are the same on all themes
-const BOTH_FOLDER_NAME = "themeless";
+const THEMELESS_FOLDER_NAME = "themeless";
 // const PROJECT_TYPES_FOLDER = "project-types";
 
 namespace Resources {
 
-    export function getBaseResourcePath(): string {
-        return path.join(global.__extRoot, RES_FOLDER_NAME);
+    export function getBaseResourcePath(): Uri {
+        return Uri.file(path.join(global.__extRoot, RES_FOLDER_NAME));
     }
 
-    function getResourcePath(...paths: string[]): string {
-        return path.join(getBaseResourcePath(), ...paths);
+    function getImagePath(...paths: string[]): Uri {
+        const imagePath = path.join(getBaseResourcePath().fsPath, IMG_FOLDER_NAME, ...paths);
+        return Uri.file(imagePath);
     }
 
-    export function getCss(filename: string): Uri {
-        return Uri.file(getResourcePath(STYLE_FOLDER_NAME, filename));
+    export function getCssPath(filename: string): Uri {
+        const cssPath = path.join(getBaseResourcePath().fsPath, STYLE_FOLDER_NAME, filename);
+        return Uri.file(cssPath);
     }
 
     // VSC allows providing a separate icon for dark or light themes.
     // This is the format the API expects when icons are set.
     export interface IconPaths {
-        readonly light: Uri;
         readonly dark: Uri;
+        readonly light: Uri;
     }
 
     /**
@@ -57,39 +59,36 @@ namespace Resources {
      *
      */
     export function getIconPaths(icon: Icons): IconPaths {
-        const themeless = getResourcePath(IMG_FOLDER_NAME, BOTH_FOLDER_NAME, icon);
+        const themeless = getImagePath(THEMELESS_FOLDER_NAME, icon);
         try {
-            fs.accessSync(themeless, fs.constants.R_OK);
-            const themelessUri = Uri.parse(themeless);
+            fs.accessSync(themeless.fsPath, fs.constants.R_OK);
             return {
-                dark: themelessUri,
-                light: themelessUri,
+                dark: themeless,
+                light: themeless,
             };
         }
         catch (err) {
             // if it doesn't exist in the themeless folder, it must exist in both dark and light folders
         }
 
-        const darkPath = getResourcePath(IMG_FOLDER_NAME, DARK_FOLDER_NAME, icon);
+        const darkPath = getImagePath(DARK_FOLDER_NAME, icon);
         // make sure the file exists and is readable
-        fs.access(darkPath, fs.constants.R_OK, (err) => {
+        fs.access(darkPath.fsPath, fs.constants.R_OK, (err) => {
             if (err) {
                 Log.e(`Dark icon not found! ${icon} - error:`, err);
             }
         });
 
-        const lightPath = getResourcePath(IMG_FOLDER_NAME, LIGHT_FOLDER_NAME, icon);
-        fs.access(lightPath, fs.constants.R_OK, (err) => {
+        const lightPath = getImagePath(LIGHT_FOLDER_NAME, icon);
+        fs.access(lightPath.fsPath, fs.constants.R_OK, (err) => {
             if (err) {
                 Log.e(`Light icon not found! ${icon} - error:`, err);
             }
         });
 
-        const lightUri = Uri.file(lightPath);
-        const darkUri = Uri.file(darkPath);
         return {
-            light: lightUri,
-            dark: darkUri,
+            dark: darkPath,
+            light: lightPath,
         };
     }
 

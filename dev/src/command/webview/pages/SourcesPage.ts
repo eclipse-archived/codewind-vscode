@@ -172,7 +172,7 @@ function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): st
         onClick = "";
     }
 
-    const deleteBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Delete ${source.description}" title="${title}"
+    const deleteBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Delete" title="${title}"
         onclick="${onClick}" class="${deleteBtnClass}" src="${rp.getIcon(Resources.Icons.Trash)}"/>`;
 
     return `
