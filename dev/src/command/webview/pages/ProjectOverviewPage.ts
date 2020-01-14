@@ -19,22 +19,8 @@ import CWDocs from "../../../constants/CWDocs";
 import { ProjectOverviewWVMessages } from "../ProjectOverviewPageWrapper";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 
-enum OpenableTypes {
-    WEB = "web",
-    FILE = "file",
-    FOLDER = "folder",
-}
-
-/**
- * Used by 'open' messages to pass back data about what to open
- */
-export interface IWVOpenable {
-    type: OpenableTypes;
-    value: string;
-}
-
 interface RowOptions {
-    openable?: OpenableTypes;
+    openable?: "web" | "folder";
     editable?: boolean;
     copyable?: boolean;
 }
@@ -85,7 +71,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 ${buildRow(rp, "Type", project.type.toString())}
                 ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow(rp, "Project ID", project.id)}
-                ${buildRow(rp, "Local Path", project.localPath.fsPath, { openable: global.isTheia ? undefined : OpenableTypes.FOLDER })}
+                ${buildRow(rp, "Local Path", project.localPath.fsPath, { openable: global.isTheia ? undefined : "folder"})}
             </table>
         </div>
         <div class="section">
@@ -121,7 +107,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             <div id="app-info-header-section">
                 <h3>Application Information</h3>
                 <div id="about-project-settings">
-                    <a onclick="vscOpen('${OpenableTypes.WEB}', '${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}')" title="More Info">More Info</a>
+                    <a href="${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}" title="More Info">More Info</a>
                 </div>
             </div>
             <!-- Hide Container ID when it doesn't apply -->
@@ -132,9 +118,10 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             }
 
             <table>
-                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING),
-                    { editable: true, openable: (project.appUrl != null ? OpenableTypes.WEB : undefined) })
-                }
+                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), { 
+                    editable: true, 
+                    openable: project.appUrl != null ? "web" : undefined 
+                })}
                 ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
                 ${buildRow(rp, "Internal App Port",
                     normalize(project.ports.internalPort, NOT_AVAILABLE),
@@ -150,10 +137,6 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
 
     <script type="text/javascript">
         const vscode = acquireVsCodeApi();
-
-        function vscOpen(type, value) {
-            sendMsg("${ProjectOverviewWVMessages.OPEN}", { type, value });
-        }
 
         function sendMsg(type, data = undefined) {
             // See IWebViewMsg in ProjectOverviewCmd
@@ -181,12 +164,14 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
         let classAttr: string  = "";
         let href: string = "";
         let onclick: string = "";
-        if (options.openable === OpenableTypes.WEB) {
+        if (options.openable === "web") {
             href = `href="${data}"`;
             classAttr = `class="url"`;
         }
         else {
-            onclick = `onclick="vscOpen('${options.openable}', '${data}')"`;
+            // it is a folder
+            const folderPath: string = WebviewUtil.getEscapedPath(data);
+            onclick = `onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_FOLDER}', '${folderPath}')"`;
         }
         secondColTdContents += `<a title="${label}" ${classAttr} ${href} ${onclick}>${data}</a>`;
     }
@@ -205,11 +190,13 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
         `;
     }
 
-    if (options.openable === OpenableTypes.WEB) {
+    if (options.openable === "web") {
         // add an 'open' button if this row's data is a web link
         fourthColTd = `
             <td class="btn-cell">
-                <input type="image" title="Open" src="${rp.getIcon(Resources.Icons.OpenExternal)}" onclick="vscOpen('${options.openable}', '${data}')"/>
+                <a href="${data}">
+                    <input type="image" title="Open" src="${rp.getIcon(Resources.Icons.OpenExternal)}"/>
+                </a>
             </td>
         `;
     }

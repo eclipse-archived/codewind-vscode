@@ -25,18 +25,13 @@ export default async function containerShellCmd(project: Project): Promise<void>
     // exec bash if it's installed, else exec sh
     const toExec = `sh -c "if type bash > /dev/null; then bash; else sh; fi"`;      // non-nls
 
-    // const env = convertNodeEnvToTerminalEnv(process.env);
-
     const options: vscode.TerminalOptions = {
-        name: `${project.name} shell`,        // non-nls
-
-        // Passing through environment variables is not actually useful,
-        // since we'll lose them once we exec into the container anyway.
-        // env: env
+        name: `${project.name} shell`,        // non-nls   
     };
 
     const term: vscode.Terminal = vscode.window.createTerminal(options);
-    term.sendText(`docker exec -it ${containerID} /usr/bin/env ${toExec}`);     // non-nls
+    // prefix with extra slash to work around https://github.com/eclipse/codewind/issues/823 (no effect on unix-like)
+    term.sendText(`docker exec -it ${containerID} //usr/bin/env ${toExec}`);     // non-nls
     term.show();
 }
 

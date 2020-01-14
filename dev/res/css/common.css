@@ -77,6 +77,10 @@ input[type="checkbox"]:disabled {
     border: 1px solid var(--vscode-sideBar-background);
 }
 
+a {
+    text-decoration: none;
+}
+
 .btn:hover, a:hover, .clickable:hover {
     text-decoration: underline;
     cursor: pointer;
@@ -103,5 +107,10 @@ input[type="checkbox"]:disabled {
 .btn-red {
     color: var(--vscode-button-foreground);
     background: darkred;
-    border-color: darkred;
+    border: 1px solid darkred;
+}
+
+img {
+    /* Colour alt text to match */
+    color: var(--vscode-editor-foreground)
 }

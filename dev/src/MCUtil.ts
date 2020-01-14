@@ -121,20 +121,29 @@ namespace MCUtil {
             .replace(/-+$/, "");            // trim - from end
     }
 
-    export function getOS(): "windows" | "darwin" | "linux" {
+    type OS = "windows" | "darwin" | "linux";
+    let currentOS: OS | undefined;
+
+    export function getOS(): OS {
+        // Get OS once, then cache it
+        if (currentOS) {
+            return currentOS;
+        }
+
         const platf = process.platform;
         // https://nodejs.org/api/process.html#process_process_platform
         if (platf === "win32") {
-            return "windows";
+            currentOS = "windows";
         }
         else if (platf === "darwin") {
-            return "darwin";
+            currentOS = "darwin";
         }
         else if (platf !== "linux") {
             Log.w("Potentially unsupported platform: " + platf);
         }
-        // there are a few other possibilities, but let's just hope they're linux-like
-        return "linux";
+        // there are other possibilities, but let's just hope they're linux-like
+        currentOS = "linux";
+        return currentOS;
     }
 
     /**
