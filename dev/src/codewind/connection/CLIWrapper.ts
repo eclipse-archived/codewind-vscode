@@ -65,7 +65,8 @@ namespace CLIWrapper {
         const cwctlBasename = path.basename(cwctlSourcePath);
 
         const dotCodewindPath = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR);
-        const binaryTargetDir = path.join(dotCodewindPath, global.extVersion);
+        const codewindVersion = CLILifecycleWrapper.DEFAULT_CW_TAG;
+        const binaryTargetDir = path.join(dotCodewindPath, codewindVersion);
 
         // fails on windows, see note about electron https://github.com/nodejs/node/issues/24698#issuecomment-486405542
         // await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
