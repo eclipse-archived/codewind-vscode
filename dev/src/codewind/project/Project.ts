@@ -41,6 +41,7 @@ import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPag
 const langToPathMap = new Map<string, string>();
 langToPathMap.set("java", "javametrics-dash");
 langToPathMap.set("nodejs", "appmetrics-dash");
+langToPathMap.set("javascript", "appmetrics-dash");
 langToPathMap.set("swift", "swiftmetrics-dash");
 
 const STRING_NS = StringNamespaces.PROJECT;
