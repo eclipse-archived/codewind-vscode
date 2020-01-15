@@ -29,7 +29,7 @@ For more information, see [the Codewind website](https://www.eclipse.org/codewin
 For more information about getting started with Codewind, see [Getting started with Codewind for VS Code](https://www.eclipse.org/codewind/mdt-vsc-getting-started.html).
 
 ### Prerequisites
-- Install [VS Code](https://code.visualstudio.com/download) 1.28.0 or later.
+- Install [VS Code](https://code.visualstudio.com/download) 1.38.0 or later.
 - Install Docker 17.06 or later.
 - If you use Linux, you also need to install Docker Compose.
 
