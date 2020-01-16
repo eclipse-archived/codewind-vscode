@@ -18,12 +18,12 @@ import MCUtil from "../../MCUtil";
 import EndpointUtil from "../../constants/Endpoints";
 import Commands from "../../constants/Commands";
 import Constants from "../../constants/Constants";
-import { testPingAppMonitor, getAppMetricsNotSupportedMsg } from "./OpenAppMonitor";
+import { getAppMetricsNotSupportedMsg } from "./OpenAppMonitor";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
     const supportsMetrics = project.hasPerfDashboard;
     Log.d(`${project.name} supports perfmonitor ? ${supportsMetrics}`);
-    if (!supportsMetrics || !(await testPingAppMonitor(project))) {
+    if (!supportsMetrics || !(await project.testPingAppMonitor())) {
         vscode.window.showWarningMessage(getAppMetricsNotSupportedMsg(project.name));
         return;
     }
