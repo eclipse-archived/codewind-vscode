@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { promisify } from "util";
+import * as request from "request-promise-native";
 
 import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
@@ -82,7 +82,12 @@ export default class Project implements vscode.QuickPickItem {
     // Dates below will always be set, but might be "invalid date"s
     private _lastBuild: Date;
     private _lastImgBuild: Date;
+    // does this project appear to have a /metrics endpoint available
+    private _metricsAvailable: boolean = false;
+    // does this project have the 'inject metrics' feature enabled by the user
     private _injectMetricsEnabled: boolean;
+    // can we query filewatcher for this project's capabilities
+    private _capabilitiesReady: boolean;
 
     public static readonly diagnostics: vscode.DiagnosticCollection
         = vscode.languages.createDiagnosticCollection(Validator.DIAGNOSTIC_COLLECTION_NAME);
@@ -131,6 +136,9 @@ export default class Project implements vscode.QuickPickItem {
         this._lastImgBuild = new Date(Number(projectInfo.appImgLastBuild));
 
         this._injectMetricsEnabled = projectInfo.injectMetrics || false;
+        // this field won't be here pre-0.8
+        // https://github.com/eclipse/codewind/pull/1774/files
+        this._capabilitiesReady = projectInfo.capabilitiesReady || false;
 
         this._ports = {
             appPort: undefined,
@@ -148,11 +156,11 @@ export default class Project implements vscode.QuickPickItem {
 
         // Do any async initialization work that must be done before the project is ready, here.
         // The function calling the constructor must await on this promise before expecting the project to be ready.
-        this.initPromise = new Promise(async (resolve) => {
-            await this.updateCapabilities();
-            // Log.d(`the capabilities for ${this.name} are `, this.capabilities);
-            resolve();
-        });
+        this.initPromise = Promise.all([
+            this.updateCapabilities(),
+            this.updateMetricsAvailable()
+        ])
+        .then(() => Promise.resolve());
 
         Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
     }
@@ -195,6 +203,13 @@ export default class Project implements vscode.QuickPickItem {
                 Log.e(`Bad appBaseURL "${projectInfo.appBaseURL}" provided; missing scheme or authority`);
             }
             this.appBaseURL = asUri;
+        }
+
+        const oldCapabilitiesReady = this._capabilitiesReady;
+        this._capabilitiesReady = projectInfo.capabilitiesReady;
+        if (oldCapabilitiesReady !== this._capabilitiesReady) {
+            // Log.d(`${this.name} capabilities now ready`);
+            this.updateCapabilities();
         }
 
         const wasEnabled = this.state.isEnabled;
@@ -354,11 +369,11 @@ export default class Project implements vscode.QuickPickItem {
         else {
             Log.d("Restart event is valid");
             this.updatePorts(event.ports);
-            this.onChange();
             // https://github.com/eclipse/codewind/issues/311
             if (event.containerId) {
                 this.setContainerID(event.containerId);
             }
+            this.onChange();
             success = true;
         }
 
@@ -367,11 +382,10 @@ export default class Project implements vscode.QuickPickItem {
 
     private async updateCapabilities(): Promise<void> {
         let capabilities: ProjectCapabilities;
-        if (!this.state.isEnabled) {
-            // we treat disabled projects as having all capabilities.
-            // The project must refresh the capabilities on re-enable.
+        if (!this.state.isEnabled || !this._capabilitiesReady) {
+            // The project must refresh the capabilities on re-enable, or when capabilitiesReady becomes true.
             // server will return a 404 in this case
-            capabilities = ProjectCapabilities.ALL_CAPABILITIES;
+            capabilities = ProjectCapabilities.NO_CAPABILITIES;
         }
         else {
             try {
@@ -381,10 +395,24 @@ export default class Project implements vscode.QuickPickItem {
                 // If the project is enabled and there is an error, we fall back to all capabilities so as not to block any UI actions.
                 // But this should never happen
                 Log.e("Error retrieving capabilities for " + this.name, err);
-                capabilities = ProjectCapabilities.ALL_CAPABILITIES;
+                capabilities = ProjectCapabilities.NO_CAPABILITIES;
             }
         }
         this._capabilities = capabilities;
+        this.onChange();
+    }
+
+    private async updateMetricsAvailable(): Promise<void> {
+        const oldMetricsAvailable = this._metricsAvailable;
+        try {
+            this._metricsAvailable = await Requester.areMetricsAvailable(this);
+            if (oldMetricsAvailable !== this._metricsAvailable) {
+                this.onChange();
+            }
+        }
+        catch (err) {
+            Log.e(`Error checking metrics status for ${this.name}`, err);
+        }
     }
 
     public onConnectionReconnect(): void {
@@ -410,13 +438,13 @@ export default class Project implements vscode.QuickPickItem {
             this.pendingRestart.onDisconnectOrDisable(false);
         }
         // this.logManager.destroyAllLogs();
-        this.logManager.destroyAllLogs();
+        this.logManager?.destroyAllLogs();
     }
 
     public async dispose(): Promise<void> {
         await Promise.all([
             this.clearValidationErrors(),
-            this.logManager.destroyAllLogs(),
+            this.logManager?.destroyAllLogs(),
             this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
         ]);
         this.connection.onChange(this);
@@ -534,12 +562,16 @@ export default class Project implements vscode.QuickPickItem {
         return this._capabilities;
     }
 
+    public get metricsAvailable(): boolean {
+        return this._metricsAvailable;
+    }
+
     public get hasAppMonitor(): boolean {
-        return this.type.alwaysHasAppMonitor || this.capabilities.metricsAvailable;
+        return this.type.alwaysHasAppMonitor || this.metricsAvailable;
     }
 
     public get hasPerfDashboard(): boolean {
-        return this.capabilities.metricsAvailable || this.injectMetricsEnabled;
+        return this.metricsAvailable || this.injectMetricsEnabled;
     }
 
     public get appUrl(): vscode.Uri | undefined {
@@ -586,7 +618,7 @@ export default class Project implements vscode.QuickPickItem {
 
     public get appMonitorUrl(): string | undefined {
         const appMetricsPath = langToPathMap.get(this.type.language);
-        const supported = appMetricsPath != null && this.capabilities.metricsAvailable;
+        const supported = appMetricsPath != null && this.metricsAvailable;
         if ((!this._injectMetricsEnabled) && supported) {
             // open app monitor in Application container
             Log.d(`${this.name} supports metrics ? ${supported}`);
@@ -734,8 +766,7 @@ export default class Project implements vscode.QuickPickItem {
         if (changed) {
             // onChange has to be invoked explicitly because this function can be called outside of update()
             Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._injectMetricsEnabled}`);
-            this.capabilities.metricsAvailable = await Requester.areMetricsAvailable(this);
-            this.onChange();
+            this.updateMetricsAvailable();
         }
         return changed;
     }
@@ -744,7 +775,7 @@ export default class Project implements vscode.QuickPickItem {
         const settingsFilePath = path.join(this.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME);
         let settingsFileExists: boolean;
         try {
-            await promisify(fs.access)(settingsFilePath);
+            await fs.promises.access(settingsFilePath);
             settingsFileExists = true;
         }
         catch (err) {
@@ -761,6 +792,34 @@ export default class Project implements vscode.QuickPickItem {
         else {
             // fall-back in case the user deleted the file, or something.
             vscode.window.showWarningMessage(`${settingsFilePath} does not exist or was not readable.`);
+        }
+    }
+
+    /**
+     * Extra test for extension projects app monitor - workaround for https://github.com/eclipse/codewind/issues/258
+     */
+    public async testPingAppMonitor(): Promise<boolean> {
+        if (this.type.type !== ProjectType.Types.EXTENSION_APPSODY) {
+            // this test is not necessary for non-appsody projects
+            return true;
+        }
+
+        if (this.appMonitorUrl == null) {
+            return false;
+        }
+
+        Log.i(`Testing extension project's app monitor before opening`);
+        try {
+            await request.get(this.appMonitorUrl, { rejectUnauthorized: false });
+            return true;
+        }
+        catch (err) {
+            Log.w(`Failed to access app monitor for project ${this.name} at ${this.appMonitorUrl}`, err);
+            // cache this so we don't have to do this test every time.
+            this._metricsAvailable = false;
+            // Notify the treeview that this project has changed so it can hide these context actions
+            this.onChange();
+            return false;
         }
     }
 }

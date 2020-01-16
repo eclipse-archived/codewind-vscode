@@ -173,7 +173,9 @@ export default class MCLogManager {
     public onReconnectOrEnable(): void {
         // Log.d(`${this.managerName} onReconnectOrEnable`);
         // refresh all streams
-        this.toggleLogStreaming(true);
+        if (this.logs.some((log) => log.isOpen)) {
+            this.toggleLogStreaming(true);
+        }
     }
 
     public onDisconnect(): void {

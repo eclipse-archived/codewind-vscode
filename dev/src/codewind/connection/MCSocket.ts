@@ -79,7 +79,7 @@ export default class MCSocket implements vscode.Disposable {
                 this.connection.onDisconnect();
             })   // non-nls
 
-            .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectBound)
+            // .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectBound)
 
             .on(SocketEvents.Types.PROJECT_CREATED,         this.onProjectCreation)
             .on(SocketEvents.Types.PROJECT_CHANGED,         this.onProjectChanged)
@@ -144,36 +144,6 @@ export default class MCSocket implements vscode.Disposable {
                 reject(payload.message);
             });
         });
-    }
-
-    private readonly onProjectBound = async (payload: { success: boolean; projectID?: string; error?: string; }): Promise<void> => {
-        await this.connection.updateProjects();
-
-        if (payload.projectID) {
-            const newProject = await this.connection.getProjectByID(payload.projectID);
-            if (newProject == null) {
-                Log.e(`Project ${payload.projectID} was created but not available after a refresh`);
-            }
-            else {
-                const msg = `Project ${newProject.name} has been created`;
-                Log.i(msg);
-
-                if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
-                    projectOverviewCmd(newProject);
-                }
-
-                if (!newProject.isInVSCodeWorkspace) {
-                    vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
-                        `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
-                }
-                // vscode.window.showInformationMessage(msg);
-            }
-        }
-        else {
-            const err = payload.error || "Unknown error";
-            Log.e("Error creating project", err);
-            vscode.window.showErrorMessage("Project creation failed: " + err);
-        }
     }
 
     private readonly onProjectCreation = async (payload: any): Promise<void> => {
@@ -313,8 +283,18 @@ export default class MCSocket implements vscode.Disposable {
             await this.refreshingProjectsProm;
             this.refreshingProjectsProm = undefined;
 
-            const newProject = this.connection.getProjectByID(projectID);
+            const newProject = await this.connection.getProjectByID(projectID);
             if (newProject) {
+                Log.i(`Project ${newProject.name} has been created`);
+
+                if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
+                    projectOverviewCmd(newProject);
+                }
+
+                if (!newProject.isInVSCodeWorkspace) {
+                    vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
+                        `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
+                }
                 return newProject;
             }
             else {

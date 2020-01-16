@@ -320,8 +320,7 @@ namespace Requester {
 
     export async function getCapabilities(project: Project): Promise<ProjectCapabilities> {
         const result = await doProjectRequest(project, ProjectEndpoints.CAPABILITIES, {}, "GET", "Getting capabilities", true);
-        const metricsAvailable = await areMetricsAvailable(project);
-        return new ProjectCapabilities(result.startModes, result.controlCommands, metricsAvailable);
+        return new ProjectCapabilities(result.startModes, result.controlCommands);
     }
 
     export async function areMetricsAvailable(project: Project): Promise<boolean> {
