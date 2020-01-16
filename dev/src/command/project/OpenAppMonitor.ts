@@ -10,14 +10,11 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as request from "request-promise-native";
 
 import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
-import ProjectType from "../../codewind/project/ProjectType";
-import CodewindEventListener from "../../codewind/connection/CodewindEventListener";
 
 export default async function openAppMonitorCmd(project: Project): Promise<void> {
     try {
@@ -41,32 +38,4 @@ export default async function openAppMonitorCmd(project: Project): Promise<void>
 
 export function getAppMetricsNotSupportedMsg(projectName: string): string {
     return `${projectName} does not support application metrics or the performance dashboard.`;
-}
-
-/**
- * Extra test for extension projects - workaround for https://github.com/eclipse/codewind/issues/258
- */
-export async function testPingAppMonitor(project: Project): Promise<boolean> {
-    if (project.type.type !== ProjectType.Types.EXTENSION_APPSODY) {
-        // this test is not necessary for non-appsody projects
-        return true;
-    }
-    // this was checked above; just to satisfy the compiler
-    if (project.appMonitorUrl == null) {
-        return false;
-    }
-
-    Log.i(`Testing extension project's app monitor before opening`);
-    try {
-        await request.get(project.appMonitorUrl, { rejectUnauthorized: false });
-        return true;
-    }
-    catch (err) {
-        Log.w(`Failed to access app monitor for project ${project.name} at ${project.appMonitorUrl}`, err);
-        // cache this so we don't have to do this test every time.
-        project.capabilities.metricsAvailable = false;
-        // Notify the treeview that this project has changed so it can hide these context actions
-        CodewindEventListener.onChange(project);
-        return false;
-    }
 }

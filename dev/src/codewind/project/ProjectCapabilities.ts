@@ -30,8 +30,6 @@ export default class ProjectCapabilities {
         // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/constants.ts
         public readonly startModes: StartModes[],
         public readonly controlCommands: ControlCommands[],
-        // metricsAvailable is not part of the interface as linked above, but is treated similarly so we use it here too
-        public /* readonly */ metricsAvailable: boolean,
     ) {
 
     }
@@ -88,7 +86,7 @@ export default class ProjectCapabilities {
      * This will enable the actions in the UI, though the backend could still reject the request
      */
     public static readonly ALL_CAPABILITIES: ProjectCapabilities =
-        new ProjectCapabilities(ProjectCapabilities.allStartModes, ProjectCapabilities.allControlCommands, true);
+        new ProjectCapabilities(ProjectCapabilities.allStartModes, ProjectCapabilities.allControlCommands);
 
-    // public static readonly NO_CAPABILITIES: ProjectCapabilities = new ProjectCapabilities([], [], false);
+    public static readonly NO_CAPABILITIES: ProjectCapabilities = new ProjectCapabilities([], []);
 }

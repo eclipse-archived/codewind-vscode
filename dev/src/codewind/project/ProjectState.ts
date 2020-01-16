@@ -98,7 +98,7 @@ export class ProjectState {
         const buildStatusStr = this.getBuildString();
         if (this.appState === ProjectState.AppStates.UNKNOWN) {
             if (!buildStatusStr) {
-                Log.e("Both app status and build status are unknown");
+                Log.w(`${this.projectName} has unknown app and build statuses`);
                 return "";
             }
             // Return only the build status if app status is unknown
