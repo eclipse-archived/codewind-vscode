@@ -53,6 +53,7 @@ export namespace CLICommands {
     export const PROJECT = {
         CREATE: new CLICommand([ PROJECT_CMD, "create" ]),
         SYNC:   new CLICommand([ PROJECT_CMD, "sync" ]),
+        VALIDATE: new CLICommand([PROJECT_CMD, "validate"]),
         BIND:   new CLICommand([ PROJECT_CMD, "bind" ]),
         MANAGE_CONN: new CLICommand([ PROJECT_CMD, "connection" ]),
     };

@@ -415,8 +415,7 @@ export async function createProject(connection: Connection, template: CWTemplate
         location: vscode.ProgressLocation.Notification,
         title: `Creating ${projectName}...`
     }, async () => {
-        const creationRes = await CLICommandRunner.createProject(connection.id, projectPath, template.url);
-
+        const creationRes = await CLICommandRunner.createProject(projectPath, template.url);
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {
             // failed
             let failedReason = `Unknown error creating ${projectName} at ${projectPath}`;
