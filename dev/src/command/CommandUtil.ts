@@ -49,6 +49,7 @@ import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnableme
 import manageRegistriesCmd from "./connection/ManageRegistriesCmd";
 import toggleInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
 import changeProjectConnectionCmd from "./project/ChangeProjectConnectionCmd";
+import { setLogLevelCmd } from "./connection/SetLogLevelCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -80,6 +81,7 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.MANAGE_TEMPLATE_SOURCES, manageSourcesCmd, undefined, true, false),
         registerConnectionCommand(Commands.MANAGE_REGISTRIES, manageRegistriesCmd, undefined, true, false),
         registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined, true, false),
+        registerConnectionCommand(Commands.SET_LOG_LEVEL, setLogLevelCmd, undefined, true, false),
 
         registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),
         registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),
