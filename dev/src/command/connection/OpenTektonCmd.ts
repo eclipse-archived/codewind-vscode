@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -18,6 +18,11 @@ import Commands from "../../constants/Commands";
 import CWEnvironment from "../../codewind/connection/CWEnvironment";
 
 export async function openTektonDashboard(connection: Connection): Promise<void> {
+    if (!connection.isKubeConnection) {
+        vscode.window.showWarningMessage(`Pipelines are only available on Kubernetes.`);
+        return;
+    }
+
     try {
         const tektonStatus = (await CWEnvironment.getEnvData(connection)).tektonStatus;
 
