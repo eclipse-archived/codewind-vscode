@@ -191,6 +191,11 @@
                 "category": "%commandCategory%"
             },
             {
+                "command": "%cmdID_setLogLevel%",
+                "title": "%cmdTitle_setLogLevel%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_addProjToWorkspace%",
                 "title": "%cmdTitle_addProjToWorkspace%",
                 "category": "%commandCategory%"

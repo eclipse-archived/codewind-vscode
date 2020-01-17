@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -31,6 +31,7 @@ enum Commands {
     OPEN_TEKTON = "ext.cw.openTekton",
     MANAGE_TEMPLATE_SOURCES = "ext.cw.manageSources",
     MANAGE_REGISTRIES = "ext.cw.manageRegistries",
+    SET_LOG_LEVEL = "ext.cw.setLogLevel",
 
     OPEN_WS_FOLDER = "ext.cw.openWorkspaceFolder",
 

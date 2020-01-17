@@ -62,6 +62,9 @@
     "cmdID_connectionOverview": "ext.cw.connectionOverview",
     "cmdTitle_connectionOverview": "Remote Connection Settings",
 
+    "cmdID_setLogLevel": "ext.cw.setLogLevel",
+    "cmdTitle_setLogLevel": "Set Codewind Server Logging Level",
+
     "cmdID_addProjToWorkspace": "ext.cw.addProjectToWorkspace",
     "cmdTitle_addProjToWorkspace": "Add Project to Workspace",
 

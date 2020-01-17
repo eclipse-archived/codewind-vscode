@@ -207,6 +207,22 @@ namespace Requester {
         return doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "POST", { body });
     }
 
+    // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/modules/utils/Logger.js#L38
+    export interface PFELogLevels {
+        readonly currentLevel: string;
+        readonly defaultLevel: string;
+        readonly allLevels: string[];
+    }
+
+    export async function getPFELogLevels(connection: Connection): Promise<PFELogLevels> {
+        return doConnectionRequest(connection, MCEndpoints.LOGGING, "GET");
+    }
+
+    export async function setPFELogLevel(connection: Connection, level: string): Promise<void> {
+        const body = { level };
+        return doConnectionRequest(connection, MCEndpoints.LOGGING, "PUT", { body });
+    }
+
     // Project-specific requests
 
     export async function requestProjectRestart(project: Project, startMode: StartModes): Promise<request.FullResponse> {

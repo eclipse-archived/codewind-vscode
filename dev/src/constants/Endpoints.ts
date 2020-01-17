@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -29,6 +29,7 @@ export enum MCEndpoints {
     PROJECT_TYPES = "api/v1/project-types",
     REGISTRY_SECRETS = "api/v1/registrysecrets",
     PUSH_REGISTRY = "api/v1/imagepushregistry",
+    LOGGING = "api/v1/logging",
 }
 
 /**
