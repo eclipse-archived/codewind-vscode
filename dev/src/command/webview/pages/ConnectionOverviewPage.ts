@@ -76,12 +76,13 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                         <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.username}</div>
                         <input type="text" id="ingress-username" class="input-username" name="ingress-username"
                             ${connectionExists ? "style='display: none;'" : ""}
-                            value='${connectionInfo.username || "developer"}'/>
+                            placeholder="developer"
+                            value="${connectionInfo.username || ""}"/>
                     </div>
                     <div style="overflow: hidden; margin-top: 2em">
                         <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
                             <label class="info-label" for="input-password" style="margin-left: 10px;">Password</label>
-                            <input type="password" id="ingress-password" class="input-password" name="ingress-password" placeholder="**************"/>
+                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
                         </div>
                     </div>
                     <!--div type="button" id="test-btn" class="btn btn-prominent" ${connectionExists ? "style='display: none;'" : ""} onclick="testNewConnection()">Test</div-->
