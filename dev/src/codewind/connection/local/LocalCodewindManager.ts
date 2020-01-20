@@ -152,7 +152,7 @@ export default class LocalCodewindManager {
 
         // This looks awfully similar to Requester.waitForReady, but here we're just testing for a listening port.
         const timeoutS = 180;
-        const delayS = 2;
+        const delayS = 5;
         const maxTries = timeoutS / delayS;
         const longerThanUsualTries = Math.round(maxTries / 2);
 
