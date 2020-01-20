@@ -24,7 +24,7 @@ export enum CWDocs {
     INSTALL_ON_CLOUD = "installoncloud.html",
     WORKSPACE_NEWS = "news06.html#codewind-workspace-updates",
     REGISTRIES = "image-registry-credentials.html",
-    REMOTE_SETUP = "remoteconfiguring.html",
+    REMOTE_SETUP = "remoteconnectionui.html",
 }
 
 export default CWDocs;
