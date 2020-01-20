@@ -351,6 +351,7 @@
             ],
             "view/title": [
                 {
+                    "when": "view == ext.cw.explorer",
                     "command": "%cmdID_newConnection%",
                     "group": "navigation@0"
                 }
