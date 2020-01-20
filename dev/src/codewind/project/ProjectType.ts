@@ -87,7 +87,7 @@ export class ProjectType {
                 if (lang === this.Languages.JAVA) {
                     return this.DebugTypes.JAVA;
                 }
-                else if (lang === this.Languages.NODE) {
+                else if (lang === this.Languages.NODE || lang === this.Languages.JAVASCRIPT) {
                     return this.DebugTypes.NODE;
                 }
             default:
@@ -108,8 +108,7 @@ export class ProjectType {
                     return Resources.Icons.Java;
                 }
             case this.Languages.NODE:
-            case "javascript":
-            case "js":
+            case this.Languages.JAVASCRIPT:
                 return Resources.Icons.NodeJS;
             case this.Languages.SWIFT:
                 return Resources.Icons.Swift;
@@ -152,6 +151,7 @@ export class ProjectType {
         return [
             ProjectType.Languages.JAVA,
             ProjectType.Languages.NODE,
+            ProjectType.Languages.JAVASCRIPT,
         ]
         .map((lang) => lang.toString().toLowerCase())
         .includes(this.language.toLowerCase());
@@ -203,6 +203,7 @@ export namespace ProjectType {
     export enum Languages {
         JAVA = "java",
         NODE = "nodejs",
+        JAVASCRIPT = "javascript",
         SWIFT = "swift",
         PYTHON = "python",
         GO = "go"
