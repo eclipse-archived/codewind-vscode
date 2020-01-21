@@ -332,7 +332,8 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
     const templateQpis = templates.map((template) => {
             return {
                 ...template,
-                detail: template.language,
+                description: MCUtil.uppercaseFirstChar(template.language),
+                detail: template.description,
                 extension: template.url,
             };
         });
