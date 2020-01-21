@@ -364,12 +364,12 @@ namespace Requester {
      * Try to connect to the given URL. Returns true if any response, other than 503 unavailable, is returned.
      */
     export async function ping(url: string | vscode.Uri, timeoutS: number = 10): Promise<boolean> {
-        Log.d(`Ping ${url}`);
+        // Log.d(`Ping ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
         try {
-            await req("GET", url, { timeout: timeoutS * 10000 });
+            await req("GET", url, { timeout: timeoutS * 1000 });
             // It succeeded
             return true;
         }
@@ -380,8 +380,9 @@ namespace Requester {
             }
             else if (err instanceof StatusCodeError) {
                 Log.d(`Received status ${err.statusCode} when pinging ${url}`);
-                if (err.statusCode === 503) {
-                    // We treat 503 as failures, because from a kube cluster it means the hostname is wrong, the ingress/route does not exist, etc.
+                if (err.statusCode === 502 || err.statusCode === 503) {
+                    // We treat 502, 503 as failures, because from a kube cluster it means the hostname is wrong,
+                    // the ingress/route does not exist, the pod pointed to by an ingress is still starting up, etc.
                     return false;
                 }
                 return true;
@@ -411,7 +412,7 @@ namespace Requester {
             const interval = setInterval(async () => {
                 const logStatus = tries % 10 === 0;
                 if (logStatus) {
-                    Log.d(`Waiting ${connection} to be ready, ${tries * READY_DELAY_S}s have elapsed`);
+                    Log.d(`Waiting for ${connection.label} to be ready, ${tries * READY_DELAY_S}s have elapsed`);
                 }
                 const ready = await isCodewindReady(connection, logStatus, READY_DELAY_S);
                 tries++;
@@ -426,10 +427,10 @@ namespace Requester {
             }, READY_DELAY_S * 1000);
         }).then((result) => {
             if (result) {
-                Log.i(`Codewind was ready after ${tries} tries`);
+                Log.i(`${connection.label} was ready after ${tries * READY_DELAY_S}s`);
             }
             else {
-                Log.i(`Codewind was NOT ready after ${tries} tries`);
+                Log.i(`${connection.label} was NOT ready after ${tries * READY_DELAY_S}s`);
             }
             return result;
         });

@@ -99,7 +99,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     protected async enable(): Promise<void> {
         Log.i(`${this.label} starting base enable`);
 
-        const readyTimeoutS = 60;
+        const readyTimeoutS = 90;
         const ready = await Requester.waitForReady(this, readyTimeoutS);
         if (!ready) {
             throw new Error(`${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`);
@@ -111,8 +111,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         // which does the initial projects population and sets the state to Connected
         this._socket = new MCSocket(this, envData.socketNamespace);
 
-        const initFWProm = this.initFileWatcher();
-        await initFWProm;
+        await this.initFileWatcher();
 
         try {
             Log.d("Updating projects list after ready");
