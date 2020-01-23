@@ -34,6 +34,7 @@ export default function getManageSourcesPage(
         <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
         ${global.isTheia ?
             `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
+        ${WebviewUtil.getFontLinks()}
     </head>
     <body>
 

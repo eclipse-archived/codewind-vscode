@@ -52,6 +52,11 @@ namespace WebviewUtil {
         >`;
     }
 
+    export function getFontLinks(): string {
+        const weights = [ 300, 400, 600 ].join(",");
+        return `<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:${weights}&amp;display=swap" rel="stylesheet">`;
+    }
+
     export function buildTitleSection(rp: WebviewResourceProvider, title: string, connectionLabel: string, isRemoteConnection: boolean): string {
         // the subtitle is ommitted in theia since there is only one connection
         const hasSubtitle = !global.isTheia;
@@ -99,11 +104,11 @@ namespace WebviewUtil {
      * Paths to be opened that are embedded into the webview HTML require an extra escape on Windows.
      * https://github.com/eclipse/codewind/issues/476
      */
-    export function getEscapedPath(path: string): string {
+    export function getEscapedPath(resourcePath: string): string {
         if (MCUtil.getOS() === "windows") {
-            return path.replace(/\\/g, "\\\\");
+            return resourcePath.replace(/\\/g, "\\\\");
         }
-        return path;
+        return resourcePath;
     }
 
 

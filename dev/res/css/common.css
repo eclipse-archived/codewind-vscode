@@ -1,5 +1,6 @@
 body {
     padding-bottom: 1em;
+    font-family: "IBM Plex Sans";
 }
 
 #top-section {
@@ -46,6 +47,10 @@ tr {
 
 input[type="checkbox"]:disabled {
     cursor: not-allowed;
+}
+
+.btn, button {
+    font-weight: 400;
 }
 
 .btn {
