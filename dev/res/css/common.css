@@ -66,7 +66,7 @@ input[type="checkbox"]:disabled {
 }
 
 .btn-prominent {
-    color: var(--vscode-sideBar-foreground);
+    color: var(--vscode-button-foreground);
     background-color: var(--vscode-button-background);
     border: 1px solid var(--vscode-button-background);
 }
