@@ -43,6 +43,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
         <link rel="stylesheet" href="${rp.getStylesheet("project-overview.css")}"/>
         ${global.isTheia ?
             `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
+        ${WebviewUtil.getFontLinks()}
     </head>
     <body>
 
@@ -118,9 +119,9 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             }
 
             <table>
-                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), { 
-                    editable: true, 
-                    openable: project.appUrl != null ? "web" : undefined 
+                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
+                    editable: true,
+                    openable: project.appUrl != null ? "web" : undefined
                 })}
                 ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
                 ${buildRow(rp, "Internal App Port",
