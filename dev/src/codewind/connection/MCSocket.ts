@@ -92,6 +92,7 @@ export default class MCSocket implements vscode.Disposable {
 
             .on(SocketEvents.Types.PROJECT_VALIDATED,       this.onProjectValidated)
             .on(SocketEvents.Types.PROJECT_SETTING_CHANGED, this.onProjectSettingsChanged)
+            .on(SocketEvents.Types.LOAD_RUNNER,             this.onLoadRunnerStatusChanged)
             .on(SocketEvents.Types.LOG_UPDATE,              this.onLogUpdate)
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
             .on(SocketEvents.Types.REGISTRY_STATUS,         this.onPushRegistryStatus)
@@ -246,6 +247,20 @@ export default class MCSocket implements vscode.Disposable {
         }
         // Log.d("projectSettingsChanged", payload);
         return project.onSettingsChangedEvent(payload);
+    }
+
+    private readonly onLoadRunnerStatusChanged = async (payload: {projectID: string, status: string, timestamp: string}):
+        Promise<void> => {
+        const project = await this.getProject(payload);
+        if (project == null) {
+            return;
+        }
+        try {
+            await project.onLoadRunnerUpdate(payload);
+        } catch (error) {
+            Log.e("Error retrieving profiling data from pfe", error);
+            vscode.window.showErrorMessage(`Error retrieving profiling data from pfe for ${project.name}`);
+        }
     }
 
     private readonly onPushRegistryStatus = async (payload: SocketEvents.IPushRegistryStatus): Promise<void> => {

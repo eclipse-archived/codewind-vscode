@@ -32,7 +32,7 @@ import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 import { getCodewindIngress } from "../../command/project/OpenPerfDashboard";
-import EndpointUtil from "../../constants/Endpoints";
+import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
 
 /**
@@ -462,6 +462,56 @@ export default class Project implements vscode.QuickPickItem {
             exposedPort: undefined,
             exposedDebugPort: undefined,
         });
+    }
+
+    public async onLoadRunnerUpdate(event: {projectID: string, status: string, timestamp: string}): Promise<void> {
+        Log.d(`${this.name} load runner status changed to ${event.status}`, event);
+        if (![ "hcdReady", "profilingReady"].includes(event.status)) {
+            return;
+        }
+        Log.d("Profiling data is ready to be saved to workspace");
+        const loadTestFolder = "load-test";
+        const loadTestPath = path.join(this.localPath.fsPath, loadTestFolder);
+        const timestampPath = path.join(loadTestPath, event.timestamp);
+        let fileName = "";
+        if (this.language.toLowerCase() === ProjectType.Languages.JAVA) {
+            fileName = "profiling.hcd";
+        } else if (this.language.toLowerCase() === ProjectType.Languages.NODE) {
+            fileName = "profiling.json";
+        } else {
+            Log.e(`Project language ${this.language} not supported for profiling`);
+            return;
+        }
+        const profilingOutPath = path.join(timestampPath, fileName);
+        try {
+            await fs.promises.mkdir(loadTestPath);
+        } catch (error) {
+            if (error.code !== "EEXIST") {
+                Log.e(`Error creating directory ${loadTestPath}`, error);
+                vscode.window.showErrorMessage(`Could not create directory at ${loadTestPath}`);
+                return;
+            }
+        }
+        try {
+            await fs.promises.mkdir(timestampPath);
+        } catch (error) {
+            if (error.code !== "EEXIST") {
+                Log.e(`Error creating directory ${timestampPath}`, error);
+                vscode.window.showErrorMessage(`Could not create directory at ${timestampPath}`);
+                return;
+            }
+        }
+        const endpoint = ProjectEndpoints.PROFILING.toString().concat(`/${event.timestamp}`);
+        const url = EndpointUtil.resolveProjectEndpoint(this.connection, this.id, endpoint as ProjectEndpoints);
+        try {
+            await Requester.httpWriteStreamToFile(url, profilingOutPath);
+        } catch (error) {
+            Log.e(`Error receiving profiling data from pfe for ${this.name}`, error);
+            vscode.window.showErrorMessage(`Error receiving profiling data for ${this.name}`);
+            return;
+        }
+        Log.d(`Saved profiling data to project ${this.name} at ${profilingOutPath}`);
+
     }
 
     public async dispose(): Promise<void> {

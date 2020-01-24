@@ -9,6 +9,9 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as fs from "fs";
+import * as http from "http";
+import * as https from "https";
 import * as vscode from "vscode";
 import * as request from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
@@ -372,6 +375,35 @@ namespace Requester {
 
         await doProjectRequest(project, ProjectEndpoints.METRICS_INJECTION, body, "POST", newAutoInjectMetricsUserStr);
         await project.setInjectMetrics(newInjectMetrics);
+    }
+
+    export async function httpWriteStreamToFile(url: string, filePath: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            let protocol;
+            if (!url.startsWith("http")) {
+                protocol = https;
+            } else {
+                protocol = http;
+            }
+            const wStream = fs.createWriteStream(filePath);
+            const newRequest = protocol.request(url, (res) => {
+                res.on("error", (err) => {
+                    return reject(err);
+                });
+                res.on("data", (data) => {
+                    wStream.write(data);
+                });
+                res.on("end", () => {
+                    return resolve();
+                });
+                res.on("aborted", () => {
+                    return reject();
+                });
+            }).on("error", (err) => {
+                return reject(err);
+            });
+            newRequest.end();
+        });
     }
 
     /**
