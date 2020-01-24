@@ -35,7 +35,7 @@
                 "--extensionTestsPath=${workspaceFolder}/out/test",
                 // Set your tests' workspace path here. It can be any existing directory.
                 // If it's a .code-workspace with multiple directories, the first one is used.
-                "/Users/tim/codewind-vscode-testworkspace",
+                // "/Users/tim/codewind-vscode-testworkspace",
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/test/**/*.js"
