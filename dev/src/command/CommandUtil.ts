@@ -269,7 +269,7 @@ async function promptForConnection(connectedOnly: boolean, remoteOnly: boolean):
             vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn, newConnectionBtn)
             .then((res) => {
                 if (res === startCwBtn) {
-                    connectLocalCodewindCmd(true);
+                    connectLocalCodewindCmd(LocalCodewindManager.instance, true);
                 }
                 else if (res === newConnectionBtn) {
                     newRemoteConnectionCmd();

@@ -32,7 +32,7 @@ describe("Local Codewind", function() {
         expect(LocalCodewindManager.instance.localConnection).to.be.undefined;
         // }
 
-        await removeImagesCmd(true);
+        await removeImagesCmd(LocalCodewindManager.instance, true);
 
         const postStatus = await CLICommandRunner.status();
         expect(postStatus["installed-versions"]).to.be.empty;

@@ -21,7 +21,9 @@ import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrappe
 
 const STRING_NS = StringNamespaces.STARTUP;
 
-export default async function removeImagesCmd(skipPrompt: boolean = false): Promise<void> {
+export default async function removeImagesCmd(
+    _lcwm: LocalCodewindManager = LocalCodewindManager.instance, skipPrompt: boolean = false): Promise<void> {
+
     try {
         if (!skipPrompt) {
             if (!await confirmRemove()) {
