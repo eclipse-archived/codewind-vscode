@@ -40,6 +40,7 @@ export enum ProjectEndpoints {
     LOGS = "logs",
     METRICS_STATUS = "metrics/status",
     METRICS_INJECTION = "metrics/inject",
+    PROFILING = "profiling",
 
     OPEN = "open",
     CLOSE = "close",
