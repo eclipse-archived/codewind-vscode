@@ -97,8 +97,13 @@ export class Log {
 
     private static async logInner(level: Log.Levels, s: string, args: any[]): Promise<void> {
         if (this.logFilePath == null) {
-            console.error("Logger.log error - No log file path set!");
-            console.log(s, args);
+            // console.error("Logger.log error - No log file path set!");
+            if (level === Log.Levels.ERROR) {
+                console.error(s, ...args);
+            }
+            else {
+                console.log(s, ...args);
+            }
             return;
         }
         else if (this.disabledLevels.includes(level)) {

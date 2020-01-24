@@ -96,33 +96,10 @@ export default async function createProjectCmd(connection: Connection): Promise<
             }
         }
 
-        // Get the parent directory to create the project under
-
-        let parentDir: vscode.Uri;
-        if (vscode.workspace.workspaceFolders
-            && (global.isTheia || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
-
-            if (vscode.workspace.workspaceFolders.length === 1) {
-                parentDir = vscode.workspace.workspaceFolders[0].uri;
-            }
-            else {
-                const selection = await showWorkspaceFolderSelection();
-                if (!selection) {
-                    return undefined;
-                }
-                parentDir = selection;
-            }
-        }
-        else {
-            // Have the user select the parent dir from anywhere on disk
-            const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
-                vscode.workspace.workspaceFolders[0].uri : undefined;
-
-            const selection = await MCUtil.promptForProjectDir("Select Parent Directory", defaultUri);
-            if (!selection) {
-                return undefined;
-            }
-            parentDir = selection;
+        const parentDir = await getParentDirectory();
+        if (parentDir == null) {
+            // cancelled
+            return undefined;
         }
 
         const response = await createProject(connection, template, parentDir, projectName);
@@ -138,18 +115,6 @@ export default async function createProjectCmd(connection: Connection): Promise<
         Log.e(errMsg, err);
         vscode.window.showErrorMessage(errMsg + MCUtil.errToString(err));
     }
-}
-
-async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
-    const selection = await vscode.window.showWorkspaceFolderPick({
-        ignoreFocusOut: true,
-        placeHolder: "Select the parent directory for your new project",
-    });
-
-    if (selection == null) {
-        return undefined;
-    }
-    return selection.uri;
 }
 
 const MANAGE_SOURCES_ITEM = "Manage Template Sources";
@@ -388,6 +353,41 @@ async function promptForProjectName(connection: Connection, template: CWTemplate
     .finally(() => ib.dispose());
 }
 
+/**
+ * Get parent directory to create the project under.
+ */
+async function getParentDirectory(): Promise<vscode.Uri | undefined> {
+    if (vscode.workspace.workspaceFolders
+        && (global.isTheia || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
+
+        if (vscode.workspace.workspaceFolders.length === 1) {
+            return vscode.workspace.workspaceFolders[0].uri;
+        }
+        else {
+            return showWorkspaceFolderSelection();
+        }
+    }
+    else {
+        // Have the user select the parent dir from anywhere on disk
+        const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
+            vscode.workspace.workspaceFolders[0].uri : undefined;
+
+        return MCUtil.promptForProjectDir("Select Parent Directory", defaultUri);
+    }
+}
+
+async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
+    const selection = await vscode.window.showWorkspaceFolderPick({
+        ignoreFocusOut: true,
+        placeHolder: "Select the parent directory for your new project",
+    });
+
+    if (selection == null) {
+        return undefined;
+    }
+    return selection.uri;
+}
+
 const ILLEGAL_CHARS = [
     `"`, "/", "\\", "?", "%", "*", ":", "|", "<", ">", "&", " "
 ];
@@ -408,10 +408,10 @@ function validateProjectName(projectName: string): string | undefined {
 }
 
 export async function createProject(connection: Connection, template: CWTemplateData, parentDir: vscode.Uri, projectName: string)
-    : Promise<{ projectName: string, projectPath: string }> {
+    : Promise<{ projectName: string, projectPath: string, projectID: string }> {
 
     const projectPath = path.join(parentDir.fsPath, projectName);
-    await vscode.window.withProgress({
+    const creationResult = await vscode.window.withProgress({
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
         title: `Creating ${projectName}...`
@@ -430,8 +430,8 @@ export async function createProject(connection: Connection, template: CWTemplate
 
         // create succeeded, now we bind
         const projectType = { projectType: template.projectType, language: template.language };
-        await CLICommandRunner.bindProject(connection.id, projectName, projectPath, projectType);
+        return CLICommandRunner.bindProject(connection.id, projectName, projectPath, projectType);
     });
 
-    return { projectName, projectPath };
+    return { projectName, projectPath, projectID: creationResult.projectID };
 }

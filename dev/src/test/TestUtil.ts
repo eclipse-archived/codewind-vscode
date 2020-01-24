@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -13,63 +13,17 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 
 import Log from "../Logger";
-import ProjectType from "../codewind/project/ProjectType";
 import Project from "../codewind/project/Project";
-import Connection from "../codewind/connection/Connection";
-import ProjectObserver from "./ProjectObserver";
 import ProjectState from "../codewind/project/ProjectState";
-import TestConfig from "./TestConfig";
-import { CWTemplateData, createProject } from "../command/connection/CreateUserProjectCmd";
 
 namespace TestUtil {
 
-    export function getMinutes(mins: number): number {
-        return mins * 60 * 1000;
-    }
-
-    const PROJECT_PREFIX = "test";
-
-    export async function createTestProject(connection: Connection, type: ProjectType): Promise<Project> {
-        // acquireProject below will only look for projects starting with the project prefix
-        const projectName: string = PROJECT_PREFIX + type.type.toLowerCase().replace(".", "") + Date.now().toString().slice(-4);
-        Log.t(`Create project of type ${type} at ${connection.url} named ${projectName}`);
-
-        try {
-            // turn our internal project type into a user project type which we can pass to the project creator
-            const typeForCreation: CWTemplateData = {
-                url: TestConfig.getUrl(type),
-                language: type.language,
-                projectType: type.internalType,
-                // label and description are displayed to user but not used by the test.
-                description: "",
-                label: ""
-            };
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (workspaceFolders == null) {
-                throw new Error("No active workspace folder!");
-            }
-            await createProject(connection, typeForCreation, workspaceFolders[0].uri, projectName);
+    export function ms(num: number, unit: "min" | "sec") {
+        let result = num * 1000;
+        if (unit === "min") {
+            result *= 60;
         }
-        catch (err) {
-            Log.t("Create project failure!", err);
-            throw err;
-        }
-
-        Log.t("Awaiting project creation");
-        const projectID = await ProjectObserver.instance.awaitCreate(projectName);
-
-        const createdProject: Project | undefined = await connection.getProjectByID(projectID);
-        expect(createdProject, `Failed to get newly created project ${projectName}`).to.exist;
-        if (createdProject == null) {
-            throw new Error("CreatedProject can't be null after here");
-        }
-
-        expect(createdProject).to.exist;
-        expect(createdProject.id).to.equal(projectID);
-        expect(createdProject.name).to.equal(projectName);
-        Log.t(`Created project ${createdProject.name} successfully with ID ${createdProject.id}`);
-
-        return createdProject;
+        return result;
     }
 
     export async function assertProjectInState(project: Project, ...states: ProjectState.AppStates[]): Promise<void> {
@@ -106,10 +60,10 @@ namespace TestUtil {
      * Await on this function to pause for the given duration.
      * Make sure you set the timeout in the calling test to be at least this long.
      */
-    export async function wait(ms: number, reason?: string): Promise<void> {
-        const msg: string = `Waiting ${ms}ms` + (reason != null ? ": " + reason : "");
+    export async function wait(msWait: number, reason?: string): Promise<void> {
+        const msg: string = `Waiting ${msWait}ms` + (reason != null ? ": " + reason : "");
         Log.t(msg);
-        return new Promise<void> ( (resolve) => setTimeout(resolve, ms));
+        return new Promise<void> ((resolve) => setTimeout(resolve, msWait));
     }
 
     /**
@@ -117,15 +71,9 @@ namespace TestUtil {
      *
      * **Be careful to not push code that calls this**, or you'll hang the tests!
      */
-    export async function waitForever(testContext:
-            Mocha.ITestCallbackContext  |
-            Mocha.ISuiteCallbackContext |
-            Mocha.IBeforeAndAfterContext
-        ): Promise<void> {
-
+    export async function waitForever(testContext: Mocha.Suite): Promise<void> {
         testContext.timeout(0);
-
-        return new Promise<void> ( () => { /* never resolves */ } );
+        return new Promise<void> (() => { /* never resolves */ } );
     }
 
     /*
@@ -140,7 +88,7 @@ namespace TestUtil {
         }
     }*/
 
-    // Doesn't appear to work for java any more, thought it definitely used to.
+    // Doesn't appear to work for java any more, though it definitely used to.
     export async function killActiveDebugSession(): Promise<void> {
         const activeDbSession = vscode.debug.activeDebugSession;
         if (activeDbSession != null) {
@@ -156,6 +104,82 @@ namespace TestUtil {
                 (err) => Log.t(`Error disconnecting from debug session ${activeDbSession.name}:`, err.message || err)
             );
         }
+    }
+
+    interface Condition {
+        readonly label: string;
+        readonly condition: () => boolean | Promise<boolean>;
+    }
+
+    export async function waitForCondition(
+            ctx: Mocha.Context,
+            success: Condition,
+            failure?: Condition
+        ): Promise<void> {
+
+        Log.t(`${success.label}...`);
+
+        const testIntervalMs = 250;
+        const intervalsPerSec = 1000 / testIntervalMs;
+        const logInterval = 10 * intervalsPerSec;
+        let tries = 0;
+
+        return new Promise<void>((resolve) => {
+            const interval = setInterval(async () => {
+                tries++;
+
+                const succeeded = await evaluate(success);
+
+                if (succeeded) {
+                    Log.t(`${success.label} completed after ${getSecsElapsed(intervalsPerSec, tries)}s`);
+                    clearInterval(interval);
+                    return resolve();
+                }
+                else if (failure != null) {
+                    const failed = await evaluate(failure);
+
+                    if (failed) {
+                        Log.t(`${success.label} failed after ${getSecsElapsed(intervalsPerSec, tries)}s: ${failure.label}`);
+                        clearInterval(interval);
+                        return resolve();
+                    }
+                }
+
+                if (tries % logInterval === 0) {
+                    Log.t(`${success.label}, ${getSecsElapsed(intervalsPerSec, tries)}s elapsed`);
+                }
+                // if test is done, clear interval
+                if (!ctx.test?.isPending || ctx.test?.timedOut) {
+                    clearInterval(interval);
+                }
+            }, testIntervalMs);
+        });
+    }
+
+    function getSecsElapsed(intervalsPerSec: number, tries: number): number {
+        return tries / intervalsPerSec;
+    }
+
+    async function evaluate(condition: Condition): Promise<boolean> {
+        let result = false;
+        if (condition.condition instanceof Promise) {
+            result = await condition.condition();
+        }
+        else {
+            result = (condition.condition as () => boolean)();
+        }
+        return result;
+    }
+
+    export function waitForStarted(ctx: Mocha.Context, project: Project): Promise<void> {
+        return TestUtil.waitForCondition(ctx, {
+                label: `Waiting for ${project.name} to be Started`,
+                condition: () => project.state.isStarted,
+            }, {
+                label: `${project.name} build failed`,
+                condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_FAILED,
+            }
+        );
     }
 }
 

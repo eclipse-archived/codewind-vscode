@@ -1,9 +1,12 @@
 import Connection from "./Connection";
 import { CLICommandRunner } from "./CLICommandRunner";
-import { ISourceEnablement } from "../../command/webview/SourcesPageWrapper";
+import { SourceEnablement } from "../../command/webview/SourcesPageWrapper";
 import Requester from "../project/Requester";
 
-const CODEWIND_PROJECT_STYLE = "Codewind";
+export enum SourceProjectStyles {
+    CODEWIND = "Codewind",
+    APPSODY = "Appsody",
+}
 
 /**
  * Template repository/source data as provided by the backend
@@ -44,6 +47,27 @@ export default class TemplateSourcesList {
         return this.templateSources;
     }
 
+    public async getEnabled(): Promise<TemplateSource[]> {
+        if (this.templateSources == null) {
+            this.templateSources = await this.get();
+        }
+        return this.templateSources.filter((source) => source.enabled);
+    }
+
+    public async getProjectStyles(enabledOnly: boolean = false): Promise<string[]> {
+        if (this.templateSources == null) {
+            this.templateSources = await this.get();
+        }
+
+        return this.templateSources.reduce((styles: string[], source) => {
+            if (enabledOnly && !source.enabled) {
+                // skip it because it's not enabled
+                return styles;
+            }
+            return styles.concat(source.projectStyles);
+        }, []);
+    }
+
     public async add(url: string, name: string, description: string | undefined): Promise<TemplateSource[]> {
         this.templateSources = await CLICommandRunner.addTemplateSource(this.connection.id, url, name, description);
         return this.templateSources;
@@ -54,7 +78,7 @@ export default class TemplateSourcesList {
         return this.templateSources;
     }
 
-    public async toggleEnablement(enablement: ISourceEnablement): Promise<TemplateSource[]> {
+    public async toggleEnablement(enablement: SourceEnablement): Promise<TemplateSource[]> {
         await Requester.toggleSourceEnablement(this.connection, enablement);
         return this.get(true);
     }
@@ -64,6 +88,6 @@ export default class TemplateSourcesList {
         const templateSources = this.templateSources || await this.get();
         return templateSources
             .filter((source) => source.enabled)
-            .some((source) => source.projectStyles.includes(CODEWIND_PROJECT_STYLE));
+            .some((source) => source.projectStyles.includes(SourceProjectStyles.CODEWIND));
     }
 }

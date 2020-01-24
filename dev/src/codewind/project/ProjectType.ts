@@ -157,6 +157,10 @@ export class ProjectType {
         .includes(this.language.toLowerCase());
     }
 
+    public get isAppsody(): boolean {
+        return this.type === ProjectType.Types.EXTENSION_APPSODY;
+    }
+
     public get isExtensionType(): boolean {
         return [
             ProjectType.Types.EXTENSION_APPSODY,

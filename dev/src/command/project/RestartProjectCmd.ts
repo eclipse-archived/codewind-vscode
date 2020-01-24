@@ -14,7 +14,6 @@ import * as vscode from "vscode";
 import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
-import MCUtil from "../../MCUtil";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
@@ -31,29 +30,15 @@ export default async function restartProjectCmd(project: Project, debug: boolean
         return false;
     }
 
-    let restartResponse;
     try {
-        restartResponse = await Requester.requestProjectRestart(project, startMode);
+        const restartAccepted = await Requester.requestProjectRestart(project, startMode);
+        if (restartAccepted) {
+            return project.doRestart(startMode);
+        }
+        return restartAccepted;
     }
     catch (err) {
         // requester will display the error
-        return false;
-    }
-    const statusCode = Number(restartResponse.statusCode);
-
-    // Note here that we don't return whether or not the restart actually suceeded,
-    // just whether or not it was accepted by the server and therefore initiated.
-    if (MCUtil.isGoodStatusCode(statusCode)) {
-        Log.d("Restart was accepted by server");
-
-        const restarting = project.doRestart(startMode);
-        if (!restarting) {
-            // Should never happen
-            Log.e("Restart was rejected by Project class");
-            return false;
-        }
-
-        return true;
     }
     return false;
 }

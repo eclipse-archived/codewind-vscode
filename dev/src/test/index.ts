@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -9,29 +9,44 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-//
-// PLEASE DO NOT MODIFY / DELETE UNLESS YOU KNOW WHAT YOU ARE DOING
-//
-// This file is providing the test runner to use when running extension tests.
-// By default the test runner in use is Mocha based.
-//
-// You can provide your own test runner if you want to override it by exporting
-// a function run(testRoot: string, clb: (error:Error) => void) that the extension
-// host can call to run the tests. The test runner is expected to use Logger.log
-// to report the results back to the caller. When the tests are finished, return
-// a possible error to the callback or null if none.
+// Adapted from https://github.com/microsoft/vscode-extension-samples/blob/master/helloworld-test-sample/src/test/suite/index.ts
 
-// tslint:disable-next-line:no-console
-console.log("Starting test runner...");
+import * as Mocha from "mocha";
+import * as path from "path";
 
-import * as testRunner from "vscode/lib/testrunner";
+// tslint:disable: no-console
 
-// You can directly control Mocha options by uncommenting the following lines
-// See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for more info
-testRunner.configure({
-    ui: "bdd", 		// the TDD UI is being used in extension.test.ts (suite, test, etc.)
-    useColors: true, // colored output from test results,
-    reporter: "spec"
-});
+const SUITES_TO_RUN = [
+    "Local.suite.js"
+]
+.map((suite) => path.join(__dirname, "suites", suite));
 
-module.exports = testRunner;
+export function run(): Promise<void> {
+    const mocha = new Mocha({
+        ui: "bdd",
+        useColors: true,
+        reporter: "spec",
+        fullStackTrace: true,
+        slow: 2500,
+        timeout: 5000,
+    });
+
+    // Base test always runs first, once
+    mocha.addFile(path.join(__dirname, "Base.test.js"));
+    SUITES_TO_RUN.forEach((suite) => mocha.addFile(suite));
+
+    return new Promise<void>((cb, err) => {
+        try {
+            mocha.run((failures) => {
+                if (failures > 0) {
+                    return err(`${failures} tests failed.`);
+                }
+                cb();
+            });
+        }
+        catch (err) {
+            console.error(err);
+            return err(err);
+        }
+    });
+}

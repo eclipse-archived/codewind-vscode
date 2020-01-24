@@ -78,7 +78,7 @@ export async function removeProject(project: Project, deleteFiles: boolean | und
 }
 
 export async function deleteProjectDir(project: Project): Promise<void> {
-    Log.i("Deleting project directory: " + project.localPath);
+    Log.i("Deleting project directory: " + project.localPath.fsPath);
     const projectDirPath = project.localPath.fsPath;
     return new Promise<void>((resolve, _reject) => {
         rmrf(projectDirPath, { glob: false }, (err) => {
