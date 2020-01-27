@@ -269,7 +269,7 @@ namespace RegistryUtils {
 
         Log.d(`Setting push registry to ${newPushRegistry.address}`);
 
-        if (!namespace) {
+        if (namespace == null) {
             namespace = await promptForNamespace(newPushRegistry.address, newPushRegistry.username);
             if (namespace == null) {
                 return undefined;
