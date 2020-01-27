@@ -117,6 +117,7 @@ export default class RemoteConnection extends Connection {
         this.currentToggleOperation = "disconnecting";
         try {
             await super.disable();
+            this._accessToken = undefined;
             this.setState(ConnectionStates.DISABLED);
         }
         catch (err) {
