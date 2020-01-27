@@ -136,7 +136,7 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_AUTOBUILD_OFF);
         }
 
-        if (project.capabilities.supportsRestart) {
+        if (project.capabilities?.supportsRestart) {
             contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
         }
 

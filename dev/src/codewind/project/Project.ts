@@ -207,27 +207,32 @@ export default class Project implements vscode.QuickPickItem {
             this.appBaseURL = asUri;
         }
 
-        const oldCapabilitiesReady = this._capabilitiesReady;
-        this._capabilitiesReady = projectInfo.capabilitiesReady;
-        if (oldCapabilitiesReady !== this._capabilitiesReady) {
-            // Log.d(`${this.name} capabilities now ready`);
-            this.updateCapabilities();
-        }
-
         const wasEnabled = this.state.isEnabled;
         const oldStateStr = this.state.toString();
         const stateChanged = this.state.update(projectInfo);
 
+        let wasDisabled = false;
         if (stateChanged) {
             const startModeMsg = projectInfo.startMode == null ? "" : `, startMode=${projectInfo.startMode}`;
             Log.d(`${this.name} went from ${oldStateStr} to ${this._state}${startModeMsg}`);
 
             // Check if the project was just enabled or disabled
             if (wasEnabled && !this.state.isEnabled) {
+                wasDisabled = true;
                 this.onDisable();
             }
             else if (!wasEnabled && this.state.isEnabled) {
                 this.onEnable();
+            }
+        }
+
+        const oldCapabilitiesReady = this._capabilitiesReady;
+        this._capabilitiesReady = projectInfo.capabilitiesReady;
+        if (oldCapabilitiesReady !== this._capabilitiesReady) {
+            // Retain the capabilities for a project that was disabled.
+            if (!wasDisabled) {
+                // Log.d(`${this.name} capabilities now ready`);
+                this.updateCapabilities();
             }
         }
 
@@ -386,24 +391,18 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     private async updateCapabilities(): Promise<void> {
-        let capabilities: ProjectCapabilities;
         if (!this.state.isEnabled || !this._capabilitiesReady) {
             // The project must refresh the capabilities on re-enable, or when capabilitiesReady becomes true.
             // server will return a 404 in this case
-            capabilities = ProjectCapabilities.NO_CAPABILITIES;
+            return;
         }
-        else {
-            try {
-                capabilities = await Requester.getCapabilities(this);
-            }
-            catch (err) {
-                // If the project is enabled and there is an error, we fall back to all capabilities so as not to block any UI actions.
-                // But this should never happen
-                Log.e("Error retrieving capabilities for " + this.name, err);
-                capabilities = ProjectCapabilities.NO_CAPABILITIES;
-            }
+        try {
+            this._capabilities = await Requester.getCapabilities(this);
         }
-        this._capabilities = capabilities;
+        catch (err) {
+            Log.e("Error retrieving capabilities for " + this.name, err);
+            this._capabilities = ProjectCapabilities.NO_CAPABILITIES;
+        }
         this.onChange();
     }
 
@@ -455,6 +454,14 @@ export default class Project implements vscode.QuickPickItem {
         }
         // this.logManager.destroyAllLogs();
         this.logManager?.destroyAllLogs();
+
+        // Clear now-invalid application info
+        this._containerID = undefined;
+        this.appBaseURL = undefined;
+        this.updatePorts({
+            exposedPort: undefined,
+            exposedDebugPort: undefined,
+        });
     }
 
     public async dispose(): Promise<void> {
@@ -570,11 +577,7 @@ export default class Project implements vscode.QuickPickItem {
         return this._state;
     }
 
-    public get capabilities(): ProjectCapabilities {
-        // This will only happen if this funciton is called before the initPromise resolves, which should never happen
-        if (!this._capabilities) {
-            this._capabilities = ProjectCapabilities.ALL_CAPABILITIES;
-        }
+    public get capabilities(): ProjectCapabilities | undefined {
         return this._capabilities;
     }
 
@@ -717,10 +720,10 @@ export default class Project implements vscode.QuickPickItem {
 
         const changed = this._containerID !== oldContainerID;
         if (changed) {
-            const asStr: string = this._containerID == null ? "undefined" : this._containerID.substring(0, 8);
-            if (asStr.length === 0) {
-                Log.w(`Empty containerID for ${this.name}`);
+            if (this._containerID === "") {
+                this._containerID = undefined;
             }
+            const asStr = this._containerID == null ? "undefined" : this._containerID.substring(0, 8);
             Log.d(`New containerID for ${this.name} is ${asStr}`);
         }
         return changed;
