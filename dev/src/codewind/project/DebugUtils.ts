@@ -169,7 +169,7 @@ export default class DebugUtils {
      *
      * @return The new debug configuration which can then be passed to startDebugging
      */
-    private static async setDebugConfig(project: Project): Promise<vscode.DebugConfiguration> {
+    public static async setDebugConfig(project: Project): Promise<vscode.DebugConfiguration> {
         const debugName: string = DebugUtils.getDebugName(project);
 
         let launchToWrite: vscode.DebugConfiguration | undefined;

@@ -159,7 +159,8 @@ export default class Project implements vscode.QuickPickItem {
         // The function calling the constructor must await on this promise before expecting the project to be ready.
         this.initPromise = Promise.all([
             this.updateCapabilities(),
-            this.updateMetricsAvailable()
+            this.updateMetricsAvailable(),
+            this.updateDebugConfig(),
         ])
         .then(() => Promise.resolve());
 
@@ -404,6 +405,17 @@ export default class Project implements vscode.QuickPickItem {
         }
         this._capabilities = capabilities;
         this.onChange();
+    }
+
+    private async updateDebugConfig(): Promise<void> {
+        try {
+            if (this.type.debugType !== undefined) {
+                DebugUtils.setDebugConfig(this);
+            }
+        }
+        catch (err) {
+            Log.e(`Error creating debug configuration for  ${this.name}`, err);
+        }
     }
 
     private async updateMetricsAvailable(): Promise<void> {
