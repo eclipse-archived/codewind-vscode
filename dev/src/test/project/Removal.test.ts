@@ -19,13 +19,13 @@ import { testProjects } from "./Creation.test";
 
 describe(`Project removal wrapper`, function() {
 
+    before(`should use the precreated test projects`, function() {
+        expect(testProjects, `No test projects were found`).to.exist.and.have.length.greaterThan(0);
+    });
+
     // We nest the dynamically generated tests in a before() so they don't execute too soon
     // https://stackoverflow.com/a/54681623
     before(async function() {
-        before(`should use the precreated test projects`, function() {
-            expect(testProjects, `No test projects were found`).to.exist.and.have.length.greaterThan(0);
-        });
-
         describe(`Project removal`, function() {
             testProjects.forEach((project) => {
 
