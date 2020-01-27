@@ -103,6 +103,7 @@ export default class ProjectPendingRestart {
             if (this.nextStateIndex === this.expectedStates.length) {
                 Log.d("Reached restart terminal state");
 
+                Log.d(`Now waiting for restart event`);
                 // Might already be resolved depending on timing
                 await this.restartEventPromise;
                 Log.d("Done waiting for restart event");

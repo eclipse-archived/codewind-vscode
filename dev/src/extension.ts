@@ -21,6 +21,7 @@ import StringNamespaces from "./constants/strings/StringNamespaces";
 import connectLocalCodewindCmd from "./command/StartCodewindCmd";
 import Constants from "./constants/Constants";
 import ConnectionManager from "./codewind/connection/ConnectionManager";
+import LocalCodewindManager from "./codewind/connection/local/LocalCodewindManager";
 
 // configures json as the language of the codewind settings file.
 function setSettingsFileLanguage(doc: vscode.TextDocument): void {
@@ -90,7 +91,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     await ConnectionManager.instance.activate();
     // Connect to local codewind if it's started, but don't start it automatically.
-    connectLocalCodewindCmd(false);
+    connectLocalCodewindCmd(LocalCodewindManager.instance, false);
 
     subscriptions.forEach((e) => {
         context.subscriptions.push(e);

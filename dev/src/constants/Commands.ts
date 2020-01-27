@@ -66,6 +66,8 @@ enum Commands {
 
     VALIDATE = "ext.cw.validate",
 
+    FOCUS_CW_VIEW = "ext.cw.explorer.focus",
+
     // VSCode commands, kept here for easy reference. These will never change.
     VSC_OPEN = "vscode.open",
     VSC_OPEN_FOLDER = "vscode.openFolder",

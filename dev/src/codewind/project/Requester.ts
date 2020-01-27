@@ -25,7 +25,7 @@ import Connection from "../connection/Connection";
 import { IProjectTypeDescriptor } from "./ProjectType";
 import { RawCWEnvData } from "../connection/CWEnvironment";
 import RemoteConnection from "../connection/RemoteConnection";
-import { ISourceEnablement } from "../../command/webview/SourcesPageWrapper";
+import { SourceEnablement } from "../../command/webview/SourcesPageWrapper";
 import { CWTemplateData } from "../../command/connection/CreateUserProjectCmd";
 import { ContainerRegistry } from "../connection/RegistryUtils";
 import { AccessToken } from "../connection/CLICommandRunner";
@@ -78,7 +78,7 @@ namespace Requester {
      * Change the 'enabled' state of the given set of template sources.
      * Should only be called by TemplateSourceList to ensure it is refreshed appropriately.
      */
-    export async function toggleSourceEnablement(connection: Connection, enablements: ISourceEnablement): Promise<void> {
+    export async function toggleSourceEnablement(connection: Connection, enablements: SourceEnablement): Promise<void> {
         const body: IRepoEnablementReq[] = enablements.repos.map((repo) => {
             return {
                 op: "enable",
@@ -225,13 +225,17 @@ namespace Requester {
 
     // Project-specific requests
 
-    export async function requestProjectRestart(project: Project, startMode: StartModes): Promise<request.FullResponse> {
+    /**
+     * @returns If the restart was accepted by the server
+     */
+    export async function requestProjectRestart(project: Project, startMode: StartModes): Promise<boolean> {
         const body = {
             startMode: startMode.toString()
         };
 
         const restartMsg = Translator.t(STRING_NS, "restartIntoMode", { startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode) });
-        return doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, "POST", restartMsg, false, true);
+        const response = await doProjectRequest(project, ProjectEndpoints.RESTART_ACTION, body, "POST", restartMsg, false);
+        return response != null;
     }
 
     export async function requestBuild(project: Project): Promise<void> {
@@ -525,7 +529,7 @@ namespace Requester {
      */
     async function doProjectRequest(
         project: Project, endpoint: ProjectEndpoints, body: {},
-        verb: keyof typeof HttpVerbs, userOperationName: string, silent: boolean = false, returnFullRes: boolean = false): Promise<any> {
+        verb: keyof typeof HttpVerbs, userOperationName: string, silent: boolean = false): Promise<any> {
 
         const url = EndpointUtil.resolveProjectEndpoint(project.connection, project.id, endpoint as ProjectEndpoints);
 
@@ -533,7 +537,6 @@ namespace Requester {
 
         const options: request.RequestPromiseOptions = {
             body,
-            resolveWithFullResponse: returnFullRes,
         };
 
         try {
@@ -558,6 +561,8 @@ namespace Requester {
                 Translator.t(STRING_NS, "requestFail",
                 { operationName: userOperationName, projectName: project.name, err: MCUtil.errToString(err) })
             );
+
+            return undefined;
         }
     }
 }

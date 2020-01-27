@@ -127,7 +127,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             this.setState(ConnectionStates.READY);
         }
         this.onChange(this);
-        Log.d(`${this} finished base enable`);
+        Log.i(`${this} finished base enable`);
     }
 
     protected async disable(): Promise<void> {
@@ -229,7 +229,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         this.hasConnected = true;
-        Log.d(`${this} is now connected`);
+        Log.i(`${this} is now connected`);
         if (this.hasInitialized) {
             Log.d(`${this} is now ready - initialize finished before connect`);
             this.setState(ConnectionStates.READY);
@@ -248,7 +248,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this._projects.forEach((p) => p.onConnectionDisconnect());
         this._projects = [];
 
-        Log.d(`${this} is now disconnected`);
+        Log.i(`${this} is now disconnected`);
 
         this.onChange();
     }

@@ -23,7 +23,9 @@ import CLIWrapper from "../codewind/connection/CLIWrapper";
  *      Set to false to just connect to Codewind if it's already started, and do nothing if it's stopped.
  *      This is so that we can connect if it's already started on activation, while requiring user interaction to start the containers.
  */
-export default async function connectLocalCodewindCmd(start: boolean = true): Promise<void> {
+export default async function connectLocalCodewindCmd(
+        _lcwm: LocalCodewindManager = LocalCodewindManager.instance, start: boolean = true): Promise<void> {
+
     Log.i("Connect Local Codewind Cmd");
 
     try {

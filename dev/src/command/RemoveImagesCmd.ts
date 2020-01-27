@@ -21,20 +21,16 @@ import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrappe
 
 const STRING_NS = StringNamespaces.STARTUP;
 
-export default async function removeImagesCmd(): Promise<void> {
+export default async function removeImagesCmd(
+    _lcwm: LocalCodewindManager = LocalCodewindManager.instance, skipPrompt: boolean = false): Promise<void> {
+
     try {
-        if (LocalCodewindManager.instance.isStarted) {
-            vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesBlockedStillRunning"));
-            return;
-        }
-
-        const positiveResponse = "Remove Images";
-        const response = await vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesModalWarning"),
-            { modal: true }, positiveResponse
-        );
-
-        if (response !== positiveResponse) {
-            return;
+        if (!skipPrompt) {
+            if (!await confirmRemove()) {
+                Log.d(`User cancelled removeImagesCmd`);
+                // cancelled
+                return;
+            }
         }
 
         Log.i("Removing Codewind images");
@@ -46,4 +42,21 @@ export default async function removeImagesCmd(): Promise<void> {
             vscode.window.showErrorMessage("Error removing images: " + MCUtil.errToString(err));
         }
     }
+}
+
+/**
+ * Confirms the return with the user. Returns if we should proceed with the removal.
+ */
+async function confirmRemove(): Promise<boolean> {
+    if (LocalCodewindManager.instance.isStarted) {
+        vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesBlockedStillRunning"));
+        return false;
+    }
+
+    const positiveResponse = "Remove Images";
+    const response = await vscode.window.showWarningMessage(Translator.t(STRING_NS, "removeImagesModalWarning"),
+        { modal: true }, positiveResponse
+    );
+
+    return response === positiveResponse;
 }

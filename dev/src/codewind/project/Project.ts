@@ -163,7 +163,7 @@ export default class Project implements vscode.QuickPickItem {
         ])
         .then(() => Promise.resolve());
 
-        Log.i(`Created ${this.type.toString()} project ${this.name} with ID ${this.id} at ${this.localPath.fsPath}`);
+        Log.i(`Created ${this.type.toString()} project ${this.name} on ${this.connection.label} with ID ${this.id} at ${this.localPath.fsPath}`);
     }
 
     public toString(): string {
@@ -319,6 +319,9 @@ export default class Project implements vscode.QuickPickItem {
         }
     }
 
+    /**
+     * @returns if this project can restart right now.
+     */
     public doRestart(mode: StartModes): boolean {
         if (this.pendingRestart != null) {
             // should be prevented by the RestartProjectCommand

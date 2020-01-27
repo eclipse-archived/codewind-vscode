@@ -31,7 +31,7 @@ export enum ManageSourcesWVMessages {
 /**
  * 'data' field of ENABLE_DISABLE event, which can be converted to an enablement request.
  */
-export interface ISourceEnablement {
+export interface SourceEnablement {
     readonly repos: Array<{
         readonly repoID: string;
         readonly enable: boolean;
@@ -70,7 +70,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
     protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
         switch (msg.type as (ManageSourcesWVMessages | CommonWVMessages)) {
             case ManageSourcesWVMessages.ENABLE_DISABLE: {
-                const enablement = msg.data as ISourceEnablement;
+                const enablement = msg.data as SourceEnablement;
                 await this.enableDisable(enablement);
                 break;
             }
@@ -102,7 +102,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
         }
     }
 
-    private async enableDisable(enablement: ISourceEnablement): Promise<void> {
+    private async enableDisable(enablement: SourceEnablement): Promise<void> {
         Log.i("Enable/Disable repos:", enablement);
         try {
             await this.connection.templateSourcesList.toggleEnablement(enablement);

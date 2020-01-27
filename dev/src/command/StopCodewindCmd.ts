@@ -16,7 +16,7 @@ import Log from "../Logger";
 import MCUtil from "../MCUtil";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 
-export default async function stopLocalCodewindCmd(): Promise<void> {
+export default async function stopLocalCodewindCmd(_lcwm: LocalCodewindManager = LocalCodewindManager.instance): Promise<void> {
     try {
         Log.i("Stopping Local Codewind");
         await LocalCodewindManager.instance.stopCodewind();

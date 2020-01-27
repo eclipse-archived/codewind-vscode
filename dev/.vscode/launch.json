@@ -33,17 +33,16 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 "--extensionTestsPath=${workspaceFolder}/out/test",
+                // Set your tests' workspace path here. It can be any existing directory.
+                // If it's a .code-workspace with multiple directories, the first one is used.
+                // "/Users/tim/codewind-vscode-testworkspace",
             ],
             "outFiles": [
                 "${workspaceFolder}/dev/out/test/**/*.js"
             ],
             "env": {
                 "CW_ENV": "test",
-                // See ProjectType.ts Types for valid values (case insensitive)
-                "test_project_types": "node.js, spring, go, python",
-                // "test_project_types": "spring, microprofile",
-                // Base tests are always run. 'extended' and 'restart' are optional.
-                "test_scope": "extended, restart"
+                // "CWTEST_APPSODY": "true"
             },
             "preLaunchTask": "build"
         }

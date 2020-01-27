@@ -276,6 +276,7 @@ export namespace CLILifecycleWrapper {
     export async function removeAllImages(): Promise<void> {
         const installedVersions = (await CLICommandRunner.status())["installed-versions"];
         for (const unwantedVersion of installedVersions) {
+            Log.i(`Removing images for installed version ${unwantedVersion}`);
             await runLifecycleCmd(CLILifecycleCommands.REMOVE, unwantedVersion);
         }
     }

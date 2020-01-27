@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -9,141 +9,82 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import ProjectType from "../codewind/project/ProjectType";
+import * as path from "path";
+
+import { CWTemplateData } from "../command/connection/CreateUserProjectCmd";
 import Log from "../Logger";
 
+export const ATTN_GRABBER = "*".repeat(10);
+
 namespace TestConfig {
-    interface ITestableProjectType {
-        projectType: ProjectType;
-        url: string;
-        // We want to tests projects that can't be restarted too,
-        // so tell the test whether or not the restart should succeed here.
-        canRestart: boolean;
 
-        // Set this after the project is created
-        projectID?: string;
-    }
+    const ENVVAR_TEST_APPSODY = "CWTEST_APPSODY";
 
-
-    const testableProjectTypes: ITestableProjectType[] = [
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.NODE, ProjectType.Languages.NODE),
-            canRestart: true,
-            url: "https://github.com/microclimate-dev2ops/nodeExpressTemplate",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.SPRING, ProjectType.Languages.JAVA),
-            canRestart: true,
-            url: "https://github.com/microclimate-dev2ops/springJavaTemplate",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.MICROPROFILE, ProjectType.Languages.JAVA),
-            canRestart: true,
-            url: "https://github.com/microclimate-dev2ops/javaMicroProfileTemplate",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.SWIFT, ProjectType.Languages.SWIFT),
-            canRestart: false,
-            url: "https://github.com/microclimate-dev2ops/swiftTemplate",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.DOCKER, ProjectType.Languages.PYTHON),
-            canRestart: false,
-            url: "https://github.com/microclimate-dev2ops/SVTPythonTemplate",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.DOCKER, ProjectType.Languages.GO),
-            canRestart: false,
-            url: "https://github.com/microclimate-dev2ops/microclimateGoTemplate",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.NODE,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: true,
-            url: "https://github.com/appsody/stacks/releases/download/nodejs-loopback-v0.1.4/incubator.nodejs-loopback.templates.scaffold.tar.gz",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.NODE,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: true,
-            url: "https://github.com/appsody/stacks/releases/download/nodejs-express-v0.2.6/incubator.nodejs-express.v0.2.6.templates.simple.tar.gz",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: true,
-            // tslint:disable-next-line: max-line-length
-            url:  "https://github.com/appsody/stacks/releases/download/java-spring-boot2-v0.3.12/incubator.java-spring-boot2.v0.3.12.templates.default.tar.gz",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: true,
-            // tslint:disable-next-line: max-line-length
-            url:  "https://github.com/appsody/stacks/releases/download/java-microprofile-v0.2.14/incubator.java-microprofile.v0.2.14.templates.default.tar.gz",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.PYTHON,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: false,
-            url:  "https://github.com/appsody/stacks/releases/download/python-flask-v0.1.3/incubator.python-flask.v0.1.3.templates.simple.tar.gz",
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: true,
-            // tslint:disable-next-line: max-line-length
-            url: "https://github.com/appsody/stacks/releases/download/java-spring-boot2-v0.3.14/incubator.java-spring-boot2.v0.3.14.templates.kotlin.tar.gz"
-        },
-        {
-            projectType: new ProjectType(ProjectType.InternalTypes.EXTENSION_APPSODY, ProjectType.Languages.JAVA,
-                ProjectType.InternalTypes.EXTENSION_APPSODY),
-            canRestart: true,
-            // tslint:disable-next-line: max-line-length
-            url:  "https://github.com/appsody/stacks/releases/download/java-spring-boot2-v0.3.14/incubator.java-spring-boot2.v0.3.14.templates.default.tar.gz",
-        }
+    // Use GetProjectTypes.js to get values you can put here, and in the appsody stacks.
+    const DEFAULT_CW_TEMPLATES = [
+        "nodeExpressTemplate",
+        "goTemplate",
+        // "springJavaTemplate",            // https://github.com/eclipse/codewind/issues/1877
+        // "javaMicroProfileTemplate",      // takes forever
     ];
 
-    export function getUrl(projectType: ProjectType): string {
-        const found = testableProjectTypes.find((tpt) => tpt.projectType === projectType);
-        if (!found) {
-            // The templates we use for tests are expected to always exist
-            throw new Error("Did not find template corresponding to " + projectType);
-        }
-        return found.url;
+    const DEFAULT_APPSODY_STACKS = [
+        "nodejs-express",
+        "python-flask"
+    ];
+
+    export function areAppsodyTestsEnabled(): boolean {
+        return !!process.env[ENVVAR_TEST_APPSODY];
     }
 
-    const TYPES_ENV_VAR = "test_project_types";
-    const SCOPE_ENV_VAR = "test_scope";
-    const DEFAULT_TYPES = "node.js, spring, go";
+    export function getTemplatesToTest(allTemplates: CWTemplateData[]): CWTemplateData[] {
+        const templatesToTest: CWTemplateData[] = [];
+        DEFAULT_CW_TEMPLATES.forEach((testTemplateName) => {
+            const match = allTemplates
+                .filter((template) => path.basename(template.url) === testTemplateName);
 
-    export function getProjectTypesToTest(): ITestableProjectType[] {
-        if (!process.env[TYPES_ENV_VAR]) {
-            Log.w(`No project types set! Using default`);
-            process.env[TYPES_ENV_VAR] = DEFAULT_TYPES;
-        }
-        const projectTypes = process.env[TYPES_ENV_VAR]!;
-
-        const rawTypes = splitByComma(projectTypes);
-        return testableProjectTypes.filter((type) => {
-            return rawTypes.includes(type.projectType.toString().toLowerCase());
+            if (match.length === 1) {
+                templatesToTest.push(match[0]);
+            }
+            else if (match.length === 0) {
+                Log.t(`Error - Could not find a template that matched the test template name ${testTemplateName}`);
+            }
+            else {
+                Log.t(`Error - Found multiple templates that matched the test template name ${testTemplateName}: ${JSON.stringify(match)}`);
+            }
         });
-    }
 
-    export function isScopeEnabled(scope: string): boolean {
-        const envScope = process.env[SCOPE_ENV_VAR];
-        if (!envScope) {
-            // Log.w(`${SCOPE_ENV_VAR} environment variable is not set`);
-            // if nothing is set, run all scopes
-            return true;
+        if (areAppsodyTestsEnabled()) {
+            DEFAULT_APPSODY_STACKS.forEach((testStackName) => {
+                const match = allTemplates
+                    .filter((stack) => {
+                        const tarName = path.basename(stack.url);
+                        // tarName looks like "incubator.java-spring-boot2.v0.3.22.templates.default.tar.gz"
+                        // we select the "simple" or "default" one, for the stacks that have variants.
+                        const tarStackName = tarName.split(".")[1];
+                        return tarStackName === testStackName && (tarName.includes("simple") || tarName.includes("default"));
+                    });
+
+                if (match.length === 1) {
+                    templatesToTest.push(match[0]);
+                }
+                else if (match.length === 0) {
+                    Log.t(`Error - Could not find an stack that matched the test stack name ${testStackName}`);
+                }
+                else {
+                    Log.t(`Error - Found multiple stacks that matched the test stack name ${testStackName}: ${JSON.stringify(match)}`);
+                }
+            });
         }
 
-        return splitByComma(envScope).includes(scope);
+        return templatesToTest;
     }
 
+    /*
     function splitByComma(s: string): string[] {
         return s.split(",").map((s_) => s_.toLowerCase().trim());
     }
+    */
 }
 
 export default TestConfig;
