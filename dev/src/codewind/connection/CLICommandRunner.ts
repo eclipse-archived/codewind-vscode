@@ -65,10 +65,11 @@ export namespace CLICommandRunner {
         return statusObj;
     }
 
-    export async function createProject(projectPath: string, url: string)
+    export async function createProject(connectionID: string, projectPath: string, url: string)
         : Promise<IInitializationResponse> {
 
         return CLIWrapper.cliExec(CLICommands.PROJECT.CREATE, [
+            "--conid", connectionID,
             "--path", projectPath,
             "--url", url
         ]);
@@ -77,8 +78,9 @@ export namespace CLICommandRunner {
     /**
      * Test the path given to determine the project type Codewind should use.
      */
-    export async function detectProjectType(projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
+    export async function detectProjectType(connectionID: string, projectPath: string, desiredType?: string): Promise<IInitializationResponse> {
         const args = [
+            "--conid", connectionID,
             "--path", projectPath,
         ];
 
