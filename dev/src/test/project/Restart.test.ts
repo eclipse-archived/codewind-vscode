@@ -34,7 +34,11 @@ describe(`Restart tests wrapper`, async function() {
 
             testProjects.forEach((project) => {
 
-                if (!project.capabilities.supportsRestart) {
+                it(`${project.name} should have capabilities`, async function() {
+                    expect(project.capabilities).to.exist;
+                });
+
+                if (!project.capabilities?.supportsRestart) {
                     // skip these tests for this project
                     return;
                 }

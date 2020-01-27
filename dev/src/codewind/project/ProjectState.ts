@@ -99,7 +99,7 @@ export class ProjectState {
         if (this.appState === ProjectState.AppStates.UNKNOWN) {
             if (!buildStatusStr) {
                 // Log.w(`${this.projectName} has unknown app and build statuses`);
-                return "";
+                return "[Unknown]";
             }
             // Return only the build status if app status is unknown
             return `[${buildStatusStr}]`;
