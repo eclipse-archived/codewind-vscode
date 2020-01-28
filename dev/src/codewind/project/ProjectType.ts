@@ -127,7 +127,11 @@ export class ProjectType {
             ProjectType.InternalTypes.MICROPROFILE,
             ProjectType.InternalTypes.NODE,
             ProjectType.InternalTypes.SPRING
-        ].includes(this.internalType);
+        ].includes(this.internalType) ||
+            ([ProjectType.InternalTypes.DOCKER].includes(this.internalType) &&
+            [ProjectType.Languages.JAVA].map((lang) => lang.toString().toLowerCase())
+            .includes(this.language.toLowerCase())
+        );
     }
 
     public get alwaysHasAppMonitor(): boolean {
