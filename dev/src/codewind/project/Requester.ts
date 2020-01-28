@@ -178,8 +178,13 @@ namespace Requester {
             address: toRemove.address,
         };
 
+        if (toRemove.isPushRegistry) {
+            await doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "DELETE", { body });
+        }
+
         const response: RegistrySecretResponse[] = await doConnectionRequest(connection, MCEndpoints.REGISTRY_SECRETS, "DELETE", { body });
-        return response.map(asContainerRegistry);
+        const registriesAfterDelete = response.map(asContainerRegistry);
+        return registriesAfterDelete;
     }
 
     export async function getPushRegistry(connection: Connection): Promise<{ imagePushRegistry: boolean, address?: string, namespace?: string }> {

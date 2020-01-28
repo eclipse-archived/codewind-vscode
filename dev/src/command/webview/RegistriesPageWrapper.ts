@@ -153,6 +153,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
 
                 try {
                     await Requester.removeRegistrySecret(this.connection, registry);
+                    Log.d(`Deleted ${registry.isPushRegistry ? "push " : ""}registry ${registry.fullAddress}`);
                 }
                 catch (err) {
                     const errMsg = `Failed to remove registry ${registry.fullAddress}`;
