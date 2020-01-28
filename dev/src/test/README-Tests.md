@@ -3,9 +3,8 @@
 To run the integration tests:
 1. In `dev/launch.json`, locate the `Extension Tests` launch configuration and add an argument for the workspace directory to use. The workspace directory must exist before you run the launch.
 2. See `index.ts` for the suites to run, and edit the index or the suites if you want to run different tests.
-3. See `TestConfig.ts` for the project types to test.
-4. Set `CWTEST_APPSODY=true` in the environment (eg, in the `Extension Tests` launch's `env` section) to test Appsody project types.
-5. Run the `Extension Tests` launch.
+3. See `TestConfig.ts` for the project types to test. Use src/test/GetProjectTypes.js get the names of the project types which may be tested.
+4. Run the `Extension Tests` launch.
 
 ### Some tests must execute after others
 - The `Base` test activates the extension, and must always run first.

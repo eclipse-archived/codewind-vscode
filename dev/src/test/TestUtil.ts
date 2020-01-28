@@ -88,22 +88,23 @@ namespace TestUtil {
         }
     }*/
 
-    // Doesn't appear to work for java any more, though it definitely used to.
     export async function killActiveDebugSession(): Promise<void> {
         const activeDbSession = vscode.debug.activeDebugSession;
-        if (activeDbSession != null) {
-            Log.t("Attempting to disconnect active debug session " + activeDbSession.name);
-
-            // These parameters are not documented, see the code linked below for Java. Seems to work for Node too.
-            // tslint:disable-next-line:max-line-length
-            // https://github.com/Microsoft/java-debug/blob/master/com.microsoft.java.debug.core/src/main/java/com/microsoft/java/debug/core/protocol/Requests.java#L169
-            await activeDbSession.customRequest("disconnect", { terminateDebuggee: false, restart: false })
-            .then(
-                () => Log.t(`Disconnected debug session "${activeDbSession.name}"`),
-                // Sometimes this will fail, don't worry about it
-                (err) => Log.t(`Error disconnecting from debug session ${activeDbSession.name}:`, err.message || err)
-            );
+        if (activeDbSession == null) {
+            Log.t(`No active debug session to terminate`);
+            return;
         }
+        Log.t("Attempting to disconnect active debug session " + activeDbSession.name);
+
+        // These parameters are not documented, see the code linked below for Java. Seems to work for Node too.
+        // tslint:disable-next-line:max-line-length
+        // https://github.com/Microsoft/java-debug/blob/master/com.microsoft.java.debug.core/src/main/java/com/microsoft/java/debug/core/protocol/Requests.java#L169
+        await activeDbSession.customRequest("disconnect", { terminateDebuggee: false, restart: false })
+        .then(
+            () => Log.t(`Disconnected debug session "${activeDbSession.name}"`),
+            // Sometimes this will fail, don't worry about it
+            (err) => Log.t(`Error disconnecting from debug session ${activeDbSession.name}:`, err.message || err)
+        );
     }
 
     interface Condition {

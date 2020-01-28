@@ -42,7 +42,6 @@
             ],
             "env": {
                 "CW_ENV": "test",
-                // "CWTEST_APPSODY": "true"
             },
             "preLaunchTask": "build"
         }

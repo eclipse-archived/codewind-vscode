@@ -79,7 +79,7 @@ export default class ProjectPendingRestart {
         });
 
         // Fails the restart when the timeout expires
-        this.timeoutID = setTimeout( () => {
+        this.timeoutID = setTimeout(() => {
             const failReason = Translator.t(STRING_NS, "restartFailedReasonTimeout", { timeoutS: timeoutMs / 1000 });
             Log.i("Rejecting restart: " + failReason);
             this.fulfill(false, failReason);
@@ -128,9 +128,19 @@ export default class ProjectPendingRestart {
             // The restart failed
             this.fulfill(success, error);
         }
-        else {
-            if (ProjectCapabilities.isDebugMode(this.startMode)) {
-                await this.attachDebuggerPostRestart();
+        else if (ProjectCapabilities.isDebugMode(this.startMode)) {
+            try {
+                await attachDebugger(this.project, true);
+            }
+            catch (err) {
+                Log.w("Debugger attach failed or was cancelled by user", err);
+                const errMsg = err.message || err;
+                vscode.window.showErrorMessage(errMsg);
+
+                if (this.startMode === StartModes.DEBUG) {
+                    // The project will fail to start because it will be waiting for the attach, which failed. So we fail the restart here
+                    this.fulfill(false, Translator.t(STRING_NS, "restartFailedReasonDebugFailure"));
+                }
             }
         }
 
@@ -141,28 +151,6 @@ export default class ProjectPendingRestart {
         else {
             // will never happen
             Log.e("Null resolveRestartEvent");
-        }
-    }
-
-    private async attachDebuggerPostRestart(): Promise<void> {
-        Log.d("Attaching debugger as part of restart");
-
-        try {
-            const debuggerAttached: boolean = await attachDebugger(this.project, true);
-            if (!debuggerAttached) {
-                const debuggerAttachFailedMsg = Translator.t(STRING_NS, "restartFailedReasonDebugFailure");
-                Log.w(debuggerAttachFailedMsg);
-
-                // If we're debugging init, the restart fails here because it will get stuck without the debugger attach
-                if (this.startMode === StartModes.DEBUG) {
-                    this.fulfill(false, debuggerAttachFailedMsg);
-                }
-            }
-        }
-        catch (err) {
-            Log.w("Debugger attach failed or was cancelled by user", err);
-            const errMsg = err.message || err;
-            vscode.window.showErrorMessage(errMsg);
         }
     }
 
@@ -187,6 +175,7 @@ export default class ProjectPendingRestart {
         }
 
         this.resolve();
+        clearTimeout(this.timeoutID);
         if (success) {
             const successMsg = Translator.t(STRING_NS, "restartSuccess",
                 { projectName: this.project.name, startMode: ProjectCapabilities.getUserFriendlyStartMode(this.startMode) }
@@ -212,7 +201,6 @@ export default class ProjectPendingRestart {
             vscode.window.showErrorMessage(failMsg);
         }
 
-        clearTimeout(this.timeoutID);
         this.project.onRestartFinish();
     }
 }

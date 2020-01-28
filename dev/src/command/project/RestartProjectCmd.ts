@@ -16,10 +16,16 @@ import Log from "../../Logger";
 import Requester from "../../codewind/project/Requester";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
-    const startMode = ProjectCapabilities.getDefaultStartMode(debug, project.type.type);
+    const capabilities = project.capabilities;
+    if (capabilities == null) {
+        // shouldn't happen because UI blocks restart action until this is done
+        vscode.window.showErrorMessage(`Cannot restart ${project.name} - project is still initializing. Wait for the project to build.`);
+        return false;
+    }
+
+    const startMode = capabilities.getDefaultStartMode(debug, project.type.type);
 
     Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
 

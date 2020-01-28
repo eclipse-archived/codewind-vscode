@@ -78,14 +78,18 @@ describe(`Restart tests wrapper`, async function() {
                     this.timeout(TestUtil.ms(30, "sec"));
                     this.slow(TestUtil.ms(10, "sec"));
 
-                    await TestUtil.waitForCondition(this, {
-                        label: `Waiting for a debug session to be active`,
-                        condition: () => vscode.debug.activeDebugSession != null
-                    });
+                    try {
+                        await TestUtil.waitForCondition(this, {
+                            label: `Waiting for a debug session to be active`,
+                            condition: () => vscode.debug.activeDebugSession != null
+                        });
 
-                    await assertDebugSessionExists(project.name);
-                    Log.t("Debugger connect succeeded");
-                    await TestUtil.killActiveDebugSession();
+                        await assertDebugSessionExists(project.name);
+                        Log.t("Debugger connect succeeded");
+                    }
+                    finally {
+                        await TestUtil.killActiveDebugSession();
+                    }
                 });
 
                 it(`should be able to re-attach the debugger to ${project.name}`, async function() {
@@ -97,15 +101,19 @@ describe(`Restart tests wrapper`, async function() {
                     this.slow(TestUtil.ms(10, "sec"));
                     // this.retries(2);
 
-                    await vscode.commands.executeCommand(Commands.ATTACH_DEBUGGER, project);
-                    await TestUtil.waitForCondition(this, {
-                        label: `Waiting for a second debug session to be active`,
-                        condition: () => vscode.debug.activeDebugSession != null
-                    });
+                    try {
+                        await vscode.commands.executeCommand(Commands.ATTACH_DEBUGGER, project);
+                        await TestUtil.waitForCondition(this, {
+                            label: `Waiting for a new debug session to be active`,
+                            condition: () => vscode.debug.activeDebugSession != null
+                        });
 
-                    await assertDebugSessionExists(project.name);
-                    Log.t("Debugger connect succeeded again");
-                    await TestUtil.killActiveDebugSession();
+                        await assertDebugSessionExists(project.name);
+                        Log.t("Debugger connect succeeded again");
+                    }
+                    finally {
+                        await TestUtil.killActiveDebugSession();
+                    }
                 });
             });
         });
@@ -154,13 +162,14 @@ export async function testRestart(ctx: Mocha.Context, project: Project, debug: b
 export async function assertDebugSessionExists(projectName: string): Promise<void> {
     Log.t("assertDebugSessionExists containing name " + projectName);
 
-    const debugSession = vscode.debug.activeDebugSession;
+    const debugSession_ = vscode.debug.activeDebugSession;
+    expect(debugSession_, `${projectName} There should be an active debug session`).to.exist;
 
-    Log.t(`Active debug session is ${debugSession ? debugSession.name : "undefined"}`);
-    expect(debugSession, `${projectName} There should be an active debug session`).to.exist;
-    expect(debugSession!.name).to.contain(projectName, "Active debug session is not for this project, is: " + debugSession);
+    const debugSession = debugSession_!;
+    Log.t(`Active debug session is ${debugSession.name}`);
+    expect(debugSession!.name).to.contain(projectName, `Active debug session is not for this project, is: ${debugSession.name}`);
 
-    const threads = (await debugSession!.customRequest("threads"))["threads"];
+    const threads = (await debugSession.customRequest("threads"))["threads"];
     Log.t(`There are ${threads.length} threads`);
     // only 1 thread for node projects
     expect(threads, "Debug session existed but has no threads").to.exist.and.not.be.empty;

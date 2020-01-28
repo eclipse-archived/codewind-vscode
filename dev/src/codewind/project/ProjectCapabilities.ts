@@ -61,16 +61,32 @@ export default class ProjectCapabilities {
         return startMode === StartModes.DEBUG.toString() || startMode === StartModes.DEBUG_NO_INIT.toString();
     }
 
-    public static getDefaultStartMode(debug: boolean, projectType: ProjectType.Types): StartModes {
+    public getDefaultStartMode(debug: boolean, projectType: ProjectType.Types): StartModes {
         if (!debug) {
             return StartModes.RUN;
         }
 
+        let defaultDebugMode;
+        let fallbackDebugMode;
         if (projectType === ProjectType.Types.MICROPROFILE) {
-            return StartModes.DEBUG;
+            defaultDebugMode = StartModes.DEBUG;
+            fallbackDebugMode = StartModes.DEBUG_NO_INIT;
+        }
+        else {
+            defaultDebugMode = StartModes.DEBUG_NO_INIT;
+            fallbackDebugMode = StartModes.DEBUG;
         }
 
-        return StartModes.DEBUG_NO_INIT;
+        if (this.startModes.includes(defaultDebugMode)) {
+            return defaultDebugMode;
+        }
+        else if (this.startModes.includes(fallbackDebugMode)) {
+            return fallbackDebugMode;
+        }
+        else {
+            // should never happen
+            throw new Error(`Debug mode requested for project which does not support it`);
+        }
     }
 
     public get supportsDebug(): boolean {
