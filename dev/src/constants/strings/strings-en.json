@@ -85,7 +85,7 @@
         "quickPickNotRunning": "[Not running]",
         "onDeletion": "{{ projectName }} was deleted in Codewind.",
 
-        "alreadyRestarting": "Restart cancelled: {{ projectName }} is already restarting.",
+        "alreadyRestarting": "{{ projectName }} is already restarting.",
         "restartingStatusMsg": "Restarting {{ projectName }} into {{ startMode }} mode",
 
         "restartSuccess": "Finished restarting {{ projectName }} in {{ startMode }} mode.",

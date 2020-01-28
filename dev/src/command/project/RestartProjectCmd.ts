@@ -18,7 +18,14 @@ import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
-    const startMode = project.capabilities.getDefaultStartMode(debug, project.type.type);
+    const capabilities = project.capabilities;
+    if (capabilities == null) {
+        // shouldn't happen because UI blocks restart action until this is done
+        vscode.window.showErrorMessage(`Cannot restart ${project.name} - project is still initializing. Wait for the project to build.`);
+        return false;
+    }
+
+    const startMode = capabilities.getDefaultStartMode(debug, project.type.type);
 
     Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
 
