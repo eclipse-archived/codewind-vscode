@@ -72,7 +72,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 ${buildRow(rp, "Type", project.type.toString())}
                 ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow(rp, "Project ID", project.id)}
-                ${buildRow(rp, "Local Path", project.localPath.fsPath, { openable: global.isTheia ? undefined : "folder"})}
+                ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: global.isTheia ? undefined : "folder"})}
             </table>
         </div>
         <div class="section">
@@ -148,6 +148,15 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     </body>
     </html>
     `;
+}
+
+function getUserFriendlyPath(project: Project): string {
+    const fsPath = project.localPath.fsPath;
+    if (MCUtil.getOS() === "windows") {
+        // uppercase drive letter
+        return MCUtil.uppercaseFirstChar(fsPath);
+    }
+    return fsPath;
 }
 
 const DEFAULT_ROW_OPTIONS: RowOptions = {
