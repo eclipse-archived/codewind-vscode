@@ -18,13 +18,13 @@ import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
 import { ContainerRegistry } from "../../../codewind/connection/RegistryUtils";
 import { WebviewResourceProvider } from "../WebviewWrapper";
+import Connection from "../../../codewind/connection/Connection";
 
 export default function getManageRegistriesPage(
     rp: WebviewResourceProvider,
-    connectionLabel: string,
-    isRemoteConnection: boolean,
+    connection: Connection,
     registries: ContainerRegistry[],
-    needsPushRegistry: boolean): string {
+    isCWSourceEnabled: boolean): string {
 
     return `
     <!DOCTYPE html>
@@ -43,7 +43,7 @@ export default function getManageRegistriesPage(
     <body>
 
     <div id="top-section">
-        ${WebviewUtil.buildTitleSection(rp, "Image Registry Manager", connectionLabel, isRemoteConnection)}
+        ${WebviewUtil.buildTitleSection(rp, "Image Registry Manager", connection.label, connection.isRemote)}
         <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${CommonWVMessages.HELP}')">
             Learn More<img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
         </div>
@@ -60,7 +60,7 @@ export default function getManageRegistriesPage(
         </div>
     </div>
 
-    ${buildTable(rp, registries, needsPushRegistry)}
+    ${buildTable(rp, registries, connection.isKubeConnection, isCWSourceEnabled)}
 
     <script>
         const vscode = acquireVsCodeApi();
@@ -102,26 +102,27 @@ export default function getManageRegistriesPage(
     `;
 }
 
-function buildTable(rp: WebviewResourceProvider, registries: ContainerRegistry[], needsPushRegistry: boolean): string {
+function buildTable(
+    rp: WebviewResourceProvider, registries: ContainerRegistry[], showPushRegistryColumns: boolean, isCWSourceEnabled: boolean): string {
 
     if (registries.length === 0) {
         return `
             <h2 id="no-registries-msg">
                 You have not yet added any image registries. Click <a title="Add New" onclick="addNew()">Add New.</a> <br><br>
-                ${needsPushRegistry ? "At least one image registry is required in order to build Codewind-style projects." : ""}
+                ${showPushRegistryColumns && isCWSourceEnabled ? "At least one image registry is required in order to build Codewind-style projects." : ""}
             </h2>
         `;
     }
 
-    const rows = registries.map((registry) => buildRow(rp, registry, needsPushRegistry));
+    const rows = registries.map((registry) => buildRow(rp, registry, showPushRegistryColumns));
 
     return `
     <table>
         <colgroup>
             <col id="address-col"/>
             <col id="username-col"/>
-            ${needsPushRegistry ? `<col id="namespace-col"/>` : "" }
-            ${needsPushRegistry ? `<col id="push-registry-col"/>` : ""}
+            ${showPushRegistryColumns ? `<col id="namespace-col"/>` : "" }
+            ${showPushRegistryColumns ? `<col id="push-registry-col"/>` : ""}
             <!--col class="btn-col"/-->      <!-- Edit buttons -->
             <col class="btn-col"/>      <!-- Delete buttons -->
         </colgroup>
@@ -129,8 +130,8 @@ function buildTable(rp: WebviewResourceProvider, registries: ContainerRegistry[]
             <tr>
                 <td>Address</td>
                 <td>Username</td>
-                ${needsPushRegistry ? "<td>Namespace</td>" : ""}
-                ${needsPushRegistry ?
+                ${showPushRegistryColumns ? "<td>Namespace</td>" : ""}
+                ${showPushRegistryColumns ?
                     `<td id="push-registry-header">Select a Push Registry</td>` : ""
                 }
                 <!--td></td-->
