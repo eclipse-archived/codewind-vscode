@@ -17,6 +17,7 @@ import InputUtil from "../../InputUtil";
 import Requester from "../project/Requester";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
+import ProjectType from "../project/ProjectType";
 
 export class ContainerRegistry {
     private _isPushRegistry: boolean = false;
@@ -84,8 +85,15 @@ namespace RegistryUtils {
     }
 
     function doesUsePushRegistry(projectType: string): boolean {
-        // these two extension types do not require a push registry
-        return projectType !== "appsodyExtension" && projectType !== "odo";
+        const isExtensionType = [
+            ProjectType.InternalTypes.EXTENSION_APPSODY,
+            ProjectType.InternalTypes.EXTENSION_ODO,
+        ]
+        .map((type) => type.toString())
+        .includes(projectType);
+
+        // these extension types do NOT require a push registry
+        return !isExtensionType;
     }
 
     const newRegistryWizardSteps: InputUtil.InputStep[] = [

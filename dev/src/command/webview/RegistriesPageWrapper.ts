@@ -63,13 +63,9 @@ export class RegistriesPageWrapper extends WebviewWrapper {
             return Requester.getImageRegistries(this.connection);
         });
 
-        const html = getManageRegistriesHtml(resourceProvider,
-            this.connection.label,
-            this.connection.isRemote,
-            this.registries,
-            this.connection.isKubeConnection
-        );
+        const hasCWSourceEnabled = await this.connection.templateSourcesList.hasCodewindSourceEnabled();
 
+        const html = getManageRegistriesHtml(resourceProvider, this.connection, this.registries, hasCWSourceEnabled);
         return html;
     }
 
