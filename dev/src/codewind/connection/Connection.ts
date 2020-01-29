@@ -69,7 +69,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     ) {
         Log.d(`Creating new connection ${this.label} @ ${this.url}`);
         this._state = ConnectionStates.INITIALIZING;
-        this.host = this.getHost(url);
+        this.host = this.getHost();
         this.enable()
         .catch((err) => {
             const errMsg = `Error initializing ${this.label}:`;
@@ -182,7 +182,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath);
     }
 
-    private getHost(url: vscode.Uri): string {
+    private getHost(): string {
         if (global.isTheia) {
             // On theia we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
@@ -199,7 +199,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
             }
             Log.e(`${Constants.CHE_API_EXTERNAL_ENVVAR} is not set in the environment or was invalid: falling back to default host`);
         }
-        return MCUtil.getHostnameFrom(url);
+        return MCUtil.getHostnameFrom(this.url);
     }
 
     /**
@@ -216,8 +216,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
     }
 
-    public onConnect = async (): Promise<void> => {
-        Log.d(`${this} onConnect`);
+    public async onConnect(): Promise<void> {
+        Log.d(`${this} base onConnect`);
         if (this.isConnected) {
             // we already know we're connected, nothing to do until we disconnect
             return;
@@ -225,7 +225,15 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         if (this.hasConnected) {
             // things to do on reconnect, but not initial connect, go here
-            this._projects.forEach((p) => p.onConnectionReconnect());
+            try {
+                await this.updateProjects();
+                this._projects.forEach((p) => p.onConnectionReconnect());
+            }
+            catch (err) {
+                const errMsg = `Error reconnecting to ${this.label}`;
+                Log.e(errMsg);
+                vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            }
         }
 
         this.hasConnected = true;
@@ -237,7 +245,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.onChange();
     }
 
-    public onDisconnect = async (): Promise<void> => {
+    public async onDisconnect(): Promise<void> {
         Log.d(`${this} onDisconnect`);
         if (this._state === ConnectionStates.NETWORK_ERROR) {
             // we already know we're disconnected, nothing to do until we reconnect
@@ -261,7 +269,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return this.projects.some((proj) => proj.localPath.fsPath === path.fsPath);
     }
 
-    public async updateProjects(): Promise<Project[]> {
+    public async updateProjects(): Promise<void> {
         const projectsData = await Requester.getProjects(this);
 
         const oldProjects = this._projects;
@@ -306,7 +314,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         await Promise.all(initPromises);
         Log.d("Done projects update");
         this.onChange();
-        return this._projects;
     }
 
     public async getProjectByID(projectID: string): Promise<Project | undefined> {
