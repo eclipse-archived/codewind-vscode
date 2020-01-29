@@ -351,6 +351,11 @@ namespace Requester {
     export async function areMetricsAvailable(project: Project): Promise<boolean> {
         const msg = Translator.t(STRING_NS, "checkingMetrics");
         const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, "GET", msg, true);
+        if (res == null) {
+            // there was an error getting the metrics status
+            // we assume true as to not block UI actions
+            return true;
+        }
         return res.metricsAvailable;
     }
 
@@ -560,7 +565,7 @@ namespace Requester {
             return result;
         }
         catch (err) {
-            Log.w(`Error doing ${userOperationName} project request for ${project.name}:`, err);
+            Log.e(`Error doing ${userOperationName} project request for ${project.name}:`, err);
 
             vscode.window.showErrorMessage(
                 Translator.t(STRING_NS, "requestFail",

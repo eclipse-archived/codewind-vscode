@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";
 import Requester from "../project/Requester";
+import MCUtil from "../../MCUtil";
 
 export default class RemoteConnection extends Connection {
 
@@ -74,17 +75,8 @@ export default class RemoteConnection extends Connection {
         }
 
         if (!canPing) {
-            this.setState(ConnectionStates.DISABLED);
+            this.setState(ConnectionStates.NETWORK_ERROR);
             throw new Error(`Failed to connect to ${this.url}. Make sure the Codewind instance is running, and reachable from your machine.`);
-        }
-
-        let token: string;
-        try {
-            token = (await this.getAccessToken()).access_token;
-        }
-        catch (err) {
-            this.setState(ConnectionStates.AUTH_ERROR);
-            throw err;
         }
 
         try {
@@ -95,14 +87,6 @@ export default class RemoteConnection extends Connection {
         }
         catch (err) {
             this.setState(ConnectionStates.DISABLED);
-            throw err;
-        }
-
-        try {
-            await this._socket.authenticate(token);
-        }
-        catch (err) {
-            this.setState(ConnectionStates.AUTH_ERROR);
             throw err;
         }
 
@@ -139,6 +123,31 @@ export default class RemoteConnection extends Connection {
             this.registriesPage.dispose();
         }
         await super.dispose();
+    }
+
+    public async onConnect(): Promise<void> {
+        if (!this._socket) {
+            // Not possible because onConnect is invoked by the socket
+            Log.e(`${this.label} socket was undefined in onConnect`);
+            return;
+        }
+
+        try {
+            const token = (await this.getAccessToken()).access_token;
+            await this._socket.authenticate(token);
+        }
+        catch (err) {
+            this.setState(ConnectionStates.AUTH_ERROR);
+            vscode.window.showErrorMessage(`Error connecting to ${this.label}: ${MCUtil.errToString(err)}`);
+        }
+        finally {
+            await super.onConnect();
+        }
+    }
+
+    public async onDisconnect(): Promise<void> {
+        this._accessToken = undefined;
+        await super.onDisconnect();
     }
 
     protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
@@ -213,9 +222,6 @@ export default class RemoteConnection extends Connection {
         Log.d(`${this.label} looking up access token for user "${this._username}"`);
         try {
             this._accessToken = await CLICommandRunner.getAccessToken(this.id, this._username);
-            if (this._socket && this._socket.isConnected && !this._socket.isAuthorized) {
-                await this._socket.authenticate(this._accessToken.access_token);
-            }
             if (this.state === ConnectionStates.AUTH_ERROR) {
                 this.setState(ConnectionStates.READY);
                 await this.refresh();

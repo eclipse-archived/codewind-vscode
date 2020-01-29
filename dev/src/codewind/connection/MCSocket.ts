@@ -53,7 +53,7 @@ export default class MCSocket implements vscode.Disposable {
         Log.i("Creating MCSocket for URI", this.uri);
 
         const usingHttps = connection.url.scheme === "https";
-        const timeout = connection.isKubeConnection ? 15000 : 5000;
+        const timeout = 5000;
         const options: SocketIOClient.ConnectOpts = {
             rejectUnauthorized: !usingHttps,                    // TODO because of our self-signed certs
             secure: usingHttps,
@@ -73,11 +73,12 @@ export default class MCSocket implements vscode.Disposable {
             .on("connect", () => {
                 this._isConnected = true;
                 this.connection.onConnect();
-            })      // non-nls
+            })
             .on("disconnect", () => {
                 this._isConnected = false;
+                this._isAuthorized = false;
                 this.connection.onDisconnect();
-            })   // non-nls
+            })
 
             // .on(SocketEvents.Types.PROJECT_BOUND,           this.onProjectBound)
 
@@ -102,7 +103,7 @@ export default class MCSocket implements vscode.Disposable {
     }
 
     public get isAuthorized(): boolean {
-        return this._isAuthorized;
+        return !this.connection.isRemote || this._isAuthorized;
     }
 
     public get isReady(): boolean {
@@ -117,8 +118,6 @@ export default class MCSocket implements vscode.Disposable {
     public async dispose(): Promise<void> {
         this.connection.onDisconnect();
         this.socket.disconnect();
-        this._isConnected = false;
-        this._isAuthorized = false;
     }
 
     public async authenticate(token: string): Promise<void> {
@@ -126,21 +125,22 @@ export default class MCSocket implements vscode.Disposable {
         return new Promise<void>((resolve, reject) => {
             this.socket.emit("authentication", { token });
 
-            const timeoutS = 10;
-            const timeout = setTimeout(() => {
-                reject(`Socket at ${this.uri} did not respond to authentication request within ${timeoutS} seconds. Try refreshing the connection.`);
-            }, timeoutS * 1000);
+            // const timeoutS = 10;
+            // const timeout = setTimeout(() => {
+            //     reject(`Socket at ${this.uri} did not respond to authentication request within ${timeoutS} seconds. `
+            //         + `Try refreshing the connection.`);
+            // }, timeoutS * 1000);
 
             this.socket.on("authenticated", () => {
                 Log.i(`Successfully authenticated ${this}`);
                 // The authorization stays valid until we call socket.disconnect()
                 this._isAuthorized = true;
-                clearTimeout(timeout);
+                // clearTimeout(timeout);
                 resolve();
             });
             this.socket.on("unauthorized", (payload: { message: string }) => {
                 Log.e(`${this} received unauthorized event`, payload);
-                clearTimeout(timeout);
+                // clearTimeout(timeout);
                 reject(payload.message);
             });
         });
