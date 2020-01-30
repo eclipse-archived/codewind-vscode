@@ -34,6 +34,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
     </head>
     <body>
+    <div style="margin-left: 60px; margin-top: 60px">
     <div id="top-section">
         <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
@@ -44,10 +45,10 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
     <!--div id="description">
         <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
     </div-->
-    <div id="main">
+    <div id="main" style="margin-top: 25px;">
         <div style="display: inline-block;">
             <div id="deployment-box">
-                <h3>Codewind Connection
+                <h3>1. Codewind Connection
                     <div id="learn-more-btn-remote">
                         <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.REMOTE_SETUP)}">
                             <input type="image" class="learn-more-btn" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
@@ -71,7 +72,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                         ${connectionExists ? "style='display: none;'" : ""}
                         value="${connectionInfo.url ? connectionInfo.url : ""}"/>
 
-                    <div style="float: left; margin-top: 2em">
+                    <div style="float: left; margin-top: 40px">
                         <label class="info-label" for="input-username">Username</label>
                         <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.username}</div>
                         <input type="text" id="ingress-username" class="input-username" name="ingress-username"
@@ -79,9 +80,9 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                             placeholder="developer"
                             value="${connectionInfo.username || ""}"/>
                     </div>
-                    <div style="overflow: hidden; margin-top: 2em">
+                    <div style="overflow: hidden; margin-top: 40px">
                         <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
-                            <label class="info-label" for="input-password" style="margin-left: 10px;">Password</label>
+                            <label class="info-label" for="input-password" style="margin-left: 35px;">Password</label>
                             <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
                         </div>
                     </div>
@@ -92,7 +93,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             <div class="link-containers">
                 <div class="link-containers-group">
                 <div id="link-container-box">
-                    <h3>Select Sources
+                    <h3>2. Select Sources
                         <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}">
                             <input type="image" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
                         </a>
@@ -101,8 +102,8 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                     <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</button>
                 </div>
 
-                <div id="link-container-box">
-                    <h3>Add Registries
+                <div id="link-container-box" style="margin-top: 30px">
+                    <h3>3. Add Registries
                         <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}">
                             <input type="image" alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
                         </a>
@@ -121,7 +122,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             </button>
             <div class="edit-connection-group">
                 <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Save
+                    ${connectionExists ? `style="display: none;"` : `style="display: inline; float: left; margin-left: 0px"`}>Save
                 </button>
                 <button type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>
@@ -131,12 +132,12 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}
                 </button>
                 <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}" onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline;"`}>Cancel
+                    ${connectionExists ? `style="display: none;"` : `style="display: inline; float: left;"`}>Cancel
                 </button>
             </div>
         </div>
     </div>
-
+</div>
     <script>
         const vscode = acquireVsCodeApi();
 
@@ -168,7 +169,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
         }
 
         function editConnection() {
-            document.querySelector("#deployment-box p").style.display = "block";
+            // document.querySelector("#deployment-box p").style.display = "block";
             // document.querySelector("#ingress-url").style.display = "block";
             document.querySelector("#ingress-username-label").style.display = "none"
             document.querySelector("#ingress-username").style.display = "block";
