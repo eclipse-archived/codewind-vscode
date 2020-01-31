@@ -128,9 +128,8 @@ export class ProjectType {
             ProjectType.InternalTypes.NODE,
             ProjectType.InternalTypes.SPRING
         ].includes(this.internalType) ||
-            ([ProjectType.InternalTypes.DOCKER].includes(this.internalType) &&
-            [ProjectType.Languages.JAVA].map((lang) => lang.toString().toLowerCase())
-            .includes(this.language.toLowerCase())
+            (this.internalType === ProjectType.InternalTypes.DOCKER && 
+                this.language.toLowerCase() === ProjectType.Languages.JAVA
         );
     }
 
