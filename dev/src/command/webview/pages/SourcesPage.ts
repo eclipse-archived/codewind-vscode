@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,7 @@
 
 // import * as vscode from "vscode";
 
-import Resources from "../../../constants/Resources";
+import { ThemedImages } from "../../../constants/CWImages";
 // import MCUtil from "../../MCUtil";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageSourcesWVMessages } from "../SourcesPageWrapper";
@@ -25,36 +25,26 @@ export default function getManageSourcesPage(
     <!DOCTYPE html>
 
     <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        ${WebviewUtil.getCSP()}
-
-        <link rel="stylesheet" href="${rp.getStylesheet("sources-registries-tables.css")}"/>
-        <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
-        ${global.isTheia ?
-            `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
-        ${WebviewUtil.getFontLinks()}
-    </head>
+    ${WebviewUtil.getHead(rp, "sources-registries-tables.css")}
     <body>
 
     <div id="top-section">
         ${WebviewUtil.buildTitleSection(rp, "Template Source Manager", connectionLabel, isRemoteConnection)}
         <div tabindex="0" id="learn-more-btn" class="btn" onclick="sendMsg('${CommonWVMessages.HELP}')">
-            Learn More<img alt="Learn More" src="${rp.getIcon(Resources.Icons.Help)}"/>
+            Learn More<img alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
         </div>
     </div>
 
     <div id="toolbar">
         <!--div class="btn" onclick="onEnableAllOrNone(event, true)">
-            Enable All<img alt="Enable All" src="${rp.getIcon(Resources.Icons.Play)}"/>
+            Enable All<img alt="Enable All" src="${rp.getImage(ThemedImages.Play)}"/>
         </div-->
         <div id="toolbar-right-buttons">
             <div tabindex="0" class="btn btn-background" onclick="sendMsg('${CommonWVMessages.REFRESH}')">
-                Refresh<img alt="Refresh" src="${rp.getIcon(Resources.Icons.Refresh)}"/>
+                Refresh<img alt="Refresh" src="${rp.getImage(ThemedImages.Refresh)}"/>
             </div>
             <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${CommonWVMessages.ADD_NEW}')">
-                Add New<img alt="Add New" src="${rp.getIcon(Resources.Icons.New)}"/>
+                Add New<img alt="Add New" src="${rp.getImage(ThemedImages.New, "dark")}"/>
             </div>
         </div>
     </div>
@@ -174,7 +164,7 @@ function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): st
     }
 
     const deleteBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Delete" title="${title}"
-        onclick="${onClick}" class="${deleteBtnClass}" src="${rp.getIcon(Resources.Icons.Trash)}"/>`;
+        onclick="${onClick}" class="${deleteBtnClass}" src="${rp.getImage(ThemedImages.Trash)}"/>`;
 
     return `
     <td class="btn-cell">

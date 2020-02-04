@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.0" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 16 13.365" style="enable-background:new 0 0 16 13.365;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill-rule:evenodd;clip-rule:evenodd;fill:#3DBB61;}
+	.st1{fill:#FFFFFF;}
+</style>
+<title>Add Cloud_468630</title>
+<desc>Created with Sketch.</desc>
+<g>
+</g>
+<g>
+	<g>
+		<g>
+			<g>
+				<g>
+					<defs>
+						<path id="SVGID_1_" d="M3.753,11.399C1.88,11.387,0.316,9.965,0.128,8.101s1.059-3.57,2.892-3.957
+							c0.502-2.341,2.571-4.013,4.964-4.013s4.463,1.672,4.964,4.013c1.833,0.387,3.08,2.093,2.892,3.957
+							c-0.188,1.864-1.751,3.286-3.624,3.298v-1.128c1.402,0.056,2.584-1.035,2.64-2.437s-1.035-2.584-2.437-2.64h-0.485
+							l-0.056-0.463c-0.26-1.965-1.935-3.433-3.916-3.433c-1.982,0-3.656,1.469-3.915,3.433L4.036,5.194H3.55
+							C2.148,5.25,1.057,6.432,1.113,7.834s1.238,2.493,2.64,2.437L3.753,11.399z"/>
+					</defs>
+					<use xlink:href="#SVGID_1_"  style="overflow:visible;fill:#fff;"/>
+					<clipPath id="SVGID_2_">
+						<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+					</clipPath>
+				</g>
+			</g>
+		</g>
+	</g>
+</g>
+<circle class="st0" cx="7.999" cy="9.482" r="3.773"/>
+<polygon class="st1" points="7.369,11.187 5.842,9.641 6.369,9.121 7.376,10.144 9.666,7.9 10.183,8.427 "/>
+</svg>

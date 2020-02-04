@@ -18,10 +18,10 @@ import MCUtil from "../../MCUtil";
 import Requester from "../../codewind/project/Requester";
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/RegistryUtils";
-import Resources from "../../constants/Resources";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import manageSourcesCmd from "./ManageSourcesCmd";
 import SocketEvents from "../../codewind/connection/SocketEvents";
+import { ThemedImages } from "../../constants/CWImages";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
@@ -195,7 +195,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
     qp.enabled = false;
     qp.placeholder = "Fetching available project templates...";
     qp.buttons = [{
-        iconPath: Resources.getIconPaths(Resources.Icons.Edit),
+        iconPath: ThemedImages.Edit.paths,
         tooltip: MANAGE_SOURCES_QP_BTN,
     }];
 

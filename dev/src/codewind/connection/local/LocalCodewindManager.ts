@@ -19,7 +19,7 @@ import Connection from "../Connection";
 import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
 import CodewindEventListener from "../CodewindEventListener";
 import ConnectionManager from "../ConnectionManager";
-import Resources from "../../../constants/Resources";
+import { getOcticon, Octicons } from "../../../constants/CWImages";
 import Commands from "../../../constants/Commands";
 import Requester from "../../project/Requester";
 import CWDocs from "../../../constants/CWDocs";
@@ -183,7 +183,7 @@ export default class LocalCodewindManager {
             return result;
         });
 
-        vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.sync, true)}` +
+        vscode.window.setStatusBarMessage(`${getOcticon(Octicons.sync, true)}` +
             `Waiting for Codewind to start...`, waitingForReadyProm);
         await waitingForReadyProm;
 

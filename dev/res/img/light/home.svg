@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="10px" height="9px" viewBox="0 0 10 9" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 62 (91390) - https://sketch.com -->
+    <title>Actions / Navigation / home / 24</title>
+    <desc>Created with Sketch.</desc>
+    <g id="Welcome-Page" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Home-Icon" transform="translate(-190.000000, -21.000000)" fill="#000">
+            <g id="Actions-/-Navigation-/-home-/-24" transform="translate(190.000000, 21.000000)">
+                <path d="M5.190625,0.690625 C5.07704851,0.600875754 4.91670149,0.600875754 4.803125,0.690625 L0.3125,4.19375 L0.7,4.6875 L1.25,4.25625 L1.25,8.125 C1.25,8.47017797 1.52982203,8.75 1.875,8.75 L8.125,8.75 C8.47017797,8.75 8.75,8.47017797 8.75,8.125 L8.75,4.259375 L9.3,4.6875 L9.6875,4.196875 L5.190625,0.690625 Z M5.625,8.125 L4.375,8.125 L4.375,5.625 L5.625,5.625 L5.625,8.125 Z M6.25,8.125 L6.25,5.625 C6.25,5.27982203 5.97017797,5 5.625,5 L4.375,5 C4.02982203,5 3.75,5.27982203 3.75,5.625 L3.75,8.125 L1.875,8.125 L1.875,3.76875 L5,1.334375 L8.125,3.771875 L8.125,8.125 L6.25,8.125 Z" id="Fill"></path>
+            </g>
+        </g>
+    </g>
+</svg>

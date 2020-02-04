@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
-import Resources from "../../constants/Resources";
+import { ThemelessImages } from "../../constants/CWImages";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
@@ -53,7 +53,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
     constructor(
         private readonly connection: Connection,
     ) {
-        super(getTitle(connection), Resources.Icons.Logo);
+        super(getTitle(connection), ThemelessImages.Logo);
         connection.onDidOpenSourcesPage(this);
         this.refresh();
     }

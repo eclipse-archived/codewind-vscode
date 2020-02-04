@@ -9,7 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import Resources from "../../constants/Resources";
+import { CWImage, ProjectTypeImages } from "../../constants/CWImages";
+
 // import Log from "../../Logger";
 
 export class ProjectType {
@@ -18,7 +19,7 @@ export class ProjectType {
     // public readonly userFriendlyType: string;
     public readonly debugType: ProjectType.DebugTypes | undefined;
 
-    public readonly icon: Resources.Icons;
+    public readonly icon: CWImage;
 
     constructor(
         public readonly internalType: ProjectType.InternalTypes,
@@ -95,29 +96,29 @@ export class ProjectType {
         }
     }
 
-    private static getProjectIcon(type: ProjectType.Types, language: string): Resources.Icons {
+    private static getProjectIcon(type: ProjectType.Types, language: string): CWImage {
         switch (language.toLowerCase()) {
             case this.Languages.JAVA:
                 if (type === ProjectType.Types.MICROPROFILE) {
-                    return Resources.Icons.Microprofile;
+                    return ProjectTypeImages.Microprofile;
                 }
                 else if (type === ProjectType.Types.SPRING) {
-                    return Resources.Icons.Spring;
+                    return ProjectTypeImages.Spring;
                 }
                 else {
-                    return Resources.Icons.Java;
+                    return ProjectTypeImages.Java;
                 }
             case this.Languages.NODE:
             case this.Languages.JAVASCRIPT:
-                return Resources.Icons.NodeJS;
+                return ProjectTypeImages.NodeJS;
             case this.Languages.SWIFT:
-                return Resources.Icons.Swift;
+                return ProjectTypeImages.Swift;
             case this.Languages.PYTHON:
-                return Resources.Icons.Python;
+                return ProjectTypeImages.Python;
             case this.Languages.GO:
-                return Resources.Icons.Go;
+                return ProjectTypeImages.Go;
             default:
-                return Resources.Icons.Generic;
+                return ProjectTypeImages.Generic;
         }
     }
 
