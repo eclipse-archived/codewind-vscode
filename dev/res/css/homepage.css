@@ -1,0 +1,220 @@
+body {
+    display: flex;
+    line-height: 2em;
+}
+
+#content {
+    max-width: 1200px;
+    padding-top: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    margin: auto;
+}
+
+/***** Title section *****/
+
+#home-title-section {
+    width: 100%;
+    display: inline-flex;
+}
+
+#logo {
+    height: 6em;
+}
+
+#home-title-left {
+    margin-left: 1.5em;
+    flex: 1;
+    position: relative;
+}
+
+#home-title {
+    display: block;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+#home-subtitle {
+    min-width: max-content;
+    position: absolute;
+    bottom: 0;
+    font-size: 1.5em;
+}
+
+#home-title-right {
+    margin-left: auto;
+}
+
+/***** Main section *****/
+
+h2 {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+#home-main-section {
+    margin-top: 2em;
+    display: inline-flex;
+}
+
+/***** Main > left section *****/
+
+#left-section, #right-section {
+    max-width: 600px;
+}
+
+#left-section {
+    min-width: 60%;
+    --section-separator-border: 3px solid var(--vscode-sideBarSectionHeader-background);      /* Should match welcome-section's border-bottom */
+    border-right: var(--section-separator-border);
+    --section-separator-padding: 2em;
+    padding-right: var(--section-separator-padding);
+}
+
+#left-section h2 {
+    margin-bottom: 0.5em;
+}
+
+#welcome-section {
+    display: inline-flex;
+    border-bottom: 3px solid var(--vscode-sideBarSectionHeader-background);
+    padding-bottom: 1em;
+}
+
+#view-location-screenshot-container {
+    margin-left: 2.5em;
+    align-self: flex-end;
+}
+
+#view-location-screenshot {
+    min-width: 250px;
+    max-width: 250px;
+}
+
+#quick-start-section {
+    padding-top: 2em;
+}
+
+#local-remote-tabgroup {
+    display: inline-flex;
+    margin-top: 1em;
+    margin-bottom: 1.5em;
+}
+
+#local-remote-tabgroup > div {
+    min-width: 15ch;
+    margin-right: 0.25em;
+    padding-left: .5em;
+    padding-bottom: .5em;
+    border-bottom: 2px solid var(--vscode-sideBarSectionHeader-background);
+}
+
+#local-remote-tabgroup > div:focus {
+    /* Override from .btn */
+    outline: none;
+}
+
+#local-remote-tabgroup > .selected {
+    font-weight: bold;
+    border-bottom: 2px solid var(--vscode-button-background)
+}
+
+#local-remote-tabgroup img {
+    margin-right: .5em;
+    height: 1.5em;
+    vertical-align: text-top;
+}
+
+.step-container {
+    display: flex;
+    align-items: center;
+}
+
+.step-btn {
+    width: 25ch;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border-radius: 0;
+}
+
+.step-btn img {
+    /* override from common/btn */
+    padding-left: 0;
+}
+
+.done-step {
+    margin-left: 1em;
+    height: 2em;
+}
+
+.create-project-step {
+    width: 100%;
+    display: inline-flex;
+    justify-content: space-between;
+}
+
+.create-project-or {
+    margin-left: 1em;
+    margin-right: 1em;
+    font-size: 120%;
+    align-self: center;
+}
+
+/***** Main > right section *****/
+
+#right-section {
+    min-width: 300px;
+    padding-left: 2em;
+}
+
+#right-section h2 {
+    margin-bottom: 0;
+}
+
+#right-section p {
+    margin: 0;
+}
+
+.learn-card {
+    background: var(--welcomePage-tileBackground);
+    margin-top: 1em;
+    padding: 1em;
+}
+
+.learn-card-header h3 {
+    display: inline-flex;
+    margin-top: 0;
+    margin-bottom: .5em;
+}
+
+.learn-card-header a {
+    color: var(--vscode-editor-foreground);
+}
+
+.learn-card-header input[type="image"] {
+    margin-left: 1em;
+    height: 1.5em;
+    vertical-align: text-top;
+}
+
+@media(max-width: 1100px) {
+
+    #home-main-section {
+        flex-wrap: wrap;
+    }
+
+    #left-section {
+        border-right: none;
+        padding-right: 0;
+        border-bottom: var(--section-separator-border);
+    }
+
+    #right-section {
+        padding-left: 0;
+        padding-top: var(--section-separator-padding);
+    }
+
+    #quick-start-section {
+        padding-bottom: var(--section-separator-padding);
+    }
+}

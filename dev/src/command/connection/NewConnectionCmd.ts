@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -13,42 +13,14 @@ import * as vscode from "vscode";
 import ConnectionOverviewWrapper from "../webview/ConnectionOverviewPageWrapper";
 
 const NEW_CONNECTION_TITLE = "New Codewind Connection";
-// const NEW_CONNECTION_NO_STEPS = 2;
-// const BACK_BTN_MSG = "back-button-msg";
 
-// const CW_INGRESS_PROTOCOL = "http";         // WILL CHANGE to https
-
-export async function newRemoteConnectionCmd(): Promise<void> {
-
-    /*
-    let ingressUrlStr: string | undefined;
-    let userLabel: string | undefined;
-    while (ingressUrlStr == null || userLabel == null) {
-        ingressUrlStr = await getIngressUrl(ingressUrlStr);
-        if (ingressUrlStr == null) {
-            return;
-        }
-
-        try {
-            userLabel = await getConnectionLabel(ingressUrlStr);
-            if (userLabel == null) {
-                return;
-            }
-        }
-        catch (err) {
-            if (err === BACK_BTN_MSG) {
-                continue;
-            }
-            throw err;
-        }
-    }
-    */
+export default async function newRemoteConnectionCmd(openToSide: boolean = false): Promise<void> {
 
     const connectionLabel = await getConnectionLabel();
     if (!connectionLabel) {
         return;
     }
-    ConnectionOverviewWrapper.showForNewConnection(connectionLabel);
+    ConnectionOverviewWrapper.showForNewConnection(connectionLabel, openToSide);
 }
 
 async function getConnectionLabel(): Promise<string | undefined> {
@@ -56,8 +28,6 @@ async function getConnectionLabel(): Promise<string | undefined> {
     labelIb.ignoreFocusOut = true;
     labelIb.placeholder = "My Cluster";
     labelIb.prompt = `Enter a label for your new remote Codewind connection.`;
-    // labelIb.step = 2;
-    // labelIb.totalSteps = NEW_CONNECTION_NO_STEPS;
     labelIb.title = NEW_CONNECTION_TITLE;
     labelIb.onDidChangeValue((input) => {
         if (!input || input.trim() === "") {
@@ -87,61 +57,3 @@ async function getConnectionLabel(): Promise<string | undefined> {
     })
     .finally(() => labelIb.hide());
 }
-
-/*
-async function getIngressUrl(previousValue: string | undefined): Promise<string | undefined> {
-    const ingressIb = vscode.window.createInputBox();
-    ingressIb.ignoreFocusOut = true;
-    ingressIb.placeholder = "codewind-workspace-mycluster.nip.io";
-    if (previousValue) {
-        ingressIb.value = previousValue;
-    }
-    ingressIb.prompt = `Enter the URL to the Codewind ingress you wish to connect to. The protocol is assumed to be ${CW_INGRESS_PROTOCOL}.`;
-    ingressIb.step = 1;
-    ingressIb.totalSteps = NEW_CONNECTION_NO_STEPS;
-    ingressIb.title = NEW_CONNECTION_TITLE;
-    ingressIb.onDidChangeValue((input) => {
-        ingressIb.validationMessage = validateCwIngress(input);
-    });
-    ingressIb.show();
-
-    return new Promise<string | undefined>((resolve) => {
-        ingressIb.onDidHide(() => resolve(undefined));
-        ingressIb.onDidAccept(async () => {
-            const inputWithProtocol = prependProtocol(ingressIb.value);
-            const pingable = await Requester.ping(inputWithProtocol);
-            if (pingable) {
-                resolve(inputWithProtocol);
-            }
-            else {
-                ingressIb.validationMessage =
-                    `Failed to contact "${inputWithProtocol}". Please check the URL and ensure it is reachable from your machine.`;
-            }
-        });
-    })
-    .finally(() => ingressIb.hide());
-}
-
-function prependProtocol(input: string): string {
-    if (!input.startsWith(CW_INGRESS_PROTOCOL)) {
-        input = CW_INGRESS_PROTOCOL + "://" + input;
-    }
-    return input;
-}
-
-function validateCwIngress(input: string): string | undefined {
-    if (!input) {
-        return "The ingress URL cannot be empty.";
-    }
-    input = prependProtocol(input);
-    let url;
-    try {
-        url = new URL(input);
-        Log.d("Got a good ingress url " + url);
-    }
-    catch (err) {
-        return `"${input}" is not a valid URL`;
-    }
-    return undefined;
-}
-*/

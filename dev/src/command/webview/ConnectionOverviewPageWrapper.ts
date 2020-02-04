@@ -1,7 +1,7 @@
 
 
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,7 @@
 import * as vscode from "vscode";
 
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
-import Resources from "../../constants/Resources";
+import { ThemelessImages } from "../../constants/CWImages";
 import getConnectionInfoHtml from "./pages/ConnectionOverviewPage";
 import Log from "../../Logger";
 import WebviewUtil from "./WebviewUtil";
@@ -57,8 +57,8 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
      */
     private connection: RemoteConnection | undefined;
 
-    public static showForNewConnection(label: string): ConnectionOverviewWrapper {
-        return new ConnectionOverviewWrapper({ label });
+    public static showForNewConnection(label: string, openToSide: boolean): ConnectionOverviewWrapper {
+        return new ConnectionOverviewWrapper({ label }, openToSide);
     }
 
     public static showForExistingConnection(connection: RemoteConnection): ConnectionOverviewWrapper {
@@ -66,16 +66,17 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
             connection.overviewPage.reveal();
             return connection.overviewPage;
         }
-        return new ConnectionOverviewWrapper(connection.cliData, connection);
+        return new ConnectionOverviewWrapper(connection.cliData, false, connection);
     }
 
     /////
 
     private constructor(
         connectionInfo: ConnectionOverviewFields,
+        openToSide: boolean,
         connection?: RemoteConnection,
     ) {
-        super(connectionInfo.label, Resources.Icons.Logo);
+        super(connectionInfo.label, ThemelessImages.Logo, openToSide ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active);
         this.label = connectionInfo.label;
         this.connection = connection;
         this.refresh();

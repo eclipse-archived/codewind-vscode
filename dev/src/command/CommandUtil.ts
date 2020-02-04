@@ -41,7 +41,6 @@ import addProjectToWorkspaceCmd from "./project/AddToWorkspaceCmd";
 import manageSourcesCmd from "./connection/ManageSourcesCmd";
 import { openTektonDashboard } from "./connection/OpenTektonCmd";
 import ConnectionManager from "../codewind/connection/ConnectionManager";
-import { newRemoteConnectionCmd } from "./connection/NewConnectionCmd";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
@@ -50,6 +49,8 @@ import manageRegistriesCmd from "./connection/ManageRegistriesCmd";
 import toggleInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
 import changeProjectConnectionCmd from "./project/ChangeProjectConnectionCmd";
 import { setLogLevelCmd } from "./connection/SetLogLevelCmd";
+import showHomePageCmd from "./HomePageCmd";
+import newRemoteConnectionCmd from "./connection/NewConnectionCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -59,14 +60,15 @@ export function createCommands(): vscode.Disposable[] {
     // - undefined (if run from command palette)
     // - or the user's selected TreeView object (if run from the context menu) -> IE either a Project or Connection
     return [
+        vscode.commands.registerCommand(Commands.HOMEPAGE,          showHomePageCmd),
+        vscode.commands.registerCommand(Commands.NEW_CONNECTION,    newRemoteConnectionCmd),
+
         vscode.commands.registerCommand(Commands.START_LOCAL_CODEWIND,  connectLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.STOP_LOCAL_CODEWIND,   stopLocalCodewindCmd),
         vscode.commands.registerCommand(Commands.REMOVE_LOCAL_IMAGES,   removeImagesCmd),
 
         // the separator is just for display purposes and has no command bound to it
         vscode.commands.registerCommand(Commands.SEPARATOR, () => { /**/ }),
-
-        vscode.commands.registerCommand(Commands.NEW_CONNECTION, newRemoteConnectionCmd),
 
         // For connection commands, make sure the connected-ness requirement matches the context enablement regex used in package.json
         registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined, false, true),
@@ -239,16 +241,8 @@ function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): voi
 }
 /**
  * If the user runs a Connection command through the Command Palette, have them pick the connection to run the cmd on
- * @connectedOnly Only prompt the user with Connected connections
  */
-async function promptForConnection(connectedOnly: boolean, remoteOnly: boolean): Promise<Connection | undefined> {
-    if (ConnectionManager.instance.connections.length === 1) {
-        const onlyConnection = ConnectionManager.instance.connections[0];
-        if (onlyConnection.isConnected || !connectedOnly) {
-            return onlyConnection;
-        }
-    }
-
+export async function promptForConnection(connectedOnly: boolean, remoteOnly: boolean): Promise<Connection | undefined> {
     const choices = ConnectionManager.instance.connections.filter((conn) => {
         if (connectedOnly && !conn.isConnected) {
             return false;
@@ -259,14 +253,24 @@ async function promptForConnection(connectedOnly: boolean, remoteOnly: boolean):
         return true;
     });
 
-    if (choices.length === 0) {
+    if (choices.length === 1) {
+        // only one connection met the criteria so we don't have to have them select it
+        return choices[0];
+    }
+    else if (choices.length === 0) {
         if (global.isTheia) {
             vscode.window.showWarningMessage(`Codewind has not yet started. Wait for the Codewind pod to come up before running this command.`);
         }
         else {
             const startCwBtn = "Start Local Codewind";
-            const newConnectionBtn = "New Connection";
-            vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), startCwBtn, newConnectionBtn)
+            const newConnectionBtn = "New Remote Connection";
+
+            const btns = [ newConnectionBtn ];
+            if (!remoteOnly) {
+                btns.unshift(startCwBtn);
+            }
+
+            vscode.window.showWarningMessage(Translator.t(STRING_NS, "noConnToRunOn"), ...btns)
             .then((res) => {
                 if (res === startCwBtn) {
                     connectLocalCodewindCmd(LocalCodewindManager.instance, true);

@@ -13,8 +13,11 @@
 
 // all of these MUST MATCH package.nls.json command IDs
 enum Commands {
+    HOMEPAGE = "ext.cw.homepage",
+
     NEW_CONNECTION = "ext.cw.newConnection",
     REMOVE_CONNECTION = "ext.cw.removeConnection",
+
     ENABLE_CONNECTION = "ext.cw.enableConnection",
     DISABLE_CONNECTION = "ext.cw.disableConnection",
     SEPARATOR = "ext.cw.separator",
@@ -74,6 +77,7 @@ enum Commands {
     VSC_REVEAL_IN_OS = "revealFileInOS",
     VSC_REVEAL_EXPLORER = "revealInExplorer",
     VSC_FOCUS_PROBLEMS = "workbench.action.problems.focus",
+    VSC_CMD_PALETTE = "workbench.action.showCommands",
 }
 
 export default Commands;

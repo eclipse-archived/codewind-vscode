@@ -22,7 +22,7 @@
             "env": {
                 "CW_ENV": "dev",
                 // To debug weviews in the browser, set WEBVIEW_DEBUG_DIR to an output directory. See WebviewUtil.debugWriteOutWebview
-                // "WEBVIEW_DEBUG_DIR": "/Users/tim/programs/webviews"
+                "WEBVIEW_DEBUG_DIR": "/Users/tim/programs/webviews"
             }
         },
         {
