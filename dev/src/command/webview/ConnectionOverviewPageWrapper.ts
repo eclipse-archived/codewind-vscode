@@ -150,6 +150,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
                     else {
                         Log.e("Received Toggle Connected event but there is no connection");
                     }
+                    break;
                 }
                 case ConnectionOverviewWVMessages.CANCEL: {
                     if (this.connection) {

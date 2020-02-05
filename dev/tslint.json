@@ -35,12 +35,12 @@
 		"no-invalid-this": true,
 		"no-require-imports": true,
 		"no-unused-expression": true,
-		"no-unused-variable": true,
 		"no-var-keyword": true,
 		"object-literal-key-quotes": [ true, "as-needed" ],
 		"prefer-const": true,
 		"prefer-readonly": true,
 		"switch-default": true,
+		"no-switch-case-fall-through": true,
 		"typedef": [
 			true,
 			"array-destructuring",
