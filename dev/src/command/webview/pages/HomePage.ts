@@ -149,13 +149,14 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                 </div>
                 <div class="learn-card">
                     <div class="learn-card-header">
-                        <a onclick="sendMsg('${HomePageWVMessages.OPEN_USEFUL_EXTENSIONS}')">
+                        <!--a onclick="sendMsg('${HomePageWVMessages.OPEN_USEFUL_EXTENSIONS}')">
                             <h3>Useful Extensions</h3>
                             <input type="image" title="Open Useful Extensions" alt="Open Useful Extensions" src="${rp.getImage(ThemedImages.Split_Horizontal)}"/>
-                        </a>
+                        </a-->
+                        <h3>Useful Extensions</h3>
                     </div>
                     <p>
-                        Access a list of useful extensions that work well with Codewind,
+                        Check out useful extensions that work well with Codewind,
                         such as the
                         <a href="https://marketplace.visualstudio.com/items?itemName=IBM.codewind-node-profiler">Codewind Node.js Profiler</a>,
                         <a href="https://marketplace.visualstudio.com/items?itemName=IBM.codewind-openapi-tools">Codewind OpenAPI Tools</a> and
