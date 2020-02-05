@@ -306,7 +306,7 @@ export namespace CLILifecycleWrapper {
     }
 
     function onMoreInfo(): void {
-        const moreInfoUrl = CWDocs.getDocLink(CWDocs.INSTALL_INFO);
+        const moreInfoUrl = CWDocs.INSTALL_INFO;
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
     }
 
@@ -401,7 +401,7 @@ export namespace CLILifecycleWrapper {
             vscode.window.showInformationMessage(`Performing codewind-workspace migration...`, learnMoreBtn)
             .then((res) => {
                 if (res === learnMoreBtn) {
-                    vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.WORKSPACE_NEWS));
+                    vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.WORKSPACE_NEWS.uri);
                 }
             });
 

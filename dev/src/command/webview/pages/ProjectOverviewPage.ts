@@ -98,7 +98,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             <div id="app-info-header-section">
                 <h3>Application Information</h3>
                 <div id="about-project-settings">
-                    <a href="${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}" title="More Info">More Info</a>
+                    <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
                 </div>
             </div>
             <!-- Hide Container ID when it doesn't apply -->

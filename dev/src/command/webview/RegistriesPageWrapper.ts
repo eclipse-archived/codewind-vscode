@@ -161,7 +161,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 break;
             }
             case CommonWVMessages.HELP: {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.REGISTRIES));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.REGISTRIES.uri);
                 break;
             }
             case CommonWVMessages.REFRESH: {

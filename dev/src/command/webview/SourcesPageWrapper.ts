@@ -84,7 +84,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
                 break;
             }
             case CommonWVMessages.HELP: {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.TEMPLATE_MANAGEMENT.uri);
                 break;
             }
             case CommonWVMessages.REFRESH: {

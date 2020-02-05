@@ -11,26 +11,31 @@
 
 import { Uri } from "vscode";
 
-export namespace CWDocs {
-    export function getDocLink(docPath: CWDocs): Uri {
-        return Uri.parse(`https://codewind.dev/${docPath}`);
+class CWDoc {
+    public readonly uri: Uri;
+
+    constructor(
+        path: string,
+    ) {
+        this.uri = Uri.parse(`https://codewind.dev/${path}`);
     }
 }
 
-export enum CWDocs {
-    HOME = "",
-    TEMPLATE_MANAGEMENT = "mdt-vsc-workingwithtemplates.html",
-    INSTALL_INFO = "mdt-vsc-installinfo.html",
-    PROJECT_SETTINGS = "mdt-vsc-commands-project.html#configuring-project-settings",
-    INSTALL_ON_CLOUD = "installoncloud.html",
-    WORKSPACE_NEWS = "news06.html#codewind-workspace-updates",
-    REGISTRIES = "image-registry-credentials.html",
-    REMOTE_UI = "remoteconnectionui.html",
-    REMOTE_DEPLOYING = "remoteoverview.html",
-    GETTING_STARTED = "gettingstarted.html",
-    COMMANDS_OVERVIEW = "mdt-vsc-commands-overview.html",
-    PERF_MONITORING = "performance.html",
-    FIRST_PROJECT_LOCAL = "mdt-vsc-firstproject.html",
-}
+// tslint:disable-next-line: variable-name
+export const CWDocs = {
+    HOME:                   new CWDoc(""),
+    TEMPLATE_MANAGEMENT:    new CWDoc("mdt-vsc-workingwithtemplates.html"),
+    INSTALL_INFO:           new CWDoc("mdt-vsc-installinfo.html"),
+    PROJECT_SETTINGS:       new CWDoc("mdt-vsc-commands-project.html#configuring-project-settings"),
+    INSTALL_ON_CLOUD:       new CWDoc("installoncloud.html"),
+    WORKSPACE_NEWS:         new CWDoc("news06.html#codewind-workspace-updates"),
+    REGISTRIES:             new CWDoc("image-registry-credentials.html"),
+    REMOTE_UI:              new CWDoc("remoteconnectionui.html"),
+    REMOTE_DEPLOYING:       new CWDoc("remoteoverview.html"),
+    GETTING_STARTED:        new CWDoc("gettingstarted.html"),
+    COMMANDS_OVERVIEW:      new CWDoc("mdt-vsc-commands-overview.html"),
+    PERF_MONITORING:        new CWDoc("performance.html"),
+    FIRST_PROJECT_LOCAL:    new CWDoc("mdt-vsc-firstproject.html"),
+};
 
 export default CWDocs;

@@ -40,8 +40,8 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
         <div style="display: inline-block;">
             <div id="deployment-box">
                 <h3>1. Codewind Connection
-                    <div id="learn-more-btn-remote">REMOTE_UI
-                        <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.REMOTE_UI)}">
+                    <div id="learn-more-btn-remote">
+                        <a tabindex="-1" href="${CWDocs.REMOTE_UI.uri}">
                             <input type="image" class="learn-more-btn" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
                         </a>
                     </div>
@@ -85,7 +85,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                 <div class="link-containers-group">
                 <div id="link-container-box">
                     <h3>2. Select Sources
-                        <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.TEMPLATE_MANAGEMENT)}">
+                        <a tabindex="-1" href="${CWDocs.TEMPLATE_MANAGEMENT.uri}">
                             <input type="image" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
                         </a>
                     </h3>
@@ -95,7 +95,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
 
                 <div id="link-container-box" style="margin-top: 30px">
                     <h3>3. Add Registries
-                        <a tabindex="-1" href="${CWDocs.getDocLink(CWDocs.REGISTRIES)}">
+                        <a tabindex="-1" href="${CWDocs.REGISTRIES.uri}">
                             <input type="image" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
                         </a>
                     </h3>

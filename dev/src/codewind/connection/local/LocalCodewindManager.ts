@@ -211,7 +211,7 @@ export default class LocalCodewindManager {
         showMsgFunc(msg, helpBtn)
         .then((res) => {
             if (res === helpBtn) {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.INSTALL_ON_CLOUD));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.INSTALL_ON_CLOUD.uri);
             }
         });
     }
