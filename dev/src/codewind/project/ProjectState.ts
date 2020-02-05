@@ -13,11 +13,15 @@ import * as vscode from "vscode";
 
 import Log from "../../Logger";
 import ProjectCapabilities from "./ProjectCapabilities";
+import Commands from "../../constants/Commands";
 
 interface DetailedAppStatus {
     readonly severity: "INFO" | "WARN" | "ERROR";
     readonly message?: string;
+
     notify: boolean;
+    readonly linkLabel?: string;
+    readonly link?: string;
 }
 
 interface ProjectStateInfo {
@@ -147,16 +151,42 @@ export class ProjectState {
         }
 
         Log.i(`Showing user detailed app status ${this.appDetail.message} for project ${this.projectName}`);
-        const notificationMsg = `${this.projectName} - ${this.appDetail.message}`;
 
+        // https://github.com/eclipse/codewind/issues/1812
+        let helpLinkBtn: string | undefined;
+        let helpLinkUri: vscode.Uri | undefined;
+        if (this.appDetail.link) {
+            helpLinkUri = vscode.Uri.parse(this.appDetail.link);
+            if (!helpLinkUri.scheme || !helpLinkUri.authority) {
+                Log.e(`Failed to parse appDetailStatus.link "${this.appDetail.link}"`);
+            }
+            else {
+                helpLinkBtn = this.appDetail.linkLabel || "Troubleshooting";
+            }
+        }
+
+        let notificationFn;
         if (this.appDetail.severity === "ERROR") {
-            vscode.window.showErrorMessage(notificationMsg);
+            notificationFn = vscode.window.showErrorMessage;
         }
         else if (this.appDetail.severity === "WARN") {
-            vscode.window.showWarningMessage(notificationMsg);
+            notificationFn = vscode.window.showWarningMessage;
         }
         else {
-            vscode.window.showInformationMessage(notificationMsg);
+            notificationFn = vscode.window.showInformationMessage;
+        }
+
+        const notificationMsg = `${this.projectName} - ${this.appDetail.message}`;
+        if (helpLinkBtn) {
+            notificationFn(notificationMsg, helpLinkBtn)
+            .then((res) => {
+                if (res === helpLinkBtn) {
+                    vscode.commands.executeCommand(Commands.VSC_OPEN, helpLinkUri);
+                }
+            });
+        }
+        else {
+            notificationFn(notificationMsg);
         }
     }
 }
