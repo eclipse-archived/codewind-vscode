@@ -88,6 +88,7 @@ export class HomePageWrapper extends WebviewWrapper {
             case HomePageWVMessages.INSTALL_DOCKER:
                 const installDockerUri = vscode.Uri.parse("https://docs.docker.com/install/");
                 vscode.commands.executeCommand(Commands.VSC_OPEN, installDockerUri);
+                break;
             case HomePageWVMessages.START_LOCAL: {
                 if (LocalCodewindManager.instance.localConnection) {
                     vscode.window.showInformationMessage(`Local Codewind is already started.`);

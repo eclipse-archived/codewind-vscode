@@ -91,6 +91,7 @@ export class ProjectType {
                 else if (lang === this.Languages.NODE || lang === this.Languages.JAVASCRIPT) {
                     return this.DebugTypes.NODE;
                 }
+                return undefined;
             default:
                 return undefined;
         }
@@ -129,7 +130,7 @@ export class ProjectType {
             ProjectType.InternalTypes.NODE,
             ProjectType.InternalTypes.SPRING
         ].includes(this.internalType) ||
-            (this.internalType === ProjectType.InternalTypes.DOCKER && 
+            (this.internalType === ProjectType.InternalTypes.DOCKER &&
                 this.language.toLowerCase() === ProjectType.Languages.JAVA
         );
     }

@@ -26,7 +26,7 @@ export default async function containerShellCmd(project: Project): Promise<void>
     const toExec = `sh -c "if type bash > /dev/null; then bash; else sh; fi"`;      // non-nls
 
     const options: vscode.TerminalOptions = {
-        name: `${project.name} shell`,        // non-nls   
+        name: `${project.name} shell`,        // non-nls
     };
 
     const term: vscode.Terminal = vscode.window.createTerminal(options);
