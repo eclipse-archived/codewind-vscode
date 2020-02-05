@@ -92,10 +92,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     });
 
     await ConnectionManager.instance.activate();
-    // Connect to local codewind if it's started, but don't start it automatically.c
+    // Connect to local codewind if it's started, but don't start it automatically.
     connectLocalCodewindCmd(LocalCodewindManager.instance, false);
 
-    if (CWConfigurations.SHOW_HOMEPAGE.get()) {
+    if (!global.isTheia && CWConfigurations.SHOW_HOMEPAGE.get()) {
         showHomePageCmd();
     }
 
