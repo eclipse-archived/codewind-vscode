@@ -226,7 +226,9 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         if (this.hasConnected) {
             // things to do on reconnect, but not initial connect, go here
             try {
-                await this.updateProjects();
+                if (this.hasInitialized) {
+                    await this.updateProjects();
+                }
                 this._projects.forEach((p) => p.onConnectionReconnect());
             }
             catch (err) {
