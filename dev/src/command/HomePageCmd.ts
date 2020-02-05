@@ -17,7 +17,12 @@ import MCUtil from "../MCUtil";
 
 export default async function showHomePageCmd(): Promise<void> {
     try {
-        new HomePageWrapper().reveal();
+        if (HomePageWrapper.instance) {
+            HomePageWrapper.instance.reveal();
+        }
+        else {
+            new HomePageWrapper().reveal();
+        }
     }
     catch (err) {
         const errMsg = `Error showing Codewind homepage`;
