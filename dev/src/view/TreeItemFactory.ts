@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import TreeItemContext from "./TreeItemContext";
-import Resources from "../constants/Resources";
+import { ThemedImages, ThemelessImages } from "../constants/CWImages";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import Connection from "../codewind/connection/Connection";
 import Translator from "../constants/strings/translator";
@@ -28,7 +28,7 @@ namespace TreeItemFactory {
     export function getRoot(): vscode.TreeItem {
         return {
             collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-            iconPath: Resources.getIconPaths(Resources.Icons.Logo),
+            iconPath: ThemelessImages.Logo.paths,
             label: "Codewind",
             contextValue: TreeItemContext.getRootContext(),
         };
@@ -55,14 +55,14 @@ namespace TreeItemFactory {
         // we use the ID only in the started case so that when CW starts the new TreeItem can auto-expand after it starts
         const id = cwStarted ?  CW_STARTED_NODE_ID : CW_STOPPED_NODE_ID;
         const collapsibleState = cwStarted ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
-        const icon = cwStarted ? Resources.Icons.LocalConnected : Resources.Icons.LocalDisconnected;
+        const icon = cwStarted ? ThemedImages.Local_Connected : ThemedImages.Local_Disconnected;
 
         const cwStatusItem: vscode.TreeItem = {
             id,
             label,
             tooltip,
             collapsibleState,
-            iconPath: Resources.getIconPaths(icon),
+            iconPath: icon.paths,
             contextValue: TreeItemContext.getLocalCWContext(LocalCodewindManager.instance),
         };
 
@@ -74,13 +74,12 @@ namespace TreeItemFactory {
         // change ID so it refreshes the collapsiblestate
         const id = `${connection.label}.${connection.state.hasChildrenInTree ? "connected" : "disconnected"}`;
 
-        const icon = connection.isConnected ? Resources.Icons.ConnectionConnected : Resources.Icons.ConnectionDisconnected;
-        const iconPath = Resources.getIconPaths(icon);
+        const icon = connection.isConnected ? ThemedImages.Connection_Connected : ThemedImages.Connection_Disconnected;
 
         return {
             collapsibleState,
             contextValue: TreeItemContext.getConnectionContext(connection),
-            iconPath,
+            iconPath: icon.paths,
             id,
             label: connection.label,
             tooltip: `${connection.enabled ? "" : "[Disabled] "}${connection.url}`,
@@ -91,7 +90,7 @@ namespace TreeItemFactory {
         if (connection.state === ConnectionStates.AUTH_ERROR) {
             return [{
                 label: "Authentication error",
-                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                iconPath: ThemedImages.Server_Error.paths,
                 tooltip: "Click here to open this connection's Settings",
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
                 command: {
@@ -104,14 +103,14 @@ namespace TreeItemFactory {
         else if (connection.state === ConnectionStates.INITIALIZING) {
             return [{
                 label: "Connecting...",
-                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                iconPath: ThemedImages.Server_Error.paths,
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
             }];
         }
         else if (!connection.isConnected) {
             return [{
                 label: Translator.t(STRING_NS, "disconnectedConnectionLabel"),
-                iconPath: Resources.getIconPaths(Resources.Icons.ServerError),
+                iconPath: ThemedImages.Server_Error.paths,
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
             }];
         }
@@ -121,7 +120,7 @@ namespace TreeItemFactory {
             }
             return [{
                 label: "No projects (Click here to create a project)",
-                iconPath: Resources.getIconPaths(Resources.Icons.Error),
+                iconPath: ThemedImages.Error.paths,
                 tooltip: "Click here to create a project",
                 collapsibleState: vscode.TreeItemCollapsibleState.None,
                 command: {
@@ -152,7 +151,7 @@ namespace TreeItemFactory {
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             tooltip: label,
             contextValue: TreeItemContext.getProjectContext(project),
-            iconPath: Resources.getIconPaths(project.type.icon),
+            iconPath: project.type.icon.paths,
             // command run on single-click (or double click - depends on a user setting - https://github.com/Microsoft/vscode/issues/39601)
             command,
         };

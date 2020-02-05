@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 
-import Resources from "../../constants/Resources";
+import { getBaseResourcesPath, ThemelessImages } from "../../constants/CWImages";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { WebviewResourceProvider } from "./WebviewWrapper";
@@ -26,6 +26,13 @@ export enum CommonWVMessages {
     REFRESH = "refresh",
 }
 
+/**
+ * See debugWriteOutWebview()
+ */
+const ENVVAR_WEBVIEW_DEBUG_DIR = "WEBVIEW_DEBUG_DIR";
+
+const STYLE_FOLDER_NAME = "css";
+
 namespace WebviewUtil {
 
     export function getWebviewOptions(): vscode.WebviewOptions & vscode.WebviewPanelOptions  {
@@ -33,9 +40,14 @@ namespace WebviewUtil {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [
-                Resources.getBaseResourcePath()
+                vscode.Uri.file(getBaseResourcesPath())
             ],
         };
+    }
+
+    export function getCssPath(filename: string): vscode.Uri {
+        const cssPath = path.join(getBaseResourcesPath(), STYLE_FOLDER_NAME, filename);
+        return vscode.Uri.file(cssPath);
     }
 
     export interface IWVMessage {
@@ -43,7 +55,36 @@ namespace WebviewUtil {
         data: any;
     }
 
-    export function getCSP(): string {
+    /**
+     * `<head>` section for our webviews
+     * @param stylesheets Filenames under res/css to include
+     */
+    export function getHead(rp: WebviewResourceProvider, ...stylesheets: string[]): string {
+        // These should be loaded first so they can be overridden
+        stylesheets.unshift("common.css");
+
+        // Change this to a an if (true) if you're debugging in the browser
+        if ("" === ("")) {                  // DON'T COMMIT ME
+        // if (global.isTheia) {
+            stylesheets.unshift("theia.css");
+        }
+
+        const stylesheetLinks = stylesheets.reduce((allSheets, sheet) => {
+            return `
+            ${allSheets}
+            <link rel="stylesheet" href="${rp.getStylesheet(sheet)}"/>`;
+        }, "");
+
+        return `<head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            ${getCSP()}
+            ${stylesheetLinks}
+            ${getFontLinks()}
+        </head>`;
+    }
+
+    function getCSP(): string {
         if (global.isTheia || MCUtil.isDevEnv()) {
             return "";
         }
@@ -52,8 +93,8 @@ namespace WebviewUtil {
         >`;
     }
 
-    export function getFontLinks(): string {
-        const weights = [ 300, 400, 600 ].join(",");
+    function getFontLinks(): string {
+        const weights = [ 300, 400, 500, 700 ].join(",");
         return `<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:${weights}&amp;display=swap" rel="stylesheet">`;
     }
 
@@ -62,7 +103,7 @@ namespace WebviewUtil {
         const hasSubtitle = !global.isTheia;
 
         return `<div class="title-section ${hasSubtitle ? "" : "title-section-subtitled"}">
-            <img id="logo" alt="Codewind Logo" src="${rp.getIcon(Resources.Icons.Logo)}"/>
+            <img id="logo" alt="Codewind Logo" src="${rp.getImage(ThemelessImages.Logo)}"/>
             <div>
                 <h1 id="title">${title}</h1>
                 ${hasSubtitle ? buildConnectionSubtitle(connectionLabel, isRemoteConnection) : ""}
@@ -93,7 +134,7 @@ namespace WebviewUtil {
     }
 
     export function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, escapeBackslash: boolean = false): string {
-        const toggleIcon = rp.getIcon(enabled ? Resources.Icons.ToggleOnThin : Resources.Icons.ToggleOffThin);
+        const toggleIcon = rp.getImage(enabled ? ThemelessImages.ToggleOnThin : ThemelessImages.ToggleOffThin);
         if (escapeBackslash) {
             return getEscapedPath(toggleIcon);
         }
@@ -113,13 +154,13 @@ namespace WebviewUtil {
 
 
     /**
-     * For debugging in the browser, write out the html to an html file on disk and point to the resources on disk.
-     * The file will be stored in the path in process.env.WEBVIEW_DEBUG_DIR, or ~.
+     * For debugging in a real browser (with real developer tools), write out the html to a file on disk, and point to the resources on disk.
+     * The file will be stored in the path in process.env.WEBVIEW_DEBUG_DIR.
      *
      * If WEBVIEW_DEBUG_DIR is not set, this function does nothing.
      */
     export async function debugWriteOutWebview(html: string, filename: string): Promise<void> {
-        const destDir = process.env.WEBVIEW_DEBUG_DIR;
+        const destDir = process.env[ENVVAR_WEBVIEW_DEBUG_DIR];
         if (!destDir) {
             return;
             // destDir = process.env.HOME || ((MCUtil.getOS() === "windows") ? "C:\\" : "/");

@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import MCUtil from "../../MCUtil";
 
-import Resources from "../../constants/Resources";
+import { getOcticon, Octicons } from "../../constants/CWImages";
 import Project from "../../codewind/project/Project";
 import ProjectState from "../../codewind/project/ProjectState";
 import Log from "../../Logger";
@@ -46,7 +46,7 @@ export async function attachDebugger(project: Project, isRestart: boolean = fals
             const delayPromise = new Promise((resolve) => setTimeout(resolve, libertyDelayMs));
 
             const preDebugDelayMsg = Translator.t(STRING_NS, "waitingBeforeDebugAttachStatusMsg", { projectName: project.name });
-            vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.bug, true)} ${preDebugDelayMsg}`, delayPromise);
+            vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${preDebugDelayMsg}`, delayPromise);
             await delayPromise;
         }
     }
@@ -61,7 +61,7 @@ export async function attachDebugger(project: Project, isRestart: boolean = fals
     );
 
     const connectingMsg = Translator.t(STRING_NS, "connectingToProject", { projectName: project.name });
-    vscode.window.setStatusBarMessage(`${Resources.getOcticon(Resources.Octicons.bug, true)} ${connectingMsg}`,     // non-nls
+    vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${connectingMsg}`,     // non-nls
             startDebugWithTimeout);
 
     // will throw error if connection fails or timeout

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 // import * as fs from "fs";
 
 import Connection from "../../codewind/connection/Connection";
-import Resources from "../../constants/Resources";
+import { ThemelessImages } from "../../constants/CWImages";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
@@ -49,7 +49,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
     constructor(
         private readonly connection: Connection
     ) {
-        super(getTitle(connection), Resources.Icons.Logo);
+        super(getTitle(connection), ThemelessImages.Logo);
         connection.onDidOpenRegistriesPage(this);
         this.refresh();
     }
@@ -161,7 +161,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 break;
             }
             case CommonWVMessages.HELP: {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.getDocLink(CWDocs.REGISTRIES));
+                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.REGISTRIES.uri);
                 break;
             }
             case CommonWVMessages.REFRESH: {

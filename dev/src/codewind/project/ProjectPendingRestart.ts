@@ -18,7 +18,7 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import { attachDebugger } from "../../command/project/AttachDebuggerCmd";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
-import Resources from "../../constants/Resources";
+import { getOcticon, Octicons } from "../../constants/CWImages";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -89,7 +89,7 @@ export default class ProjectPendingRestart {
             projectName: project.name,
             startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode)
         });
-        const restartStatusItem = `${Resources.getOcticon(Resources.Octicons.sync, true)} ${restartMsg}`;
+        const restartStatusItem = `${getOcticon(Octicons.sync, true)} ${restartMsg}`;
 
         vscode.window.setStatusBarMessage(restartStatusItem, restartPromise);
     }

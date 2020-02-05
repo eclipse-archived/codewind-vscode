@@ -40,7 +40,7 @@ table {
     width: 100%;
     border-spacing: 0;
     table-layout: fixed;
-    background-color: var(--vscode-welcomePage-buttonBackground);     /* Doesn't work! */
+    background-color: var(--welcomePage-tileBackground);
 }
 
 #name-col {
@@ -74,13 +74,8 @@ td {
     border-bottom: 1px solid #444;
 }
 
-/* This rule and the next one, combined with the table's border-spacing: 0, give the table a nice single border */
-tr:first-child > td {
-    border-top: none;
-}
-
-td:not(:nth-last-child(1)) {
-    border-right: none;
+tr:last-child td {
+    border-bottom: none;
 }
 
 thead > tr > td {

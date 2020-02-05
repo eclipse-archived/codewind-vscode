@@ -1,0 +1,230 @@
+body {
+    display: flex;
+    line-height: 1.75em;
+
+    --horizontal-section-padding: 4em;
+    --vertical-section-padding: 2.5em;
+    --section-separator-border: 3px solid var(--vscode-sideBarSectionHeader-background);
+}
+
+#content {
+    max-width: 1200px;
+    padding-top: 4em;
+    padding-left: 2em;
+    padding-right: 2em;
+    margin: auto;
+}
+
+/***** Title section *****/
+
+#home-title-section {
+    width: 100%;
+    display: inline-flex;
+}
+
+#logo {
+    height: 70px;
+}
+
+#home-title-left {
+    margin-left: 1.5em;
+    flex: 1;
+    min-width: max-content;
+}
+
+#home-title {
+    font-size: 42px;
+    min-height: 50px;
+}
+
+#home-subtitle {
+    min-height: 36px;
+    font-size: 28px;
+}
+
+#home-title-right {
+    margin-left: auto;
+}
+
+/***** Main section *****/
+
+h2 {
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    font-weight: normal;
+    font-size: 1.5rem;
+}
+
+#home-main-section {
+    margin-top: 2em;
+    display: inline-flex;
+}
+
+/***** Main > left section *****/
+
+#left-section {
+    min-width: 750px;
+    flex-grow: 3;
+    border-right: var(--section-separator-border);
+    padding-right: var(--horizontal-section-padding);
+
+    --left-section-subpadding: 2.5rem;
+}
+
+#left-section h2 {
+    margin-bottom: 0.5em;
+}
+
+#welcome-section {
+    display: inline-flex;
+    border-bottom: 3px solid var(--vscode-sideBarSectionHeader-background);
+    padding-bottom: 1.5rem;
+    padding-right: var(--left-section-subpadding);
+}
+
+#view-location-screenshot-container {
+    margin-left: 2.5em;
+    align-self: flex-end;
+}
+
+#view-location-screenshot {
+    min-width: 250px;
+    max-width: 250px;
+}
+
+#quick-start-section {
+    padding-top: var(--vertical-section-padding);
+    padding-right: var(--left-section-subpadding);
+}
+
+#local-remote-tabgroup {
+    display: inline-flex;
+    margin-top: 1em;
+    margin-bottom: 1.5em;
+}
+
+.quick-start-tab {
+    min-width: 15ch;
+    margin-right: 0.25em;
+    padding-left: 0.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--vscode-sideBarSectionHeader-background);
+}
+
+.quick-start-tab:focus {
+    /* Override from .btn */
+    outline: none;
+}
+
+.quick-start-tab.selected {
+    font-weight: bold;
+    border-bottom: 2px solid var(--vscode-button-background)
+}
+
+.quick-start-tab img {
+    margin-right: .5em;
+    height: 1.5em;
+    vertical-align: text-top;
+}
+
+.quickstart-steps {
+    width: 100%;
+    display: inline-flex;
+    justify-content: space-between;
+}
+
+.steps-header {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.step-separator {
+    border-right: var(--section-separator-border);
+}
+
+.project-steps {
+    display: flex;
+    flex-direction: column;
+}
+
+.project-step-or {
+    align-self: center;
+}
+
+.step-btn {
+    min-width: 25ch;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    /* override from common/btn */
+    border-radius: 0;
+}
+
+.step-btn img {
+    /* override from common/btn */
+    padding-left: 0;
+}
+
+.done-step {
+    margin-left: 1em;
+    height: 2em;
+}
+
+/***** Main > right section *****/
+
+#right-section {
+    min-width: 300px;
+    padding-left: var(--horizontal-section-padding);
+}
+
+#right-section h2 {
+    margin-bottom: 0;
+}
+
+#right-section p {
+    margin: 0;
+}
+
+.learn-card {
+    background: var(--welcomePage-tileBackground);
+    margin-top: 1em;
+    padding: 1em;
+}
+
+.learn-card-header h3 {
+    display: inline-flex;
+    margin-top: 0;
+    margin-bottom: .5em;
+}
+
+.learn-card-header a {
+    color: var(--vscode-editor-foreground);
+}
+
+.learn-card-header input[type="image"] {
+    margin-left: 1em;
+    height: 1.5em;
+    vertical-align: text-top;
+}
+
+@media(max-width: 1250px) {
+
+    #home-main-section {
+        flex-wrap: wrap;
+    }
+
+    #left-section {
+        max-width: 750px;
+        border-right: none;
+        padding-right: 0;
+        border-bottom: var(--section-separator-border);
+    }
+
+    #right-section {
+        padding-left: 0;
+        padding-top: var(--vertical-section-padding);
+    }
+
+    #quick-start-section {
+        padding-bottom: var(--horizontal-section-padding);
+    }
+}

@@ -69,19 +69,34 @@
                         "description": "%configDescr_alwaysCreateProjectsInWorkspace%",
                         "type": "boolean",
                         "default": false,
-                        "scope": "resource"
+                        "scope": "window"
+                    },
+                    "codewind.showHomePage": {
+                        "description": "%configDescr_showHomepage%",
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "application"
                     }
                 }
             }
         ],
         "commands": [
             {
+                "command": "%cmdID_homepage%",
+                "title": "%cmdTitle_homepage%",
+                "category": "%commandCategory%",
+                "icon": {
+                    "light": "res/img/light/home.svg",
+                    "dark": "res/img/dark/home.svg"
+                }
+            },
+            {
                 "command": "%cmdID_newConnection%",
                 "title": "%cmdTitle_newConnection%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/new_cloud.svg",
-                    "dark": "res/img/dark/new_cloud.svg"
+                    "light": "res/img/light/new_connection.svg",
+                    "dark": "res/img/dark/new_connection.svg"
                 }
             },
             {
@@ -357,8 +372,13 @@
             "view/title": [
                 {
                     "when": "view == ext.cw.explorer",
-                    "command": "%cmdID_newConnection%",
+                    "command": "%cmdID_homepage%",
                     "group": "navigation@0"
+                },
+                {
+                    "when": "view == ext.cw.explorer",
+                    "command": "%cmdID_newConnection%",
+                    "group": "navigation@1"
                 }
             ],
             "view/item/context": [

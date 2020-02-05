@@ -22,6 +22,8 @@ import connectLocalCodewindCmd from "./command/StartCodewindCmd";
 import Constants from "./constants/Constants";
 import ConnectionManager from "./codewind/connection/ConnectionManager";
 import LocalCodewindManager from "./codewind/connection/local/LocalCodewindManager";
+import { CWConfigurations } from "./constants/Configurations";
+import showHomePageCmd from "./command/HomePageCmd";
 
 // configures json as the language of the codewind settings file.
 function setSettingsFileLanguage(doc: vscode.TextDocument): void {
@@ -92,6 +94,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await ConnectionManager.instance.activate();
     // Connect to local codewind if it's started, but don't start it automatically.
     connectLocalCodewindCmd(LocalCodewindManager.instance, false);
+
+    if (!global.isTheia && CWConfigurations.SHOW_HOMEPAGE.get()) {
+        showHomePageCmd();
+    }
 
     subscriptions.forEach((e) => {
         context.subscriptions.push(e);

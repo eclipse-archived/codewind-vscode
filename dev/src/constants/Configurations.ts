@@ -11,26 +11,49 @@
 
 import * as vscode from "vscode";
 
-class CWConfiguration<T> {
-    constructor(
-        private readonly section: string,
-        private readonly defaultValue: T
-    ) {
+import Log from "../Logger";
 
+const CONFIG_SECTION = "codewind";
+
+class CWConfiguration<T> {
+
+    public readonly fullSection: string;
+
+    /**
+     *
+     * @param subsection Must match `contributes.configuration.properties` in package.json
+     * @param defaultValue
+     * @param scope
+     */
+    constructor(
+        private readonly subsection: string,
+        private readonly defaultValue: T,
+        private readonly scope: vscode.ConfigurationTarget,
+    ) {
+        this.fullSection = `${CONFIG_SECTION}.${subsection}`;
     }
 
     public get(): T {
-        const result = vscode.workspace.getConfiguration("codewind", null).get(this.section) as T;
+        const result = vscode.workspace.getConfiguration(CONFIG_SECTION, null).get(this.subsection) as T;
         if (result == null) {
             return this.defaultValue;
         }
         return result;
     }
+
+    public async set(newValue: T): Promise<void> {
+        await vscode.workspace
+            .getConfiguration(CONFIG_SECTION, null)
+            .update(this.subsection, newValue, this.scope);
+
+        Log.d(`Set ${this.subsection} to ${newValue}`);
+    }
 }
 
 // tslint:disable-next-line: variable-name
 export const CWConfigurations = {
-    AUTO_SHOW_VIEW:             new CWConfiguration("autoShowView", true),
-    OVERVIEW_ON_CREATION:       new CWConfiguration("openOverviewOnCreation", true),
-    ALWAYS_CREATE_IN_WORKSPACE: new CWConfiguration("alwaysCreateProjectsInWorkspace", false),
+    AUTO_SHOW_VIEW:             new CWConfiguration("autoShowView", true, vscode.ConfigurationTarget.Global),
+    OVERVIEW_ON_CREATION:       new CWConfiguration("openOverviewOnCreation", true, vscode.ConfigurationTarget.Global),
+    ALWAYS_CREATE_IN_WORKSPACE: new CWConfiguration("alwaysCreateProjectsInWorkspace", false, vscode.ConfigurationTarget.Workspace),
+    SHOW_HOMEPAGE:              new CWConfiguration("showHomePage", true, vscode.ConfigurationTarget.Global),
 } as const;

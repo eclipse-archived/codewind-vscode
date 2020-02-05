@@ -1,6 +1,14 @@
 body {
-    padding-bottom: 1em;
+    padding-bottom: 1rem;
     font-family: "IBM Plex Sans";
+
+    /* This colour is taken from the VS Code welcome page, but doesn't appear to be available in other webviews. */
+    --welcomePage-tileBackground: #171717;
+}
+
+body.vscode-light {
+    /* In the default light themes, the welcome page colour appears to match the sidebar colour. */
+    --welcomePage-tileBackground: var(--vscode-sideBar-background);
 }
 
 #top-section {
@@ -54,20 +62,23 @@ input[type="checkbox"]:disabled {
 }
 
 .btn {
-    padding: 0.6em;
+    min-width: max-content;
+    padding-top: 0.6em;
+    padding-bottom: 0.6em;
     padding-left: 1.5em;
     padding-right: 1.5em;
 
     font-size: 110%;
     border-radius: 5px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
 .btn > img {
-    padding-left: 1.5em;
     height: 1.5em;
+    padding-left: 1.5em;
+    margin-left: auto;
 }
 
 .btn-prominent {
@@ -118,4 +129,8 @@ a {
 img {
     /* Colour alt text to match */
     color: var(--vscode-editor-foreground)
+}
+
+input[type="checkbox"] {
+    zoom: 1.25;
 }

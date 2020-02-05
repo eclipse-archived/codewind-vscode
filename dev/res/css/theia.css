@@ -12,6 +12,7 @@
     --vscode-sideBarSectionHeader-background: #383838;
     --vscode-sideBar-foreground: #e0e0c2;
     --vscode-sideBar-background: #252526;
+
     background: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
     font-family: sans-serif;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 
-import Resources from "../../../constants/Resources";
+import { ThemedImages } from "../../../constants/CWImages";
 import MCUtil from "../../../MCUtil";
 import Project from "../../../codewind/project/Project";
 import WebviewUtil from "../WebviewUtil";
@@ -34,17 +34,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     <!DOCTYPE html>
 
     <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        ${WebviewUtil.getCSP()}
-
-        <link rel="stylesheet" href="${rp.getStylesheet("common.css")}"/>
-        <link rel="stylesheet" href="${rp.getStylesheet("project-overview.css")}"/>
-        ${global.isTheia ?
-            `<link rel="stylesheet" href="${rp.getStylesheet("theia.css")}"/>` : ""}
-        ${WebviewUtil.getFontLinks()}
-    </head>
+    ${WebviewUtil.getHead(rp, "project-overview.css")}
     <body>
 
     ${WebviewUtil.buildTitleSection(rp, project.name, project.connection.label, project.connection.isRemote)}
@@ -108,7 +98,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             <div id="app-info-header-section">
                 <h3>Application Information</h3>
                 <div id="about-project-settings">
-                    <a href="${CWDocs.getDocLink(CWDocs.PROJECT_SETTINGS)}" title="More Info">More Info</a>
+                    <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
                 </div>
             </div>
             <!-- Hide Container ID when it doesn't apply -->
@@ -195,7 +185,7 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
 
         thirdColTd = `
             <td class="btn-cell">
-                <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick} src="${rp.getIcon(Resources.Icons.Edit)}"/>
+                <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick} src="${rp.getImage(ThemedImages.Edit)}"/>
             </td>
         `;
     }
@@ -205,7 +195,7 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
         fourthColTd = `
             <td class="btn-cell">
                 <a href="${data}">
-                    <input type="image" title="Open" src="${rp.getIcon(Resources.Icons.OpenExternal)}"/>
+                    <input type="image" title="Open" src="${rp.getImage(ThemedImages.Launch)}"/>
                 </a>
             </td>
         `;
