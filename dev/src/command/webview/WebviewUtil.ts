@@ -94,7 +94,7 @@ namespace WebviewUtil {
     }
 
     function getFontLinks(): string {
-        const weights = [ 300, 400, 700 ].join(",");
+        const weights = [ 300, 400, 500, 700 ].join(",");
         return `<link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:${weights}&amp;display=swap" rel="stylesheet">`;
     }
 

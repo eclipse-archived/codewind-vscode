@@ -1,13 +1,17 @@
 body {
     display: flex;
-    line-height: 2em;
+    line-height: 1.75em;
+
+    --horizontal-section-padding: 4em;
+    --vertical-section-padding: 2.5em;
+    --section-separator-border: 3px solid var(--vscode-sideBarSectionHeader-background);
 }
 
 #content {
     max-width: 1200px;
-    padding-top: 2rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-top: 4em;
+    padding-left: 2em;
+    padding-right: 2em;
     margin: auto;
 }
 
@@ -19,26 +23,23 @@ body {
 }
 
 #logo {
-    height: 6em;
+    height: 70px;
 }
 
 #home-title-left {
     margin-left: 1.5em;
     flex: 1;
-    position: relative;
+    min-width: max-content;
 }
 
 #home-title {
-    display: block;
-    font-size: 2em;
-    font-weight: bold;
+    font-size: 42px;
+    min-height: 50px;
 }
 
 #home-subtitle {
-    min-width: max-content;
-    position: absolute;
-    bottom: 0;
-    font-size: 1.5em;
+    min-height: 36px;
+    font-size: 28px;
 }
 
 #home-title-right {
@@ -50,6 +51,8 @@ body {
 h2 {
     margin-top: 0;
     margin-bottom: 0.5em;
+    font-weight: normal;
+    font-size: 1.5rem;
 }
 
 #home-main-section {
@@ -59,16 +62,13 @@ h2 {
 
 /***** Main > left section *****/
 
-#left-section, #right-section {
-    max-width: 600px;
-}
-
 #left-section {
-    min-width: 60%;
-    --section-separator-border: 3px solid var(--vscode-sideBarSectionHeader-background);      /* Should match welcome-section's border-bottom */
+    min-width: 750px;
+    flex-grow: 3;
     border-right: var(--section-separator-border);
-    --section-separator-padding: 2em;
-    padding-right: var(--section-separator-padding);
+    padding-right: var(--horizontal-section-padding);
+
+    --left-section-subpadding: 2.5rem;
 }
 
 #left-section h2 {
@@ -78,7 +78,8 @@ h2 {
 #welcome-section {
     display: inline-flex;
     border-bottom: 3px solid var(--vscode-sideBarSectionHeader-background);
-    padding-bottom: 1em;
+    padding-bottom: 1.5rem;
+    padding-right: var(--left-section-subpadding);
 }
 
 #view-location-screenshot-container {
@@ -92,7 +93,8 @@ h2 {
 }
 
 #quick-start-section {
-    padding-top: 2em;
+    padding-top: var(--vertical-section-padding);
+    padding-right: var(--left-section-subpadding);
 }
 
 #local-remote-tabgroup {
@@ -101,39 +103,59 @@ h2 {
     margin-bottom: 1.5em;
 }
 
-#local-remote-tabgroup > div {
+.quick-start-tab {
     min-width: 15ch;
     margin-right: 0.25em;
-    padding-left: .5em;
-    padding-bottom: .5em;
+    padding-left: 0.5em;
+    padding-bottom: 0.5em;
     border-bottom: 2px solid var(--vscode-sideBarSectionHeader-background);
 }
 
-#local-remote-tabgroup > div:focus {
+.quick-start-tab:focus {
     /* Override from .btn */
     outline: none;
 }
 
-#local-remote-tabgroup > .selected {
+.quick-start-tab.selected {
     font-weight: bold;
     border-bottom: 2px solid var(--vscode-button-background)
 }
 
-#local-remote-tabgroup img {
+.quick-start-tab img {
     margin-right: .5em;
     height: 1.5em;
     vertical-align: text-top;
 }
 
-.step-container {
+.quickstart-steps {
+    width: 100%;
+    display: inline-flex;
+    justify-content: space-between;
+}
+
+.steps-header {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.step-separator {
+    border-right: var(--section-separator-border);
+}
+
+.project-steps {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+}
+
+.project-step-or {
+    align-self: center;
 }
 
 .step-btn {
-    width: 25ch;
+    min-width: 25ch;
     margin-top: 1em;
     margin-bottom: 1em;
+    /* override from common/btn */
     border-radius: 0;
 }
 
@@ -147,24 +169,11 @@ h2 {
     height: 2em;
 }
 
-.create-project-step {
-    width: 100%;
-    display: inline-flex;
-    justify-content: space-between;
-}
-
-.create-project-or {
-    margin-left: 1em;
-    margin-right: 1em;
-    font-size: 120%;
-    align-self: center;
-}
-
 /***** Main > right section *****/
 
 #right-section {
     min-width: 300px;
-    padding-left: 2em;
+    padding-left: var(--horizontal-section-padding);
 }
 
 #right-section h2 {
@@ -197,13 +206,14 @@ h2 {
     vertical-align: text-top;
 }
 
-@media(max-width: 1100px) {
+@media(max-width: 1250px) {
 
     #home-main-section {
         flex-wrap: wrap;
     }
 
     #left-section {
+        max-width: 750px;
         border-right: none;
         padding-right: 0;
         border-bottom: var(--section-separator-border);
@@ -211,10 +221,10 @@ h2 {
 
     #right-section {
         padding-left: 0;
-        padding-top: var(--section-separator-padding);
+        padding-top: var(--vertical-section-padding);
     }
 
     #quick-start-section {
-        padding-bottom: var(--section-separator-padding);
+        padding-bottom: var(--horizontal-section-padding);
     }
 }

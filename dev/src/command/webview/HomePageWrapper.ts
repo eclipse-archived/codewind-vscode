@@ -27,6 +27,7 @@ import Commands from "../../constants/Commands";
 
 export enum HomePageWVMessages {
     SHOW_ON_START = "toggle-show-on-start",
+    INSTALL_DOCKER = "install-docker",
     START_LOCAL = "start-local",
     NEW_REMOTE_CONNECTION = "new-remote-connection",
     OPEN_USEFUL_EXTENSIONS = "open-useful-extensions",
@@ -73,7 +74,14 @@ export class HomePageWrapper extends WebviewWrapper {
                 vscode.window.showInformationMessage(`Useful extensions (not implemented)`);
                 break;
             }
+            case HomePageWVMessages.INSTALL_DOCKER:
+                const installDockerUri = vscode.Uri.parse("https://docs.docker.com/install/");
+                vscode.commands.executeCommand(Commands.VSC_OPEN, installDockerUri);
             case HomePageWVMessages.START_LOCAL: {
+                if (LocalCodewindManager.instance.localConnection) {
+                    vscode.window.showInformationMessage(`Local Codewind is already started.`);
+                    return;
+                }
                 startCodewindCmd();
                 break;
             }

@@ -58,7 +58,7 @@ export function createCommands(): vscode.Disposable[] {
     // The first parameter must match the command ID as declared in package.json
     // the second parameter is the callback function, which is passed the user's selection, which is either:
     // - undefined (if run from command palette)
-    // - or the user's selected TreeView object (if run from the context menu) -> IE either a Project or Connection
+    // - or the user's selected TreeView object (if run from the context menu) -> Either LocalCodewindManager, Connection, or Project
     return [
         vscode.commands.registerCommand(Commands.HOMEPAGE,          showHomePageCmd),
         vscode.commands.registerCommand(Commands.NEW_CONNECTION,    newRemoteConnectionCmd),

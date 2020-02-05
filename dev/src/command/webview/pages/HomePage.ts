@@ -34,7 +34,7 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                     ${CWConfigurations.SHOW_HOMEPAGE.get() ? "checked" : ""}
                     onclick="sendMsg('${HomePageWVMessages.SHOW_ON_START}', this.checked)"
                 />
-                <label for="show-this-page-checkbox">Show this page on startup</label>
+                <label for="show-this-page-checkbox">Show Home on startup</label>
             </div>
         </div>
         <div id="home-main-section">
@@ -45,12 +45,10 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                         <p>
                             Codewind simplifies and enhances development in containers by extending your IDE with features to write, debug, and deploy cloud-native applications.
                             <br><br>
-                        </p>
-                        <p>
                             Locate the
-                            <span class="clickable" title="Open the Codewind View" onclick="sendMsg('${HomePageWVMessages.OPEN_CODEWIND_VIEW}')" tabindex="0">
-                                <b>Codewind View</b>
-                            </span>
+                            <a title="Open the Codewind View" onclick="sendMsg('${HomePageWVMessages.OPEN_CODEWIND_VIEW}')" tabindex="0">
+                                Codewind View
+                            </a>
                             within the Explorer View.
                             Here you can access commonly used commands through buttons and right-click menus.
                         </p>
@@ -69,48 +67,43 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                         <p>
                             Get started quickly with templates or pull in your applications and let Codewind prepare them for the cloud.<br>
                             Choose whether you want to build and run your project
-                            <a href="${CWDocs.getDocLink(CWDocs.FIRST_PROJECT_LOCAL)}">locally</a>
-                            or.
-                            <a href="${CWDocs.getDocLink(CWDocs.REMOTE_DEPLOYING)}">remotely</a>.
+                            <a href="${CWDocs.FIRST_PROJECT_LOCAL.uri}">locally</a>
+                            or
+                            <a href="${CWDocs.REMOTE_DEPLOYING.uri}">remotely</a>.
                         </p>
                     </div>
-                    <div id="quick-start-actions">
-                        <div id="local-remote-tabgroup">
-                            <div id="local-tab" class="clickable quick-start-tab selected" onclick="toggleQuickStart(this)" tabindex="0">
-                                <img src="${rp.getImage(ThemedImages.Local_Connected)}" alt="Local" title="Local"/>Local
-                            </div>
-                            <div id="remote-tab" class="clickable quick-start-tab" onclick="toggleQuickStart(this)" tabindex="0">
-                                <img src="${rp.getImage(ThemedImages.Connection_Connected, "dark")}" alt="Remote" title="Remote"/>Remote
-                            </div>
+                    <div id="local-remote-tabgroup">
+                        <div id="local-tab" class="clickable quick-start-tab selected" onclick="toggleQuickStart(this)" tabindex="0">
+                            <img src="${rp.getImage(ThemedImages.Local_Connected)}" alt="Local" title="Local"/>Local
                         </div>
-                        <div id="local-steps">
+                        <div id="remote-tab" class="clickable quick-start-tab" onclick="toggleQuickStart(this)" tabindex="0">
+                            <img src="${rp.getImage(ThemedImages.Connection_Connected, "dark")}" alt="Remote" title="Remote"/>Remote
+                        </div>
+                    </div>
+                    <div id="local-steps" class="quickstart-steps">
+                        <div class="setup-step-section">
+                            <div class="steps-header">Set-up</div>
                             <div>Step 1</div>
-                            <div class="step-btn btn btn-prominent" title="Install Images"
-                                onclick="sendMsg('${HomePageWVMessages.START_LOCAL}')" tabindex="0"
+                            <div class="step-btn btn btn-prominent" title="Install Docker"
+                                onclick="sendMsg('${HomePageWVMessages.INSTALL_DOCKER}')" tabindex="0"
                             >
-                                Install Images
+                                Install Docker
                                 <img src="${rp.getImage(ThemelessImages.Download)}" alt="Download"/>
                             </div>
                             <div>Step 2</div>
-                            <div class="create-project-step">
-                                <div class="step-btn btn btn-prominent" title="Create New Project" tabindex="0"
-                                    onclick="sendMsg('${HomePageWVMessages.PROJECT_LOCAL}', '${CREATE_PROJECT_DATA}')"
-                                >
-                                    <div>Create New Project</div>
-                                    <img src="${rp.getImage(ThemedImages.New, "dark")}" alt="Create New Project"/>
-                                </div>
-                                <div class="create-project-or">
-                                    or
-                                </div>
-                                <div class="step-btn btn btn-prominent" title="Add Existing Project" tabindex="0"
-                                    onclick="sendMsg('${HomePageWVMessages.PROJECT_LOCAL}', '${ADD_PROJECT_DATA}')"
-                                >
-                                    <div>Add Existing Project</div>
-                                    <img src="${rp.getImage(ThemedImages.Bind, "dark")}" alt="Add Existing Project"/>
-                                </div>
+                            <div class="step-btn btn btn-prominent" title="Install Codewind Images"
+                                onclick="sendMsg('${HomePageWVMessages.START_LOCAL}')" tabindex="0"
+                            >
+                                Install Codewind Images
+                                <img src="${rp.getImage(ThemelessImages.Download)}" alt="Download"/>
                             </div>
                         </div>
-                        <div id="remote-steps" style="display: none">
+                        <div class="step-separator"></div>
+                        ${getStartProjectStepsSection(rp, false)}
+                    </div>
+                    <div id="remote-steps" class="quickstart-steps" style="display: none">
+                        <div class="setup-step-section">
+                            <div class="steps-header">Set-up</div>
                             <div>Step 1</div>
                             <div class="step-btn btn btn-prominent" title="New Codewind Connection"
                                 onclick="sendMsg('${HomePageWVMessages.NEW_REMOTE_CONNECTION}')" tabindex="0"
@@ -118,25 +111,9 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                                 New Codewind Connection
                                 <img src="${rp.getImage(ThemedImages.New_Connection)}" alt="New Codewind Connection"/>
                             </div>
-                            <div>Step 2</div>
-                            <div class="create-project-step">
-                                <div class="step-btn btn btn-prominent" title="Create New Project" tabindex="0"
-                                    onclick="sendMsg('${HomePageWVMessages.PROJECT_REMOTE}', '${CREATE_PROJECT_DATA}')"
-                                >
-                                    Create New Project
-                                    <img src="${rp.getImage(ThemedImages.New, "dark")}" alt="Create New Project"/>
-                                </div>
-                                <div class="create-project-or">
-                                    or
-                                </div>
-                                <div class="step-btn btn btn-prominent" title="Add Existing Project" tabindex="0"
-                                    onclick="sendMsg('${HomePageWVMessages.PROJECT_REMOTE}', '${ADD_PROJECT_DATA}')"
-                                >
-                                    Add Existing Project
-                                    <img src="${rp.getImage(ThemedImages.Bind, "dark")}" alt="Add Existing Project"/>
-                                </div>
-                            </div>
                         </div>
+                        <div class="step-separator"></div>
+                        ${getStartProjectStepsSection(rp, true)}
                     </div>
                 </div>
             </div>  <!-- End left side -->
@@ -144,8 +121,8 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                 <h2>Learn</h2>
                 <div class="learn-card">
                     <div class="learn-card-header">
-                        <a href="${CWDocs.getDocLink(CWDocs.COMMANDS_OVERVIEW)}">
-                            <h3>Commmands</h3>
+                        <a href="${CWDocs.COMMANDS_OVERVIEW.uri}">
+                            <h3>Commands</h3>
                             <input type="image" alt="Open Commands" src="${rp.getImage(ThemedImages.Launch)}" tabindex="-1"/>
                         </a>
                     </div>
@@ -153,12 +130,12 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                         Access all commands by opening the
                         <a href="https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette">Command Palette</a>
                         and typing <b>Codewind</b>.
-                        For more information, see the <a href="${CWDocs.getDocLink(CWDocs.COMMANDS_OVERVIEW)}">Commands Overview</a>.
+                        For more information, see the <a href="${CWDocs.COMMANDS_OVERVIEW.uri}">Commands Overview</a>.
                     </p>
                 </div>
                 <div class="learn-card">
                     <div class="learn-card-header">
-                        <a href="${CWDocs.getDocLink(CWDocs.HOME)}">
+                        <a href="${CWDocs.HOME.uri}">
                             <h3>Docs</h3>
                             <input type="image" alt="Open Docs" src="${rp.getImage(ThemedImages.Launch)}" tabindex="-1"/>
                         </a>
@@ -166,8 +143,8 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                     <p>
                         Find the instructions on how to use Codewind.
                         Documentation includes
-                            <a href="${CWDocs.getDocLink(CWDocs.REMOTE_DEPLOYING)}">Deploying Codewind Remotely</a> and
-                            <a href="${CWDocs.getDocLink(CWDocs.PERF_MONITORING)}">Performance Monitoring</a>.
+                            <a href="${CWDocs.REMOTE_DEPLOYING.uri}">Deploying Codewind Remotely</a> and
+                            <a href="${CWDocs.PERF_MONITORING.uri}">Performance Monitoring</a>.
                     </p>
                 </div>
                 <div class="learn-card">
@@ -214,10 +191,39 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
             document.querySelector("#" + otherToggleTabID).classList.remove("selected");
 
             // show the steps for the tab that was clicked and hide the other ones
-            document.querySelector("#local-steps").style.display = isLocal ? "block" : "none";
-            document.querySelector("#remote-steps").style.display = isLocal ? "none" : "block";
+            const stepsStyle = "inline-flex";
+            document.querySelector("#local-steps").style.display = isLocal ? stepsStyle : "none";
+            document.querySelector("#remote-steps").style.display = isLocal ? "none" : stepsStyle;
         }
     </script>
     </body>
 `;
+}
+
+function getStartProjectStepsSection(rp: WebviewResourceProvider, isRemote: boolean): string {
+    const onClickMsg = isRemote ? HomePageWVMessages.PROJECT_REMOTE : HomePageWVMessages.PROJECT_LOCAL;
+    const stepIndex = isRemote ? 2 : 3;
+
+    return `
+    <div class="project-step-section">
+        <div class="steps-header">Start a Project</div>
+        <div>Step ${stepIndex}</div>
+        <div class="project-steps">
+            <div class="step-btn btn btn-prominent" title="Create New Project" tabindex="0"
+                onclick="sendMsg('${onClickMsg}', '${CREATE_PROJECT_DATA}')"
+            >
+                <div>Create New Project</div>
+                <img src="${rp.getImage(ThemedImages.New, "dark")}" alt="Create New Project"/>
+            </div>
+            <div class="project-step-or">
+                or
+            </div>
+            <div class="step-btn btn btn-prominent" title="Add Existing Project" tabindex="0"
+                onclick="sendMsg('${onClickMsg}', '${ADD_PROJECT_DATA}')"
+            >
+                <div>Add Existing Project</div>
+                <img src="${rp.getImage(ThemedImages.Bind, "dark")}" alt="Add Existing Project"/>
+            </div>
+        </div>
+    </div>`;
 }
