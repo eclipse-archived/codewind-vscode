@@ -35,6 +35,7 @@ const theia_cmdsToDelete = [
     "separator",
     "addProjectToWorkspace",
     "changeProjectConnection",
+    "homepage",
 ];
 
 const vscode_cmdsToDelete = [
