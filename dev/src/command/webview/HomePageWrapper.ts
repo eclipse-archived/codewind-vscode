@@ -42,10 +42,13 @@ export const ADD_PROJECT_DATA = "add";
 
 export class HomePageWrapper extends WebviewWrapper {
 
+    private static _instance: HomePageWrapper | undefined;
+
     constructor(
 
     ) {
         super(`Codewind: Home`, ThemelessImages.Logo);
+        HomePageWrapper._instance = this;
         this.refresh();
 
         vscode.workspace.onDidChangeConfiguration((e) => {
@@ -53,6 +56,14 @@ export class HomePageWrapper extends WebviewWrapper {
                 this.refresh();
             }
         });
+    }
+
+    public static get instance(): HomePageWrapper | undefined {
+        return this._instance;
+    }
+
+    protected onDidDispose(): void {
+        HomePageWrapper._instance = undefined;
     }
 
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
@@ -126,9 +137,5 @@ export class HomePageWrapper extends WebviewWrapper {
                 Log.e(`Unrecognized message from home page`, msg);
             }
         }
-    }
-
-    protected onDidDispose(): void {
-        // nothing
     }
 }
