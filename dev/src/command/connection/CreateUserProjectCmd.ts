@@ -343,7 +343,9 @@ async function promptForProjectName(connection: Connection, template: CWTemplate
             resolve(undefined);
         });
         ib.onDidAccept((_e) => {
-            resolve(ib.value);
+            if (!ib.validationMessage) {
+                resolve(ib.value);
+            }
         });
         ib.onDidTriggerButton((_btn) => {
             // back button is the only button
