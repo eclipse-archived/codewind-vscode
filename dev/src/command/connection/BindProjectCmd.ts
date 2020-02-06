@@ -21,12 +21,11 @@ import RegistryUtils from "../../codewind/connection/RegistryUtils";
 import { CLICommandRunner, IDetectedProjectType, IInitializationResponse } from "../../codewind/connection/CLICommandRunner";
 import Requester from "../../codewind/project/Requester";
 
-/**
- * @param create true for Create page, false for Import page
- */
 export default async function bindProjectCmd(connection: Connection): Promise<void> {
     try {
-        const defaultPath = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined;
+        const defaultPath = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
+            ? vscode.workspace.workspaceFolders[0].uri : undefined;
+
         const dirToBindUri = await MCUtil.promptForProjectDir(`Add to ${connection.label}`, defaultPath);
         if (dirToBindUri == null) {
             return;
