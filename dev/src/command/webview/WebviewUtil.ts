@@ -102,10 +102,12 @@ namespace WebviewUtil {
         // the subtitle is ommitted in theia since there is only one connection
         const hasSubtitle = !global.isTheia;
 
-        return `<div class="title-section ${hasSubtitle ? "" : "title-section-subtitled"}">
-            <img id="logo" alt="Codewind Logo" src="${rp.getImage(ThemelessImages.Logo)}"/>
+        return `<div class="title-section ${hasSubtitle ? "title-section-subtitled" : ""}">
+            <div id="logo-container">
+                <img id="logo" alt="Codewind Logo" src="${rp.getImage(ThemelessImages.Logo)}"/>
+            </div>
             <div>
-                <h1 id="title">${title}</h1>
+                <div id="title">${title}</div>
                 ${hasSubtitle ? buildConnectionSubtitle(connectionLabel, isRemoteConnection) : ""}
             </div>
         </div>`;
@@ -119,7 +121,7 @@ namespace WebviewUtil {
             classAttr = `class="clickable"`;
             onClick = `onclick="sendMsg('${CommonWVMessages.OPEN_CONNECTION}')"`;
         }
-        return `<h2 id="subtitle" ${classAttr} ${onClick}>${connectionLabel}</h2>`;
+        return `<div id="subtitle" ${classAttr} ${onClick}>${connectionLabel}</div>`;
     }
 
     export const ATTR_ID = "data-id";

@@ -1,9 +1,14 @@
-
-#main {
+body {
     max-width: 1000px;
+    min-width: 600px;
+    padding-left: 1%;
+    padding-right: 1%;
+    padding-top: 1%;
 }
 
-#top-section {
+#btns-section {
+    width: 100%;
+    display: inline-flex;
     border-bottom: 2px solid #aaa;
     padding-bottom: 0.75em;
 }

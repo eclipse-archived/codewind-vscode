@@ -10,7 +10,7 @@
     --vscode-editor-background: #1e1e1e;
     --vscode-sideBarSectionHeader-foreground: #e0e0e0;
     --vscode-sideBarSectionHeader-background: #383838;
-    --vscode-sideBar-foreground: #e0e0c2;
+    --vscode-sideBar-foreground: #e0e0e0;
     --vscode-sideBar-background: #252526;
 
     background: var(--vscode-editor-background);
