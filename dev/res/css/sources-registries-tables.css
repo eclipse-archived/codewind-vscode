@@ -1,10 +1,6 @@
 
 body {
-    width: 90%;
-    padding-left: 5%;
-    padding-right: 5%;
-    padding-top: 2%;
-    display: inline-block;
+    min-width: 700px;
 }
 
 #toolbar {
@@ -17,7 +13,6 @@ body {
     position: sticky;
     height: 3em;
 
-    padding-top: 2em;
     padding-bottom: 1em;
 }
 

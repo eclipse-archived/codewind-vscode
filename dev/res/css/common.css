@@ -1,5 +1,8 @@
 body {
-    padding-bottom: 1rem;
+    padding-top: 2%;
+    padding-left: 5%;
+    padding-right: 5%;
+    padding-bottom: 2%;
     font-family: "IBM Plex Sans";
 
     /* This colour is taken from the VS Code welcome page, but doesn't appear to be available in other webviews. */
@@ -14,34 +17,38 @@ body.vscode-light {
 #top-section {
     width: 100%;
     display: inline-flex;
-    align-items: center;
+    align-items: flex-start;
+    padding-bottom: 2em;
 }
 
 .title-section {
     display: inline-flex;
-    align-content: center;
     align-items: center;
 }
 
-.title-section > img {
-    height: 2.5em;
-    margin-right: 1em;
+.title-section-subtitled {
+    align-items: flex-start;
 }
 
-.title-section-subtitled > img {
-    margin-top: -1.25em;
+#logo-container {
+    padding-top: 0.75em;
+    width: 4em;
+    margin-right: 1.25em;
 }
 
 #title {
-    margin-bottom: 0;
+    font-size: 2em;
+    min-width: max-content;
 }
 
 #subtitle {
-    margin-top: 0;
     color: var(--vscode-editorLineNumber-foreground);
+    font-size: 1.5em;
 }
 
 #learn-more-btn {
+    align-self: center;
+    padding-right: 0;
     margin-left: auto;
 }
 
