@@ -35,7 +35,7 @@ const TAG_OPTION = "-t";
 const TAG_LATEST = "latest";
 // Codewind tag to install if CW_TAG is not set in env
 // UPDATE THIS on release branches to eg "0.6.0"
-const DEFAULT_CW_TAG = "0.8.0";
+const DEFAULT_CW_TAG = "0.8.1";
 
 export namespace CLILifecycleWrapper {
 
