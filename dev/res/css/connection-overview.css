@@ -80,7 +80,7 @@ body {
     margin-top: 1em;
     width: 585px;
     height: 200px;
-    margin-left: 50px;
+    margin-left: 30px;
     background-color: var(--vscode-sideBar-background);
 }
 
@@ -256,13 +256,14 @@ body {
     vertical-align: text-top;
     height: 1.25em;
     padding: 0;
+    float: right;
 }
 
 #copy_url_tooltip {
     display: none;
 }
 
-@media (max-width: 1420px) {
+@media (max-width: 1390px) {
     #link-container-box {
         margin-left: 0px;
         float: left;
