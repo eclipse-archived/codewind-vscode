@@ -37,93 +37,92 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     ${WebviewUtil.getHead(rp, "project-overview.css")}
     <body>
 
-    ${WebviewUtil.buildTitleSection(rp, project.name, project.connection.label, project.connection.isRemote)}
+    <div id="top-section">
+        ${WebviewUtil.buildTitleSection(rp, project.name, project.connection.label, project.connection.isRemote)}
+    </div>
 
-    <div id="main">
-        <div id="top-section">
-            <input type="button" value="Build"
-                class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"
-                onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"/>
+    <div id="btns-section">
+        <input type="button" value="Build"
+            class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"
+            onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"/>
 
-            <div id="top-right-btns">
-                <input id="enablement-btn" class="btn btn-prominent" type="button"
-                    onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
-                    value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"
-                />
-                <input class="btn btn-red" type="button"
-                    onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')"
-                    value="Remove project"
-                />
+        <div id="top-right-btns">
+            <input id="enablement-btn" class="btn btn-prominent" type="button"
+                onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
+                value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"
+            />
+            <input class="btn btn-red" type="button"
+                onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')"
+                value="Remove project"
+            />
+        </div>
+    </div>
+    <div class="section">
+        <h3>Project Information</h3>
+        <table>
+            ${buildRow(rp, "Type", project.type.toString())}
+            ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
+            ${buildRow(rp, "Project ID", project.id)}
+            ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: global.isTheia ? undefined : "folder"})}
+        </table>
+    </div>
+    <div class="section">
+        <h3>Project Status</h3>
+        <table>
+            <tr>
+                <td class="info-label">Auto build:</td>
+                <td>
+                    <input id="auto-build-toggle" type="checkbox" class="btn"
+                        onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}')"
+                        ${project.autoBuildEnabled ? "checked" : ""}
+                        ${project.state.isEnabled ? " " : " disabled"}
+                    />
+                </td>
+            </tr>
+            <tr>
+                <td class="info-label">Inject Appmetrics:</td>
+                <td>
+                    <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
+                        onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}')"
+                        ${project.injectMetricsEnabled ? "checked" : ""}
+                        ${project.type.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
+                    />
+                </td>
+            </tr>
+            ${buildRow(rp, "Application Status", normalize(project.state.getAppStatusWithDetail(), NOT_AVAILABLE))}
+            ${buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
+            ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
+            ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
+        </table>
+    </div>
+    <div class="section">
+        <div id="app-info-header-section">
+            <h3>Application Information</h3>
+            <div id="about-project-settings">
+                <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
             </div>
         </div>
-        <div class="section">
-            <h3>Project Information</h3>
+        <!-- Hide Container ID when it doesn't apply -->
+        ${project.connection.isKubeConnection ? "" : `
             <table>
-                ${buildRow(rp, "Type", project.type.toString())}
-                ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
-                ${buildRow(rp, "Project ID", project.id)}
-                ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: global.isTheia ? undefined : "folder"})}
-            </table>
-        </div>
-        <div class="section">
-            <h3>Project Status</h3>
-            <table>
-                <tr>
-                    <td class="info-label">Auto build:</td>
-                    <td>
-                        <input id="auto-build-toggle" type="checkbox" class="btn"
-                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}')"
-                            ${project.autoBuildEnabled ? "checked" : ""}
-                            ${project.state.isEnabled ? " " : " disabled"}
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td class="info-label">Inject Appmetrics:</td>
-                    <td>
-                        <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
-                            onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}')"
-                            ${project.injectMetricsEnabled ? "checked" : ""}
-                            ${project.type.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
-                        />
-                    </td>
-                </tr>
-                ${buildRow(rp, "Application Status", normalize(project.state.getAppStatusWithDetail(), NOT_AVAILABLE))}
-                ${buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
-                ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
-                ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
-            </table>
-        </div>
-        <div class="section">
-            <div id="app-info-header-section">
-                <h3>Application Information</h3>
-                <div id="about-project-settings">
-                    <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
-                </div>
-            </div>
-            <!-- Hide Container ID when it doesn't apply -->
-            ${project.connection.isKubeConnection ? "" : `
-                <table>
-                    ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-                </table>`
+                ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
+            </table>`
+        }
+
+        <table>
+            ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
+                editable: true,
+                openable: project.appUrl != null ? "web" : undefined
+            })}
+            ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
+            ${buildRow(rp, "Internal App Port",
+                normalize(project.ports.internalPort, NOT_AVAILABLE),
+                { editable: true })
             }
 
-            <table>
-                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
-                    editable: true,
-                    openable: project.appUrl != null ? "web" : undefined
-                })}
-                ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
-                ${buildRow(rp, "Internal App Port",
-                    normalize(project.ports.internalPort, NOT_AVAILABLE),
-                    { editable: true })
-                }
-
-                <!-- buildDebugSection must also close the <table> -->
-                ${buildDebugSection(rp, project)}
-            <!-- /table -->
-        </div>
-    <!-- end main -->
+            <!-- buildDebugSection must also close the <table> -->
+            ${buildDebugSection(rp, project)}
+        <!-- /table -->
     </div>
 
     <script type="text/javascript">
