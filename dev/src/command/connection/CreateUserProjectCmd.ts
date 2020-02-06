@@ -359,7 +359,7 @@ async function promptForProjectName(connection: Connection, template: CWTemplate
  * Get parent directory to create the project under.
  */
 async function getParentDirectory(): Promise<vscode.Uri | undefined> {
-    if (vscode.workspace.workspaceFolders
+    if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
         && (global.isTheia || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
 
         if (vscode.workspace.workspaceFolders.length === 1) {
