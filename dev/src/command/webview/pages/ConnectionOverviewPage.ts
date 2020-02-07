@@ -25,7 +25,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
     <html>
     ${WebviewUtil.getHead(rp, "connection-overview.css")}
     <body>
-    <div style="margin-left: 60px; margin-top: 60px">
+    <div style="margin-left: 30px; margin-top: 60px">
     <div id="top-section">
         <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
