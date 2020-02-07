@@ -1,0 +1,74 @@
+body {
+    display: flex;
+    line-height: 1.75em;
+}
+
+#content {
+    max-width: 1200px;
+    padding-top: 5%;
+    margin: auto;
+}
+
+/***** Header section *****/
+
+#useful-extensions-title {
+    font-size: 42px;
+    height: 50px;
+}
+
+.extensions-category-header {
+    font-size: 1.5em;
+    margin-top: 1.5em;
+    margin-bottom: 1em;
+}
+
+/***** Main section *****/
+
+.extensions-category {
+    display: inline-flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+
+    --extension-card-margin: 3em;
+    /* https://stackoverflow.com/a/30891910/3666734 */
+    margin-top: calc(-1 * var(--extension-card-margin));
+    margin-right: calc(-1 * var(--extension-card-margin));
+}
+
+.extension-card {
+    background: var(--welcomePage-tileBackground);
+    --extension-card-width: 30ch;
+    --extension-card-padding: 2ch;
+    width: var(--extension-card-width);
+    margin-top: var(--extension-card-margin);
+    margin-right: var(--extension-card-margin);
+}
+
+.extension-link-header {
+    display: flex;
+    align-items: center;
+    height: 3em;
+    padding: var(--extension-card-padding);
+
+    color: var(--vscode-button-foreground);
+    background-color: var(--vscode-button-background);
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.extension-link-header:focus, .extension-link-header:hover {
+    color: var(--vscode-button-foreground);
+    outline-color: var(--vscode-button-foreground);
+}
+
+.extension-name {
+    width: 80%;
+}
+
+.extension-link-btn {
+    margin-left: auto;
+}
+
+.extension-description {
+    padding: var(--extension-card-padding);
+}

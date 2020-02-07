@@ -24,6 +24,7 @@ import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindM
 import bindProjectCmd from "../connection/BindProjectCmd";
 import { promptForConnection } from "../CommandUtil";
 import Commands from "../../constants/Commands";
+import { UsefulExtensionsPageWrapper } from "./UsefulExtensionsPageWrapper";
 
 export enum HomePageWVMessages {
     SHOW_ON_START = "toggle-show-on-start",
@@ -82,7 +83,12 @@ export class HomePageWrapper extends WebviewWrapper {
                 break;
             }
             case HomePageWVMessages.OPEN_USEFUL_EXTENSIONS: {
-                vscode.window.showInformationMessage(`Useful extensions (not implemented)`);
+                if (UsefulExtensionsPageWrapper.instance) {
+                    UsefulExtensionsPageWrapper.instance.reveal();
+                }
+                else {
+                    new UsefulExtensionsPageWrapper().reveal();
+                }
                 break;
             }
             case HomePageWVMessages.INSTALL_DOCKER:
