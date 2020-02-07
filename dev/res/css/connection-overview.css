@@ -80,7 +80,7 @@ body {
     margin-top: 1em;
     width: 585px;
     height: 200px;
-    margin-left: 30px;
+    margin-left: 20px;
     background-color: var(--vscode-sideBar-background);
 }
 
@@ -263,7 +263,7 @@ body {
     display: none;
 }
 
-@media (max-width: 1390px) {
+@media (max-width: 1370px) {
     #link-container-box {
         margin-left: 0px;
         float: left;
