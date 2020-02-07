@@ -25,7 +25,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
     <html>
     ${WebviewUtil.getHead(rp, "connection-overview.css")}
     <body>
-    <div style="margin-left: 30px; margin-top: 60px">
+    <div style="margin-top: 60px">
     <div id="top-section">
         <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
@@ -73,7 +73,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                     </div>
                     <div style="overflow: hidden; margin-top: 40px">
                         <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
-                            <label class="info-label" for="input-password" style="margin-left: 35px;">Password</label>
+                            <label class="info-label" for="input-password" style="margin-left: 11px;">Password</label>
                             <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
                         </div>
                     </div>
