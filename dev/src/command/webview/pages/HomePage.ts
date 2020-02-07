@@ -15,6 +15,7 @@ import { ThemedImages, ThemelessImages } from "../../../constants/CWImages";
 import { CWConfigurations } from "../../../constants/Configurations";
 import { HomePageWVMessages, CREATE_PROJECT_DATA, ADD_PROJECT_DATA } from "../HomePageWrapper";
 import CWDocs from "../../../constants/CWDocs";
+import { USEFUL_EXTENSIONS } from "../UsefulExtensionsPageWrapper";
 
 export default function getHomePage(rp: WebviewResourceProvider): string {
     return `
@@ -143,24 +144,20 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                     <p>
                         Find the instructions on how to use Codewind.
                         Documentation includes
-                            <a href="${CWDocs.REMOTE_DEPLOYING.uri}">Deploying Codewind Remotely</a> and
-                            <a href="${CWDocs.PERF_MONITORING.uri}">Performance Monitoring</a>.
+                        <a href="${CWDocs.REMOTE_DEPLOYING.uri}">Deploying Codewind Remotely</a> and
+                        <a href="${CWDocs.PERF_MONITORING.uri}">Performance Monitoring</a>.
                     </p>
                 </div>
                 <div class="learn-card">
                     <div class="learn-card-header">
-                        <!--a onclick="sendMsg('${HomePageWVMessages.OPEN_USEFUL_EXTENSIONS}')">
+                        <a title="Useful Extensions" onclick="sendMsg('${HomePageWVMessages.OPEN_USEFUL_EXTENSIONS}')">
                             <h3>Useful Extensions</h3>
                             <input type="image" title="Open Useful Extensions" alt="Open Useful Extensions" src="${rp.getImage(ThemedImages.Split_Horizontal)}"/>
-                        </a-->
-                        <h3>Useful Extensions</h3>
+                        </a>
                     </div>
                     <p>
-                        Check out useful extensions that work well with Codewind,
-                        such as the
-                        <a href="https://marketplace.visualstudio.com/items?itemName=IBM.codewind-node-profiler">Codewind Node.js Profiler</a>,
-                        <a href="https://marketplace.visualstudio.com/items?itemName=IBM.codewind-openapi-tools">Codewind OpenAPI Tools</a> and
-                        <a href="https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-docker">Docker for Visual Studio Code</a>.
+                        Access a list of useful extensions that work well with Codewind,
+                        such as the ${getUsefulExtensionA("NODE_PROFILER")}, ${getUsefulExtensionA("OPENAPI_TOOLS")} and ${getUsefulExtensionA("DOCKER")}.
                     </p>
                 </div>
             </div>
@@ -198,6 +195,7 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
         }
     </script>
     </body>
+    </html>
 `;
 }
 
@@ -227,4 +225,9 @@ function getStartProjectStepsSection(rp: WebviewResourceProvider, isRemote: bool
             </div>
         </div>
     </div>`;
+}
+
+function getUsefulExtensionA(extensionKey: keyof typeof USEFUL_EXTENSIONS): string {
+    const extension = USEFUL_EXTENSIONS[extensionKey];
+    return `<a href="${extension.link}">${extension.name}</a>`;
 }

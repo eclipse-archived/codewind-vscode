@@ -39,6 +39,7 @@ async function checkExists(...paths: string[]): Promise<void> {
     paths.forEach(async (imagePath) => {
         try {
             await fs.promises.access(imagePath, fs.constants.R_OK);
+            // Log.d(`Loaded image: ${imagePath}`);
         }
         catch (err) {
             Log.e(`Missing icon! ${imagePath}`);
@@ -94,7 +95,7 @@ export class CWImage {
 export const ThemedImages = {
     Connection_Connected:       new CWImage(true, "connection_connected"),
     Connection_Disconnected:    new CWImage(true, "connection_disconnected"),
-    New_Connection:    new CWImage(true, "new_connection"),
+    New_Connection:     new CWImage(true, "new_connection"),
     Local_Connected:    new CWImage(true, "local_connected"),
     Local_Disconnected: new CWImage(true, "local_disconnected"),
 
@@ -106,6 +107,7 @@ export const ThemedImages = {
     Info:   new CWImage(true, "info"),
     New:    new CWImage(true, "new"),
 
+    Extensions: new CWImage(true, "extensions"),
     Launch:     new CWImage(true, "launch"),
     Play:       new CWImage(true, "play"),
     Refresh:    new CWImage(true, "refresh"),

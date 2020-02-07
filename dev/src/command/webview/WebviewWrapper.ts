@@ -75,7 +75,7 @@ export abstract class WebviewWrapper {
         this.themeChangeListener = vscode.workspace.onDidChangeConfiguration(this.onDidChangeColorTheme);
 
         this.resourceProvider = {
-            getImage: (image, forceThemeColour) => {
+            getImage: (image, forceThemeColour): string => {
                 let useDarkThemeImage;
                 if (forceThemeColour) {
                     if (forceThemeColour === "dark") {
@@ -95,7 +95,7 @@ export abstract class WebviewWrapper {
                 }
                 return this.webPanel.webview.asWebviewUri(fsUri).toString();
             },
-            getStylesheet: (filename: string) => {
+            getStylesheet: (filename: string): string => {
                 const fsUri = WebviewUtil.getCssPath(filename);
                 if (global.isTheia) {
                     return VSC_RESOURCE_SCHEME + fsUri.fsPath;
