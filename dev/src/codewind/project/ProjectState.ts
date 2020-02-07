@@ -19,7 +19,8 @@ interface DetailedAppStatus {
     readonly severity: "INFO" | "WARN" | "ERROR";
     readonly message?: string;
 
-    notify: boolean;
+    // readonly notify: boolean;
+    readonly notificationID?: string;
     readonly linkLabel?: string;
     readonly link?: string;
 }
@@ -42,6 +43,8 @@ export class ProjectState {
     public buildState: ProjectState.BuildStates | undefined;
     public buildDetail: string | undefined;
 
+    private readonly notificationIDsShown: string[] = [];
+
     constructor(
         private readonly projectName: string,
     ) {
@@ -63,7 +66,7 @@ export class ProjectState {
             this.buildDetail = undefined;
         }
 
-        if (this.appDetail && this.appDetail.notify) {
+        if (this.appDetail && this.appDetail.notificationID) {
             this.notify();
         }
 
@@ -146,10 +149,11 @@ export class ProjectState {
 
     private notify(): void {
         // https://github.com/eclipse/codewind/issues/1297
-        if (!this.appDetail || !this.appDetail.notify) {
+        if (!this.appDetail || !this.appDetail.notificationID || this.notificationIDsShown.includes(this.appDetail.notificationID)) {
             return;
         }
 
+        this.notificationIDsShown.push(this.appDetail.notificationID);
         Log.i(`Showing user detailed app status ${this.appDetail.message} for project ${this.projectName}`);
 
         // https://github.com/eclipse/codewind/issues/1812
