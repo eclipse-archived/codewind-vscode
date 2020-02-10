@@ -259,7 +259,8 @@ namespace MCUtil {
             openLabel: btnLabel,
             defaultUri
         });
-        if (selectedDirs == null) {
+
+        if (selectedDirs == null || selectedDirs[0] == null) {
             return undefined;
         }
         // canSelectMany is false so we just use [0]
