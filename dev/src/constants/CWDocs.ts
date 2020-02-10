@@ -24,14 +24,14 @@ class CWDoc {
 // tslint:disable-next-line: variable-name
 export const CWDocs = {
     HOME:                   new CWDoc(""),
-    TEMPLATE_MANAGEMENT:    new CWDoc("mdt-vsc-workingwithtemplates.html"),
+    TEMPLATE_MANAGEMENT:    new CWDoc("workingwithtemplates.html"),
     INSTALL_INFO:           new CWDoc("mdt-vsc-installinfo.html"),
     PROJECT_SETTINGS:       new CWDoc("mdt-vsc-commands-project.html#configuring-project-settings"),
-    INSTALL_ON_CLOUD:       new CWDoc("installoncloud.html"),
     WORKSPACE_NEWS:         new CWDoc("news06.html#codewind-workspace-updates"),
     REGISTRIES:             new CWDoc("image-registry-credentials.html"),
+    CHE_INSTALL:            new CWDoc("mdt-che-installinfo.html"),
     REMOTE_UI:              new CWDoc("remoteconnectionui.html"),
-    REMOTE_DEPLOYING:       new CWDoc("remoteoverview.html"),
+    REMOTE_DEPLOYING:       new CWDoc("remotedeploy-combo.html"),
     GETTING_STARTED:        new CWDoc("gettingstarted.html"),
     COMMANDS_OVERVIEW:      new CWDoc("mdt-vsc-commands-overview.html"),
     PERF_MONITORING:        new CWDoc("performance.html"),
