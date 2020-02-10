@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Project from "../../codewind/project/Project";
-import toggleInjectMetricsCmd from "../project/ToggleAutoInjectMetrics";
+import toggleInjectMetricsCmd from "../project/ToggleInjectMetrics";
 import Log from "../../Logger";
 import toggleAutoBuildCmd from "../project/ToggleAutoBuildCmd";
 import toggleEnablementCmd from "../project/ToggleEnablementCmd";

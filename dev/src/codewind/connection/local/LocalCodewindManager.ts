@@ -44,6 +44,10 @@ export default class LocalCodewindManager {
         return this._instance;
     }
 
+    public toString(): string {
+        return `Local Codewind ${this._localConnection != null ? `@ ${this._localConnection.url}` : "(Stopped)"}`;
+    }
+
     public get localConnection(): Connection | undefined {
         return this._localConnection;
     }

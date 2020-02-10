@@ -32,7 +32,10 @@ export const LOCAL_CONNECTION_ID = "local";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
-    public readonly host: string;
+    public readonly pfeHost: string;
+
+    // Only used in Che-theia case
+    private codewindCheIngress: vscode.Uri | undefined;
 
     protected cwVersion: string = CWEnvironment.UNKNOWN_VERSION;
     protected _state: ConnectionState;
@@ -69,7 +72,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     ) {
         Log.d(`Creating new connection ${this.label} @ ${this.url}`);
         this._state = ConnectionStates.INITIALIZING;
-        this.host = this.getHost();
+        this.pfeHost = this.getPFEHost();
         this.enable()
         .catch((err) => {
             const errMsg = `Error initializing ${this.label}:`;
@@ -182,7 +185,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath);
     }
 
-    private getHost(): string {
+    private getPFEHost(): string {
         if (global.isTheia) {
             // On theia we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
@@ -303,7 +306,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
                     Log.d("New project " + project.name);
                 }
                 catch (err) {
-                    Log.e(`Error creating new project with ID ${projectInfo.id} name ${projectInfo.name}`, err);
+                    Log.e(`Error creating new project with ID ${projectInfo.projectID} name ${projectInfo.name}`, err);
                     vscode.window.showErrorMessage(`Error with new project ${projectInfo.name}: ${MCUtil.errToString(err)}`);
                 }
             }
@@ -367,6 +370,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         await this.updateProjects();
     }
 
+    // QuickPick description
     public get description(): string {
         return `(${this.projects.length} projects)`;
     }
@@ -378,6 +382,37 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public get socketURI(): string | undefined {
         return this._socket ? this._socket.uri : undefined;
+    }
+
+    public get pfeBaseURL(): vscode.Uri {
+        if (!global.isTheia) {
+            return this.url;
+        }
+
+        // In theia, we have to use the environment to figure out the Codewind ingress (in place of using a kube client)
+        if (this.codewindCheIngress) {
+            return this.codewindCheIngress;
+        }
+
+        const cheApiUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
+        if (!cheApiUrlStr) {
+            throw new Error(`Could not determine Che API URL; ${Constants.CHE_API_EXTERNAL_ENVVAR} was not set.`);
+        }
+        const cheApiUrl = vscode.Uri.parse(cheApiUrlStr);
+        Log.d(`Che API URL is "${cheApiUrl}"`);
+
+        const workspaceID = process.env[Constants.CHE_WORKSPACEID_ENVVAR];
+        if (!workspaceID) {
+            throw new Error(`Could not determine Che workspace ID; ${Constants.CHE_WORKSPACEID_ENVVAR} was not set.`);
+        }
+
+        // this will resolve to something like:
+        // codewind-workspacebiq5onaqye4u9x3d-che-che.10.99.3.118.nip.io
+        const codewindIngressAuthority = `codewind-${workspaceID}-${cheApiUrl.authority}`;
+
+        this.codewindCheIngress = vscode.Uri.parse(`${cheApiUrl.scheme}://${codewindIngressAuthority}`);
+        Log.i(`Codewind Ingress URL is ${this.codewindCheIngress}`);
+        return this.codewindCheIngress;
     }
 
     ///// Webview management

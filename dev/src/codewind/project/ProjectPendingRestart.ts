@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -63,7 +63,7 @@ export default class ProjectPendingRestart {
     constructor(
         private readonly project: Project,
         private readonly startMode: StartModes,
-        timeoutMs: number,
+        timeoutMs: number = 180 * 1000,
     ) {
         Log.d(`${project.name}: New pendingRestart into ${startMode} mode`);
 

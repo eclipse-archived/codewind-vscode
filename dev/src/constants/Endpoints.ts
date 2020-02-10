@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import * as vscode from "vscode";
+// import * as vscode from "vscode";
 
 import Connection from "../codewind/connection/Connection";
 
@@ -70,24 +70,6 @@ export namespace EndpointUtil {
 
     export function getEnablementAction(enable: boolean): ProjectEndpoints {
         return enable ? ProjectEndpoints.OPEN : ProjectEndpoints.CLOSE;
-    }
-
-    export function getPerformanceDashboard(pfeUrl: vscode.Uri, projectID: string): vscode.Uri {
-        // return value looks like http://localhost:9090/performance/charts?project=bacd4760-70ce-11e9-af94-d39edf21b705
-
-        return pfeUrl.with({
-            path: "/performance/charts",
-            query: `project=${projectID}`,
-        });
-    }
-
-    export function getPerformanceMonitor(pfeUrl: vscode.Uri, projectLanguage: string, projectID: string): vscode.Uri {
-        // return value looks like http://localhost:9090/performance/monitor/dashboard/java?theme=dark&projectID=bacd4760-70ce-11e9-af94-d39edf21b705
-
-        return pfeUrl.with({
-            path: "/performance/monitor/dashboard/" + projectLanguage,
-            query: `theme=dark&projectID=${projectID}`,
-        });
     }
 }
 

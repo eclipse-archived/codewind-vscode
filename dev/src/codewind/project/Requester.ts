@@ -32,6 +32,7 @@ import { SourceEnablement } from "../../command/webview/SourcesPageWrapper";
 import { CWTemplateData } from "../../command/connection/CreateUserProjectCmd";
 import { ContainerRegistry } from "../connection/RegistryUtils";
 import { AccessToken } from "../connection/CLICommandRunner";
+import { PFEProjectData } from "../Types";
 
 // tslint:disable-next-line: variable-name
 const HttpVerbs = {
@@ -55,7 +56,7 @@ namespace Requester {
 
     ///// Connection-specific requests
 
-    export async function getProjects(connection: Connection): Promise<any[]> {
+    export async function getProjects(connection: Connection): Promise<PFEProjectData[]> {
         return doConnectionRequest(connection, MCEndpoints.PROJECTS, "GET");
     }
 
@@ -351,22 +352,10 @@ namespace Requester {
         return new ProjectCapabilities(result.startModes, result.controlCommands);
     }
 
-    export async function areMetricsAvailable(project: Project): Promise<boolean> {
-        const msg = Translator.t(STRING_NS, "checkingMetrics");
-        const res = await doProjectRequest(project, ProjectEndpoints.METRICS_STATUS, {}, "GET", msg, true);
-        if (res == null) {
-            // there was an error getting the metrics status
-            // we assume true as to not block UI actions
-            return true;
-        }
-        return res.metricsAvailable;
-    }
-
     export async function requestToggleInjectMetrics(project: Project): Promise<void> {
-        const newInjectMetrics: boolean = !project.injectMetricsEnabled;
+        const newInjectMetrics: boolean = !project.isInjectingMetrics;
 
-        // user-friendly action
-        const autoInjectMetricsMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";  // non-nls
+        const autoInjectMetricsMsgKey = newInjectMetrics ? "autoInjectMetricsEnable" : "autoInjectMetricsDisable";      // non-nls
         const newAutoInjectMetricsUserStr: string = Translator.t(STRING_NS, autoInjectMetricsMsgKey);
 
         const body = {
@@ -407,13 +396,18 @@ namespace Requester {
     }
 
     /**
-     * Try to connect to the given URL. Returns true if any response, other than 503 unavailable, is returned.
+     * Try to connect to the given URL. Returns true if any response is returned that does not have one of the `rejectedStatusCodes`.
      */
-    export async function ping(url: string | vscode.Uri, timeoutS: number = 10): Promise<boolean> {
+    export async function ping(url: string | vscode.Uri, timeoutS: number = 10, ...rejectStatusCodes: number[]): Promise<boolean> {
+        // We treat 502, 503 as failures, because from a kube cluster it means the hostname is wrong, the ingress/route does not exist,
+        // the pod pointed to by an ingress is still starting up, etc.
+        rejectStatusCodes.concat([ 502, 503 ]);
+
         // Log.d(`Ping ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
+
         try {
             await req("GET", url, { timeout: timeoutS * 1000 });
             // It succeeded
@@ -426,9 +420,7 @@ namespace Requester {
             }
             else if (err instanceof StatusCodeError) {
                 Log.d(`Received status ${err.statusCode} when pinging ${url}`);
-                if (err.statusCode === 502 || err.statusCode === 503) {
-                    // We treat 502, 503 as failures, because from a kube cluster it means the hostname is wrong,
-                    // the ingress/route does not exist, the pod pointed to by an ingress is still starting up, etc.
+                if (rejectStatusCodes.includes(err.statusCode)) {
                     return false;
                 }
                 return true;
