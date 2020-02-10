@@ -12,7 +12,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import * as request from "request-promise-native";
 
 import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
@@ -31,18 +30,9 @@ import Requester from "./Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
-import { getCodewindIngress } from "../../command/project/OpenPerfDashboard";
 import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
-
-/**
- * Used to determine App Monitor URL
- */
-const langToPathMap = new Map<string, string>();
-langToPathMap.set("java", "javametrics-dash");
-langToPathMap.set("nodejs", "appmetrics-dash");
-langToPathMap.set("javascript", "appmetrics-dash");
-langToPathMap.set("swift", "swiftmetrics-dash");
+import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData } from "../Types";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -50,10 +40,10 @@ const STRING_NS = StringNamespaces.PROJECT;
  * Project's ports info. Keys match those provided by backend.
  */
 interface IProjectPorts {
-    appPort: number | undefined;
-    internalPort: number | undefined;
-    debugPort: number | undefined;
-    internalDebugPort: number | undefined;
+    appPort?: number;
+    internalPort?: number;
+    debugPort?: number;
+    internalDebugPort?: number;
 }
 
 export default class Project implements vscode.QuickPickItem {
@@ -77,24 +67,24 @@ export default class Project implements vscode.QuickPickItem {
     private _containerID: string | undefined;
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
-    private appBaseURL: vscode.Uri | undefined;
+    private kubeAppBaseURL: vscode.Uri | undefined;
     private _autoBuildEnabled: boolean;
     private _usesHttps: boolean;
-    // Dates below will always be set, but might be "invalid date"s
-    private _lastBuild: Date;
-    private _lastImgBuild: Date;
-    // does this project appear to have a /metrics endpoint available
-    private _metricsAvailable: boolean = false;
-    // does this project have the 'inject metrics' feature enabled by the user
-    private _injectMetricsEnabled: boolean;
+    private _lastBuild: Date | undefined;
+    private _lastImageBuild: Date | undefined;
+
+    public readonly logManager: MCLogManager;
+
+    private _metricsDashboardStatus: MetricsDashboardStatus;
+    private _perfDashboardPath: string | null;
+    private _metricsInjectStatus: MetricsInjectionStatus;
+
     // can we query filewatcher for this project's capabilities
     private _capabilitiesReady: boolean;
 
     public static readonly diagnostics: vscode.DiagnosticCollection
         = vscode.languages.createDiagnosticCollection(Validator.DIAGNOSTIC_COLLECTION_NAME);
 
-    // in MS
-    private readonly RESTART_TIMEOUT: number = 180 * 1000;
     // Represents a pending restart operation. Only set if the project is currently restarting.
     private pendingRestart: ProjectPendingRestart | undefined;
 
@@ -102,13 +92,11 @@ export default class Project implements vscode.QuickPickItem {
     // Track this so we can refresh it when update() is called, and prevent multiple webviews being open for one project.
     private _overviewPage: ProjectOverviewPageWrapper | undefined;
 
-    public readonly logManager: MCLogManager;
-
     private resolvePendingDeletion: (() => void) | undefined;
     private deleteFilesOnUnbind: boolean = false;
 
     constructor(
-        projectInfo: any,
+        projectInfo: PFEProjectData,
         public readonly connection: Connection,
     ) {
         Log.d("Creating project from info:", projectInfo);
@@ -119,7 +107,7 @@ export default class Project implements vscode.QuickPickItem {
         this.type = new ProjectType(projectInfo.projectType, projectInfo.language, extensionName);
         this.language = projectInfo.language || "Unknown";
         this.localPath = vscode.Uri.file(projectInfo.locOnDisk);
-        this._contextRoot = projectInfo.contextRoot || projectInfo.contextroot || "";
+        this._contextRoot = projectInfo.contextRoot || "";
         this._usesHttps = projectInfo.isHttps === true;
 
         if (projectInfo.extension && projectInfo.extension.config) {
@@ -132,13 +120,16 @@ export default class Project implements vscode.QuickPickItem {
         // These will be overridden by the call to update(), but we set them here too so the compiler can see they're always set.
         this._autoBuildEnabled = projectInfo.autoBuild;
         // lastbuild is a number
-        this._lastBuild = new Date(projectInfo.lastbuild);
-        // appImageLastBuild is a string
-        this._lastImgBuild = new Date(Number(projectInfo.appImgLastBuild));
+        if (projectInfo.lastbuild) {
+            this._lastBuild = new Date(projectInfo.lastbuild);
+        }
+        if (projectInfo.appImageLastBuild) {
+            // appImageLastBuild is a string
+            this._lastImageBuild = new Date(Number(projectInfo.appImageLastBuild));
+        }
 
-        this._injectMetricsEnabled = projectInfo.injectMetrics || false;
         // this field won't be here pre-0.8
-        // https://github.com/eclipse/codewind/pull/1774/files
+        // https://github.com/eclipse/codewind/pull/1774
         this._capabilitiesReady = projectInfo.capabilitiesReady || false;
 
         this._ports = {
@@ -147,6 +138,10 @@ export default class Project implements vscode.QuickPickItem {
             internalPort: undefined,
             internalDebugPort: undefined,
         };
+
+        this._metricsDashboardStatus = projectInfo.metricsDashboard || { hosting: null, path: null };
+        this._perfDashboardPath = projectInfo.perfDashboardPath     || null;
+        this._metricsInjectStatus = projectInfo.injection           || { injectable: false, injected: false };
 
         this._state = new ProjectState(this.name);
         this._state = this.update(projectInfo);
@@ -159,7 +154,6 @@ export default class Project implements vscode.QuickPickItem {
         // The function calling the constructor must await on this promise before expecting the project to be ready.
         this.initPromise = Promise.all([
             this.updateCapabilities(),
-            this.updateMetricsAvailable(),
             // skip the debug config step in Theia
             global.isTheia ? Promise.resolve() : this.updateDebugConfig(),
         ])
@@ -177,7 +171,7 @@ export default class Project implements vscode.QuickPickItem {
      * This includes checking the appStatus, buildStatus, buildStatusDetail, and startMode.
      * Also updates the appPort and debugPort.
      */
-    public update = (projectInfo: any): ProjectState => {
+    public update = (projectInfo: PFEProjectData): ProjectState => {
         if (projectInfo.projectID !== this.id) {
             // shouldn't happen, but just in case
             Log.e(`Project ${this.id} received status update request for wrong project ${projectInfo.projectID}`);
@@ -190,7 +184,6 @@ export default class Project implements vscode.QuickPickItem {
         this.setLastBuild(projectInfo.lastbuild);
         this.setLastImgBuild(Number(projectInfo.appImageLastBuild));
         this.setAutoBuild(projectInfo.autoBuild);
-        this.setInjectMetrics(projectInfo.injectMetrics);
 
         if (projectInfo.isHttps) {
             this._usesHttps = projectInfo.isHttps === true;
@@ -205,7 +198,7 @@ export default class Project implements vscode.QuickPickItem {
             if (!asUri.scheme || !asUri.authority) {
                 Log.e(`Bad appBaseURL "${projectInfo.appBaseURL}" provided; missing scheme or authority`);
             }
-            this.appBaseURL = asUri;
+            this.kubeAppBaseURL = asUri;
         }
 
         const wasEnabled = this.state.isEnabled;
@@ -228,7 +221,9 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         const oldCapabilitiesReady = this._capabilitiesReady;
-        this._capabilitiesReady = projectInfo.capabilitiesReady;
+        if (projectInfo.capabilitiesReady) {
+            this._capabilitiesReady = projectInfo.capabilitiesReady;
+        }
         if (oldCapabilitiesReady !== this._capabilitiesReady) {
             // Retain the capabilities for a project that was disabled.
             if (!wasDisabled) {
@@ -245,10 +240,19 @@ export default class Project implements vscode.QuickPickItem {
             Log.e("No ports were provided for an app that is supposed to be started");
         }
 
+        if (projectInfo.metricsDashboard) {
+            this._metricsDashboardStatus = projectInfo.metricsDashboard;
+        }
+        if (projectInfo.perfDashboardPath) {
+            this._perfDashboardPath = projectInfo.perfDashboardPath;
+        }
+        if (projectInfo.injection) {
+            this._metricsInjectStatus = projectInfo.injection;
+        }
+
         if (this.pendingRestart != null) {
             this.pendingRestart.onStateChange(this.state.appState);
         }
-
         this.onChange();
 
         return this._state;
@@ -336,7 +340,7 @@ export default class Project implements vscode.QuickPickItem {
             return false;
         }
 
-        this.pendingRestart = new ProjectPendingRestart(this, mode, this.RESTART_TIMEOUT);
+        this.pendingRestart = new ProjectPendingRestart(this, mode);
         return true;
     }
 
@@ -418,19 +422,6 @@ export default class Project implements vscode.QuickPickItem {
         }
     }
 
-    private async updateMetricsAvailable(): Promise<void> {
-        const oldMetricsAvailable = this._metricsAvailable;
-        try {
-            this._metricsAvailable = await Requester.areMetricsAvailable(this);
-            if (oldMetricsAvailable !== this._metricsAvailable) {
-                this.onChange();
-            }
-        }
-        catch (err) {
-            Log.e(`Error checking metrics status for ${this.name}`, err);
-        }
-    }
-
     public onConnectionReconnect(): void {
         this.logManager.onReconnectOrEnable();
     }
@@ -458,11 +449,12 @@ export default class Project implements vscode.QuickPickItem {
 
         // Clear now-invalid application info
         this._containerID = undefined;
-        this.appBaseURL = undefined;
+        this.kubeAppBaseURL = undefined;
         this.updatePorts({
             exposedPort: undefined,
             exposedDebugPort: undefined,
         });
+        await this.clearValidationErrors();
     }
 
     public async onLoadRunnerUpdate(event: {projectID: string, status: string, timestamp: string}): Promise<void> {
@@ -554,6 +546,7 @@ export default class Project implements vscode.QuickPickItem {
         const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
         await Promise.all([
             deleteFilesProm,
+            await this.clearValidationErrors(),
             this.dispose(),
         ]);
         this.resolvePendingDeletion();
@@ -632,22 +625,10 @@ export default class Project implements vscode.QuickPickItem {
         return this._capabilities;
     }
 
-    public get metricsAvailable(): boolean {
-        return this._metricsAvailable;
-    }
-
-    public get hasAppMonitor(): boolean {
-        return this.type.alwaysHasAppMonitor || this.metricsAvailable;
-    }
-
-    public get hasPerfDashboard(): boolean {
-        return this.metricsAvailable || this.injectMetricsEnabled;
-    }
-
     public get appUrl(): vscode.Uri | undefined {
         // If the backend has provided us with a baseUrl already, use that
-        if (this.appBaseURL) {
-            return this.appBaseURL.with({
+        if (this.kubeAppBaseURL) {
+            return this.kubeAppBaseURL.with({
                 path: this._contextRoot,
             });
         }
@@ -661,7 +642,7 @@ export default class Project implements vscode.QuickPickItem {
 
         return this.connection.url.with({
             scheme,
-            authority: `${this.connection.host}:${this._ports.appPort}`,    // non-nls
+            authority: `${this.connection.pfeHost}:${this._ports.appPort}`,    // non-nls
             path: this._contextRoot
         });
     }
@@ -671,49 +652,19 @@ export default class Project implements vscode.QuickPickItem {
             return undefined;
         }
 
-        return this.connection.host + ":" + this._ports.debugPort;            // non-nls
+        return this.connection.pfeHost + ":" + this._ports.debugPort;            // non-nls
     }
 
-    public get lastBuild(): Date {
+    public get lastBuild(): Date | undefined {
         return this._lastBuild;
     }
 
-    public get lastImgBuild(): Date {
-        return this._lastImgBuild;
+    public get lastImgBuild(): Date | undefined {
+        return this._lastImageBuild;
     }
 
     public get hasContextRoot(): boolean {
         return this._contextRoot != null && this._contextRoot.length > 0 && this._contextRoot !== "/";
-    }
-
-    public get appMonitorUrl(): string | undefined {
-        const appMetricsPath = langToPathMap.get(this.type.language);
-        const supported = appMetricsPath != null && this.metricsAvailable;
-        if ((!this._injectMetricsEnabled) && supported) {
-            // open app monitor in Application container
-            Log.d(`${this.name} supports metrics ? ${supported}`);
-            if (this.appUrl === undefined) {
-                return undefined;
-            }
-            let monitorPageUrlStr = this.appUrl.toString();
-            if (!monitorPageUrlStr.endsWith("/")) {
-                monitorPageUrlStr += "/";
-            }
-            return monitorPageUrlStr + appMetricsPath + "/?theme=dark";
-        }
-
-        try {
-            // open app monitor in Performance container
-            const cwBaseUrl = global.isTheia ? getCodewindIngress() : this.connection.url;
-            const dashboardUrl = EndpointUtil.getPerformanceMonitor(cwBaseUrl, this.language, this.id);
-            Log.d(`Perf container Monitor Dashboard url for ${this.name} is ${dashboardUrl}`);
-            return dashboardUrl.toString();
-        }
-        catch (err) {
-            Log.e(`${this} error determining app monitor URL`, err);
-            vscode.window.showErrorMessage(MCUtil.errToString(err));
-            return undefined;
-        }
     }
 
     public get canContainerShell(): boolean {
@@ -725,8 +676,51 @@ export default class Project implements vscode.QuickPickItem {
             vscode.workspace.workspaceFolders.some((folder) => this.localPath.fsPath.startsWith(folder.uri.fsPath));
     }
 
-    public get injectMetricsEnabled(): boolean {
-        return this._injectMetricsEnabled;
+    /**
+     * Return the URL to this project's metrics dashboard (previously called app monitor), if it has one.
+     * Can be hosted either by the project (eg with appmetrics-dash installed) or by the Codewind performance container.
+     */
+    public get metricsDashboardURL(): vscode.Uri | undefined {
+        if (!this._metricsDashboardStatus || !this._metricsDashboardStatus.hosting || !this._metricsDashboardStatus.path) {
+            // Log.d(`${this.name} missing metrics dashboard info`);
+            return undefined;
+        }
+
+        let baseUrl: vscode.Uri;
+        // See https://github.com/eclipse/codewind/issues/1815#issuecomment-583354048 for background
+        if (this._metricsDashboardStatus.hosting === "project") {
+            // If the project hosts its own metrics dashboard we just append the metrics-dash path to the app container's base URL
+            if (this.appUrl == null) {
+                return undefined;
+            }
+            baseUrl = this.appUrl;
+        }
+        else if (this._metricsDashboardStatus.hosting === "performanceContainer") {
+            baseUrl = this.connection.pfeBaseURL;
+        }
+        else {
+            Log.e(`Unrecognizable metrics dashboard status:`, this._metricsDashboardStatus);
+            return undefined;
+        }
+        const metricsDashUrl = MCUtil.appendUrl(baseUrl.toString(), this._metricsDashboardStatus.path);
+        return vscode.Uri.parse(metricsDashUrl);
+    }
+
+    public get perfDashboardURL(): vscode.Uri | undefined {
+        if (!this._perfDashboardPath) {
+            // Log.d(`${this.name} missing perf dashboard info`);
+            return undefined;
+        }
+        const perfDashboardUrl = MCUtil.appendUrl(this.connection.pfeBaseURL.toString(), this._perfDashboardPath);
+        return vscode.Uri.parse(perfDashboardUrl);
+    }
+
+    public get canInjectMetrics(): boolean {
+        return this._metricsInjectStatus.injectable;
+    }
+
+    public get isInjectingMetrics(): boolean {
+        return this._metricsInjectStatus.injected;
     }
 
     ///// Setters
@@ -798,10 +792,10 @@ export default class Project implements vscode.QuickPickItem {
         if (newLastImgBuild == null) {
             return false;
         }
-        const oldlastImgBuild = this._lastImgBuild;
-        this._lastImgBuild = new Date(newLastImgBuild);
+        const oldlastImgBuild = this._lastImageBuild;
+        this._lastImageBuild = new Date(newLastImgBuild);
 
-        const changed = this._lastImgBuild !== oldlastImgBuild;
+        const changed = this._lastImageBuild !== oldlastImgBuild;
         if (changed) {
             // Log.d(`New lastImgBuild for ${this.name} is ${this._lastImgBuild}`);
         }
@@ -821,7 +815,6 @@ export default class Project implements vscode.QuickPickItem {
             Log.d(`New autoBuild for ${this.name} is ${this._autoBuildEnabled}`);
             this.onChange();
         }
-
         return changed;
     }
 
@@ -829,14 +822,14 @@ export default class Project implements vscode.QuickPickItem {
         if (newInjectMetrics == null) {
             return false;
         }
-        const oldInjectMetrics = this._injectMetricsEnabled;
-        this._injectMetricsEnabled = newInjectMetrics;
+        const oldInjectMetrics = this.isInjectingMetrics;
+        this._metricsInjectStatus.injected = newInjectMetrics;
 
-        const changed = this._injectMetricsEnabled !== oldInjectMetrics;
+        const changed = this._metricsInjectStatus.injected !== oldInjectMetrics;
         if (changed) {
             // onChange has to be invoked explicitly because this function can be called outside of update()
-            Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._injectMetricsEnabled}`);
-            this.updateMetricsAvailable();
+            Log.d(`New autoInjectMetricsEnabled for ${this.name} is ${this._metricsInjectStatus.injected}`);
+            this.onChange();
         }
         return changed;
     }
@@ -866,29 +859,24 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     /**
-     * Extra test for extension projects app monitor - workaround for https://github.com/eclipse/codewind/issues/258
+     * Extra test for appsody projects' metrics dashboard - workaround for https://github.com/eclipse/codewind/issues/258
      */
-    public async testPingAppMonitor(): Promise<boolean> {
-        if (this.type.type !== ProjectType.Types.EXTENSION_APPSODY) {
-            // this test is not necessary for non-appsody projects
+    public async testPingMetricsDash(): Promise<boolean> {
+        if (!this.type.isAppsody) {
+            // this workaround is not necessary for non-appsody projects
             return true;
         }
 
-        if (this.appMonitorUrl == null) {
+        if (this.metricsDashboardURL == null) {
             return false;
         }
 
-        Log.i(`Testing extension project's app monitor before opening`);
+        Log.i(`Testing ${this.name} perf dash before opening`);
         try {
-            await request.get(this.appMonitorUrl, { rejectUnauthorized: false });
-            return true;
+            return Requester.ping(this.metricsDashboardURL, 5000, 404);
         }
         catch (err) {
-            Log.w(`Failed to access app monitor for project ${this.name} at ${this.appMonitorUrl}`, err);
-            // cache this so we don't have to do this test every time.
-            this._metricsAvailable = false;
-            // Notify the treeview that this project has changed so it can hide these context actions
-            this.onChange();
+            Log.w(`Failed to access app monitor for project ${this.name} at ${this.metricsDashboardURL}`, err);
             return false;
         }
     }

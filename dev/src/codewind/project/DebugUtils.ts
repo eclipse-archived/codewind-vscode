@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -220,7 +220,7 @@ export default class DebugUtils {
                     type: project.type.debugType.toString(),
                     name: debugName,
                     request: DebugUtils.RQ_ATTACH,
-                    hostName: project.connection.host,
+                    hostName: project.connection.pfeHost,
                     port: project.ports.debugPort,
                     // sourcePaths: project.localPath + "/src/"
                     projectName: project.name,
@@ -231,7 +231,7 @@ export default class DebugUtils {
                     type: project.type.debugType.toString(),
                     name: debugName,
                     request: DebugUtils.RQ_ATTACH,
-                    address: project.connection.host,
+                    address: project.connection.pfeHost,
                     port: project.ports.debugPort,
                     localRoot: project.localPath.fsPath,
                     // /app is the default containerAppRoot for node

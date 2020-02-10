@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -58,7 +58,7 @@ enum TreeItemContextValues {
 
     PROJ_RESTARTABLE = "restartable",
 
-    PROJ_APP_MONITOR = "appMonitor",
+    PROJ_METRICS_DASH = "metricsDashboard",
     PROJ_PERF_DASHBOARD = "perfDashboard",
 
     PROJ_SHELLABLE = "shellable",
@@ -140,24 +140,24 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
         }
 
-        if (project.hasAppMonitor) {
-            contextValues.push(TreeItemContextValues.PROJ_APP_MONITOR);
+        if (project.metricsDashboardURL) {
+            contextValues.push(TreeItemContextValues.PROJ_METRICS_DASH);
+        }
+        else if (project.canInjectMetrics) {
+            if (project.isInjectingMetrics) {
+                contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_ON);
+            }
+            else {
+                contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_OFF);
+            }
         }
 
-        if (project.hasPerfDashboard) {
+        if (project.perfDashboardURL) {
             contextValues.push(TreeItemContextValues.PROJ_PERF_DASHBOARD);
         }
 
         if (project.canContainerShell) {
             contextValues.push(TreeItemContextValues.PROJ_SHELLABLE);
-        }
-
-        if (project.type.canInjectMetrics) {
-            if (project.injectMetricsEnabled) {
-                contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_ON);
-            } else {
-                contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_OFF);
-            }
         }
 
         // The final result will look like eg: "ext.cw.project.enabled.autoBuildOn"
