@@ -84,8 +84,8 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 <td>
                     <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
                         onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}')"
-                        ${project.injectMetricsEnabled ? "checked" : ""}
-                        ${project.type.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
+                        ${project.isInjectingMetrics ? "checked" : ""}
+                        ${project.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
                     />
                 </td>
             </tr>
@@ -234,8 +234,8 @@ function normalize(item: vscode.Uri | number | string | undefined, fallback: str
     return result;
 }
 
-function normalizeDate(d: Date, fallback: string): string {
-    if (MCUtil.isGoodDate(d)) {
+function normalizeDate(d: Date | undefined, fallback: string): string {
+    if (d != null && MCUtil.isGoodDate(d)) {
         let dateStr: string = d.toLocaleDateString();
         if (dateStr === (new Date()).toLocaleDateString()) {
             dateStr = "Today";

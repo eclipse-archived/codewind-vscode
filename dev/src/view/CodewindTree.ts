@@ -21,6 +21,7 @@ import LocalCodewindManager from "../codewind/connection/local/LocalCodewindMana
 import CodewindEventListener from "../codewind/connection/CodewindEventListener";
 import TreeItemFactory from "./TreeItemFactory";
 import ConnectionManager from "../codewind/connection/ConnectionManager";
+import { ThemedImages } from "../constants/CWImages";
 
 export type CodewindTreeItem = LocalCodewindManager | Connection | Project | vscode.TreeItem;
 
@@ -60,16 +61,30 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
     }
 
     public getTreeItem(node: CodewindTreeItem): vscode.TreeItem | Promise<vscode.TreeItem> {
-        if (node instanceof LocalCodewindManager) {
-            return TreeItemFactory.getLocalCWTI();
+        const errItem = {
+            label: `TreeItem Error`,
+            iconPath: ThemedImages.Warning.paths,
+            tooltip: `Error building TreeItem for ${node}`,
+        };
+
+        try {
+            if (node instanceof LocalCodewindManager) {
+                return TreeItemFactory.getLocalCWTI();
+            }
+            else if (node instanceof Project) {
+                return TreeItemFactory.getProjectTI(node);
+            }
+            else if (node instanceof Connection) {
+                return TreeItemFactory.getConnectionTI(node);
+            }
+            else {
+                return node;
+            }
         }
-        else if (node instanceof Project) {
-            return TreeItemFactory.getProjectTI(node);
+        catch (err) {
+            Log.e(`Error building TreeItem for ${node}`, err);
+            return errItem;
         }
-        else if (node instanceof Connection) {
-            return TreeItemFactory.getConnectionTI(node);
-        }
-        return node;
     }
 
     public getChildren(node?: CodewindTreeItem): CodewindTreeItem[] | Promise<CodewindTreeItem[]> {

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -16,26 +16,22 @@ import Log from "../../Logger";
 import Commands from "../../constants/Commands";
 import MCUtil from "../../MCUtil";
 
-export default async function openAppMonitorCmd(project: Project): Promise<void> {
+export default async function openMetricsDashboardCmd(project: Project): Promise<void> {
     try {
-        if (!(project.state.isStarted || project.state.isStarting)) {
-            vscode.window.showWarningMessage(`Cannot open application monitor - ${project.name} is not currently running.`);
+        if (!project.state.isStarted) {
+            vscode.window.showWarningMessage(`${project.name} is not running. Wait for the project to be Running before accessing the Metrics Dashboard.`);
+            return;
+        }
+        else if (!project.metricsDashboardURL || !(await project.testPingMetricsDash())) {
+            vscode.window.showWarningMessage(`${project.name} does not support the Metrics Dashboard.`);
             return;
         }
 
-        if (!project.hasAppMonitor || project.appMonitorUrl == null) {
-            vscode.window.showWarningMessage(getAppMetricsNotSupportedMsg(project.name));
-            return;
-        }
-
-        Log.d("Open monitor at " + project.appMonitorUrl);
-        vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.parse(project.appMonitorUrl));
+        Log.d(`Open ${project.name} metrics dashboard at ${project.metricsDashboardURL}`);
+        vscode.commands.executeCommand(Commands.VSC_OPEN, project.metricsDashboardURL);
     }
     catch (err) {
+        Log.e(`Error opening performance monitor for ${project.name}`, err);
         vscode.window.showErrorMessage(MCUtil.errToString(err));
     }
-}
-
-export function getAppMetricsNotSupportedMsg(projectName: string): string {
-    return `${projectName} does not support application metrics or the performance dashboard.`;
 }

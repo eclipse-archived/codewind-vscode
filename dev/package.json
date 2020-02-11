@@ -311,8 +311,8 @@
                 "category": "%commandCategory%"
             },
             {
-                "command": "%cmdID_openAppMonitor%",
-                "title": "%cmdTitle_openAppMonitor%",
+                "command": "%cmdID_openMetricsDashboard%",
+                "title": "%cmdTitle_openMetricsDashboard%",
                 "category": "%commandCategory%"
             },
             {
@@ -518,8 +518,8 @@
                     "group": "ext.cw.a@2"
                 },
                 {
-                    "command": "%cmdID_openAppMonitor%",
-                    "when": "%isProjectWithAppMonitor%",
+                    "command": "%cmdID_openMetricsDashboard%",
+                    "when": "%isProjectWithMetricsDashboard%",
                     "group": "ext.cw.b@3"
                 },
                 {

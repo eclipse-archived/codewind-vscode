@@ -51,7 +51,7 @@ enum Commands {
     DISABLE_AUTOBUILD = "ext.cw.disableAutoBuild",
     CONTAINER_SHELL = "ext.cw.containerShell",
     PROJECT_OVERVIEW = "ext.cw.projectOverview",
-    OPEN_APP_MONITOR = "ext.cw.openAppMonitor",
+    OPEN_APP_MONITOR = "ext.cw.openMetricsDashboard",
     OPEN_PERF_DASHBOARD = "ext.cw.openPerfDashboard",
 
     TOGGLE_INJECT_METRICS = "ext.cw.toggleInjectMetrics",

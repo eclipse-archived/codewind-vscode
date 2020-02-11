@@ -120,8 +120,8 @@
     "cmdID_disableAutoBuild": "ext.cw.disableAutoBuild",
     "cmdTitle_disableAutoBuild": "Disable Auto Build",
 
-    "cmdID_openAppMonitor": "ext.cw.openAppMonitor",
-    "cmdTitle_openAppMonitor": "Application Monitor",
+    "cmdID_openMetricsDashboard": "ext.cw.openMetricsDashboard",
+    "cmdTitle_openMetricsDashboard": "Metrics Dashboard",
 
     "cmdID_openPerfDashboard": "ext.cw.openPerfDashboard",
     "cmdTitle_openPerfDashboard": "Performance Dashboard",
@@ -165,7 +165,7 @@
     "isDisabledProject":                "viewItem =~ /ext\\.cw\\.project\\.disabled.*/",
     "isStartedProject":                 "viewItem =~ /ext\\.cw\\.project\\.enabled\\.started.*/",
     "isDebuggableProject":              "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.debuggable.*/",
-    "isProjectWithAppMonitor":          "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.appMonitor.*/",
+    "isProjectWithMetricsDashboard":    "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.metricsDashboard.*/",
     "isProjectWithPerfDashboard":       "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.perfDashboard.*/",
     "isRestartableProject":             "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.restartable.*/",
     "isShellableProject":               "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.shellable.*/",
