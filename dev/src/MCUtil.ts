@@ -273,6 +273,22 @@ namespace MCUtil {
         }
         return selectedDir;
     }
+
+    /**
+     * Append pathAndQuery to baseURL with exactly one slash separating them
+     */
+    export function appendUrl(baseURL: string, pathAndQuery: string): string {
+        const baseEndsWithSlash = baseURL.endsWith("/");
+        const pathStartsWithSlash = pathAndQuery.startsWith("/");
+        if (!baseEndsWithSlash && !pathStartsWithSlash) {
+            baseURL = baseURL + "/";
+        }
+        else if (baseEndsWithSlash && pathStartsWithSlash) {
+            // prevent double slash
+            baseURL = baseURL.substring(0, baseURL.length - 1);
+        }
+        return baseURL + pathAndQuery;
+    }
 }
 
 export default MCUtil;

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -15,7 +15,7 @@ import Project from "../../codewind/project/Project";
 import Requester from "../../codewind/project/Requester";
 
 export default async function toggleInjectMetricsCmd(project: Project): Promise<void> {
-    if (!project.type.canInjectMetrics) {
+    if (!project.canInjectMetrics) {
         vscode.window.showWarningMessage(`This project type does not support Codewind Application Metrics injection.`);
         return;
     }

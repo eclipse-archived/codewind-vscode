@@ -19,6 +19,7 @@ import SocketEvents from "./SocketEvents";
 import Validator from "../project/Validator";
 import projectOverviewCmd from "../../command/project/ProjectOverviewCmd";
 import { CWConfigurations } from "../../constants/Configurations";
+import { PFEProjectData } from "../Types";
 
 /**
  * Receives and reacts to socket events from Portal
@@ -147,19 +148,19 @@ export default class MCSocket implements vscode.Disposable {
         });
     }
 
-    private readonly onProjectCreation = async (payload: any): Promise<void> => {
+    private readonly onProjectCreation = async (payload: PFEProjectData): Promise<void> => {
         // https://github.com/eclipse/codewind/issues/720#issuecomment-543801321
         // creation event is now, apparently, the same as changed event
         this.onProjectChanged(payload);
     }
 
-    private readonly onProjectStatusChanged = async (payload: { projectID: string }): Promise<void> => {
+    private readonly onProjectStatusChanged = async (payload: PFEProjectData): Promise<void> => {
         // Log.d("onProjectStatusChanged", payload);
         // portal emits the entire inf file with a statusChanged event, so we can treat this the same as projectChanged
         this.onProjectChanged(payload);
     }
 
-    private readonly onProjectChanged = async (payload: { projectID: string }): Promise<void> => {
+    private readonly onProjectChanged = async (payload: PFEProjectData): Promise<void> => {
         // Log.d("onProjectChanged", payload);
         // Log.d(`PROJECT CHANGED name=${payload.name} appState=${payload.appStatus} ` +
                 // `buildState=${payload.buildStatus} startMode=${payload.startMode}`);
@@ -172,13 +173,12 @@ export default class MCSocket implements vscode.Disposable {
         project.update(payload);
     }
 
-    private readonly onProjectClosed = async (payload: { projectID: string }): Promise<void> => {
+    private readonly onProjectClosed = async (payload: PFEProjectData): Promise<void> => {
         const project = await this.getProject(payload);
         if (project == null) {
             return;
         }
 
-        await project.clearValidationErrors();
         this.onProjectChanged(payload);
     }
 

@@ -22,7 +22,7 @@ import requestBuildCmd from "./project/RequestBuildCmd";
 import toggleEnablementCmd from "./project/ToggleEnablementCmd";
 import projectOverviewCmd from "./project/ProjectOverviewCmd";
 import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
-import openAppMonitorCmd from "./project/OpenAppMonitor";
+import openMetricsDashboardCmd from "./project/OpenMetricsDashboard";
 import refreshConnectionCmd from "./connection/RefreshConnectionCmd";
 import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
 import createProjectCmd from "./connection/CreateUserProjectCmd";
@@ -46,7 +46,7 @@ import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnablement";
 import manageRegistriesCmd from "./connection/ManageRegistriesCmd";
-import toggleInjectMetricsCmd from "./project/ToggleAutoInjectMetrics";
+import toggleInjectMetricsCmd from "./project/ToggleInjectMetrics";
 import changeProjectConnectionCmd from "./project/ChangeProjectConnectionCmd";
 import { setLogLevelCmd } from "./connection/SetLogLevelCmd";
 import showHomePageCmd from "./HomePageCmd";
@@ -110,7 +110,7 @@ export function createCommands(): vscode.Disposable[] {
         registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, undefined, ProjectState.getAllAppStates()),
         registerProjectCommand(Commands.CHANGE_PROJECT_CONNECTION, changeProjectConnectionCmd, undefined, ProjectState.getAllAppStates()),
 
-        registerProjectCommand(Commands.OPEN_APP_MONITOR, openAppMonitorCmd, undefined, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.OPEN_APP_MONITOR, openMetricsDashboardCmd, undefined, ProjectState.getStartedOrStartingStates()),
         registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),
 
         registerProjectCommand(Commands.TOGGLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),

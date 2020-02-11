@@ -22,7 +22,7 @@ export class ProjectType {
     public readonly icon: CWImage;
 
     constructor(
-        public readonly internalType: ProjectType.InternalTypes,
+        public readonly internalType: string,
         public readonly language: string,
         extensionName?: string,
     ) {
@@ -121,29 +121,6 @@ export class ProjectType {
             default:
                 return ProjectTypeImages.Generic;
         }
-    }
-
-    public get canInjectMetrics(): boolean {
-        // This should be the job of the capabilities API
-        return [
-            ProjectType.InternalTypes.MICROPROFILE,
-            ProjectType.InternalTypes.NODE,
-            ProjectType.InternalTypes.SPRING
-        ].includes(this.internalType) ||
-            (this.internalType === ProjectType.InternalTypes.DOCKER &&
-                this.language.toLowerCase() === ProjectType.Languages.JAVA
-        );
-    }
-
-    public get alwaysHasAppMonitor(): boolean {
-        // This should be the job of the capabilities API
-        return [
-            ProjectType.Languages.JAVA,
-            ProjectType.Languages.NODE,
-            ProjectType.Languages.JAVASCRIPT,
-        ]
-        .map((lang) => lang.toString().toLowerCase())
-        .includes(this.language.toLowerCase());
     }
 
     public get isAppsody(): boolean {
