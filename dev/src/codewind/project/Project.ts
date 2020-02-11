@@ -676,13 +676,18 @@ export default class Project implements vscode.QuickPickItem {
             vscode.workspace.workspaceFolders.some((folder) => this.localPath.fsPath.startsWith(folder.uri.fsPath));
     }
 
+    public get hasMetricsDashboard(): boolean {
+        return this._metricsDashboardStatus != null &&
+            this._metricsDashboardStatus.hosting != null &&
+            this._metricsDashboardStatus.path != null;
+    }
+
     /**
      * Return the URL to this project's metrics dashboard (previously called app monitor), if it has one.
      * Can be hosted either by the project (eg with appmetrics-dash installed) or by the Codewind performance container.
      */
     public get metricsDashboardURL(): vscode.Uri | undefined {
-        if (!this._metricsDashboardStatus || !this._metricsDashboardStatus.hosting || !this._metricsDashboardStatus.path) {
-            // Log.d(`${this.name} missing metrics dashboard info`);
+        if (!this.hasMetricsDashboard || !this._metricsDashboardStatus.path) {
             return undefined;
         }
 

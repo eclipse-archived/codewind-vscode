@@ -140,7 +140,7 @@ namespace TreeItemContext {
             contextValues.push(TreeItemContextValues.PROJ_RESTARTABLE);
         }
 
-        if (project.metricsDashboardURL) {
+        if (project.hasMetricsDashboard) {
             contextValues.push(TreeItemContextValues.PROJ_METRICS_DASH);
         }
         else if (project.canInjectMetrics) {
