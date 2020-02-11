@@ -366,20 +366,36 @@ namespace Requester {
         await project.setInjectMetrics(newInjectMetrics);
     }
 
-    export async function httpWriteStreamToFile(url: string, filePath: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            let protocol;
-            if (!url.startsWith("http")) {
-                protocol = https;
-            } else {
-                protocol = http;
+    export async function getProfilingData(project: Project, url: string, filePath: string): Promise<void> {
+        let protocol;
+        let options;
+        if (project.connection instanceof RemoteConnection) {
+            if (!url.startsWith("https")) {
+                throw new Error(`Refusing to send access token to non-secure URL ${url}`);
             }
-            const wStream = fs.createWriteStream(filePath);
-            const newRequest = protocol.request(url, (res) => {
-                res.on("error", (err) => {
+            const accessToken = await project.connection.getAccessToken();
+            options = {
+                agent: new https.Agent({rejectUnauthorized: false}),
+                headers: {
+                    Authorization: ` Bearer ${accessToken.access_token}`
+                }
+            } as https.RequestOptions;
+            protocol = https;
+        } else {
+            protocol = http;
+        }
+        const wStream = fs.createWriteStream(filePath);
+        return await httpWriteStreamToFile(url, options, protocol, wStream);
+    }
+
+    async function httpWriteStreamToFile(url: string, options: https.RequestOptions | undefined, protocol: any,
+                                         wStream: fs.WriteStream): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const newRequest = protocol.request(url, options, (res: any) => {
+                res.on("error", (err: any) => {
                     return reject(err);
                 });
-                res.on("data", (data) => {
+                res.on("data", (data: any) => {
                     wStream.write(data);
                 });
                 res.on("end", () => {
@@ -388,7 +404,7 @@ namespace Requester {
                 res.on("aborted", () => {
                     return reject();
                 });
-            }).on("error", (err) => {
+            }).on("error", (err: any) => {
                 return reject(err);
             });
             newRequest.end();
