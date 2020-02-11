@@ -505,7 +505,7 @@ export default class Project implements vscode.QuickPickItem {
         const endpoint = ProjectEndpoints.PROFILING.toString().concat(`/${event.timestamp}`);
         const url = EndpointUtil.resolveProjectEndpoint(this.connection, this.id, endpoint as ProjectEndpoints);
         try {
-            await Requester.httpWriteStreamToFile(url, profilingOutPath);
+            await Requester.getProfilingData(this, url, profilingOutPath);
         } catch (error) {
             Log.e(`Error receiving profiling data from pfe for ${this.name}`, error);
             vscode.window.showErrorMessage(`Error receiving profiling data for ${this.name}`);
