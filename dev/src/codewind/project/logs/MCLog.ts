@@ -71,9 +71,9 @@ export default class MCLog implements vscode.QuickPickItem {
             // Log.d("Creating output for log " + this.displayName);
             this.output = vscode.window.createOutputChannel(this.displayName);
             this.output.appendLine(Translator.t(STRING_NS, "waitingForLogs"));
-            if (show) {
-                this.output.show();
-            }
+        }
+        if (show) {
+            this.output.show();
         }
     }
 
