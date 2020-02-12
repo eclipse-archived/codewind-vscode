@@ -329,6 +329,17 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         return result;
     }
 
+    public onProjectDeletion(projectID: string): void {
+        const index = this._projects.findIndex((proj) => proj.id === projectID);
+        if (index === -1) {
+            Log.e(`Requested to delete project ${projectID} that was not found`);
+            return;
+        }
+        this._projects.splice(index, 1);
+        Log.d(`${this.label} removed project ${projectID}`);
+        this.onChange();
+    }
+
     /**
      * Returns if this connection's CW instance is running in Kube.
      * This is the case for remote connections, or the local connection in theia.
