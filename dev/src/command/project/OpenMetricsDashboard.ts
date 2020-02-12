@@ -19,7 +19,7 @@ import MCUtil from "../../MCUtil";
 export default async function openMetricsDashboardCmd(project: Project): Promise<void> {
     try {
         if (!project.state.isStarted) {
-            vscode.window.showWarningMessage(`${project.name} is not running. Wait for the project to be Running before accessing the Metrics Dashboard.`);
+            vscode.window.showWarningMessage(`Wait for ${project.name} to be Running before accessing the Metrics Dashboard.`);
             return;
         }
         else if (!project.metricsDashboardURL || !(await project.testPingMetricsDash())) {
