@@ -513,7 +513,6 @@ export default class Project implements vscode.QuickPickItem {
             this.logManager?.destroyAllLogs(),
             this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
         ]);
-        this.connection.onChange(this);
     }
 
     public deleteFromCodewind(deleteFiles: boolean): Promise<void> {
@@ -546,10 +545,11 @@ export default class Project implements vscode.QuickPickItem {
         const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
         await Promise.all([
             deleteFilesProm,
-            await this.clearValidationErrors(),
             this.dispose(),
         ]);
         this.resolvePendingDeletion();
+        this.resolvePendingDeletion = undefined;
+        this.connection.onProjectDeletion(this.id);
         Log.d(`Finished deleting ${this}`);
     }
 
