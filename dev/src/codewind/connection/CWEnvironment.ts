@@ -18,11 +18,11 @@ import Connection from "./Connection";
 // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
 export interface RawCWEnvData {
     readonly codewind_version?: string;
+    readonly image_build_time?: string;
+    readonly namespace?: string;
     readonly os_platform: string;
     readonly running_in_k8s: boolean;
     readonly socket_namespace?: string;
-    readonly user_string?: string;
-    // readonly workspace_location?: string;
     readonly tekton_dashboard: TektonStatus;
 }
 
@@ -31,6 +31,7 @@ export interface RawCWEnvData {
  */
 export interface CWEnvData {
     // readonly workspace: string;
+    readonly namespace?: string;
     readonly socketNamespace: string;
     readonly version: string;
     readonly tektonStatus: TektonStatus;
@@ -81,10 +82,10 @@ namespace CWEnvironment {
         const socketNamespace = rawSocketNS.startsWith("/") ? rawSocketNS.substring(1, rawSocketNS.length) : rawSocketNS;
 
         return {
-            // workspace,
-            version,
+            namespace: rawEnv.namespace,
             socketNamespace,
             tektonStatus: rawEnv.tekton_dashboard,
+            version,
         };
     }
 

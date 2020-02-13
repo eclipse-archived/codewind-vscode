@@ -56,6 +56,8 @@ export interface PFEProjectData {
     readonly lastbuild?: number;             // unix time
     readonly appImageLastBuild?: string;     // unix time - actually a number
     readonly containerId?: string;
+    readonly podName?: string;
+    readonly namespace?: string;
     readonly startMode?: string;
     readonly appBaseURL?: string;
     readonly logs?: object;                  // only checked for existence
