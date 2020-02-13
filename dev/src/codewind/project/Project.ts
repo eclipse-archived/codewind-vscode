@@ -65,6 +65,8 @@ export default class Project implements vscode.QuickPickItem {
     // Mutable project data, will change with calls to update() and similar functions. Prefixed with _ because these all have getters.
     private readonly _state: ProjectState;
     private _containerID: string | undefined;
+    private _podName: string | undefined;
+    private _namespace: string | undefined;
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
     private kubeAppBaseURL: vscode.Uri | undefined;
@@ -180,9 +182,11 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         this.setContainerID(projectInfo.containerId);
-        // lastbuild is a number while appImageLastBuild is a string
-        this.setLastBuild(projectInfo.lastbuild);
-        this.setLastImgBuild(Number(projectInfo.appImageLastBuild));
+        this.setPodName(projectInfo.podName);
+        this._namespace = projectInfo.namespace;
+
+        this._lastBuild = projectInfo.lastbuild ? new Date(projectInfo.lastbuild) : undefined;
+        this._lastImageBuild = projectInfo.appImageLastBuild ? new Date(Number(projectInfo.appImageLastBuild)) : undefined;
         this.setAutoBuild(projectInfo.autoBuild);
 
         if (projectInfo.isHttps) {
@@ -449,6 +453,7 @@ export default class Project implements vscode.QuickPickItem {
 
         // Clear now-invalid application info
         this._containerID = undefined;
+        this._podName = undefined;
         this.kubeAppBaseURL = undefined;
         this.updatePorts({
             exposedPort: undefined,
@@ -603,6 +608,14 @@ export default class Project implements vscode.QuickPickItem {
 
     public get containerID(): string | undefined {
         return this._containerID;
+    }
+
+    public get podName(): string | undefined {
+        return this._podName;
+    }
+
+    public get namespace(): string | undefined {
+        return this._namespace;
     }
 
     public get contextRoot(): string {
@@ -764,47 +777,31 @@ export default class Project implements vscode.QuickPickItem {
         return false;
     }
 
-    private setContainerID(newContainerID: string | undefined): boolean {
+    private setContainerID(newContainerID: string | undefined): void {
+        if (newContainerID === "") {
+            newContainerID = undefined;
+        }
         const oldContainerID = this._containerID;
         this._containerID = newContainerID;
 
         const changed = this._containerID !== oldContainerID;
         if (changed) {
-            if (this._containerID === "") {
-                this._containerID = undefined;
-            }
             const asStr = this._containerID == null ? "undefined" : this._containerID.substring(0, 8);
-            Log.d(`New containerID for ${this.name} is ${asStr}`);
+            Log.i(`New containerID for ${this.name} is ${asStr}`);
         }
-        return changed;
     }
 
-    private setLastBuild(newLastBuild: number | undefined): boolean {
-        if (newLastBuild == null) {
-            return false;
+    private setPodName(newPodName: string | undefined): void {
+        if (newPodName === "") {
+            newPodName = undefined;
         }
-        const oldlastBuild = this._lastBuild;
-        this._lastBuild = new Date(newLastBuild);
+        const oldPodName = this._podName;
+        this._podName = newPodName;
 
-        const changed = this._lastBuild !== oldlastBuild;
+        const changed = this._podName !== oldPodName;
         if (changed) {
-            // Log.d(`New lastBuild for ${this.name} is ${this._lastBuild}`);
+            Log.i(`New podName for ${this.name} is ${this.podName}`);
         }
-        return changed;
-    }
-
-    private setLastImgBuild(newLastImgBuild: number | undefined): boolean {
-        if (newLastImgBuild == null) {
-            return false;
-        }
-        const oldlastImgBuild = this._lastImageBuild;
-        this._lastImageBuild = new Date(newLastImgBuild);
-
-        const changed = this._lastImageBuild !== oldlastImgBuild;
-        if (changed) {
-            // Log.d(`New lastImgBuild for ${this.name} is ${this._lastImgBuild}`);
-        }
-        return changed;
     }
 
     public setAutoBuild(newAutoBuild: boolean | undefined): boolean {

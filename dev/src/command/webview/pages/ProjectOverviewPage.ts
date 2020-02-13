@@ -102,12 +102,8 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
             </div>
         </div>
-        <!-- Hide Container ID when it doesn't apply -->
-        ${project.connection.isKubeConnection ? "" : `
-            <table>
-                ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
-            </table>`
-        }
+
+        ${buildContainerPodSection(rp, project)}
 
         <table>
             ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
@@ -245,6 +241,22 @@ function normalizeDate(d: Date | undefined, fallback: string): string {
     }
     else {
         return fallback;
+    }
+}
+
+function buildContainerPodSection(rp: WebviewResourceProvider, project: Project): string {
+    if (project.connection.isKubeConnection) {
+        return `
+        <table>
+            ${buildRow(rp, "Namespace", normalize(project.namespace, NOT_AVAILABLE))}
+            ${buildRow(rp, "Pod Name", normalize(project.podName, NOT_AVAILABLE))}
+        </table>`;
+    }
+    else {
+        return `
+        <table>
+            ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
+        </table>`;
     }
 }
 
