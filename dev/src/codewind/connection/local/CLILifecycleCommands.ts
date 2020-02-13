@@ -62,5 +62,5 @@ export const CLILifecycleCommands = {
             after: CodewindStates.STOPPED,
         }),
     REMOVE:
-        new CLILifecycleCommand([ "remove" ], `Removing Codewind ${TAG_PLACEHOLDER} and project images`, true),
+        new CLILifecycleCommand([ "remove", "local" ], `Removing Codewind ${TAG_PLACEHOLDER} and project images`, true),
 };
