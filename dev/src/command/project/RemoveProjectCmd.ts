@@ -53,13 +53,17 @@ export async function removeProject(project: Project, deleteFiles: boolean | und
         }
         else {
             // Ask user if they want to delete the files on disk too.
-            const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", { dirPath: projectDirPath });
+            const cancelBtn = global.isTheia ? "Close" : "Cancel";
+
+            const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", {
+                projectName: project.name,
+                connectionLabel: project.connection.label,
+                dirPath: projectDirPath,
+                cancelBtn,
+            });
+
             const deleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirBtn");
-            // const dontDeleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "dontDeleteDirBtn");
-            // const deleteNeverBtn = Translator.t(StringNamespaces.CMD_MISC, "neverDeleteDirBtn");
-            // const deleteAlwaysBtn = Translator.t(StringNamespaces.CMD_MISC, "alwaysDeleteDirBtn");
-            const deleteDirRes = await vscode.window.showWarningMessage(deleteDirMsg, { modal: true },
-                deleteDirBtn, /* dontDeleteDirBtn  deleteNeverBtn, deleteAlwaysBtn */);
+            const deleteDirRes = await vscode.window.showWarningMessage(deleteDirMsg, { modal: true }, deleteDirBtn);
 
             doDeleteProjectDir = deleteDirRes === deleteDirBtn;
         }
