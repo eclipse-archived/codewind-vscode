@@ -248,8 +248,14 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
-    private readonly onLoadRunnerStatusChanged = async (payload: {projectID: string, status: string, timestamp: string}):
+    private readonly onLoadRunnerStatusChanged = async (payload: { projectID: string, status: string, timestamp: string }):
         Promise<void> => {
+
+        if (global.isTheia) {
+            // doesn't work yet - https://github.com/eclipse/codewind/pull/2123
+            return;
+        }
+
         const project = await this.getProject(payload);
         if (project == null) {
             return;
