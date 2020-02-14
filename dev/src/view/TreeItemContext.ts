@@ -143,17 +143,18 @@ namespace TreeItemContext {
         if (project.hasMetricsDashboard) {
             contextValues.push(TreeItemContextValues.PROJ_METRICS_DASH);
         }
-        else if (project.canInjectMetrics) {
+
+        if (project.perfDashboardURL) {
+            contextValues.push(TreeItemContextValues.PROJ_PERF_DASHBOARD);
+        }
+
+        if (project.canInjectMetrics) {
             if (project.isInjectingMetrics) {
                 contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_ON);
             }
             else {
                 contextValues.push(TreeItemContextValues.PROJ_INJECT_METRICS_OFF);
             }
-        }
-
-        if (project.perfDashboardURL) {
-            contextValues.push(TreeItemContextValues.PROJ_PERF_DASHBOARD);
         }
 
         if (project.canContainerShell) {
