@@ -9,10 +9,10 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
-import * as vscode from "vscode";
 import * as request from "request-promise-native";
 import { StatusCodeError } from "request-promise-native/errors";
 
@@ -23,16 +23,12 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/translator";
 import MCUtil from "../../MCUtil";
 import EndpointUtil, { ProjectEndpoints, MCEndpoints } from "../../constants/Endpoints";
-import SocketEvents, { ILogResponse } from "../connection/SocketEvents";
+import SocketEvents from "../connection/SocketEvents";
 import Connection from "../connection/Connection";
 import { IProjectTypeDescriptor } from "./ProjectType";
-import { RawCWEnvData } from "../connection/CWEnvironment";
 import RemoteConnection from "../connection/RemoteConnection";
-import { SourceEnablement } from "../../command/webview/SourcesPageWrapper";
-import { CWTemplateData } from "../../command/connection/CreateUserProjectCmd";
-import { ContainerRegistry } from "../connection/RegistryUtils";
-import { AccessToken } from "../connection/CLICommandRunner";
-import { PFEProjectData } from "../Types";
+import { PFEProjectData, CWTemplateData, SourceEnablement, AccessToken, RawCWEnvData, PFELogLevels, ILogResponse } from "../Types";
+import ContainerRegistry from "../connection/ContainerRegistry";
 
 // tslint:disable-next-line: variable-name
 const HttpVerbs = {
@@ -214,13 +210,6 @@ namespace Requester {
         };
 
         return doConnectionRequest(connection, MCEndpoints.PUSH_REGISTRY, "POST", { body });
-    }
-
-    // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/modules/utils/Logger.js#L38
-    export interface PFELogLevels {
-        readonly currentLevel: string;
-        readonly defaultLevel: string;
-        readonly allLevels: string[];
     }
 
     export async function getPFELogLevels(connection: Connection): Promise<PFELogLevels> {

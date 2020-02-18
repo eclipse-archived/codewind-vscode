@@ -1,23 +1,11 @@
 import Connection from "./Connection";
 import { CLICommandRunner } from "./CLICommandRunner";
-import { SourceEnablement } from "../../command/webview/SourcesPageWrapper";
 import Requester from "../project/Requester";
+import { TemplateSource, SourceEnablement } from "../Types";
 
 export enum SourceProjectStyles {
     CODEWIND = "Codewind",
     APPSODY = "Appsody",
-}
-
-/**
- * Template repository/source data as provided by the backend
- */
-export interface TemplateSource {
-    readonly url: string;
-    readonly name?: string;
-    readonly description?: string;
-    readonly enabled: boolean;
-    readonly projectStyles: string[];
-    readonly protected: boolean;
 }
 
 export default class TemplateSourcesList {

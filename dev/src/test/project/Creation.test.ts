@@ -13,7 +13,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 
 import TestConfig from "../TestConfig";
-import { CWTemplateData, createProject } from "../../command/connection/CreateUserProjectCmd";
+import { createProject } from "../../command/connection/CreateUserProjectCmd";
 import Requester from "../../codewind/project/Requester";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
@@ -21,6 +21,7 @@ import TestUtil from "../TestUtil";
 import Project from "../../codewind/project/Project";
 
 import { connection } from "../local/LocalStart.test";
+import { CWTemplateData } from "../../codewind/Types";
 
 export const JAVA_DEBUG_EXT_ID = "vscjava.vscode-java-debug";
 export let testProjects: Project[];

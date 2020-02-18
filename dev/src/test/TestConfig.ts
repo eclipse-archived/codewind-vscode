@@ -11,10 +11,8 @@
 
 import * as path from "path";
 
-import { CWTemplateData } from "../command/connection/CreateUserProjectCmd";
 import Log from "../Logger";
-
-export const ATTN_GRABBER = "*".repeat(10);
+import { CWTemplateData } from "../codewind/Types";
 
 namespace TestConfig {
 

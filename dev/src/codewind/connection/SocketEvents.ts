@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,8 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
+
+import { ILogResponse } from "../Types";
 
 // non-nls-file
 
@@ -104,16 +106,6 @@ namespace SocketEvents {
         PROJECT_BOUND = "projectBind",
         REGISTRY_STATUS = "imagePushRegistryStatus",
     }
-}
-
-export interface ILogResponse {
-    readonly build?: ILogObject[];
-    readonly app?: ILogObject[];
-}
-
-export interface ILogObject {
-    readonly logName: string;
-    readonly workspaceLogPath?: string;
 }
 
 export default SocketEvents;

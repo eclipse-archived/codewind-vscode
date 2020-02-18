@@ -24,9 +24,10 @@ import CLIWrapper from "../CLIWrapper";
 import Commands from "../../../constants/Commands";
 import LocalCodewindManager from "./LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
-import { CLICommandRunner, CLIStatus } from "../CLICommandRunner";
+import { CLICommandRunner } from "../CLICommandRunner";
 import { promisify } from "util";
 import CWDocs from "../../../constants/CWDocs";
+import { CLIStatus } from "../../Types";
 
 const STRING_NS = StringNamespaces.STARTUP;
 

@@ -23,19 +23,10 @@ import CWDocs from "../../constants/CWDocs";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import getManageSourcesPage from "./pages/SourcesPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
+import { SourceEnablement } from "../../codewind/Types";
 
 export enum ManageSourcesWVMessages {
     ENABLE_DISABLE = "enableOrDisable",
-}
-
-/**
- * 'data' field of ENABLE_DISABLE event, which can be converted to an enablement request.
- */
-export interface SourceEnablement {
-    readonly repos: Array<{
-        readonly repoID: string;
-        readonly enable: boolean;
-    }>;
 }
 
 const SOURCES_PAGE_TITLE = "Template Source Manager";

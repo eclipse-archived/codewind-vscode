@@ -14,34 +14,7 @@
 import Requester from "../project/Requester";
 import Log from "../../Logger";
 import Connection from "./Connection";
-
-// From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/routes/environment.route.js
-export interface RawCWEnvData {
-    readonly codewind_version?: string;
-    readonly image_build_time?: string;
-    readonly namespace?: string;
-    readonly os_platform: string;
-    readonly running_in_k8s: boolean;
-    readonly socket_namespace?: string;
-    readonly tekton_dashboard: TektonStatus;
-}
-
-/**
- * Massaged env data, which the plugin is actually interested in
- */
-export interface CWEnvData {
-    // readonly workspace: string;
-    readonly namespace?: string;
-    readonly socketNamespace: string;
-    readonly version: string;
-    readonly tektonStatus: TektonStatus;
-}
-
-export interface TektonStatus {
-    readonly status: boolean;
-    readonly message: string;       // error message or "not-installed" if status is false
-    readonly url: string;           // empty if status is false
-}
+import { CWEnvData, RawCWEnvData } from "../Types";
 
 namespace CWEnvironment {
 
