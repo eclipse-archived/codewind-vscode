@@ -28,7 +28,7 @@ beforeEach(function() {
     }
     // const filename = this.currentTest.file ? this.currentTest.file + " - " : "";
     const parent = this.currentTest.parent ? (`[${this.currentTest.parent.title}] `) : "";
-    Log.t(`${parent}${this.currentTest.title}`);
+    Log.t(`${"*".repeat(5)} ${parent}${this.currentTest.title}`);
 });
 
 describe("Codewind for VS Code", function() {
