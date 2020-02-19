@@ -17,13 +17,15 @@ import { getBaseResourcesPath, ThemelessImages } from "../../constants/CWImages"
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { WebviewResourceProvider } from "./WebviewWrapper";
+import Commands from "../../constants/Commands";
 
 export enum CommonWVMessages {
     OPEN_CONNECTION = "openConnection",
-    ADD_NEW = "add-new",
+    ADD_NEW = "addNew",
     DELETE = "delete",
     HELP = "help",
     REFRESH = "refresh",
+    OPEN_WEBLINK = "openWebLink"
 }
 
 /**
@@ -153,6 +155,23 @@ namespace WebviewUtil {
         return resourcePath;
     }
 
+    /**
+     * To work around https://github.com/eclipse/codewind/issues/2273 we use this instead of <a href> to open links that may not use https.
+     */
+    export function openWeblink(link: string): void {
+        const asUri = vscode.Uri.parse(link);
+        if (!asUri.scheme) {
+            Log.e(`Received bad link to open from webview`, link);
+            vscode.window.showErrorMessage(`Cannot open "${link}"`);
+            return;
+        }
+        else if (asUri.scheme === "file") {
+            Log.w(`Refusing to open file URI`, asUri.toString());
+            vscode.window.showWarningMessage(`This link points to a file, and cannot be opened.`);
+            return;
+        }
+        vscode.commands.executeCommand(Commands.VSC_OPEN, asUri);
+    }
 
     /**
      * For debugging in a real browser (with real developer tools), write out the html to a file on disk, and point to the resources on disk.

@@ -10,14 +10,14 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-
+import Project from "../../../codewind/project/Project";
+import CWDocs from "../../../constants/CWDocs";
 import { ThemedImages } from "../../../constants/CWImages";
 import MCUtil from "../../../MCUtil";
-import Project from "../../../codewind/project/Project";
-import WebviewUtil from "../WebviewUtil";
-import CWDocs from "../../../constants/CWDocs";
 import { ProjectOverviewWVMessages } from "../ProjectOverviewPageWrapper";
+import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { WebviewResourceProvider } from "../WebviewWrapper";
+
 
 interface RowOptions {
     openable?: "web" | "folder";
@@ -161,18 +161,19 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
 
     if (options.openable) {
         let classAttr: string  = "";
-        let href: string = "";
+        // let href: string = "";
         let onclick: string = "";
         if (options.openable === "web") {
-            href = `href="${data}"`;
+            // href = `href="${data}"`;
             classAttr = `class="url"`;
+            onclick = `onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${data}')"`;
         }
         else {
             // it is a folder
             const folderPath: string = WebviewUtil.getEscapedPath(data);
             onclick = `onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_FOLDER}', '${folderPath}')"`;
         }
-        secondColTdContents += `<a title="${label}" ${classAttr} ${href} ${onclick}>${data}</a>`;
+        secondColTdContents += `<a title="${data}" ${classAttr} ${onclick}>${data}</a>`;
     }
     else {
         secondColTdContents = `${data}`;
@@ -193,7 +194,7 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
         // add an 'open' button if this row's data is a web link
         fourthColTd = `
             <td class="btn-cell">
-                <a href="${data}">
+                <a title="${data}" onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${data}')">
                     <input type="image" title="Open" src="${rp.getImage(ThemedImages.Launch)}"/>
                 </a>
             </td>
