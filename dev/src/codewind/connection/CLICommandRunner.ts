@@ -12,44 +12,8 @@
 import CLIWrapper from "./CLIWrapper";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
-import { TemplateSource } from "./TemplateSourceList";
 import { CLICommands } from "./CLICommands";
-
-export interface CLIConnectionData {
-    readonly id: string;
-    readonly label: string;
-    readonly url: string;
-    readonly username: string;
-    // These 3 are provided in the 'connections list' output but are not yet consumed.
-    readonly auth?: string;
-    readonly realm?: string;
-    readonly clientid?: string;
-}
-
-export interface IDetectedProjectType {
-    language: string;
-    projectType: string;
-    projectSubtype?: string;
-}
-
-export interface IInitializationResponse {
-    status: string;
-    result: IDetectedProjectType | string | { error: string };
-    projectPath?: string;
-}
-
-export interface CLIStatus {
-    // status: "uninstalled" | "stopped" | "started";
-    "installed-versions": string[];
-    started: string[];
-    url?: string;   // only set when started
-}
-
-export interface AccessToken {
-    readonly access_token: string;
-    readonly expires_in: number;
-    readonly token_type: string;
-}
+import { CLIStatus, IInitializationResponse, IDetectedProjectType, CLIConnectionData, TemplateSource, AccessToken } from "../Types";
 
 export namespace CLICommandRunner {
 

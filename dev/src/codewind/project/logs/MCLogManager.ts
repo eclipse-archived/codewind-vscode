@@ -15,8 +15,9 @@ import Project from "../Project";
 import MCLog from "./MCLog";
 import Log from "../../../Logger";
 import Requester from "../Requester";
-import SocketEvents, { ILogObject, ILogResponse } from "../../connection/SocketEvents";
+import SocketEvents from "../../connection/SocketEvents";
 import MCUtil from "../../../MCUtil";
+import { ILogResponse, ILogObject } from "../../Types";
 
 export enum LogTypes {
     APP = "app", BUILD = "build"

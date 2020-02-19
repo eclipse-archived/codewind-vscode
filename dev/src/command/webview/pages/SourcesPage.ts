@@ -16,7 +16,7 @@ import { ThemedImages } from "../../../constants/CWImages";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageSourcesWVMessages } from "../SourcesPageWrapper";
 import { WebviewResourceProvider } from "../WebviewWrapper";
-import { TemplateSource } from "../../../codewind/connection/TemplateSourceList";
+import { TemplateSource } from "../../../codewind/Types";
 
 export default function getManageSourcesPage(
     rp: WebviewResourceProvider, connectionLabel: string, isRemoteConnection: boolean, sources: TemplateSource[]): string {

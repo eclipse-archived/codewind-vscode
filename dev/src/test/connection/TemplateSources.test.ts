@@ -12,10 +12,10 @@
 import { expect } from "chai";
 
 import { SourceProjectStyles } from "../../codewind/connection/TemplateSourceList";
-import { SourceEnablement } from "../../command/webview/SourcesPageWrapper";
 import Requester from "../../codewind/project/Requester";
 
 import { connection } from "../local/LocalStart.test";
+import { SourceEnablement } from "../../codewind/Types";
 
 describe(`Template sources`, function() {
 

@@ -17,9 +17,10 @@ import Connection from "../../codewind/connection/Connection";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
+import { PFELogLevels } from "../../codewind/Types";
 
 export async function setLogLevelCmd(connection: Connection): Promise<void> {
-    let levelsResponse: Requester.PFELogLevels;
+    let levelsResponse: PFELogLevels;
     try {
         levelsResponse = await Requester.getPFELogLevels(connection);
     }

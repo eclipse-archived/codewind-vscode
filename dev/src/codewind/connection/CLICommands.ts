@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-export interface CLICommandOptions {
+interface CLICommandOptions {
     cancellable?: boolean;
     hasJSONOutput?: boolean;
     censorOutput?: boolean;

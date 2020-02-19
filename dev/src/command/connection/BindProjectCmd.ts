@@ -17,9 +17,10 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import SocketEvents from "../../codewind/connection/SocketEvents";
 import ProjectType, { IProjectSubtypesDescriptor } from "../../codewind/project/ProjectType";
-import RegistryUtils from "../../codewind/connection/RegistryUtils";
-import { CLICommandRunner, IDetectedProjectType, IInitializationResponse } from "../../codewind/connection/CLICommandRunner";
+import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
+import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import Requester from "../../codewind/project/Requester";
+import { IDetectedProjectType, IInitializationResponse } from "../../codewind/Types";
 
 export default async function bindProjectCmd(connection: Connection): Promise<void> {
     try {

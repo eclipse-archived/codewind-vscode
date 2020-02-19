@@ -11,6 +11,8 @@
 
 import { expect } from "chai";
 import * as vscode from "vscode";
+import * as fs from "fs";
+import * as path from "path";
 
 import Log from "../Logger";
 import Project from "../codewind/project/Project";
@@ -107,61 +109,65 @@ namespace TestUtil {
         );
     }
 
-    interface Condition {
+    interface TestCondition {
         readonly label: string;
         readonly condition: () => boolean | Promise<boolean>;
     }
 
     export async function waitForCondition(
             ctx: Mocha.Context,
-            success: Condition,
-            failure?: Condition
+            success: TestCondition,
+            failure?: TestCondition,
+            pollIntervalMs: number = 100,
         ): Promise<void> {
 
         Log.t(`${success.label}...`);
 
-        const testIntervalMs = 250;
-        const intervalsPerSec = 1000 / testIntervalMs;
+        const intervalsPerSec = 1000 / pollIntervalMs;
         const logInterval = 10 * intervalsPerSec;
         let tries = 0;
 
-        return new Promise<void>((resolve) => {
-            const interval = setInterval(async () => {
+        let interval: NodeJS.Timeout;
+
+        await new Promise<void>((resolve, reject) => {
+            interval = setInterval(async () => {
                 tries++;
 
                 const succeeded = await evaluate(success);
 
                 if (succeeded) {
-                    Log.t(`${success.label} completed after ${getSecsElapsed(intervalsPerSec, tries)}s`);
-                    clearInterval(interval);
+                    Log.t(`${success.label} completed after ${getSecsElapsed(intervalsPerSec, tries)}`);
                     return resolve();
                 }
                 else if (failure != null) {
                     const failed = await evaluate(failure);
-
                     if (failed) {
-                        Log.t(`${success.label} failed after ${getSecsElapsed(intervalsPerSec, tries)}s: ${failure.label}`);
-                        clearInterval(interval);
-                        return resolve();
+                        const failMsg = `${success.label} failed after ${getSecsElapsed(intervalsPerSec, tries)}: ${failure.label}`;
+                        Log.t(failMsg);
+                        return reject(failMsg);
                     }
                 }
 
+                if (ctx.currentTest && !ctx.currentTest.isPending()) {
+                    Log.t(`${success.label} was aborted after ${getSecsElapsed(intervalsPerSec, tries)} because the test completed`);
+                    return resolve();
+                }
+
                 if (tries % logInterval === 0) {
-                    Log.t(`${success.label}, ${getSecsElapsed(intervalsPerSec, tries)}s elapsed`);
+                    Log.t(`${success.label}, ${getSecsElapsed(intervalsPerSec, tries)} elapsed`);
                 }
-                // if test is done, clear interval
-                if (!ctx.test?.isPending || ctx.test?.timedOut) {
-                    clearInterval(interval);
-                }
-            }, testIntervalMs);
+            }, pollIntervalMs);
+        })
+        .finally(() => {
+            clearInterval(interval);
         });
     }
 
-    function getSecsElapsed(intervalsPerSec: number, tries: number): number {
-        return tries / intervalsPerSec;
+    function getSecsElapsed(intervalsPerSec: number, tries: number): string {
+        return (tries / intervalsPerSec) + "s";
     }
 
-    async function evaluate(condition: Condition): Promise<boolean> {
+    async function evaluate(condition: TestCondition): Promise<boolean> {
         let result = false;
         if (condition.condition instanceof Promise) {
             result = await condition.condition();
@@ -181,6 +187,78 @@ namespace TestUtil {
                 condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_FAILED,
             }
         );
+    }
+
+    export async function waitForUpdate(ctx: Mocha.Context, project: Project): Promise<void> {
+        const buildFailedCond: TestCondition =  {
+            label: `Build for ${project.name} unexpectedly failed`,
+            condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_FAILED,
+        };
+
+        await waitForCondition(ctx, {
+            label: `Waiting for ${project.name} to be Building after a code change`,
+            condition: () => project.state.isBuilding,
+        }, buildFailedCond, 10);
+
+        await waitForCondition(ctx, {
+            label: `Waiting for ${project.name} to have Build Succeeded after a code change`,
+            condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_SUCCESS,
+        }, buildFailedCond);
+
+        /*
+        await waitForCondition(ctx, {
+            label: `Waiting for ${project.name} to be Stopped after a code change`,
+            condition: () => project.state.appState === ProjectState.AppStates.STOPPED,
+        }, {
+            label: `Build for ${project.name} unexpectedly failed`,
+            condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_FAILED,
+        });
+        */
+
+        await waitForCondition(ctx, {
+            label: `Waiting for ${project.name} to restart after a code change`,
+            condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_SUCCESS && project.state.isStarted,
+        }, buildFailedCond);
+    }
+
+    export async function writeCommentToProjectSourceFile(project: Project): Promise<void> {
+        const sourceFilePath = await findSourceFile(project.localPath.fsPath);
+        if (!sourceFilePath) {
+            throw new Error(`Unable to find a source file in ${project.name}`);
+        }
+        await writeCommentToFile(sourceFilePath);
+    }
+
+    const sourceFileExtensions = [ "java", "js", "go", "py" ];
+    async function findSourceFile(rootDir: string): Promise<string | undefined> {
+        // Log.t(`Scanning ${rootDir}/ for source files`);
+        const rootDirFiles = await fs.promises.readdir(rootDir, { withFileTypes: true });
+
+        for (const file of rootDirFiles) {
+            const fullPath = path.join(rootDir, file.name);
+            if (sourceFileExtensions.includes(path.extname((file.name)).substring(1))) {
+                return fullPath;
+            }
+            if (file.isDirectory()) {
+                const recursiveResult = await findSourceFile(fullPath);
+                if (recursiveResult) {
+                    return recursiveResult;
+                }
+            }
+        }
+        return undefined;
+    }
+
+    export async function writeCommentToFile(filePath: string): Promise<void> {
+        const extension = path.extname(filePath).toLowerCase().substring(1);
+
+        let commentStart = "//";
+        if (extension === "py" || path.basename(filePath) === "Dockerfile") {
+            commentStart = "#";
+        }
+        const comment = `\n\n${commentStart} Here is a comment`;
+        Log.t(`Writing "${comment}" to ${filePath}`);
+        await fs.promises.appendFile(filePath, comment);
     }
 }
 

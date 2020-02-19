@@ -19,11 +19,12 @@ import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
 import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
-import RegistryUtils, { ContainerRegistry } from "../../codewind/connection/RegistryUtils";
+import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import CWDocs from "../../constants/CWDocs";
 import Commands from "../../constants/Commands";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
+import ContainerRegistry from "../../codewind/connection/ContainerRegistry";
 
 export enum ManageRegistriesWVMessages {
     // EDIT = "edit",

@@ -11,24 +11,22 @@
 
 import * as path from "path";
 
-import { CWTemplateData } from "../command/connection/CreateUserProjectCmd";
 import Log from "../Logger";
-
-export const ATTN_GRABBER = "*".repeat(10);
+import { CWTemplateData } from "../codewind/Types";
 
 namespace TestConfig {
 
     // Use GetProjectTypes.js to get values you can put here
     const TEST_PROJECT_TYPES = {
         codewind: [
-            "nodeExpressTemplate",
+            // "nodeExpressTemplate",
             // "goTemplate",
-            // "springJavaTemplate",            // https://github.com/eclipse/codewind/issues/1877
-            // "javaMicroProfileTemplate",      // takes forever
+            "springJavaTemplate",            // https://github.com/eclipse/codewind/issues/1877
+            "javaMicroProfileTemplate",      // very slow
         ],
         appsody: [
             "nodejs-express",
-            // "python-flask"
+            "python-flask",
         ]
     };
 

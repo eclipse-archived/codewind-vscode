@@ -16,9 +16,9 @@
 import { ThemedImages } from "../../../constants/CWImages";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
-import { ContainerRegistry } from "../../../codewind/connection/RegistryUtils";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import Connection from "../../../codewind/connection/Connection";
+import ContainerRegistry from "../../../codewind/connection/ContainerRegistry";
 
 export default function getManageRegistriesPage(
     rp: WebviewResourceProvider,

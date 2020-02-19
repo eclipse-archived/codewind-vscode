@@ -17,25 +17,17 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import Requester from "../../codewind/project/Requester";
 import { CWConfigurations } from "../../constants/Configurations";
-import RegistryUtils from "../../codewind/connection/RegistryUtils";
+import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
 import manageSourcesCmd from "./ManageSourcesCmd";
 import SocketEvents from "../../codewind/connection/SocketEvents";
 import { ThemedImages } from "../../constants/CWImages";
+import { CWTemplateData } from "../../codewind/Types";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 const BACK_BTN_MSG = "Back button";
 
 const HAS_SELECTED_SOURCE_KEY = "first-create-done";
-
-export interface CWTemplateData {
-    label: string;
-    description: string;
-    url: string;
-    language: string;
-    projectType: string;
-    source?: string;
-}
 
 export default async function createProjectCmd(connection: Connection): Promise<void> {
     if (!connection.isRemote) {

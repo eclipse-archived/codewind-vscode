@@ -34,10 +34,9 @@ describe(`Project miscellaneous wrapper`, function() {
 
                 if (!project.type.isAppsody) {
                     it(`${project.name} should build manually`, async function() {
-                        this.timeout(TestUtil.ms(1, "min"));
+                        this.timeout(TestUtil.ms(2, "min"));
                         this.slow(TestUtil.ms(30, "sec"));
 
-                        Log.t("Requesting a build for " + project.name);
                         await vscode.commands.executeCommand(Commands.REQUEST_BUILD, project);
 
                         await TestUtil.waitForCondition(this, {
@@ -90,6 +89,8 @@ describe(`Project miscellaneous wrapper`, function() {
                     }
                     const appLog = project.logManager.logs.filter((log) => log.type === LogTypes.APP);
                     expect(appLog, `No app log was found`).to.exist;
+
+                    Log.t(`${project.name} has ${project.logManager.logs.length} log files`);
                 });
 
                 it(`${project.name} should be disabled and re-enabled`, async function() {

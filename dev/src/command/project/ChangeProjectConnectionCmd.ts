@@ -15,11 +15,11 @@ import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
-import { IDetectedProjectType } from "../../codewind/connection/CLICommandRunner";
 import { addProjectToConnection } from "../connection/BindProjectCmd";
-import RegistryUtils from "../../codewind/connection/RegistryUtils";
+import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import { removeProject } from "./RemoveProjectCmd";
 import MCUtil from "../../MCUtil";
+import { IDetectedProjectType } from "../../codewind/Types";
 
 export default async function changeProjectConnectionCmd(project: Project): Promise<void> {
 

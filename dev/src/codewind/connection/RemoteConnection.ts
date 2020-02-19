@@ -11,16 +11,17 @@
 
 import * as vscode from "vscode";
 
+import Log from "../../Logger";
 import Connection from "./Connection";
+import Requester from "../project/Requester";
+import MCUtil from "../../MCUtil";
 import ConnectionOverviewWrapper from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import { CLICommandRunner, AccessToken, CLIConnectionData } from "./CLICommandRunner";
-import Log from "../../Logger";
+import { CLICommandRunner } from "./CLICommandRunner";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";
-import Requester from "../project/Requester";
-import MCUtil from "../../MCUtil";
+import { AccessToken, CLIConnectionData } from "../Types";
 
 export default class RemoteConnection extends Connection {
 
