@@ -14,14 +14,13 @@ import * as vscode from "vscode";
 
 import TestConfig from "../TestConfig";
 import { createProject } from "../../command/connection/CreateUserProjectCmd";
-import Requester from "../../codewind/project/Requester";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import TestUtil from "../TestUtil";
 import Project from "../../codewind/project/Project";
+import { CWTemplateData } from "../../codewind/Types";
 
 import { connection } from "../local/LocalStart.test";
-import { CWTemplateData } from "../../codewind/Types";
 
 export const JAVA_DEBUG_EXT_ID = "vscjava.vscode-java-debug";
 export let testProjects: Project[];
@@ -47,7 +46,7 @@ describe(`Project creation`, async function() {
     let templatesToTest: CWTemplateData[] = [];
 
     it(`should get the list of project templates to use`, async function() {
-        const allEnabledTemplates = await Requester.getTemplates(connection);
+        const allEnabledTemplates = await connection.requester.getTemplates();
         expect(allEnabledTemplates, `No templates are enabled`).to.have.length.greaterThan(0);
 
         // All the templates we are interested in should be available
@@ -144,9 +143,7 @@ async function getProjectsParentDir(): Promise<vscode.Uri | undefined> {
  */
 async function activateJavaExtension(): Promise<void> {
     const javaExt = vscode.extensions.getExtension(JAVA_DEBUG_EXT_ID);
-    if (javaExt == null) {
-        Log.e(`Java extension is not installed - Java debug tests will fail!`);
-    }
+    expect(javaExt, `Java extension is not installed - Java debug tests will fail!`).to.exist;
     Log.t("Activating Java debug extension...");
     await javaExt!.activate();
     Log.t(`Finished activating Java debug extension`);

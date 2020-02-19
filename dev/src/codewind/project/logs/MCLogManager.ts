@@ -14,10 +14,10 @@ import * as vscode from "vscode";
 import Project from "../Project";
 import MCLog from "./MCLog";
 import Log from "../../../Logger";
-import Requester from "../Requester";
 import SocketEvents from "../../connection/SocketEvents";
 import MCUtil from "../../../MCUtil";
 import { ILogResponse, ILogObject } from "../../Types";
+import ProjectRequester from "../ProjectRequester";
 
 export enum LogTypes {
     APP = "app", BUILD = "build"
@@ -34,6 +34,7 @@ export default class MCLogManager {
 
     constructor(
         private readonly project: Project,
+        private readonly requester: ProjectRequester,
         doInitialize: boolean,
     ) {
         if (doInitialize) {
@@ -49,13 +50,13 @@ export default class MCLogManager {
         }
         // Log.d("Initializing logs");
         try {
-            const availableLogs = await Requester.requestAvailableLogs(this.project);
+            const availableLogs = await this.requester.requestAvailableLogs();
             await this.onLogsListChanged(availableLogs);
-            Log.i(`${this.managerName} has finished initializing logs: ${this.logs.map((l) => l.displayName).join(", ") || "<none>"}`);
+            Log.i(`${this.managerName} has finished initializing ${this.logs.length} logs`);
         }
         catch (err) {
-            // requester will show the error
-            return;
+            Log.e(`Failed to get logs for ${this.project.name}`, err);
+            vscode.window.showErrorMessage(`Failed to initialize logs list for ${this.project.name}: ${MCUtil.errToString(err)}`);
         }
     }
 
@@ -151,7 +152,7 @@ export default class MCLogManager {
     private async toggleLogStreaming(enable: boolean): Promise<void> {
         // Log.d(`${this.managerName} log streaming now ${enable}`);
         try {
-            await Requester.requestToggleLogs(this.project, enable);
+            await this.requester.requestToggleLogs(enable);
         }
         catch (err) {
             const errMsg = `Error toggling logs ${enable ? "on" : "off"} for ${this.project.name}`;

@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Log from "../../Logger";
 import Connection from "./Connection";
-import Requester from "../project/Requester";
+import Requester from "../Requester";
 import MCUtil from "../../MCUtil";
 import ConnectionOverviewWrapper from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";

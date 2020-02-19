@@ -26,13 +26,14 @@ import ProjectPendingRestart from "./ProjectPendingRestart";
 import Connection from "../connection/Connection";
 import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
-import Requester from "./Requester";
+import Requester from "../Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
 import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData } from "../Types";
+import ProjectRequester from "./ProjectRequester";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -75,6 +76,7 @@ export default class Project implements vscode.QuickPickItem {
     private _lastBuild: Date | undefined;
     private _lastImageBuild: Date | undefined;
 
+    private readonly requester: ProjectRequester;
     public readonly logManager: MCLogManager;
 
     private _metricsDashboardStatus: MetricsDashboardStatus;
@@ -145,12 +147,14 @@ export default class Project implements vscode.QuickPickItem {
         this._perfDashboardPath = projectInfo.perfDashboardPath     || null;
         this._metricsInjectStatus = projectInfo.injection           || { injectable: false, injected: false };
 
+        this.requester = new ProjectRequester(this);
+
         this._state = new ProjectState(this.name);
         this._state = this.update(projectInfo);
 
         // if the inf data has logs and the project is enabled, logs are available now. Else, we have to wait for logsListChanged events.
         const canGetLogs = this._state.isEnabled && projectInfo.logs != null;
-        this.logManager = new MCLogManager(this, canGetLogs);
+        this.logManager = new MCLogManager(this, this.requester, canGetLogs);
 
         // Do any async initialization work that must be done before the project is ready, here.
         // The function calling the constructor must await on this promise before expecting the project to be ready.
@@ -166,6 +170,14 @@ export default class Project implements vscode.QuickPickItem {
 
     public toString(): string {
         return this.name;
+    }
+
+    public async dispose(): Promise<void> {
+        await Promise.all([
+            this.clearValidationErrors(),
+            this.logManager?.destroyAllLogs(),
+            this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
+        ]);
     }
 
     /**
@@ -334,18 +346,15 @@ export default class Project implements vscode.QuickPickItem {
         }
     }
 
-    /**
-     * @returns if this project can restart right now.
-     */
-    public doRestart(mode: StartModes): boolean {
+    public async doRestart(mode: StartModes): Promise<void> {
         if (this.pendingRestart != null) {
             // should be prevented by the RestartProjectCommand
             Log.e(this.name + ": doRestart called when already restarting");
-            return false;
+            return;
         }
 
+        await this.requester.requestProjectRestart(mode);
         this.pendingRestart = new ProjectPendingRestart(this, mode);
-        return true;
     }
 
     public onRestartFinish(): void {
@@ -406,7 +415,7 @@ export default class Project implements vscode.QuickPickItem {
             return;
         }
         try {
-            this._capabilities = await Requester.getCapabilities(this);
+            this._capabilities = await this.requester.getCapabilities();
         }
         catch (err) {
             Log.e("Error retrieving capabilities for " + this.name, err);
@@ -423,6 +432,62 @@ export default class Project implements vscode.QuickPickItem {
         }
         catch (err) {
             Log.e(`Error creating debug configuration for  ${this.name}`, err);
+        }
+    }
+
+    public async requestBuild(): Promise<void> {
+        Log.i(`Request build for project ${this.name}`);
+        try {
+            await this.requester.requestBuild();
+            vscode.window.showInformationMessage(`Building ${this.name}`);
+        }
+        catch (err) {
+            const errMsg = `Error initialing a build of ${this.name}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+        }
+    }
+
+    public async toggleEnablement(): Promise<void> {
+        Log.i(`Toggle enablement for project ${this.name}`);
+
+        const newEnablement = !this.state.isEnabled;
+        try {
+            vscode.window.showInformationMessage(`${newEnablement ? "Enabling" : "Disabling"} ${this.name}`);
+            return this.requester.requestToggleEnablement(newEnablement);
+        }
+        catch (err) {
+            const errMsg = `Failed to ${newEnablement ? "enable" : "disable"} ${this.name}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+        }
+    }
+
+    public async toggleAutoBuild(): Promise<void> {
+        const newAutoBuild = !this._autoBuildEnabled;
+        try {
+            await this.requester.requestToggleAutoBuild(newAutoBuild);
+            vscode.window.showInformationMessage(`${newAutoBuild ? "Enabling" : "Disabling"} auto-build for ${this.name}`);
+            this.setAutoBuild(newAutoBuild);
+        }
+        catch (err) {
+            const errMsg = `Failed to ${newAutoBuild ? "enable" : "disable"} auto-build for ${this.name}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+        }
+    }
+
+    public async toggleInjectMetrics(): Promise<void> {
+        const newInjectMetrics = !this.isInjectingMetrics;
+        try {
+            await this.requester.requestToggleInjectMetrics(newInjectMetrics);
+            vscode.window.showInformationMessage(`${newInjectMetrics ? "Enabling" : "Disabling"} Application Metrics injection for ${this.name}`);
+            this.setInjectMetrics(newInjectMetrics);
+        }
+        catch (err) {
+            const errMsg = `Failed to ${newInjectMetrics ? "enable" : "disable"} Application Metrics injection for ${this.name}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
         }
     }
 
@@ -502,7 +567,7 @@ export default class Project implements vscode.QuickPickItem {
         const endpoint = ProjectEndpoints.PROFILING.toString().concat(`/${event.timestamp}`);
         const url = EndpointUtil.resolveProjectEndpoint(this.connection, this.id, endpoint as ProjectEndpoints);
         try {
-            await Requester.getProfilingData(this, url, profilingOutPath);
+            await this.requester.getProfilingData(url, profilingOutPath);
         } catch (error) {
             Log.e(`Error receiving profiling data from pfe for ${this.name}`, error);
             vscode.window.showErrorMessage(`Error receiving profiling data for ${this.name}`);
@@ -512,20 +577,12 @@ export default class Project implements vscode.QuickPickItem {
 
     }
 
-    public async dispose(): Promise<void> {
-        await Promise.all([
-            this.clearValidationErrors(),
-            this.logManager?.destroyAllLogs(),
-            this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
-        ]);
-    }
-
     public deleteFromCodewind(deleteFiles: boolean): Promise<void> {
         Log.d(`Deleting ${this}`);
         this.deleteFilesOnUnbind = deleteFiles;
         const pendingDeletionProm = new Promise<void>((resolve) => {
             this.resolvePendingDeletion = resolve;
-            Requester.requestUnbind(this);
+            this.requester.requestUnbind();
         });
         return pendingDeletionProm;
     }
@@ -820,7 +877,7 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    public async setInjectMetrics(newInjectMetrics: boolean | undefined): Promise<boolean> {
+    public setInjectMetrics(newInjectMetrics: boolean | undefined): boolean {
         if (newInjectMetrics == null) {
             return false;
         }

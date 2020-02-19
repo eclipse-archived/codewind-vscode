@@ -46,7 +46,7 @@ import connectionOverviewCmd from "./connection/ConnectionOverviewCmd";
 import removeConnectionCmd from "./connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "./connection/ToggleConnectionEnablement";
 import manageRegistriesCmd from "./connection/ManageRegistriesCmd";
-import toggleInjectMetricsCmd from "./project/ToggleInjectMetrics";
+import toggleInjectMetricsCmd from "./project/ToggleInjectMetricsCmd";
 import changeProjectConnectionCmd from "./project/ChangeProjectConnectionCmd";
 import { setLogLevelCmd } from "./connection/SetLogLevelCmd";
 import showHomePageCmd from "./HomePageCmd";

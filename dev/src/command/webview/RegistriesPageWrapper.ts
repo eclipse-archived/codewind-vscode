@@ -17,7 +17,6 @@ import { ThemelessImages } from "../../constants/CWImages";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
-import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import CWDocs from "../../constants/CWDocs";
@@ -61,7 +60,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
             cancellable: false,
             title: `Fetching image registries...`,
         }, async () => {
-            return Requester.getImageRegistries(this.connection);
+            return this.connection.requester.getImageRegistries();
         });
 
         const hasCWSourceEnabled = await this.connection.templateSourcesList.hasCodewindSourceEnabled();
@@ -149,7 +148,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 }
 
                 try {
-                    await Requester.removeRegistrySecret(this.connection, registry);
+                    await this.connection.requester.removeRegistrySecret(registry);
                     Log.d(`Deleted ${registry.isPushRegistry ? "push " : ""}registry ${registry.fullAddress}`);
                 }
                 catch (err) {

@@ -16,7 +16,6 @@ import MCSocket from "./MCSocket";
 import Log from "../../Logger";
 import CWEnvironment from "./CWEnvironment";
 import MCUtil from "../../MCUtil";
-import Requester from "../project/Requester";
 import Constants from "../../constants/Constants";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
@@ -27,12 +26,16 @@ import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { SourcesPageWrapper } from "../../command/webview/SourcesPageWrapper";
 import { RegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
 import TemplateSourcesList from "./TemplateSourceList";
+import ConnectionRequester from "./ConnectionRequester";
+import { AccessToken } from "../Types";
 
 export const LOCAL_CONNECTION_ID = "local";
 
 export default class Connection implements vscode.QuickPickItem, vscode.Disposable {
 
     public readonly pfeHost: string;
+
+    public readonly requester: ConnectionRequester;
 
     // Only used in Che-theia case
     private codewindCheIngress: vscode.Uri | undefined;
@@ -72,6 +75,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     ) {
         Log.d(`Creating new connection ${this.label} @ ${this.url}`);
         this._state = ConnectionStates.INITIALIZING;
+        this.requester = new ConnectionRequester(this);
         this.pfeHost = this.getPFEHost();
         this.enable()
         .catch((err) => {
@@ -103,7 +107,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         Log.i(`${this.label} starting base enable`);
 
         const readyTimeoutS = 90;
-        const ready = await Requester.waitForReady(this, readyTimeoutS);
+        const ready = await this.requester.waitForReady(readyTimeoutS);
         if (!ready) {
             throw new Error(`${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`);
         }
@@ -275,7 +279,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public async updateProjects(): Promise<void> {
-        const projectsData = await Requester.getProjects(this);
+        const projectsData = await this.requester.getProjects();
 
         const oldProjects = this._projects;
         this._projects = [];
@@ -367,7 +371,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         //     return Requester.getPushRegistry(this);
         // });
 
-        const pushRegistryRes = await Requester.getPushRegistry(this);
+        const pushRegistryRes = await this.requester.getPushRegistry();
 
         const hasPushRegistry = pushRegistryRes.imagePushRegistry;
         if (hasPushRegistry) {
@@ -393,6 +397,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public get socketURI(): string | undefined {
         return this._socket ? this._socket.uri : undefined;
+    }
+
+    public async getAccessToken(): Promise<AccessToken | undefined> {
+        return undefined;
     }
 
     public get pfeBaseURL(): vscode.Uri {

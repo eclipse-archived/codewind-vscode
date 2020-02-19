@@ -14,7 +14,6 @@
 import * as vscode from "vscode";
 
 import Connection from "../../codewind/connection/Connection";
-import Requester from "../../codewind/project/Requester";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { PFELogLevels } from "../../codewind/Types";
@@ -22,7 +21,7 @@ import { PFELogLevels } from "../../codewind/Types";
 export async function setLogLevelCmd(connection: Connection): Promise<void> {
     let levelsResponse: PFELogLevels;
     try {
-        levelsResponse = await Requester.getPFELogLevels(connection);
+        levelsResponse = await connection.requester.getPFELogLevels();
     }
     catch (err) {
         const errMsg = `Failed to retrieve log levels`;
@@ -58,7 +57,7 @@ export async function setLogLevelCmd(connection: Connection): Promise<void> {
         }
         // look up the selected level by index to get the level we can send back to PFE
         const selectedLevel = levelsSorted[selected.index];
-        await Requester.setPFELogLevel(connection, selectedLevel);
+        await connection.requester.setPFELogLevel(selectedLevel);
         vscode.window.showInformationMessage(`Set server logging level for ${connection.label} to ${selected.label}`);
     }
     catch (err) {

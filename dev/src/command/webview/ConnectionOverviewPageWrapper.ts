@@ -21,7 +21,7 @@ import WebviewUtil from "./WebviewUtil";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import MCUtil from "../../MCUtil";
 import { URL } from "url";
-import Requester from "../../codewind/project/Requester";
+import Requester from "../../codewind/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
 import manageRegistriesCmd from "../connection/ManageRegistriesCmd";

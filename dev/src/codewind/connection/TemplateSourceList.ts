@@ -1,6 +1,5 @@
 import Connection from "./Connection";
 import { CLICommandRunner } from "./CLICommandRunner";
-import Requester from "../project/Requester";
 import { TemplateSource, SourceEnablement } from "../Types";
 
 export enum SourceProjectStyles {
@@ -67,7 +66,7 @@ export default class TemplateSourcesList {
     }
 
     public async toggleEnablement(enablement: SourceEnablement): Promise<TemplateSource[]> {
-        await Requester.toggleSourceEnablement(this.connection, enablement);
+        await this.connection.requester.toggleSourceEnablement(enablement);
         return this.get(true);
     }
 

@@ -20,7 +20,14 @@ import Project from "../../codewind/project/Project";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 
 export default async function removeProjectCmd(project: Project): Promise<void> {
-    await removeProject(project, undefined);
+    try {
+        await removeProject(project, undefined);
+    }
+    catch (err) {
+        const errMsg = `Failed to remove ${project.name}`;
+        Log.e(errMsg, err);
+        vscode.window.showInformationMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+    }
 }
 
 /**

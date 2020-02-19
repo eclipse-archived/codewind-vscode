@@ -14,7 +14,6 @@ import * as vscode from "vscode";
 import Connection from "./Connection";
 import manageRegistriesCmd from "../../command/connection/ManageRegistriesCmd";
 import InputUtil from "../../InputUtil";
-import Requester from "../project/Requester";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import ProjectType from "../project/ProjectType";
@@ -124,7 +123,7 @@ namespace RegistryUtils {
             location: vscode.ProgressLocation.Notification,
             title: `Creating registry secret for ${username} @ ${address}...`,
         }, async () => {
-            const newRegistry_ = await Requester.addRegistrySecret(connection, address, username, password);
+            const newRegistry_ = await connection.requester.addRegistrySecret(address, username, password);
             Log.i(`Successfully added image registry ${address}`);
             return newRegistry_;
         });
@@ -247,7 +246,7 @@ namespace RegistryUtils {
         }
         newPushRegistry.namespace = namespace;
 
-        const setPushProm = Requester.setPushRegistry(connection, newPushRegistry);
+        const setPushProm = connection.requester.setPushRegistry(newPushRegistry);
         if (showProgress) {
             await vscode.window.withProgress({
                 cancellable: false,

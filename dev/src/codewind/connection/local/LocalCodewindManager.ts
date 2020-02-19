@@ -21,7 +21,7 @@ import CodewindEventListener from "../CodewindEventListener";
 import ConnectionManager from "../ConnectionManager";
 import { getOcticon, Octicons } from "../../../constants/CWImages";
 import Commands from "../../../constants/Commands";
-import Requester from "../../project/Requester";
+import Requester from "../../Requester";
 import CWDocs from "../../../constants/CWDocs";
 
 const CHE_CW_URL = "https://localhost:9090";

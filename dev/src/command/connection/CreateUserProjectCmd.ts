@@ -15,7 +15,6 @@ import * as path from "path";
 import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
-import Requester from "../../codewind/project/Requester";
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
@@ -274,7 +273,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
 }
 
 async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & CWTemplateData> | undefined>  {
-    const templates = await Requester.getTemplates(connection);
+    const templates = await connection.requester.getTemplates();
     Log.d(`Finished GETing templates`);
     // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
     const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
