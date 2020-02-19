@@ -96,6 +96,10 @@ export class SourcesPageWrapper extends WebviewWrapper {
                 remoteConnectionOverviewCmd(this.connection);
                 break;
             }
+            case CommonWVMessages.OPEN_WEBLINK: {
+                WebviewUtil.openWeblink(msg.data);
+                break;
+            }
             default: {
                 Log.e("Received unknown event from manage templates webview:", msg);
             }

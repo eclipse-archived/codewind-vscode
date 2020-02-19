@@ -148,7 +148,7 @@ function buildRow(rp: WebviewResourceProvider, source: TemplateSource): string {
 
     return `
     <tr>
-        <td class="name-cell"><a href="${source.url}">${name}</a></td>
+        <td class="name-cell"><a title="${source.url}" onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${source.url}')">${name}</a></td>
         <td class="style-cell">${source.projectStyles.join(", ")}</td-->
         <td class="descr-cell">${descr}</td>
         ${WebviewUtil.buildToggleTD(rp, source.enabled, toggleTitle, source.url)}

@@ -54,6 +54,10 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
 
     protected handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
         switch (msg.type as ProjectOverviewWVMessages | CommonWVMessages) {
+            case CommonWVMessages.OPEN_WEBLINK: {
+                WebviewUtil.openWeblink(msg.data);
+                break;
+            }
             case ProjectOverviewWVMessages.OPEN_FOLDER: {
                 const targetPath: string = msg.data;
                 const uri = vscode.Uri.file(targetPath);
