@@ -12,26 +12,28 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
+import { URL } from "url";
 
+import Log from "../../Logger";
+import MCUtil from "../../MCUtil";
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import { ThemelessImages } from "../../constants/CWImages";
 import getConnectionInfoHtml from "./pages/ConnectionOverviewPage";
-import Log from "../../Logger";
 import WebviewUtil from "./WebviewUtil";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
-import MCUtil from "../../MCUtil";
-import { URL } from "url";
-import Requester from "../../codewind/Requester";
 import removeConnectionCmd from "../connection/RemoveConnectionCmd";
 import toggleConnectionEnablementCmd from "../connection/ToggleConnectionEnablement";
 import manageRegistriesCmd from "../connection/ManageRegistriesCmd";
 import manageSourcesCmd from "../connection/ManageSourcesCmd";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
+import Requester from "../../codewind/Requester";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
     SAVE_CONNECTION_INFO = "save-connection",
     TOGGLE_CONNECTED = "toggleConnected",
+    TOGGLE_STARTED = "toggleStarted",
+    TOGGLE_FINISHED = "toggleFinished",
     DELETE = "delete",
     CANCEL = "cancel",
     REGISTRY = "registry",
@@ -47,18 +49,14 @@ interface ConnectionInfoFields {
     readonly password?: string;
 }
 
-export type ConnectionOverviewFields = { label: string } & ConnectionInfoFields;
-
 export default class ConnectionOverviewWrapper extends WebviewWrapper {
-
-    private readonly label: string;
     /**
      * The Connection we are showing the info for. If it's undefined, we are creating a new connection.
      */
     private connection: RemoteConnection | undefined;
 
     public static showForNewConnection(label: string, openToSide: boolean): ConnectionOverviewWrapper {
-        return new ConnectionOverviewWrapper({ label }, openToSide);
+        return new ConnectionOverviewWrapper(label, openToSide);
     }
 
     public static showForExistingConnection(connection: RemoteConnection): ConnectionOverviewWrapper {
@@ -66,19 +64,21 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
             connection.overviewPage.reveal();
             return connection.overviewPage;
         }
-        return new ConnectionOverviewWrapper(connection.cliData, false, connection);
+        return new ConnectionOverviewWrapper(connection.label, false, connection);
     }
 
     /////
 
     private constructor(
-        connectionInfo: ConnectionOverviewFields,
+        private readonly label: string,
         openToSide: boolean,
         connection?: RemoteConnection,
     ) {
-        super(connectionInfo.label, ThemelessImages.Logo, openToSide ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active);
-        this.label = connectionInfo.label;
+        super(label, ThemelessImages.Logo, true, openToSide ? vscode.ViewColumn.Beside : vscode.ViewColumn.Active);
         this.connection = connection;
+        if (connection) {
+            connection.onDidOpenOverview(this);
+        }
         this.refresh();
     }
 
@@ -87,12 +87,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
     }
 
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
-        let isConnnected = false;
-        if (this.connection) {
-            isConnnected = this.connection.isConnected;
-        }
-        const connectionInfo = this.connection ? this.connection.cliData : { label: this.label };
-        return getConnectionInfoHtml(resourceProvider, connectionInfo, isConnnected);
+        return getConnectionInfoHtml(resourceProvider, this.label, this.connection);
     }
 
     protected onDidDispose(): void {
@@ -100,104 +95,97 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
     }
 
     protected readonly handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> => {
-        try {
-            switch (msg.type) {
-                case ConnectionOverviewWVMessages.HELP: {
-                    vscode.window.showInformationMessage("Help about this page");
-                    break;
-                }
-                case ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO: {
-                    const newInfo: ConnectionOverviewFields = msg.data;
-                    if (this.connection) {
-                        if (!newInfo.username) {
-                            vscode.window.showErrorMessage(`Enter a username`);
-                        }
-                        else if (!newInfo.password) {
-                            vscode.window.showErrorMessage(`Enter a password`);
-                        }
-                        else {
-                            try {
-                                await this.connection.updateCredentials(newInfo.username, newInfo.password);
-                            }
-                            catch (err) {
-                                const errMsg = `Error updating ${this.connection.label}:`;
-                                vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
-                                Log.e(errMsg, err);
-                            }
-                            this.refresh();
-                        }
+        switch (msg.type) {
+            case ConnectionOverviewWVMessages.HELP: {
+                vscode.window.showInformationMessage("Help about this page");
+                break;
+            }
+            case ConnectionOverviewWVMessages.SAVE_CONNECTION_INFO: {
+                const newInfo: ConnectionInfoFields = msg.data;
+                if (this.connection) {
+                    if (!newInfo.username) {
+                        vscode.window.showErrorMessage(`Enter a username`);
+                    }
+                    else if (!newInfo.password) {
+                        vscode.window.showErrorMessage(`Enter a password`);
                     }
                     else {
                         try {
-                            const newConnection = await this.createNewConnection(newInfo, this.label);
-                            this.connection = newConnection;
-                            this.connection.onDidOpenOverview(this);
-                            vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newConnection.url}`);
-                            this.refresh();
+                            await this.connection.updateCredentials(newInfo.username, newInfo.password);
                         }
                         catch (err) {
-                            // the err from createNewConnection is user-friendly
-                            Log.w(`Error creating new connection to ${newInfo.url}`, err);
-                            vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
+                            const errMsg = `Error updating ${this.connection.label}:`;
+                            vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+                            Log.e(errMsg, err);
                         }
-                    }
-                    break;
-                }
-                case ConnectionOverviewWVMessages.TOGGLE_CONNECTED: {
-                    if (this.connection) {
-                        await toggleConnectionEnablementCmd(this.connection, !this.connection.enabled);
-                    }
-                    else {
-                        Log.e("Received Toggle Connected event but there is no connection");
-                    }
-                    break;
-                }
-                case ConnectionOverviewWVMessages.CANCEL: {
-                    if (this.connection) {
                         this.refresh();
-                    } else {
+                    }
+                }
+                else {
+                    try {
+                        const newConnection = await this.createNewConnection(newInfo, this.label);
+                        this.connection = newConnection;
+                        this.connection.onDidOpenOverview(this);
+                        vscode.window.showInformationMessage(`Successfully created new connection ${this.label} to ${newConnection.url}`);
+                        this.refresh();
+                    }
+                    catch (err) {
+                        // the err from createNewConnection is user-friendly
+                        Log.w(`Error creating new connection to ${newInfo.url}`, err);
+                        vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
+                    }
+                }
+                break;
+            }
+            case ConnectionOverviewWVMessages.TOGGLE_CONNECTED: {
+                if (this.connection) {
+                    await toggleConnectionEnablementCmd(this.connection, !this.connection.enabled);
+                }
+                else {
+                    Log.e("Received Toggle Connected event but there is no connection");
+                }
+                break;
+            }
+            case ConnectionOverviewWVMessages.CANCEL: {
+                if (this.connection) {
+                    this.refresh();
+                } else {
+                    this.dispose();
+                }
+                break;
+            }
+            case ConnectionOverviewWVMessages.DELETE: {
+                if (this.connection) {
+                    const didRemove = await removeConnectionCmd(this.connection);
+                    if (didRemove) {
                         this.dispose();
                     }
-                    break;
                 }
-                case ConnectionOverviewWVMessages.DELETE: {
-                    if (this.connection) {
-                        const didRemove = await removeConnectionCmd(this.connection);
-                        if (didRemove) {
-                            this.dispose();
-                        }
-                    }
-                    else {
-                        vscode.window.showInformationMessage(`Creating new connection cancelled`);
-                    }
-                    break;
+                else {
+                    vscode.window.showInformationMessage(`Creating new connection cancelled`);
                 }
-
-                case ConnectionOverviewWVMessages.REGISTRY: {
-                    if (this.connection) {
-                        manageRegistriesCmd(this.connection);
-                    } else {
-                        vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
-                    }
-                    break;
-                }
-
-                case ConnectionOverviewWVMessages.SOURCES: {
-                    if (this.connection) {
-                        manageSourcesCmd(this.connection);
-                    } else {
-                        vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
-                    }
-                    break;
-                }
-                default:
-                    Log.e("Received unexpected WebView message in Connection Overview page", msg);
+                break;
             }
-        }
-        catch (err) {
-            const errMsg = `Connection Overview error: ${MCUtil.errToString(err)}`;
-            vscode.window.showErrorMessage(errMsg);
-            Log.e(errMsg, err);
+
+            case ConnectionOverviewWVMessages.REGISTRY: {
+                if (this.connection) {
+                    manageRegistriesCmd(this.connection);
+                } else {
+                    vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
+                }
+                break;
+            }
+
+            case ConnectionOverviewWVMessages.SOURCES: {
+                if (this.connection) {
+                    manageSourcesCmd(this.connection);
+                } else {
+                    vscode.window.showInformationMessage("Create your new connection by pressing Save before proceeding to the next step.");
+                }
+                break;
+            }
+            default:
+                Log.e("Received unexpected WebView message in Connection Overview page", msg);
         }
     }
 
@@ -250,4 +238,11 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
         });
     }
 
+    public onToggleStatusChanged(): void {
+        const msg = this.connection?.isTogglingEnablement() ?
+            ConnectionOverviewWVMessages.TOGGLE_STARTED :
+            ConnectionOverviewWVMessages.TOGGLE_FINISHED;
+
+        this.webPanel.webview.postMessage(msg);
+    }
 }

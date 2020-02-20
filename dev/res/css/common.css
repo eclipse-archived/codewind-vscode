@@ -121,7 +121,12 @@ a {
     border-color: var(--disabled-btn-color);
 }
 
-.btn-disabled:hover, .btn-disabled:focus, .not-allowed:hover, .not-allowed:focus {
+.btn-disabled:hover, .not-allowed:hover {
+    text-decoration: none;
+    cursor: not-allowed;
+}
+
+.btn-disabled:focus, .not-allowed:focus {
     text-decoration: none;
     cursor: not-allowed;
     outline: var(--disabled-btn-color) solid 1px;
