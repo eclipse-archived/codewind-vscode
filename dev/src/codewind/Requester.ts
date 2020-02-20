@@ -78,20 +78,25 @@ export default class Requester {
     }
 
     /**
+     * Ping the given url but treat 502 and 503 responses as failures.
+     * From a kube cluster, these mean the hostname is wrong, the ingress/route does not exist,
+     * the pod pointed to by an ingress is still starting up, etc.
+     */
+    public static async pingKube(url: string | vscode.Uri, timeoutMS: number): Promise<boolean> {
+        return this.ping(url, timeoutMS, 502, 503);
+    }
+
+    /**
      * Try to connect to the given URL. Returns true if any response is returned that does not have one of the `rejectedStatusCodes`.
      */
-    public static async ping(url: string | vscode.Uri, timeoutS: number = 10, ...rejectStatusCodes: number[]): Promise<boolean> {
-        // We treat 502, 503 as failures, because from a kube cluster it means the hostname is wrong, the ingress/route does not exist,
-        // the pod pointed to by an ingress is still starting up, etc.
-        rejectStatusCodes.concat([ 502, 503 ]);
-
+    public static async ping(url: string | vscode.Uri, timeoutMS: number, ...rejectStatusCodes: number[]): Promise<boolean> {
         // Log.d(`Ping ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
 
         try {
-            await this.req("GET", url, { timeout: timeoutS * 1000 });
+            await this.req("GET", url, { timeout: timeoutMS });
             // It succeeded
             return true;
         }

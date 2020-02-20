@@ -69,7 +69,7 @@ export default class RemoteConnection extends Connection {
         // https://github.com/eclipse/codewind/issues/1547
         let canPing = false;
         try {
-            canPing = await Requester.ping(this.url);
+            canPing = await Requester.pingKube(this.url, 5000);
         }
         catch (err) {
             // ping failed
