@@ -164,7 +164,7 @@ export default class LocalCodewindManager {
         const waitingForReadyProm = new Promise<boolean>((resolve) => {
             const interval = setInterval(async () => {
                 tries++;
-                const pingResult = await Requester.ping(CHE_CW_URL, delayS);
+                const pingResult = await Requester.ping(CHE_CW_URL, delayS * 1000);
                 if (pingResult) {
                     clearInterval(interval);
                     return resolve(true);

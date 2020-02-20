@@ -212,19 +212,14 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
         Log.d("Ingress host is", newConnectionInfo.url);
 
         let ingressUrlStr = newConnectionInfo.url.trim();
-        try {
-            if (!ingressUrlStr.includes("://")) {
-                Log.d(`No protocol; assuming https`);
-                ingressUrlStr = `https://${ingressUrlStr}`;
-            }
-
-            const ingressAsUrl = new URL(ingressUrlStr);
-            if (!ingressAsUrl.protocol.startsWith("https")) {
-                throw new Error(`Protocol must be https, or omitted.`);
-            }
+        if (!ingressUrlStr.includes("://")) {
+            Log.d(`No protocol; assuming https`);
+            ingressUrlStr = `https://${ingressUrlStr}`;
         }
-        catch (err) {
-            throw new Error(`"${ingressUrlStr}" is not a valid URL: ${MCUtil.errToString(err)}`);
+
+        const ingressAsUrl = new URL(ingressUrlStr);
+        if (!ingressAsUrl.protocol.startsWith("https")) {
+            throw new Error(`Protocol must be https, or omitted.`);
         }
 
         if (!newConnectionInfo.username) {
@@ -244,7 +239,7 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
             location: vscode.ProgressLocation.Notification,
             title: `Creating ${label}...`,
         }, async () => {
-            const canPing = await Requester.ping(ingressUrl);
+            const canPing = await Requester.pingKube(ingressUrl, 5000);
 
             if (!canPing) {
                 throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
