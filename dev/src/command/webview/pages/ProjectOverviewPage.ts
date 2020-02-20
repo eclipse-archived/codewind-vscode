@@ -74,6 +74,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 <td>
                     <input id="auto-build-toggle" type="checkbox" class="btn"
                         onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}')"
+                        title="Toggle Auto Build"
                         ${project.autoBuildEnabled ? "checked" : ""}
                         ${project.state.isEnabled ? " " : " disabled"}
                     />
@@ -84,6 +85,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 <td>
                     <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
                         onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}')"
+                        title="${project.canInjectMetrics ? "Toggle Inject Appmetrics" : "Not supported for this project type"}"
                         ${project.isInjectingMetrics ? "checked" : ""}
                         ${project.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
                     />

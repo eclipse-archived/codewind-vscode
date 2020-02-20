@@ -13,30 +13,33 @@
 
 import { ThemedImages, ThemelessImages } from "../../../constants/CWImages";
 import WebviewUtil from "../WebviewUtil";
-import { ConnectionOverviewWVMessages, ConnectionOverviewFields } from "../ConnectionOverviewPageWrapper";
+import { ConnectionOverviewWVMessages } from "../ConnectionOverviewPageWrapper";
 import CWDocs from "../../../constants/CWDocs";
 import { WebviewResourceProvider } from "../WebviewWrapper";
+import RemoteConnection from "../../../codewind/connection/RemoteConnection";
 
-export default function getConnectionInfoHtml(rp: WebviewResourceProvider, connectionInfo: ConnectionOverviewFields, isConnected: boolean): string {
+export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label: string, connection: RemoteConnection | undefined): string {
     // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
-    const connectionExists = !!connectionInfo.url;
+    const connectionExists = connection != null;
+    const isConnected = connection != null && connection.isConnected;
+
     return `
     <!DOCTYPE html>
     <html>
     ${WebviewUtil.getHead(rp, "connection-overview.css")}
     <body>
-    <div style="margin-top: 60px">
+    <div id="content">
     <div id="top-section">
         <div class="title-section">
             <img id="connection-logo" alt="Codewind Logo"
                 src="${isConnected ? rp.getImage(ThemedImages.Connection_Connected) : rp.getImage(ThemedImages.Connection_Disconnected)}"/>
-            <div id="remote-connection-name" class="connection-name">${connectionInfo.label}</div>
+            <div id="remote-connection-name" class="connection-name">${label}</div>
         </div>
     </div>
     <!--div id="description">
         <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
     </div-->
-    <div id="main" style="margin-top: 25px;">
+    <div id="main">
         <div style="display: inline-block;">
             <div id="deployment-box">
                 <h3>1. Codewind Connection
@@ -58,18 +61,18 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                         :
                         `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
                     }
-                    <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.url}</div>
+                    <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connection?.url}</div>
                     <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
                         ${connectionExists ? "style='display: none;'" : ""}
-                        value="${connectionInfo.url ? connectionInfo.url : ""}"/>
+                        value="${connection?.url ? connection.url : ""}"/>
 
                     <div style="float: left; margin-top: 40px">
                         <label class="info-label" for="input-username">Username</label>
-                        <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connectionInfo.username}</div>
+                        <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connection?.username}</div>
                         <input type="text" id="ingress-username" class="input-username" name="ingress-username"
                             ${connectionExists ? "style='display: none;'" : ""}
                             placeholder="developer"
-                            value="${connectionInfo.username || ""}"/>
+                            value="${connection?.username || ""}"/>
                     </div>
                     <div style="overflow: hidden; margin-top: 40px">
                         <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
@@ -115,11 +118,15 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
                 <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
                     ${connectionExists ? `style="display: none;"` : `style="display: inline; float: left; margin-left: 0px"`}>Save
                 </button>
-                <button type="button" id="edit-btn" class="btn btn-prominent" onclick="editConnection()"
+                <button type="button" id="edit-btn"
+                    class="btn btn-prominent"
+                    onclick="editConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>
                     <div>Edit <img src="${rp.getImage(ThemedImages.Edit, "dark")}"/></div>
                 </button>
-                <button type="button" id="toggle-connect-btn" class="btn btn-background" onclick="toggleConnection()"
+                <button type="button" id="toggle-connect-btn"
+                    class="btn btn-background"
+                    onclick="toggleConnection()"
                     ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}
                 </button>
                 <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}" onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
@@ -130,6 +137,40 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
     </div>
 </div>
     <script>
+        const submitOnEnter = (ev) => {
+            if (ev.key === "Enter") {
+                submitNewConnection();
+            }
+        };
+
+        const ingressInput  = document.querySelector("#ingress-url");
+        const usernameInput = document.querySelector("#ingress-username");
+        const passwordInput = document.querySelector("#input-password");
+
+        ingressInput.addEventListener("keyup", submitOnEnter);
+        usernameInput.addEventListener("keyup", submitOnEnter);
+        passwordInput.addEventListener("keyup", submitOnEnter);
+
+        function copyURL(e) {
+            const url = document.querySelector("#ingress-url")
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = url.value;
+
+            let copiedURLToolTip = document.getElementById('copy_url_tooltip');
+            copiedURLToolTip.style.display = "inline";
+            copiedURLToolTip.style.position = "absolute";
+            copiedURLToolTip.style.left = e.pageX + 25 + 'px';
+            copiedURLToolTip.style.top = e.pageY - 10 +'px';
+
+            setTimeout(() => { copiedURLToolTip.style.display = "none"; }, 1000);
+
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+
+            document.body.removeChild(tempTextArea);
+        }
+
         const vscode = acquireVsCodeApi();
 
         function submitNewConnection() {
@@ -143,8 +184,8 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             }
 
             // If none of the fields changed, treat it the same as a cancel
-            if (ingressInput === '${connectionInfo.url}'
-                && ingressUsername === '${connectionInfo.username}'
+            if (ingressInput === '${connection?.url}'
+                && ingressUsername === '${connection?.username}'
                 && !ingressPassword) {
 
                 sendMsg("${ConnectionOverviewWVMessages.CANCEL}");
@@ -173,47 +214,34 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             // document.querySelector("#test-btn").style.display = "inline";
         }
 
-        let passwordInput = document.querySelector("#input-password");
-        passwordInput.addEventListener("keyup", (ev) => {
-            if (ev.key === "Enter") {
-               submitNewConnection();
-            }
-        });
-
-        let usernameInput = document.querySelector("#ingress-username");
-        usernameInput.addEventListener("keyup", (ev) => {
-            if (ev.key === "Enter") {
-               submitNewConnection();
-            }
-        });
-
-        function copyURL(e) {
-            const url = document.querySelector("#ingress-url")
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = url.value;
-
-            let copiedURLToolTip = document.getElementById('copy_url_tooltip');
-            copiedURLToolTip.style.display = "inline";
-            copiedURLToolTip.style.position = "absolute";
-            copiedURLToolTip.style.left = e.pageX + 25 + 'px';
-            copiedURLToolTip.style.top = e.pageY - 10 +'px';
-
-            setTimeout(function(){ copiedURLToolTip.style.display = "none"; }, 1000);
-
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-
-            document.execCommand('copy');
-
-            document.body.removeChild(tempTextArea);
+        function deleteConnection() {
+            sendMsg("${ConnectionOverviewWVMessages.DELETE}");
         }
 
         function toggleConnection() {
             sendMsg("${ConnectionOverviewWVMessages.TOGGLE_CONNECTED}");
         }
 
-        function deleteConnection() {
-            sendMsg("${ConnectionOverviewWVMessages.DELETE}");
+        const disabledBtnClass = "btn-disabled";
+
+        function onIsToggling() {
+            const editBtn = document.querySelector("#edit-btn");
+            const toggleConnectBtn = document.querySelector("#toggle-connect-btn");
+            [ editBtn, toggleConnectBtn ].forEach((element) => {
+                // Disable these buttons until the toggle operation finishes (at which point the page will refresh)
+                element.onclick = "";
+                element.classList.add(disabledBtnClass);
+            });
+        }
+
+        function onFinishedToggling() {
+            const editBtn = document.querySelector("#edit-btn");
+            editBtn.classList.remove(disabledBtnClass);
+            editBtn.onclick = editConnection;
+
+            const toggleConnectBtn = document.querySelector("#toggle-connect-btn");
+            toggleConnectBtn.classList.remove(disabledBtnClass);
+            toggleConnectBtn.onclick = toggleConnection;
         }
 
         function sendMsg(type, data = undefined) {
@@ -222,6 +250,16 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, conne
             // console.log("Send message " + JSON.stringify(msg));
             vscode.postMessage(msg);
         }
+
+        window.addEventListener('message', (event) => {
+            const message = event.data;
+            if (message === "${ConnectionOverviewWVMessages.TOGGLE_STARTED}") {
+                onIsToggling();
+            }
+            else if (message === "${ConnectionOverviewWVMessages.TOGGLE_FINISHED}") {
+                onFinishedToggling();
+            }
+        });
     </script>
 
     </body>

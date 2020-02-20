@@ -63,7 +63,7 @@ export class UsefulExtensionsPageWrapper extends WebviewWrapper {
     constructor(
 
     ) {
-        super(`Useful Extensions`, ThemelessImages.Logo, vscode.ViewColumn.Beside);
+        super(`Useful Extensions`, ThemelessImages.Logo, false, vscode.ViewColumn.Beside);
         UsefulExtensionsPageWrapper._instance = this;
         this.refresh();
     }

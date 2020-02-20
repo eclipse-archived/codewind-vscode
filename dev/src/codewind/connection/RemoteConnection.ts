@@ -23,6 +23,8 @@ import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";
 import { AccessToken, CLIConnectionData } from "../Types";
 
+type ToggleOperation = "connecting" | "disconnecting" | undefined;
+
 export default class RemoteConnection extends Connection {
 
     private _username: string;
@@ -36,7 +38,7 @@ export default class RemoteConnection extends Connection {
     /**
      * Do not allow toggling (enabling or disabling) the connection when a toggle is already in progress
      */
-    private currentToggleOperation: "connecting" | "disconnecting" | undefined;
+    private currentToggleOperation: ToggleOperation;
 
     constructor(
         ingressUrl: vscode.Uri,
@@ -47,10 +49,10 @@ export default class RemoteConnection extends Connection {
     }
 
     public async enable(): Promise<void> {
-        if (!this.shouldToggle()) {
+        if (!this.changeTogglingEnablement("connecting")) {
             return;
         }
-        this.currentToggleOperation = "connecting";
+
         try {
             await this.enableInner();
         }
@@ -58,7 +60,7 @@ export default class RemoteConnection extends Connection {
             throw err;
         }
         finally {
-            this.currentToggleOperation = undefined;
+            this.changeTogglingEnablement(undefined);
         }
     }
 
@@ -96,10 +98,10 @@ export default class RemoteConnection extends Connection {
     }
 
     public async disable(): Promise<void> {
-        if (!this.shouldToggle()) {
+        if (!this.changeTogglingEnablement("disconnecting")) {
             return;
         }
-        this.currentToggleOperation = "disconnecting";
+
         try {
             await super.disable();
             this._accessToken = undefined;
@@ -109,7 +111,7 @@ export default class RemoteConnection extends Connection {
             throw err;
         }
         finally {
-            this.currentToggleOperation = undefined;
+            this.changeTogglingEnablement(undefined);
         }
     }
 
@@ -168,15 +170,27 @@ export default class RemoteConnection extends Connection {
     }
 
     /**
-     * Returns true if there is NOT currently an enable/disable operation in progress.
-     * If there is one, shows a message, and enable/disable should be blocked by the caller.
+     * @returns if the toggle operation was successfully changed.
      */
-    private shouldToggle(): boolean {
-        if (this.currentToggleOperation) {
+    private changeTogglingEnablement(toggleOperation: ToggleOperation): boolean {
+        if (toggleOperation != null && this.currentToggleOperation) {
             vscode.window.showWarningMessage(`${this.label} is already ${this.currentToggleOperation}.`);
             return false;
         }
+        this.currentToggleOperation = toggleOperation;
+        this._activeOverviewPage?.onToggleStatusChanged();
         return true;
+    }
+
+    /**
+     * Returns true if there IS currently an enable/disable operation in progress.
+     * If there is one, shows a message, and enable/disable should be blocked by the caller.
+     */
+    public isTogglingEnablement(): boolean {
+        if (this.currentToggleOperation) {
+            return true;
+        }
+        return false;
     }
 
     protected setState(newState: ConnectionState): void {
@@ -254,7 +268,7 @@ export default class RemoteConnection extends Connection {
             await super.refresh();
             return;
         }
-        if (!this.shouldToggle()) {
+        if (this.isTogglingEnablement()) {
             return;
         }
         await this.disable();
