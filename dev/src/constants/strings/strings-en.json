@@ -106,26 +106,6 @@
         "noBuildLogsForType": "Build logs are not available for {{ projectType }} projects."
     },
 
-    "requests": {
-        "restartIntoMode": "Restarting into {{ startMode }} mode",
-        "build": "Building",
-        "autoBuildEnable": "Enabling auto build",
-        "autoBuildDisable": "Disabling auto build",
-        "projectEnable": "Enabling",
-        "projectDisable": "Disabling",
-        "generateMissingFiles": "Generating Dockerfile",
-        "unbind": "Unbinding",
-        "updatingSetting": "Updating {{ settingName }} for",
-        "checkingAvailableLogs": "checking available logs",
-        "togglingLogs": "toggling logs {{ onOrOff }}",
-        "checkingMetrics": "checking metrics status",
-        "autoInjectMetricsEnable": "Enabling Codewind Application Metrics injection",
-        "autoInjectMetricsDisable": "Disabling Codewind Application Metrics injection",
-
-        "requestSuccess":   "{{ projectName }}: {{ operationName }}",
-        "requestFail":      "{{ projectName }}: {{ operationName }} failed: {{- err }}"
-    },
-
     "treeView": {
         "connectionLabelSimple": "Projects",
         "connectionLabel": "Projects ({{ label }})",

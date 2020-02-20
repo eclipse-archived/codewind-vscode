@@ -12,10 +12,9 @@
 import { expect } from "chai";
 
 import { SourceProjectStyles } from "../../codewind/connection/TemplateSourceList";
-import Requester from "../../codewind/project/Requester";
+import { SourceEnablement } from "../../codewind/Types";
 
 import { connection } from "../local/LocalStart.test";
-import { SourceEnablement } from "../../codewind/Types";
 
 describe(`Template sources`, function() {
 
@@ -53,7 +52,7 @@ describe(`Template sources`, function() {
         // but now they are not enabled
         const enabledSources = await connection.templateSourcesList.getEnabled();
         expect(enabledSources).to.have.length(0);
-        const templates = await Requester.getTemplates(connection);
+        const templates = await connection.requester.getTemplates();
         // no sources -> no templates
         expect(templates).to.have.length(0);
     });
@@ -86,7 +85,7 @@ describe(`Template sources`, function() {
         expect(enabledStyles).to.not.contain(SourceProjectStyles.APPSODY);
 
         // Templates should have updated to include the codewind templates.
-        const templates = await Requester.getTemplates(connection);
+        const templates = await connection.requester.getTemplates();
         expect(templates).to.have.length.of.at.least(NO_CODEWIND_TEMPLATES);
         // Appsody templates should still be disabled.
         const appsodyTemplates = templates.filter((template) => template.projectType.includes("appsody"));
@@ -116,7 +115,7 @@ describe(`Template sources`, function() {
         expect(enabledStyles).to.contain(SourceProjectStyles.CODEWIND);
         expect(enabledStyles).to.contain(SourceProjectStyles.APPSODY);
 
-        const templates = await Requester.getTemplates(connection);
+        const templates = await connection.requester.getTemplates();
         expect(templates).to.have.length.of.at.least(NO_APPSODY_STACKS);
         const appsodyTemplates = templates.filter((template) => template.projectType.includes("appsody"));
         expect(appsodyTemplates).to.have.length.of.at.least(NO_APPSODY_STACKS);
@@ -129,7 +128,7 @@ describe(`Template sources`, function() {
 
     it(`should add a new template source`, async function() {
         const oldSources = await connection.templateSourcesList.get();
-        const oldTemplates = await Requester.getTemplates(connection);
+        const oldTemplates = await connection.requester.getTemplates();
 
         await connection.templateSourcesList.add(TEST_SOURCE_URL, TEST_SOURCE_NAME, TEST_SOURCE_DESCR);
         const newSources = await connection.templateSourcesList.get();
@@ -141,19 +140,19 @@ describe(`Template sources`, function() {
         expect(newSource.description).to.equal(TEST_SOURCE_DESCR);
         expect(newSource.protected).to.equal(false);
 
-        const newTemplates = await Requester.getTemplates(connection);
+        const newTemplates = await connection.requester.getTemplates();
         expect(newTemplates).to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
     });
 
     it(`should remove the new template source`, async function() {
         const oldSources = await connection.templateSourcesList.get();
-        const oldTemplates = await Requester.getTemplates(connection);
+        const oldTemplates = await connection.requester.getTemplates();
 
         await connection.templateSourcesList.remove(TEST_SOURCE_URL);
         const newSources = await connection.templateSourcesList.get();
         expect(newSources).to.have.length(oldSources.length - 1);
 
-        const newTemplates = await Requester.getTemplates(connection);
+        const newTemplates = await connection.requester.getTemplates();
         expect(newTemplates).to.have.length(oldTemplates.length - TEST_SOURCE_NO_TEMPLATES);
     });
 });

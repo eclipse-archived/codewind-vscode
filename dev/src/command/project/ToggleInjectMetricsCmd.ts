@@ -12,12 +12,11 @@
 import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
-import Requester from "../../codewind/project/Requester";
 
 export default async function toggleInjectMetricsCmd(project: Project): Promise<void> {
     if (!project.canInjectMetrics) {
         vscode.window.showWarningMessage(`This project type does not support Codewind Application Metrics injection.`);
         return;
     }
-    return Requester.requestToggleInjectMetrics(project);
+    return project.toggleInjectMetrics();
 }

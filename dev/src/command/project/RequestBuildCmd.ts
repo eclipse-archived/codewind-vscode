@@ -13,11 +13,6 @@
 
 import Project from "../../codewind/project/Project";
 
-import Log from "../../Logger";
-import Requester from "../../codewind/project/Requester";
-
 export default async function requestBuildCmd(project: Project): Promise<void> {
-    Log.i(`Request build for project ${project.name}`);
-    // await project.sync();
-    await Requester.requestBuild(project);
+    return project.requestBuild();
 }

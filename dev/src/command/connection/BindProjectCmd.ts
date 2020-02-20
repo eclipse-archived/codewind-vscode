@@ -19,7 +19,6 @@ import SocketEvents from "../../codewind/connection/SocketEvents";
 import ProjectType, { IProjectSubtypesDescriptor } from "../../codewind/project/ProjectType";
 import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
-import Requester from "../../codewind/project/Requester";
 import { IDetectedProjectType, IInitializationResponse } from "../../codewind/Types";
 
 export default async function bindProjectCmd(connection: Connection): Promise<void> {
@@ -119,7 +118,7 @@ async function promptForProjectType(connection: Connection, detected: IDetectedP
         location: vscode.ProgressLocation.Notification,
         title: `Fetching project types...`,
     }, () => {
-        return Requester.getProjectTypes(connection);
+        return connection.requester.getProjectTypes();
     });
 
     const projectTypeQpis: Array<vscode.QuickPickItem & { projectType: string; index: number; }> = [];

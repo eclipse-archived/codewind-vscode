@@ -13,9 +13,10 @@ import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
-import Requester from "../../codewind/project/Requester";
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
+import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
+import MCUtil from "../../MCUtil";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
     const capabilities = project.capabilities;
@@ -25,10 +26,6 @@ export default async function restartProjectCmd(project: Project, debug: boolean
         return false;
     }
 
-    const startMode = capabilities.getDefaultStartMode(debug, project.type.type);
-
-    Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
-
     if (project.isRestarting) {
         const alreadyRestartingMsg = Translator.t(StringNamespaces.PROJECT, "alreadyRestarting", { projectName: project.name });
         Log.i(alreadyRestartingMsg);
@@ -36,15 +33,19 @@ export default async function restartProjectCmd(project: Project, debug: boolean
         return false;
     }
 
+    const startMode = capabilities.getDefaultStartMode(debug, project.type.type);
+    const ufStartMode = ProjectCapabilities.getUserFriendlyStartMode(startMode);
+    Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
+
     try {
-        const restartAccepted = await Requester.requestProjectRestart(project, startMode);
-        if (restartAccepted) {
-            return project.doRestart(startMode);
-        }
-        return restartAccepted;
+        await project.doRestart(startMode);
+        vscode.window.showInformationMessage(`Restarting ${project.name} in ${ufStartMode} mode`);
+        return true;
     }
     catch (err) {
-        // requester will display the error
+        const errMsg = `Failed to restart ${project.name} in ${ufStartMode} mode`;
+        Log.e(errMsg, err);
+        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
     }
     return false;
 }

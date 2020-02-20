@@ -11,7 +11,6 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import Requester from "../project/Requester";
 import Log from "../../Logger";
 import Connection from "./Connection";
 import { CWEnvData, RawCWEnvData } from "../Types";
@@ -25,7 +24,7 @@ namespace CWEnvironment {
      * Separate from normal Requester code because we do not yet have a Connection instance at this point.
      */
     export async function getEnvData(connection: Connection): Promise<CWEnvData> {
-        const rawEnv = await Requester.getRawEnvironment(connection);
+        const rawEnv = await connection.requester.getRawEnvironment();
         Log.d("Raw env data:", rawEnv);
         const massaged = massageEnv(rawEnv);
         Log.i("Massaged ENV data", massaged);

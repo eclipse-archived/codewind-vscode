@@ -10,8 +10,7 @@
  *******************************************************************************/
 
 import Project from "../../codewind/project/Project";
-import Requester from "../../codewind/project/Requester";
 
 export default async function toggleAutoBuildCmd(project: Project): Promise<void> {
-    return Requester.requestToggleAutoBuild(project);
+    return project.toggleAutoBuild();
 }

@@ -121,7 +121,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
             await this.refresh();
         }
         catch (err) {
-            vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`, err);
+            vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`);
             Log.e(`Error adding new template repo ${JSON.stringify(repoInfo)}`, err);
         }
     }
