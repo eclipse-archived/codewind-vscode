@@ -106,6 +106,7 @@ export const ThemedImages = {
     Help:   new CWImage(true, "help"),
     Info:   new CWImage(true, "info"),
     New:    new CWImage(true, "new"),
+    Save:   new CWImage(true, "save"),
 
     Extensions: new CWImage(true, "extensions"),
     Launch:     new CWImage(true, "launch"),
