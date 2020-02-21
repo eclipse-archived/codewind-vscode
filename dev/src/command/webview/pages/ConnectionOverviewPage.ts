@@ -18,8 +18,9 @@ import CWDocs from "../../../constants/CWDocs";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import RemoteConnection from "../../../codewind/connection/RemoteConnection";
 
+const BTN_DISPLAY = "inline-flex";
+
 export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label: string, connection: RemoteConnection | undefined): string {
-    // If the ingress URL has been saved, then we have created the connection and we are now viewing or editing it.
     const connectionExists = connection != null;
     const isConnected = connection != null && connection.isConnected;
 
@@ -36,115 +37,152 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
             <div id="remote-connection-name" class="connection-name">${label}</div>
         </div>
     </div>
-    <!--div id="description">
-        <input id="description-text" class="bx--text-input-description" placeholder="Description about this remote connection that the user might use for some reason"/>
-    </div-->
     <div id="main">
-        <div style="display: inline-block;">
-            <div id="deployment-box">
-                <h3>1. Codewind Connection
-                    <div id="learn-more-btn-remote">
-                        <a tabindex="-1" href="${CWDocs.REMOTE_UI.uri}">
+        <div id="connection-box" class="box">
+            <h3>1. Codewind Connection
+                <div class="learn-more-btn-container">
+                    <a tabindex="-1" href="${CWDocs.REMOTE_UI.uri}">
+                        <input type="image" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
+                    </a>
+                </div>
+                ${isConnected ? `<img id="connected-status" alt="Connected" src="${rp.getImage(ThemelessImages.Connected_Checkmark)}"/>` :
+                    `<img id="connected-status" alt="Disconnected" src="${rp.getImage(ThemelessImages.Disconnected_Checkmark)}"/>`
+                }
+            </h3>
+            <div class="box-content">
+                <p ${connectionExists ? "style='display: none;'" : ""}>Enter the URL to your Codewind Gatekeeper ingress.</p>
+                <div>
+                    <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
+                    ${connectionExists ? `
+                        <input type="image" id="copy-url-btn" onclick="copyURL(event)" title="Copy URL" alt="Copy URL" src="${rp.getImage(ThemedImages.Copy)}"/>
+                        <div id="copy-url-btn-tooltip" style="display: none">Copied!</div>`
+                        : ""
+                    }
+                </div>
+                <a id="url" style="${connectionExists ? "" : "display: none"}" href="${connection?.url}">${connection?.url}</a>
+                <input type="text" id="input-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
+                    ${connectionExists ? "style='display: none;'" : ""}
+                    value="${connection?.url ? connection.url : ""}"/>
+
+                <div id="credentials-section" style="display: ${connectionExists ? "none" : "inline-flex"}">
+                    <div id="username-input-section" class="input-section">
+                        <label class="info-label" for="input-username">Username</label>
+                        <input type="text" id="input-username" name="ingress-username"
+                            class="input-username"
+                            placeholder="developer"
+                            value="${connection?.username || ""}"
+                        />
+                    </div>
+                    <div id="password-input-section" class="input-section">
+                        <label class="info-label" for="input-password">Password</label>
+                        <input type="password" id="input-password" class="input-password" name="ingress-password"/>
+                    </div>
+                </div>
+                <div id="saved-info-section" style="display: ${connectionExists ? "block" : "none"}">
+                    <div class="saved-info">
+                        <div class="info-label">Username</div>
+                        <div>${connection?.username}</div>
+                    </div>
+                    <div class="saved-info">
+                        <div class="info-label">Version</div>
+                        <div>${connection?.version}</div>
+                    </div>
+                    <div class="saved-info">
+                        <div class="info-label">Namespace</div>
+                        <div>${connection?.namespace}</div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End connection box -->
+
+        <div id="link-container-boxes">
+            <div class="box link-container-box">
+                <h3>2. Select Sources
+                    <div class="learn-more-btn-container">
+                        <a tabindex="-1" href="${CWDocs.TEMPLATE_MANAGEMENT.uri}">
                             <input type="image" class="learn-more-btn" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
                         </a>
                     </div>
-                    ${isConnected ? `<img alt="Connected" src="${rp.getImage(ThemelessImages.Connected_Checkmark)}"/>` :
-                        `<img alt="Disconnected" src="${rp.getImage(ThemelessImages.Disconnected_Checkmark)}"/>`
-                    }
                 </h3>
-                <div class="input-section">
-                    <p ${connectionExists ? "style='display: none;'" : ""}>Enter the URL to your Codewind Gatekeeper ingress.</p>
-                    ${connectionExists ? `
-                        <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
-                        <input type="image" id="copy_url" onclick="copyURL(event)" alt="Copy URL" src="${rp.getImage(ThemedImages.Copy)}"/>
-                        <div id="copy_url_tooltip">Copied!</div>`
-                        :
-                        `<label class="info-label" for="input-url">Codewind Gatekeeper URL</label>`
-                    }
-                    <div id="url" ${connectionExists ? "" : "style='display: none;'"}>${connection?.url}</div>
-                    <input type="text" id="ingress-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
-                        ${connectionExists ? "style='display: none;'" : ""}
-                        value="${connection?.url ? connection.url : ""}"/>
-
-                    <div style="float: left; margin-top: 40px">
-                        <label class="info-label" for="input-username">Username</label>
-                        <div id="ingress-username-label" ${connectionExists ? "" : "style='display: none;'"}>${connection?.username}</div>
-                        <input type="text" id="ingress-username" class="input-username" name="ingress-username"
-                            ${connectionExists ? "style='display: none;'" : ""}
-                            placeholder="developer"
-                            value="${connection?.username || ""}"/>
-                    </div>
-                    <div style="overflow: hidden; margin-top: 40px">
-                        <div id="input-password" ${connectionExists ? "style='display: none;'" : ""}>
-                            <label class="info-label" for="input-password" style="margin-left: 11px;">Password</label>
-                            <input type="password" id="ingress-password" class="input-password" name="ingress-password"/>
-                        </div>
-                    </div>
-                    <!--div type="button" id="test-btn" class="btn btn-prominent" ${connectionExists ? "style='display: none;'" : ""} onclick="testNewConnection()">Test</div-->
-                </div>
-            </div>
-
-            <div class="link-containers">
-                <div class="link-containers-group">
-                <div id="link-container-box">
-                    <h3>2. Select Sources
-                        <a tabindex="-1" href="${CWDocs.TEMPLATE_MANAGEMENT.uri}">
-                            <input type="image" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
-                        </a>
-                    </h3>
-                    <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p><br>
+                <div class="box-content">
+                    <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p>
                     <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</button>
                 </div>
-
-                <div id="link-container-box" style="margin-top: 30px">
-                    <h3>3. Add Registries
+            </div>
+            <div class="box link-container-box">
+                <h3>3. Add Registries
+                    <div class="learn-more-btn-container">
                         <a tabindex="-1" href="${CWDocs.REGISTRIES.uri}">
-                            <input type="image" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
+                            <input type="image" class="learn-more-btn" alt="Learn More" src="${rp.getImage(ThemedImages.Help)}"/>
                         </a>
-                    </h3>
+                    </div>
+                </h3>
+                <div class="box-content">
                     <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
-                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}");>Open Image Registry Manager</button>
-                </div>
+                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}")>Open Image Registry Manager</button>
                 </div>
             </div>
-        </div>
+        </div> <!-- End link containers -->
+    </div>  <!-- End main -->
 
-        <div class="remote-connection-btn-group">
-            <button type="button" id="delete-btn" class="btn btn-red" onclick="deleteConnection()"
-                ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>Remove Connection
-                <img src="${rp.getImage(ThemedImages.Trash, "dark")}"/>
+    <div id="remote-connection-btn-group">
+        <button type="button" id="delete-btn" class="btn btn-red" onclick="deleteConnection()"
+            style="display: ${connectionExists ? `${BTN_DISPLAY}` : "none"};"
+        >
+            Remove Connection
+            <img src="${rp.getImage(ThemedImages.Trash, "dark")}"/>
+        </button>
+
+        <div id="right-btn-group">
+            <button type="button" id="toggle-connect-btn"
+                class="btn btn-background"
+                onclick="toggleConnection()"
+                style="display: ${connectionExists ? `${BTN_DISPLAY}` : "none"};"
+            >
+                ${isConnected ? "Disconnect" : "Connect"}
+                <img src="${rp.getImage(isConnected ? ThemedImages.Connection_Disconnected : ThemedImages.Connection_Connected, "dark")}"/>
             </button>
-            <div class="edit-connection-group">
-                <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitNewConnection()"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline; float: left; margin-left: 0px"`}>Save
-                </button>
-                <button type="button" id="edit-btn"
-                    class="btn btn-prominent"
-                    onclick="editConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>
-                    <div>Edit <img src="${rp.getImage(ThemedImages.Edit, "dark")}"/></div>
-                </button>
-                <button type="button" id="toggle-connect-btn"
-                    class="btn btn-background"
-                    onclick="toggleConnection()"
-                    ${connectionExists ? `style="display: inline;"` : `style="display: none;"`}>${isConnected ? "Disconnect" : "Connect"}
-                </button>
-                <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}" onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
-                    ${connectionExists ? `style="display: none;"` : `style="display: inline; float: left;"`}>Cancel
-                </button>
-            </div>
+            <button type="button" id="edit-btn"
+                class="btn btn-prominent"
+                onclick="editConnection()"
+                style="display: ${connectionExists ? `${BTN_DISPLAY}` : "none"};"
+            >
+                Edit
+                <img src="${rp.getImage(ThemedImages.Edit, "dark")}"/>
+            </button>
+
+            <!-- These two below are shown when editing, or when a new connection, so the display: none is reversed-->
+
+            <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}" onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
+                style="display: ${connectionExists ? "none" : `${BTN_DISPLAY}`};"
+            >
+                Cancel
+                <img src="${rp.getImage(ThemedImages.Error, "dark")}"/>
+            </button>
+            <button type="button" id="save-btn" class="btn btn-prominent" onclick="submitConnection()"
+                style="display: ${connectionExists ? "none" : `${BTN_DISPLAY}`};"
+            >
+                Save
+                <img src="${rp.getImage(ThemedImages.Save, "dark")}"/>
+            </button>
         </div>
-    </div>
-</div>
+        <!-- This lines up the right side of the buttons with the Connection card when editing -->
+        <!--div id="btns-right-spacer" style="${connectionExists ? "display: none" : ""};"-->
+        </div>
+    </div>  <!-- End buttons -->
+    </div>  <!-- End content -->
     <script>
+
+        const vscode = acquireVsCodeApi();
+
         const submitOnEnter = (ev) => {
             if (ev.key === "Enter") {
-                submitNewConnection();
+                submitConnection();
             }
         };
 
-        const ingressInput  = document.querySelector("#ingress-url");
-        const usernameInput = document.querySelector("#ingress-username");
+        const ingressInput  = document.querySelector("#input-url");
+        const usernameInput = document.querySelector("#input-username");
         const passwordInput = document.querySelector("#input-password");
 
         ingressInput.addEventListener("keyup", submitOnEnter);
@@ -152,11 +190,11 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
         passwordInput.addEventListener("keyup", submitOnEnter);
 
         function copyURL(e) {
-            const url = document.querySelector("#ingress-url")
+            const url = document.querySelector("#input-url")
             const tempTextArea = document.createElement("textarea");
             tempTextArea.value = url.value;
 
-            let copiedURLToolTip = document.getElementById('copy_url_tooltip');
+            let copiedURLToolTip = document.getElementById('copy-url-btn-tooltip');
             copiedURLToolTip.style.display = "inline";
             copiedURLToolTip.style.position = "absolute";
             copiedURLToolTip.style.left = e.pageX + 25 + 'px';
@@ -171,12 +209,10 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
             document.body.removeChild(tempTextArea);
         }
 
-        const vscode = acquireVsCodeApi();
-
-        function submitNewConnection() {
-            const ingressInput = document.querySelector("#ingress-url").value;
-            const ingressUsername = document.querySelector("#ingress-username").value;
-            const ingressPassword = document.querySelector("#ingress-password").value;
+        function submitConnection() {
+            const ingressInput = document.querySelector("#input-url").value;
+            const ingressUsername = document.querySelector("#input-username").value;
+            const ingressPassword = document.querySelector("#input-password").value;
             let connectionName = document.querySelector("#remote-connection-name").value;
 
             if (!connectionName) {
@@ -201,17 +237,14 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
         }
 
         function editConnection() {
-            // document.querySelector("#deployment-box p").style.display = "block";
-            // document.querySelector("#ingress-url").style.display = "block";
-            document.querySelector("#ingress-username-label").style.display = "none"
-            document.querySelector("#ingress-username").style.display = "block";
-            // document.querySelector("#url").style.display = "none";
-            document.querySelector("#input-password").style.display = "block";
+            document.querySelector("#credentials-section").style.display = "flex";
+            document.querySelector("#saved-info-section").style.display = "none";
+
             document.querySelector("#edit-btn").style.display = "none";
             document.querySelector("#toggle-connect-btn").style.display = "none";
-            document.querySelector("#cancel-btn").style.display = "inline";
-            document.querySelector("#save-btn").style.display = "inline";
-            // document.querySelector("#test-btn").style.display = "inline";
+            document.querySelector("#cancel-btn").style.display = "${BTN_DISPLAY}";
+            document.querySelector("#save-btn").style.display = "${BTN_DISPLAY}";
+            document.querySelector("#btns-right-spacer").style.display = "inline";
         }
 
         function deleteConnection() {

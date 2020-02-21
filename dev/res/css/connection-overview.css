@@ -1,61 +1,21 @@
 
 body {
-    width: 90%;
-    padding-top: 3%;
-    padding-left: 5%;
-    padding-right: 5%;
+    --box-max-width: 600px;
+    --box-margin-top: 2em;
 }
 
-#description {
-    display: inline-block;
-}
-
-#edit-description {
-    height: 1em;
-    vertical-align: middle;
-    display: inline-block;
-}
-
-#description-text {
-    display: inline;
+#content {
+    max-width: 1200px;
 }
 
 #main {
-    display: inline-block;
+    display: inline-flex;
+    margin-top: calc(-1 * var(--box-margin-top));
 }
 
-#learn-more-btn-remote {
-    display: inline;
-    position: absolute;
-    margin-left: 10px;
-    outline: none;
-}
-
-.info-label {
-    font-size: 110%;
-    font-weight: bold;
-}
-
-.deployment-box .info-label {
-    margin-top: 34px;
-}
-
-#url {
-    font-size: 15px;
-    word-break: break-all;
-    margin-top: 10px;
-}
-
-#copy_url {
-    width: 15px;
-    margin-left: 5px;
-    cursor: pointer;
-}
-
-#ingress-username-label {
-    font-size: 15px;
-    word-break: break-all;
-    margin-top: 10px;
+.connection-name {
+    font-size: 32px;
+    white-space: nowrap;
 }
 
 #connection-logo {
@@ -64,76 +24,14 @@ body {
     background-color: var(--vscode-editor-background);
 }
 
-#deployment-box {
-    float: left;
-    margin-top: 1em;
-    width: 560px;
-    height: 430px;
+.box {
+    margin-top: var(--box-margin-top);
     background-color: var(--vscode-sideBar-background);
+    min-width: 500px;
+    max-width: var(--box-max-width);
 }
 
-.link-containers {
-    float: right;
-}
-
-#link-container-box {
-    margin-top: 1em;
-    width: 500px;
-    height: 200px;
-    margin-left: 20px;
-    background-color: var(--vscode-sideBar-background);
-}
-
-#link-container-box h3 {
-    background: var(--vscode-sideBarSectionHeader-background);
-    font-size: 20px;
-    width: 100%;
-    margin: auto;
-    height: 40px;
-    text-indent: 24px;
-    padding-top: 15px;
-}
-
-#link-container-box .btn {
-    color: var(--vscode-editor-foreground);
-    background: var(--vscode-sideBarSectionHeader-background);
-    border: none;
-    border-radius: 0;
-    font-size: 1rem;
-    line-height: 1rem;
-    width: 335px;
-    margin-left: 85px
-}
-
-#link-container-box p {
-    margin-left: 35px;
-    font-size: 15px;
-    margin-top: 22px;
-    margin-bottom: 5px;
-    margin-right: 20px;
-}
-
-#link-container-box .registry-help-label {
-    margin-bottom: 22px;
-}
-
-#link-container-box input {
-    float: right;
-    width: 20px;
-    margin-right: 288px;
-    margin-top: 5px;
-}
-
-#deployment-box p {
-    font-size: 1rem;
-    margin-bottom: 34px;
-    margin-top: 22px;
-}
-#deployment-box label {
-    font-size: 1rem;
-}
-
-#deployment-box h3 {
+.box h3 {
     background: var(--vscode-sideBarSectionHeader-background);
     font-size: 20px;
     width: 100%;
@@ -143,36 +41,68 @@ body {
     padding-top: 15px;
 }
 
-#deployment-box h3 img {
+.box-content  {
+    font-size: 14px;
+    padding-left: 24px;
+    padding-right: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.box-content p {
+    padding: 0;
+    margin: 0;
+}
+
+#connection-box {
+    height: 430px;
+}
+
+#connected-status {
     width: 25px;
     float: right;
-    margin-right: 15px;
-    margin-top: 2px;
+    margin-right: 1em;
 }
 
-#deployment-box .learn-more-btn {
-    width: 20px;
-    float: right;
-    margin-top: 5px;
+.learn-more-btn-container {
+    display: inline-flex;
+    position: absolute;
+    margin-left: .25em;
 }
 
-#deployment-box .learn-more-btn :focus {
+.info-label {
+    display: inline;
+    font-size: 110%;
+    font-weight: bold;
+}
+
+.connection-box .info-label {
+    margin-top: 34px;
+}
+
+#url {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    word-break: break-all;
+}
+
+#copy-url-btn {
+    display: inline-flex;
+    width: 1rem;
+    margin-left: 1em;
     cursor: pointer;
 }
 
-#deployment-box .input-section {
-    padding: 20px;
-    padding-top: 0px;
-    margin-left: 5px;
-    margin-top: 30px;
-}
-
-.input-url, .input-username, .input-password {
-    font-size: 1rem;
+input[type="text"], input[type="password"] {
     background-color: var(--vscode-sideBarSectionHeader-background);
+    color: var(--vscode-editor-foreground);
+
+    width: 100%;
+    margin-top: 0.5em;
+
+    font-size: 1rem;
     border: 0;
     text-indent: 1rem;
-    color: var(--vscode-editor-foreground);
 }
 
 .input-url {
@@ -182,112 +112,116 @@ body {
     margin-bottom: 5px;
 }
 
+#credentials-section {
+    display: inline-flex;
+    margin-top: 1em;
+}
+
+#credentials-section div:not(:first-child) {
+    margin-left: 1em;
+}
+
 .input-username, .input-password {
-    width: 250px;
-    display: block;
+    flex: 1;
     height: 2.5rem;
-    margin-top: 10px;
 }
 
-.input-password {
-    margin-left: 11px;
+.saved-info {
+    margin-top: 1em;
 }
 
-.remote-connection-btn-group button {
-    font-size: .875rem;
-    line-height: 1.125rem;
-    width: 200px;
-    border-radius: 0;
-    float: right;
-    margin-left: 30px;
+/***** Right side *****/
+
+#link-container-boxes {
+    margin-left: 1.5em;
+}
+
+.link-container-box {
+    height: 200px;
+}
+
+.link-container-box:not(:first-child) {
     margin-top: 30px;
+}
+
+.link-container-box .btn {
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-sideBarSectionHeader-background);
+    border: none;
+    border-radius: 0;
+
+    width: 66%;
+    align-self: center;
+    align-content: center;
+
+    font-size: 16px;
+    margin-top: 1.25em;
+}
+
+/***** Buttons at bottom *****/
+
+#remote-connection-btn-group {
+    margin-top: 40px;
+    --btn-margin: 30px;
+    display: flex;
+}
+
+#right-btn-group {
+    display: inline-flex;
+    margin-left: auto;
+}
+
+#remote-connection-btn-group .btn {
+    font-size: .875rem;
+    min-width: 200px;
+    border-radius: 0;
     height: 40px;
+    display: inline-flex;
 }
 
-.remote-connection-btn-group .edit-connection-group {
-    display: inline;
+#remote-connection-btn-group .btn:not(#delete-btn) {
+    margin-left: var(--btn-margin);
 }
 
-#delete-btn {
-    float: none;
-    margin-left: 0;
-}
-
-#test-btn {
-    background-color: transparent;
-    border: 1px solid #c6c6c6;
-}
-
-.bx--text-input {
-    background-color: #161616;
-    height: 32px;
-    padding: 0 1rem;
-    color: #fff;
-    border: none;
-    border-bottom: 1px solid #8d8d8d;
-    font-size: 32px;
-    width: 431px;
-    padding-top: 5px;
-    letter-spacing: 0.85px;
-}
-
-.bx--text-input-description {
-    margin-bottom: 40px;
-    margin-top: 10px;
-    background-color: #161616;
-    height: 30px;
-    padding: 0 1rem;
-    color: #fff;
-    border: none;
-    border-bottom: 1px solid #8d8d8d;
-    font-size: 13px;
-    width: 500px;
-}
-
-.connection-name {
-    font-size: 32px;
-    white-space: nowrap;
-}
-
-.remote-connection-btn-group {
-    display: block;
-}
-
-.remote-connection-btn-group .btn img {
-    vertical-align: text-top;
+#remote-connection-btn-group .btn img {
+    margin-left: auto;
     height: 1.25em;
-    padding: 0;
-    float: right;
 }
 
-#copy_url_tooltip {
-    display: none;
+/*
+#btns-right-spacer {
+    width: 51%;
 }
+*/
 
-@media (max-width: 1210px) {
-    #link-container-box {
-        margin-left: 0px;
-        float: left;
-        margin-top: 30px;
+@media(max-width: 1150px) {
+    #main {
+        flex-direction: column;
     }
 
-    .remote-connection-btn-group button {
-        margin-top: 15px;
-        margin-left: 0px;
+    #link-container-boxes {
+        margin-left: 0;
     }
 
-    .link-containers {
-        float: none;
+    #remote-connection-btn-group {
+        max-width: var(--box-max-width);
     }
 
-    .link-containers-group {
-        display: inline-grid;
+    #right-btn-group {
+        flex-direction: column;
+        margin-left: auto;
     }
 
-
-    .remote-connection-btn-group .edit-connection-group {
-        display: inline-grid;
-        float: right;
+    #right-btn-group .btn {
+        margin-left: 0;
     }
 
-  }
+    #right-btn-group .btn:not(:first-child) {
+        margin-top: var(--btn-margin);
+    }
+
+    /* #btns-right-spacer {
+        display: none;
+    }
+    */
+}

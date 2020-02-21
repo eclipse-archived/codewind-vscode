@@ -41,6 +41,9 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     private codewindCheIngress: vscode.Uri | undefined;
 
     protected cwVersion: string = CWEnvironment.UNKNOWN_VERSION;
+    protected cwNamespace: string = "Unknown";
+    protected cwBuildTime: string | undefined;
+
     protected _state: ConnectionState;
     protected _socket: MCSocket | undefined;
 
@@ -114,6 +117,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const envData = await CWEnvironment.getEnvData(this);
         this.cwVersion = envData.version;
+        this.cwNamespace = envData.namespace || "Unknown";
+        this.cwBuildTime = envData.buildTime;
         // onConnect will be called on initial socket connect,
         // which does the initial projects population and sets the state to Connected
         this._socket = new MCSocket(this, envData.socketNamespace);
@@ -385,9 +390,25 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         await this.updateProjects();
     }
 
+    public get version(): string {
+        if (this.cwVersion === "x.x.dev") {
+            // this is a useless version
+            let devVersion = "Development";
+            if (this.cwBuildTime) {
+                devVersion += " - " + this.cwBuildTime;
+            }
+            return devVersion;
+        }
+        return this.cwVersion;
+    }
+
+    public get namespace(): string {
+        return this.cwNamespace || "Unknown";
+    }
+
     // QuickPick description
     public get description(): string {
-        return `(${this.projects.length} projects)`;
+        return `(${this.version}, ${this.projects.length} projects)`;
     }
 
     // QuickPick detail

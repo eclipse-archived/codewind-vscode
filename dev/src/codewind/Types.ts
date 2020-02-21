@@ -49,6 +49,7 @@ export interface RawCWEnvData {
 export interface CWEnvData {
     // readonly workspace: string;
     readonly namespace?: string;
+    readonly buildTime?: string;
     readonly socketNamespace: string;
     readonly version: string;
     readonly tektonStatus: TektonStatus;

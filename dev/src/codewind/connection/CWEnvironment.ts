@@ -55,6 +55,7 @@ namespace CWEnvironment {
 
         return {
             namespace: rawEnv.namespace,
+            buildTime: rawEnv.image_build_time,
             socketNamespace,
             tektonStatus: rawEnv.tekton_dashboard,
             version,
