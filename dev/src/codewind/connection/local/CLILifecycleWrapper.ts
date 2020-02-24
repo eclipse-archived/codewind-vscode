@@ -107,26 +107,27 @@ export namespace CLILifecycleWrapper {
         return vscode.Uri.parse(url);
     }
 
-    export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"stopped" | "started-wrong-version" | "started-correct-version"> {
+    /**
+     * Inspects the current cwctl status to map it to one of the states the extension can deal with.
+     */
+    export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"no-docker" | "stopped" | "started-wrong-version" | "started-correct-version"> {
         if (!status) {
-            try {
-                status = await CLICommandRunner.status();
-            }
-            catch (err) {
-                if (err.toString().toLowerCase().includes("docker daemon")) {
-                    // Work around exception when docker is not running
-                    return "stopped";
-                }
-                throw err;
-            }
+            status = await CLICommandRunner.status();
         }
+
+        if (!status.isDockerRunning) {
+            return "no-docker";
+        }
+
         if (status.started.length > 0) {
             if (status.started.includes(getTag())) {
                 Log.i("The correct version of Codewind is already started");
                 return "started-correct-version";
             }
+            Log.i(`Codewind is started but it is the wrong version`);
             return "started-wrong-version";
         }
+        Log.i(`Docker is running but Codewind is not`);
         return "stopped";
     }
 
@@ -137,8 +138,11 @@ export namespace CLILifecycleWrapper {
         Log.i(`Ready to install and start Codewind ${tag}`);
 
         const startedStatus = await getCodewindStartedStatus(status);
-        if (startedStatus === "stopped") {
-            Log.i("Codewind is not running");
+        if (startedStatus === "no-docker") {
+            vscode.window.showWarningMessage(`Docker does not appear to be running on this computer. ` +
+                `Start the Docker daemon before you try to start Local Codewind.`);
+
+            throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
         }
         else if (startedStatus === "started-wrong-version") {
             Log.i(`The wrong version of Codewind ${status.started[0]} is currently started`);
