@@ -25,6 +25,7 @@ export interface AccessToken {
  */
 export interface CLIStatus {
     // status: "uninstalled" | "stopped" | "started";
+    isDockerRunning: boolean;
     "installed-versions": string[];
     started: string[];
     url?: string;   // only set when started

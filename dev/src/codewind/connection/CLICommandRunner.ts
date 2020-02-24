@@ -17,16 +17,47 @@ import { CLIStatus, IInitializationResponse, IDetectedProjectType, CLIConnection
 
 export namespace CLICommandRunner {
 
+    const daemonNotRunningMsgs = [
+        "connection refused",       // unix
+        "cannot connect",           // unix
+        "error during connect",     // windows
+    ];
+
     export async function status(): Promise<CLIStatus> {
-        const statusObj = await CLIWrapper.cliExec(CLICommands.STATUS);
+        let statusResult: CLIStatus;
+        try {
+            statusResult = await CLIWrapper.cliExec(CLICommands.STATUS);
+            // if there was no error then docker is running
+            statusResult.isDockerRunning = true;
+        }
+        catch (err) {
+            const isDockerRunning = !daemonNotRunningMsgs.some((notRunningMsg) =>
+                // if the error message contains any of the above error message substrings, the error was probably that docker is NOT running
+                err.toString().toLowerCase().includes(notRunningMsg.toLowerCase())
+            );
+
+            if (!isDockerRunning) {
+                // handle this common error scenario
+                Log.i(`Docker does not appear to be running locally`);
+                return {
+                    "installed-versions": [],
+                    isDockerRunning,
+                    started: [],
+                };
+            }
+            // throw any other (unexpected) errors
+            throw err;
+        }
+
         // The CLI will leave out these fields if they are empty, but an empty array is easier to deal with.
-        if (statusObj["installed-versions"] == null) {
-            statusObj["installed-versions"] = [];
+        if (statusResult["installed-versions"] == null) {
+            statusResult["installed-versions"] = [];
         }
-        if (statusObj.started == null) {
-            statusObj.started = [];
+        if (statusResult.started == null) {
+            statusResult.started = [];
         }
-        return statusObj;
+
+        return statusResult;
     }
 
     export async function createProject(connectionID: string, projectPath: string, url: string)
