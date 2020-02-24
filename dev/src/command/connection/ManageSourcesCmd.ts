@@ -28,7 +28,7 @@ export default async function manageSourcesCmd(connection: Connection): Promise<
         new SourcesPageWrapper(connection);
     }
     catch (err) {
-        const errMsg = `Error opening Manage Template Sources page:`;
+        const errMsg = `Error opening Template Source Manager page:`;
         vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
         Log.e(errMsg, err);
     }
