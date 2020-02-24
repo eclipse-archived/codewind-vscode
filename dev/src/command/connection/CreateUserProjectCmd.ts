@@ -108,13 +108,14 @@ export default async function createProjectCmd(connection: Connection): Promise<
     }
 }
 
-const MANAGE_SOURCES_ITEM = "Manage Template Sources";
+const MANAGE_SOURCES_ITEM = "Template Source Manager";
+
 async function showTemplateSourceQuickpick(connection: Connection): Promise<"selected" | "managed" | undefined> {
     const sources = await connection.templateSourcesList.get();
 
     if (sources.length === 0) {
         // Should not be possible because Codewind templates are always present.
-        throw new Error("No template sources are configured. Use the Manage Template Sources command to add the Codewind templates.");
+        throw new Error("No template sources are configured. Use the Template Source Manager command to add the Codewind templates.");
     }
     if (sources.length === 1) {
         // if there is exactly one repo, just enable it and move on.
@@ -134,8 +135,8 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
         return {
             url: repo.url,
             label,
-            description,
-            detail: repo.url,
+            // description: repo.url,
+            detail: description,
         };
     });
 
@@ -149,6 +150,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     const selection = await vscode.window.showQuickPick(qpis, {
         placeHolder: `Select one of the template sources below, or select "${MANAGE_SOURCES_ITEM}".`
     });
+
     if (selection == null) {
         return undefined;
     }
@@ -167,7 +169,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     await connection.templateSourcesList.toggleEnablement({ repos: repoEnablement });
 
     vscode.window.showInformationMessage(
-        `Set template source to ${selection.label}. The other sources have been disabled. You can change this setting at any time with the Manage Template Sources command. `
+        `Set template source to ${selection.label}. The other sources have been disabled. You can change this setting at any time with the Template Source Manager command. `
     );
     return "selected";
 }
@@ -176,7 +178,7 @@ function getWizardTitle(connection: Connection): string {
     return `(${connection.label}) Create a New Project`;
 }
 
-const MANAGE_SOURCES_QP_BTN = "Manage Template Sources";
+const MANAGE_SOURCES_QP_BTN = "Template Source Manager";
 
 async function promptForTemplate(connection: Connection): Promise<CWTemplateData | undefined> {
 
@@ -296,7 +298,7 @@ async function getTemplateQpis(connection: Connection): Promise<Array<vscode.Qui
 
     if (templateQpis.length === 0) {
         // The user has no repos or has disabled all repos
-        const manageReposBtn = "Manage Template Sources";
+        const manageReposBtn = "Template Source Manager";
         await vscode.window.showErrorMessage(
             "You have no enabled template sources. You must enable at least one template source in order to create projects.",
             manageReposBtn)
