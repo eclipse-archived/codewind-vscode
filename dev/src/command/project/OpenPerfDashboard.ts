@@ -18,7 +18,7 @@ import Commands from "../../constants/Commands";
 
 export default async function openPerformanceDashboard(project: Project): Promise<void> {
     try {
-        if (!project.perfDashboardURL || !(await project.testPingMetricsDash())) {
+        if (!project.perfDashboardURL) {
             vscode.window.showWarningMessage(`${project.name} does not support the Performance Dashboard.`);
             return;
         }
