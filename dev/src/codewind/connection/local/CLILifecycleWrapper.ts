@@ -107,10 +107,12 @@ export namespace CLILifecycleWrapper {
         return vscode.Uri.parse(url);
     }
 
+    export type LocalCWInstallStatus = "no-docker" | "stopped" | "started-wrong-version" | "started-correct-version";
+
     /**
      * Inspects the current cwctl status to map it to one of the states the extension can deal with.
      */
-    export async function getCodewindStartedStatus(status?: CLIStatus): Promise<"no-docker" | "stopped" | "started-wrong-version" | "started-correct-version"> {
+    export async function getCodewindStartedStatus(status?: CLIStatus): Promise<LocalCWInstallStatus> {
         if (!status) {
             status = await CLICommandRunner.status();
         }

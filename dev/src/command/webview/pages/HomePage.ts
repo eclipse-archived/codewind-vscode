@@ -16,8 +16,16 @@ import { CWConfigurations } from "../../../constants/Configurations";
 import { HomePageWVMessages, CREATE_PROJECT_DATA, ADD_PROJECT_DATA } from "../HomePageWrapper";
 import CWDocs from "../../../constants/CWDocs";
 import { USEFUL_EXTENSIONS } from "../UsefulExtensionsPageWrapper";
+import CLILifecycleWrapper from "../../../codewind/connection/local/CLILifecycleWrapper";
 
-export default function getHomePage(rp: WebviewResourceProvider): string {
+export const DOCKER_INSTALL_URL = "https://docs.docker.com/install/";
+
+export default function getHomePage(
+    rp: WebviewResourceProvider, localCWInstallStatus: CLILifecycleWrapper.LocalCWInstallStatus, doesARemoteConnectionExist: boolean): string {
+
+    const isDockerStarted = localCWInstallStatus !== "no-docker";
+    const isLocalStarted = localCWInstallStatus === "started-correct-version";
+
     return `
     <!DOCTYPE html>
     <html>
@@ -82,39 +90,51 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
                         </div>
                     </div>
                     <div id="local-steps" class="quickstart-steps">
-                        <div class="setup-step-section">
+                        <div class="steps-section">
                             <div class="steps-header">Set-up</div>
                             <div>Step 1</div>
-                            <div class="step-btn btn btn-prominent" title="Install Docker"
+                            <div class="step-btn btn btn-prominent" title="${DOCKER_INSTALL_URL}"
                                 onclick="sendMsg('${HomePageWVMessages.INSTALL_DOCKER}')" tabindex="0"
                             >
-                                Install Docker
-                                <img src="${rp.getImage(ThemelessImages.Download)}" alt="Download"/>
+                                Install and Start Docker
+                                ${isDockerStarted ?
+                                    `<img src="${rp.getImage(ThemelessImages.Connected_Checkmark)}" alt="Complete" title="Complete"/>`
+                                    :
+                                    `<img src="${rp.getImage(ThemelessImages.Download)}" alt="Download"/>`
+                                }
                             </div>
                             <div>Step 2</div>
-                            <div class="step-btn btn btn-prominent" title="Install Codewind Images"
+                            <div class="step-btn btn btn-prominent" title="Start Local Codewind"
                                 onclick="sendMsg('${HomePageWVMessages.START_LOCAL}')" tabindex="0"
                             >
-                                Install Codewind Images
-                                <img src="${rp.getImage(ThemelessImages.Download)}" alt="Download"/>
+                                Start Local Codewind
+                                ${isLocalStarted ?
+                                    `<img src="${rp.getImage(ThemedImages.Local_Connected, "dark")}" alt="Complete" title="Complete"/>`
+                                    :
+                                    `<img src="${rp.getImage(ThemedImages.Local_Disconnected, "dark")}" alt="Start Local Codewind"/>`
+                                }
                             </div>
                         </div>
                         <div class="step-separator"></div>
-                        ${getStartProjectStepsSection(rp, false)}
+                        ${getStartProjectStepsSection(rp, isLocalStarted, false)}
                     </div>
                     <div id="remote-steps" class="quickstart-steps" style="display: none">
-                        <div class="setup-step-section">
+                        <div class="steps-section">
                             <div class="steps-header">Set-up</div>
                             <div>Step 1</div>
                             <div class="step-btn btn btn-prominent" title="New Codewind Connection"
                                 onclick="sendMsg('${HomePageWVMessages.NEW_REMOTE_CONNECTION}')" tabindex="0"
                             >
                                 New Codewind Connection
-                                <img src="${rp.getImage(ThemedImages.New_Connection)}" alt="New Codewind Connection"/>
+                                ${doesARemoteConnectionExist ?
+                                    `<img src="${rp.getImage(ThemelessImages.Connected_Checkmark, "dark")}" alt="Complete" title="Complete"/>`
+                                    :
+                                    `<img src="${rp.getImage(ThemedImages.New_Connection, "dark")}" alt="New Codewind Connection"/>`
+                                }
                             </div>
                         </div>
                         <div class="step-separator"></div>
-                        ${getStartProjectStepsSection(rp, true)}
+                        ${getStartProjectStepsSection(rp, doesARemoteConnectionExist, true)}
                     </div>
                 </div>
             </div>  <!-- End left side -->
@@ -199,17 +219,19 @@ export default function getHomePage(rp: WebviewResourceProvider): string {
 `;
 }
 
-function getStartProjectStepsSection(rp: WebviewResourceProvider, isRemote: boolean): string {
+function getStartProjectStepsSection(rp: WebviewResourceProvider, isEnabled: boolean, isRemote: boolean): string {
     const onClickMsg = isRemote ? HomePageWVMessages.PROJECT_REMOTE : HomePageWVMessages.PROJECT_LOCAL;
     const stepIndex = isRemote ? 2 : 3;
 
+    const btnClasses = "step-btn btn " + (isEnabled ? "btn-prominent" : "btn-disabled");
+
     return `
-    <div class="project-step-section">
+    <div class="project-steps-section">
         <div class="steps-header">Start a Project</div>
         <div>Step ${stepIndex}</div>
-        <div class="project-steps">
-            <div class="step-btn btn btn-prominent" title="Create New Project" tabindex="0"
-                onclick="sendMsg('${onClickMsg}', '${CREATE_PROJECT_DATA}')"
+        <div class="steps-section">
+            <div class="${btnClasses}" title="${isEnabled ? "Create New Project" : "Complete the Set-up before creating a project"}" tabindex="0"
+                ${isEnabled ? `onclick="sendMsg('${onClickMsg}', '${CREATE_PROJECT_DATA}')"` : ""}
             >
                 <div>Create New Project</div>
                 <img src="${rp.getImage(ThemedImages.New, "dark")}" alt="Create New Project"/>
@@ -217,8 +239,8 @@ function getStartProjectStepsSection(rp: WebviewResourceProvider, isRemote: bool
             <div class="project-step-or">
                 or
             </div>
-            <div class="step-btn btn btn-prominent" title="Add Existing Project" tabindex="0"
-                onclick="sendMsg('${onClickMsg}', '${ADD_PROJECT_DATA}')"
+            <div class="${btnClasses}" title="${isEnabled ? "Add Existing Project" : "Complete the Set-up before adding a project"}" tabindex="0"
+                ${isEnabled ? `onclick="sendMsg('${onClickMsg}', '${ADD_PROJECT_DATA}')"` : ""}
             >
                 <div>Add Existing Project</div>
                 <img src="${rp.getImage(ThemedImages.Bind, "dark")}" alt="Add Existing Project"/>

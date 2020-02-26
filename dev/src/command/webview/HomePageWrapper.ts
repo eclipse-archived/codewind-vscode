@@ -11,11 +11,12 @@
 
 import * as vscode from "vscode";
 
+import Log from "../../Logger";
+import MCUtil from "../../MCUtil";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import WebviewUtil from "./WebviewUtil";
-import getHomePage from "./pages/HomePage";
+import getHomePage, { DOCKER_INSTALL_URL } from "./pages/HomePage";
 import { ThemelessImages } from "../../constants/CWImages";
-import Log from "../../Logger";
 import { CWConfigurations } from "../../constants/Configurations";
 import startCodewindCmd from "../StartCodewindCmd";
 import newRemoteConnectionCmd from "../connection/NewConnectionCmd";
@@ -25,6 +26,8 @@ import bindProjectCmd from "../connection/BindProjectCmd";
 import { promptForConnection } from "../CommandUtil";
 import Commands from "../../constants/Commands";
 import { UsefulExtensionsPageWrapper } from "./UsefulExtensionsPageWrapper";
+import CLILifecycleWrapper from "../../codewind/connection/local/CLILifecycleWrapper";
+import ConnectionManager from "../../codewind/connection/ConnectionManager";
 
 export enum HomePageWVMessages {
     SHOW_ON_START = "toggle-show-on-start",
@@ -45,18 +48,22 @@ export class HomePageWrapper extends WebviewWrapper {
 
     private static _instance: HomePageWrapper | undefined;
 
+    private localCWInstallStatus: CLILifecycleWrapper.LocalCWInstallStatus = "no-docker";
+    private doesARemoteConnectionExist: boolean = false;
+
     constructor(
 
     ) {
         super(`Codewind: Home`, ThemelessImages.Logo);
         HomePageWrapper._instance = this;
-        this.refresh();
 
         vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(CWConfigurations.SHOW_HOMEPAGE.fullSection)) {
                 this.refresh();
             }
         });
+
+        this.refreshConnectionsStatus(true);
     }
 
     public static get instance(): HomePageWrapper | undefined {
@@ -68,12 +75,34 @@ export class HomePageWrapper extends WebviewWrapper {
     }
 
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
-        const html = getHomePage(resourceProvider);
+        const html = getHomePage(resourceProvider, this.localCWInstallStatus, this.doesARemoteConnectionExist);
         return html;
     }
 
+    public async refreshConnectionsStatus(refresh: boolean = false): Promise<void> {
+        try {
+            const oldLocalStatus = this.localCWInstallStatus;
+            this.localCWInstallStatus = await CLILifecycleWrapper.getCodewindStartedStatus();
+
+            const oldRemoteExists = this.doesARemoteConnectionExist;
+            this.doesARemoteConnectionExist = ConnectionManager.instance.remoteConnections.length > 0;
+
+            refresh = refresh || (this.localCWInstallStatus !== oldLocalStatus || this.doesARemoteConnectionExist !== oldRemoteExists);
+        }
+        catch (err) {
+            const errMsg = `Error determining Local Codewind installation status`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            refresh = true;
+        }
+
+        if (refresh) {
+            this.refresh();
+        }
+    }
+
     protected handleWebviewMessage = async (msg: WebviewUtil.IWVMessage): Promise<void> =>  {
-    switch (msg.type as HomePageWVMessages) {
+        switch (msg.type as HomePageWVMessages) {
             case HomePageWVMessages.OPEN_CODEWIND_VIEW: {
                 vscode.commands.executeCommand(Commands.FOCUS_CW_VIEW);
                 break;
@@ -92,7 +121,7 @@ export class HomePageWrapper extends WebviewWrapper {
                 break;
             }
             case HomePageWVMessages.INSTALL_DOCKER:
-                const installDockerUri = vscode.Uri.parse("https://docs.docker.com/install/");
+                const installDockerUri = vscode.Uri.parse(DOCKER_INSTALL_URL);
                 vscode.commands.executeCommand(Commands.VSC_OPEN, installDockerUri);
                 break;
             case HomePageWVMessages.START_LOCAL: {
@@ -100,6 +129,7 @@ export class HomePageWrapper extends WebviewWrapper {
                     vscode.window.showInformationMessage(`Local Codewind is already started.`);
                     return;
                 }
+                this.refreshConnectionsStatus();
                 startCodewindCmd();
                 break;
             }

@@ -118,7 +118,7 @@ a {
 .btn-disabled {
     --disabled-btn-color: #444;
     background: var(--disabled-btn-color);
-    border-color: var(--disabled-btn-color);
+    border: 1px solid var(--disabled-btn-color);
 }
 
 .btn-disabled:hover, .not-allowed:hover {

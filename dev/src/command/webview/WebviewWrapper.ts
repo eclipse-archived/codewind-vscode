@@ -51,7 +51,10 @@ export abstract class WebviewWrapper {
         retainContextWhenHidden: boolean = false,
         viewColumn: vscode.ViewColumn = vscode.ViewColumn.Active,
     ) {
-        this.webPanel = vscode.window.createWebviewPanel(title, title, viewColumn, { ...WebviewUtil.getWebviewOptions(), retainContextWhenHidden });
+        this.webPanel = vscode.window.createWebviewPanel(title, title, viewColumn, {
+            ...WebviewUtil.getWebviewOptions(),
+            retainContextWhenHidden
+        });
 
         this.webPanel.reveal();
         this.webPanel.onDidDispose(() => {
