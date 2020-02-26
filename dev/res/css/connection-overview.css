@@ -80,6 +80,10 @@ body {
     margin-top: 34px;
 }
 
+#enter-url-prompt {
+    margin-bottom: 1em;
+}
+
 #url {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
@@ -121,8 +125,11 @@ input[type="text"], input[type="password"] {
     margin-left: 1em;
 }
 
-.input-username, .input-password {
+.input-section {
     flex: 1;
+}
+
+.credential-input {
     height: 2.5rem;
 }
 

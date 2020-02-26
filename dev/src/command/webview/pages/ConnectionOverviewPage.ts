@@ -50,7 +50,7 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                 }
             </h3>
             <div class="box-content">
-                <p ${connectionExists ? "style='display: none;'" : ""}>Enter the URL to your Codewind Gatekeeper ingress.</p>
+                <p id="enter-url-prompt" ${connectionExists ? "style='display: none;'" : ""}>Enter the URL to your Codewind Gatekeeper ingress.</p>
                 <div>
                     <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
                     ${connectionExists ? `
@@ -60,7 +60,8 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                     }
                 </div>
                 <a id="url" style="${connectionExists ? "" : "display: none"}" href="${connection?.url}">${connection?.url}</a>
-                <input type="text" id="input-url" class="input-url" name="ingress-url" placeholder="codewind-gatekeeper-mycluster.nip.io"
+                <input type="text" id="input-url" class="input-url" name="ingress-url"
+                    placeholder="https://codewind-gatekeeper-abcd1234.mycluster.cloud"
                     ${connectionExists ? "style='display: none;'" : ""}
                     value="${connection?.url ? connection.url : ""}"/>
 
@@ -68,14 +69,14 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                     <div id="username-input-section" class="input-section">
                         <label class="info-label" for="input-username">Username</label>
                         <input type="text" id="input-username" name="ingress-username"
-                            class="input-username"
+                            class="credential-input"
                             placeholder="developer"
                             value="${connection?.username || ""}"
                         />
                     </div>
                     <div id="password-input-section" class="input-section">
                         <label class="info-label" for="input-password">Password</label>
-                        <input type="password" id="input-password" class="input-password" name="ingress-password"/>
+                        <input type="password" id="input-password" class="credential-input" name="ingress-password"/>
                     </div>
                 </div>
                 <div id="saved-info-section" style="display: ${connectionExists ? "block" : "none"}">
