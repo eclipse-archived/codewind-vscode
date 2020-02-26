@@ -140,9 +140,10 @@ h2 {
     border-right: var(--section-separator-border);
 }
 
-.project-steps {
+.steps-section {
     display: flex;
     flex-direction: column;
+    min-height: 210px;
 }
 
 .project-step-or {
@@ -155,16 +156,13 @@ h2 {
     margin-bottom: 1em;
     /* override from common/btn */
     border-radius: 0;
+    padding-left: 1em;
+    padding-right: 1em;
 }
 
 .step-btn img {
     /* override from common/btn */
     padding-left: 0;
-}
-
-.done-step {
-    margin-left: 1em;
-    height: 2em;
 }
 
 /***** Main > right section *****/
@@ -208,16 +206,18 @@ h2 {
 
     #home-main-section {
         flex-wrap: wrap;
+        --section-max-width: 750px;
     }
 
     #left-section {
-        max-width: 750px;
+        max-width: var(--section-max-width);
         border-right: none;
         padding-right: 0;
         border-bottom: var(--section-separator-border);
     }
 
     #right-section {
+        max-width: var(--section-max-width);
         padding-left: 0;
         padding-top: var(--vertical-section-padding);
     }

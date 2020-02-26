@@ -26,7 +26,7 @@ import CLIWrapper from "../codewind/connection/CLIWrapper";
 export default async function connectLocalCodewindCmd(
         _lcwm: LocalCodewindManager = LocalCodewindManager.instance, start: boolean = true): Promise<void> {
 
-    Log.i("Connect Local Codewind Cmd");
+    Log.i("Start Local Codewind Cmd");
 
     try {
         if (global.isTheia) {

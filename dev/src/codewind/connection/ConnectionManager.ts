@@ -20,6 +20,7 @@ import RemoteConnection from "./RemoteConnection";
 import { CLICommandRunner } from "./CLICommandRunner";
 import { ConnectionMemento } from "./ConnectionMemento";
 import { CLIConnectionData } from "../Types";
+import { HomePageWrapper } from "../../command/webview/HomePageWrapper";
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;
@@ -124,6 +125,7 @@ export default class ConnectionManager implements vscode.Disposable {
 
         // pass undefined here to refresh the tree from its root
         CodewindEventListener.onChange(undefined);
+        HomePageWrapper.instance?.refreshConnectionsStatus();
     }
 
     public async removeConnection(connection: Connection): Promise<boolean> {
@@ -139,6 +141,7 @@ export default class ConnectionManager implements vscode.Disposable {
         this.connections.splice(indexToRemove, 1);
         Log.i("Removed connection", connection);
         CodewindEventListener.onChange(undefined);
+        HomePageWrapper.instance?.refreshConnectionsStatus();
         return true;
     }
 
