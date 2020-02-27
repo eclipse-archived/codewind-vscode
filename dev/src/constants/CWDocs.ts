@@ -25,17 +25,17 @@ class CWDoc {
 export const CWDocs = {
     HOME:                   new CWDoc(""),
     TEMPLATE_MANAGEMENT:    new CWDoc("workingwithtemplates.html"),
-    INSTALL_INFO:           new CWDoc("mdt-vsc-getting-started.html"),
+    INSTALL_INFO:           new CWDoc("vsc-getting-started.html"),
     PROJECT_SETTINGS:       new CWDoc("project-settings.html"),
     WORKSPACE_NEWS:         new CWDoc("news06.html#codewind-workspace-updates"),
     REGISTRIES:             new CWDoc("image-registry-credentials.html"),
-    CHE_INSTALL:            new CWDoc("mdt-che-installinfo.html"),
+    CHE_INSTALL:            new CWDoc("che-installinfo.html"),
     REMOTE_UI:              new CWDoc("remotedeploy-vscode.html"),
     REMOTE_DEPLOYING:       new CWDoc("remotedeploy-combo.html"),
     GETTING_STARTED:        new CWDoc("gettingstarted.html"),
     COMMANDS_OVERVIEW:      new CWDoc("project-actions.html"),
     PERF_MONITORING:        new CWDoc("performance.html"),
-    FIRST_PROJECT_LOCAL:    new CWDoc("mdt-vsc-firstproject.html"),
+    FIRST_PROJECT_LOCAL:    new CWDoc("vsc-firstproject.html"),
 };
 
 export default CWDocs;
