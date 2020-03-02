@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import TreeItemContext from "./TreeItemContext";
-import { ThemedImages, ThemelessImages } from "../constants/CWImages";
+import { ThemedImages } from "../constants/CWImages";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import Connection from "../codewind/connection/Connection";
 import Translator from "../constants/strings/translator";
@@ -25,14 +25,6 @@ import { ConnectionStates } from "../codewind/connection/ConnectionState";
 const STRING_NS = StringNamespaces.TREEVIEW;
 
 namespace TreeItemFactory {
-    export function getRoot(): vscode.TreeItem {
-        return {
-            collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
-            iconPath: ThemelessImages.Logo.paths,
-            label: "Codewind",
-            contextValue: TreeItemContext.getRootContext(),
-        };
-    }
 
     const CW_STOPPED_NODE_ID = "ext.cw.localTreeStopped";
     const CW_STARTED_NODE_ID = "ext.cw.localTreeStarted";

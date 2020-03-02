@@ -741,9 +741,41 @@ export default class Project implements vscode.QuickPickItem {
         return !this.connection.isRemote; // && !!this.containerID;
     }
 
+    /**
+     * @returns The VS Code workspace folder containing this project, if one exists.
+     * `isExactMatch` is true if the returned workspace folder is this project's folder,
+     * or false if the returned folder is a parent directory of this project.
+     * If the project any of its parent directories is not under the VS Code workspace, returns undefined.
+     */
+    public get workspaceFolder(): vscode.WorkspaceFolder & { isExactMatch: boolean } | undefined {
+        const wsFolders = vscode.workspace.workspaceFolders;
+        if (wsFolders == null) {
+            return undefined;
+        }
+
+        let bestMatch: vscode.WorkspaceFolder | undefined;
+        for (const wsFolder of wsFolders) {
+            if (wsFolder.uri.fsPath === this.localPath.fsPath) {
+                // exact match, this project is a workspace folder
+                return { ...wsFolder, isExactMatch: true };
+            }
+
+            if (this.localPath.fsPath.startsWith(wsFolder.uri.fsPath)) {
+                if (!bestMatch || wsFolder.uri.fsPath.length > bestMatch.uri.fsPath.length) {
+                    // if this is the first match, or a longer (more precise) match, update the bestMatch
+                    bestMatch = wsFolder;
+                }
+            }
+        }
+
+        if (bestMatch) {
+            return { ...bestMatch, isExactMatch: false };
+        }
+        return undefined;
+    }
+
     public get isInVSCodeWorkspace(): boolean {
-        return !!vscode.workspace.workspaceFolders &&
-            vscode.workspace.workspaceFolders.some((folder) => this.localPath.fsPath.startsWith(folder.uri.fsPath));
+        return this.workspaceFolder != null;
     }
 
     public get hasMetricsDashboard(): boolean {

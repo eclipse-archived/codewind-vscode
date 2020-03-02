@@ -23,7 +23,6 @@ import LocalCodewindManager from "../codewind/connection/local/LocalCodewindMana
 enum TreeItemContextValues {
     BASE = "ext.cw",
 
-    ROOT = "root",
     NO_PROJECTS = "noProjects",
 
     // Local Codewind status
@@ -43,6 +42,8 @@ enum TreeItemContextValues {
 
     // Project
     PROJ_BASE = "project",
+
+    PROJ_IS_NOT_WORKSPACE_FOLDER = "isNotWorkspaceFolder",
 
     // (en|dis)abled are mutex
     PROJ_ENABLED = "enabled",
@@ -68,9 +69,6 @@ enum TreeItemContextValues {
 }
 
 namespace TreeItemContext {
-    export function getRootContext(): string {
-        return buildContextValue([TreeItemContextValues.ROOT]);
-    }
 
     export function getLocalCWContext(localCW: LocalCodewindManager): string {
         const contextValue = localCW.isStarted ? TreeItemContextValues.LOCAL_CW_STARTED : TreeItemContextValues.LOCAL_CW_STOPPED;
@@ -127,6 +125,10 @@ namespace TreeItemContext {
         }
         else {
             contextValues.push(TreeItemContextValues.PROJ_DISABLED);
+        }
+
+        if (!(project.workspaceFolder?.isExactMatch)) {
+            contextValues.push(TreeItemContextValues.PROJ_IS_NOT_WORKSPACE_FOLDER);
         }
 
         if (project.autoBuildEnabled) {
