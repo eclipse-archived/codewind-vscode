@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -52,12 +52,18 @@ export default async function addProjectToWorkspaceCmd(project: Project): Promis
         cancellable: false,
         title: `Adding ${project.name} to workspace...`,
     }, () => {
-        vscode.workspace.updateWorkspaceFolders(wsFolders.length, 0, newWsFolder);
-        return new Promise((resolve) => {
+        const onDidChangeWsFoldersProm = new Promise((resolve) => {
             vscode.workspace.onDidChangeWorkspaceFolders((_e) => {
                 resolve();
             });
         });
+
+        vscode.workspace.updateWorkspaceFolders(wsFolders.length, 0, newWsFolder);
+
+        // this timeout promise will hide the 'adding' progress in case in fails and the above never resolves.
+        const timeoutProm = new Promise((resolve) => setTimeout(resolve, 10000));
+
+        return Promise.race([ onDidChangeWsFoldersProm, timeoutProm ]);
     });
 
     CodewindEventListener.onChange(project);

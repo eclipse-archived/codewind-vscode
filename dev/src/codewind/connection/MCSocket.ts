@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import Validator from "../project/Validator";
 import projectOverviewCmd from "../../command/project/ProjectOverviewCmd";
 import { CWConfigurations } from "../../constants/Configurations";
 import { PFEProjectData } from "../Types";
+import addProjectToWorkspaceCmd from "../../command/project/AddToWorkspaceCmd";
 
 /**
  * Receives and reacts to socket events from Portal
@@ -306,8 +307,13 @@ export default class MCSocket implements vscode.Disposable {
                 }
 
                 if (!newProject.isInVSCodeWorkspace) {
-                    vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
-                        `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
+                    if (CWConfigurations.ADD_NEW_PROJECTS_TO_WORKSPACE.get()) {
+                        addProjectToWorkspaceCmd(newProject);
+                    }
+                    else {
+                        vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
+                            `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
+                    }
                 }
                 return newProject;
             }

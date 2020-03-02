@@ -71,6 +71,12 @@
                         "default": false,
                         "scope": "window"
                     },
+                    "codewind.addNewProjectsToWorkspace": {
+                        "description": "%configDescr_addNewProjectsToWorkspace%",
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "window"
+                    },
                     "codewind.showHomePage": {
                         "description": "%configDescr_showHomepage%",
                         "type": "boolean",
