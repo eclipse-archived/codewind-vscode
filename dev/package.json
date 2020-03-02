@@ -526,12 +526,22 @@
                 {
                     "command": "%cmdID_openMetricsDashboard%",
                     "when": "%isProjectWithMetricsDashboard%",
-                    "group": "ext.cw.b@3"
+                    "group": "ext.cw.b@0"
                 },
                 {
                     "command": "%cmdID_openPerfDashboard%",
                     "when": "%isProjectWithPerfDashboard%",
-                    "group": "ext.cw.b@4"
+                    "group": "ext.cw.b@1"
+                },
+                {
+                    "command": "%cmdID_enableAutoInjectMetrics%",
+                    "when": "%isEnabledAutoInjectMetricsOff%",
+                    "group": "ext.cw.b@2"
+                },
+                {
+                    "command": "%cmdID_disableAutoInjectMetrics%",
+                    "when": "%isEnabledAutoInjectMetricsOn%",
+                    "group": "ext.cw.b@2"
                 },
                 {
                     "command": "%cmdID_addProjToWorkspace%",
@@ -592,16 +602,6 @@
                     "command": "%cmdID_disableAutoBuild%",
                     "when": "%isEnabledAutoBuildOn%",
                     "group": "ext.cw.f@2"
-                },
-                {
-                    "command": "%cmdID_enableAutoInjectMetrics%",
-                    "when": "%isEnabledAutoInjectMetricsOff%",
-                    "group": "ext.cw.f@3"
-                },
-                {
-                    "command": "%cmdID_disableAutoInjectMetrics%",
-                    "when": "%isEnabledAutoInjectMetricsOn%",
-                    "group": "ext.cw.f@3"
                 },
                 {
                     "command": "%cmdID_changeProjectConnection%",
