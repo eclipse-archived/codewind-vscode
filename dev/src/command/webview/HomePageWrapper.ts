@@ -80,6 +80,10 @@ export class HomePageWrapper extends WebviewWrapper {
     }
 
     public async refreshConnectionsStatus(refresh: boolean = false): Promise<void> {
+        if (!HomePageWrapper._instance) {
+            return;
+        }
+
         try {
             const oldLocalStatus = this.localCWInstallStatus;
             this.localCWInstallStatus = await CLILifecycleWrapper.getCodewindStartedStatus();
