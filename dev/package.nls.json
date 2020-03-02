@@ -146,8 +146,6 @@
         "See TreeItemFactory / TreeItemContext for how the Context IDs are set"
     ],
 
-    "isTreeRoot": "viewItem == ext.cw.root",
-
     "isStoppedLocalCodewind": "viewItem =~ /.*local\\.stopped.*/",
     "isStartedLocalCodewind": "viewItem =~ /.*local\\.started.*/",
 
@@ -163,6 +161,7 @@
     "isProject":                        "viewItem =~ /ext\\.cw\\.project.*/",
     "isEnabledProject":                 "viewItem =~ /ext\\.cw\\.project\\.enabled.*/",
     "isDisabledProject":                "viewItem =~ /ext\\.cw\\.project\\.disabled.*/",
+    "isProjectAndNotWorkspaceFolder":   "viewItem =~ /ext\\.cw\\.project.*\\.isNotWorkspaceFolder.*/",
     "isStartedProject":                 "viewItem =~ /ext\\.cw\\.project\\.enabled\\.started.*/",
     "isDebuggableProject":              "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.debuggable.*/",
     "isProjectWithMetricsDashboard":    "viewItem =~ /ext\\.cw\\.project\\.enabled.*\\.metricsDashboard.*/",

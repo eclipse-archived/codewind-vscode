@@ -529,7 +529,7 @@
                 },
                 {
                     "command": "%cmdID_addProjToWorkspace%",
-                    "when": "%isProject%",
+                    "when": "%isProjectAndNotWorkspaceFolder%",
                     "group": "ext.cw.c@0"
                 },
                 {

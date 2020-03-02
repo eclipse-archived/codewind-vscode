@@ -14,17 +14,30 @@ import * as path from "path";
 
 import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
+import CodewindEventListener from "../../codewind/connection/CodewindEventListener";
 
 /**
  * Add the given project to the user's existing workspace folders.
  */
 export default async function addProjectToWorkspaceCmd(project: Project): Promise<void> {
-    const wsFolders: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
 
-    if (wsFolders.some((wsf) => wsf.uri.fsPath === project.localPath.fsPath)) {
-        vscode.window.showInformationMessage(`${project.localPath.fsPath} is already a workspace folder.`);
-        return;
+    const projectWsFolder = project.workspaceFolder;
+    if (projectWsFolder) {
+        if (projectWsFolder.isExactMatch) {
+            // Nothing to do
+            vscode.window.showInformationMessage(`${project.localPath.fsPath} is already a workspace folder`);
+            return;
+        }
+
+        const addAnywayBtn = "Add Anyway";
+        const res = await vscode.window.showInformationMessage(`${project.name} is already in your VS Code workspace under ${projectWsFolder.uri.fsPath}`, addAnywayBtn);
+
+        if (res !== addAnywayBtn) {
+            return;
+        }
     }
+
+    const wsFolders = vscode.workspace.workspaceFolders || [];
 
     const newWsFolder = {
         uri: project.localPath,
@@ -47,4 +60,5 @@ export default async function addProjectToWorkspaceCmd(project: Project): Promis
         });
     });
 
+    CodewindEventListener.onChange(project);
 }
