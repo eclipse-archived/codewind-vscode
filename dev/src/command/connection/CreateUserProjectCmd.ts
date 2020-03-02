@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -355,32 +355,17 @@ async function getParentDirectory(): Promise<vscode.Uri | undefined> {
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
         && (global.isTheia || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
 
+        // if it is a single-root workspace, create the project under that root
         if (vscode.workspace.workspaceFolders.length === 1) {
             return vscode.workspace.workspaceFolders[0].uri;
         }
-        else {
-            return showWorkspaceFolderSelection();
-        }
     }
-    else {
-        // Have the user select the parent dir from anywhere on disk
-        const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
-            vscode.workspace.workspaceFolders[0].uri : undefined;
 
-        return MCUtil.promptForProjectDir("Select Parent Directory", defaultUri);
-    }
-}
+    // Have the user select the parent dir from anywhere on disk
+    const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
+        vscode.workspace.workspaceFolders[0].uri : undefined;
 
-async function showWorkspaceFolderSelection(): Promise<vscode.Uri | undefined> {
-    const selection = await vscode.window.showWorkspaceFolderPick({
-        ignoreFocusOut: true,
-        placeHolder: "Select the parent directory for your new project",
-    });
-
-    if (selection == null) {
-        return undefined;
-    }
-    return selection.uri;
+    return MCUtil.promptForProjectDir("Select Parent Directory", defaultUri);
 }
 
 const ILLEGAL_CHARS = [

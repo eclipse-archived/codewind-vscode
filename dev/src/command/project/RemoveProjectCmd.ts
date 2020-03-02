@@ -91,12 +91,25 @@ export async function removeProject(project: Project, deleteFiles: boolean | und
 export async function deleteProjectDir(project: Project): Promise<void> {
     Log.i("Deleting project directory: " + project.localPath.fsPath);
     const projectDirPath = project.localPath.fsPath;
-    return new Promise<void>((resolve, _reject) => {
-        rmrf(projectDirPath, { glob: false }, (err) => {
-            if (err) {
-                vscode.window.showErrorMessage(`Failed to delete ${project.name} directory: ${MCUtil.errToString(err)}`);
-            }
-            return resolve();
+
+    try {
+        await new Promise<void>((resolve, reject) => {
+            rmrf(projectDirPath, { glob: false }, (err) => {
+                if (err) {
+                    reject(err);
+                }
+                return resolve();
+            });
         });
-    });
+    }
+    catch (err) {
+        vscode.window.showErrorMessage(`Failed to delete ${project.name} directory: ${MCUtil.errToString(err)}`);
+        return;
+    }
+
+    // remove the project from the workspace if it is a workspace folder
+    const projectWsFolder = project.workspaceFolder;
+    if (projectWsFolder && projectWsFolder.isExactMatch) {
+        vscode.workspace.updateWorkspaceFolders(projectWsFolder.index, 1);
+    }
 }
