@@ -51,13 +51,15 @@ export class HomePageWrapper extends WebviewWrapper {
     private localCWInstallStatus: CLILifecycleWrapper.LocalCWInstallStatus = "no-docker";
     private doesARemoteConnectionExist: boolean = false;
 
+    private readonly onDidChangeConfigDisposable: vscode.Disposable;
+
     constructor(
 
     ) {
         super(`Codewind: Home`, ThemelessImages.Logo);
         HomePageWrapper._instance = this;
 
-        vscode.workspace.onDidChangeConfiguration((e) => {
+        this.onDidChangeConfigDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
             if (e.affectsConfiguration(CWConfigurations.SHOW_HOMEPAGE.fullSection)) {
                 this.refresh();
             }
@@ -71,6 +73,7 @@ export class HomePageWrapper extends WebviewWrapper {
     }
 
     protected onDidDispose(): void {
+        this.onDidChangeConfigDisposable.dispose();
         HomePageWrapper._instance = undefined;
     }
 
