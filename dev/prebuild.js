@@ -16,7 +16,7 @@ const fs = require("fs");
 const util = require("util");
 const { exec } = require("child_process");
 
-const theia_cmdsToDelete = [
+const che_cmdsToDelete = [
     "startCodewind",
     "startCodewind2",
     "stopCodewind",
@@ -79,7 +79,7 @@ function removeMenus(menus, cmdsToDelete) {
     return menus;
 }
 
-async function prebuildTheia(pj) {
+async function prebuildChe(pj) {
 
     // Contribute a viewcontainer instead of to the explorer view
     pj.contributes.viewsContainers = {
@@ -101,8 +101,8 @@ async function prebuildTheia(pj) {
     };
 
     // Delete unwanted commands and their respective menu entries
-    pj.contributes.commands = removeCommands(pj.contributes.commands, theia_cmdsToDelete);
-    pj.contributes.menus = removeMenus(pj.contributes.menus, theia_cmdsToDelete);
+    pj.contributes.commands = removeCommands(pj.contributes.commands, che_cmdsToDelete);
+    pj.contributes.menus = removeMenus(pj.contributes.menus, che_cmdsToDelete);
 
     // Delete the binaries that aren't needed.
     const BIN_DIR = "bin";
@@ -128,15 +128,15 @@ async function prebuildVSCode(pj) {
 async function main() {
 
     const prebuildType = process.argv[2];
-    let isForTheia;
-    if (prebuildType === "theia") {
-        isForTheia = true;
+    let isForChe;
+    if (prebuildType === "che") {
+        isForChe = true;
     }
     else if (prebuildType === "vscode") {
-        isForTheia = false;
+        isForChe = false;
     }
     else {
-        throw new Error(`This script must be called with either "theia" or "vscode" as argv[2]. ` +
+        throw new Error(`This script must be called with either "che" or "vscode" as argv[2]. ` +
             `Received "${prebuildType}"`);
     }
 
@@ -144,8 +144,8 @@ async function main() {
 
     let pj = JSON.parse(await util.promisify(fs.readFile)(PACKAGE_JSON_PATH));
 
-    if (isForTheia) {
-        pj = await prebuildTheia(pj);
+    if (isForChe) {
+        pj = await prebuildChe(pj);
     }
     else {
         pj = await prebuildVSCode(pj);
