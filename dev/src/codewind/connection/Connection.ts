@@ -176,8 +176,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     private async initFileWatcher(): Promise<void> {
-        if (global.isTheia) {
-            Log.i("In theia; no filewatcher required");
+        if (global.isChe) {
+            Log.i("In Che; no filewatcher required");
             return;
         }
 
@@ -195,8 +195,8 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     private getPFEHost(): string {
-        if (global.isTheia) {
-            // On theia we have to use the che ingress
+        if (global.isChe) {
+            // On Che we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
             const cheExternalUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
             Log.d(`${Constants.CHE_API_EXTERNAL_ENVVAR}=${cheExternalUrlStr}`);
@@ -354,7 +354,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
      * This is the case for remote connections, or the local connection in theia.
      */
     public get isKubeConnection(): boolean {
-        return this.isRemote || global.isTheia;
+        return this.isRemote || global.isChe;
     }
 
     public async needsPushRegistry(): Promise<boolean> {
@@ -425,11 +425,11 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public get pfeBaseURL(): vscode.Uri {
-        if (!global.isTheia) {
+        if (!global.isChe) {
             return this.url;
         }
 
-        // In theia, we have to use the environment to figure out the Codewind ingress (in place of using a kube client)
+        // In Che, we have to use the environment to figure out the Codewind ingress (in place of using a kube client)
         if (this.codewindCheIngress) {
             return this.codewindCheIngress;
         }

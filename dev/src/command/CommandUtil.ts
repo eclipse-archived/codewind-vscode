@@ -258,7 +258,7 @@ export async function promptForConnection(connectedOnly: boolean, remoteOnly: bo
         return choices[0];
     }
     else if (choices.length === 0) {
-        if (global.isTheia) {
+        if (global.isChe) {
             vscode.window.showWarningMessage(`Codewind has not yet started. Wait for the Codewind pod to come up before running this command.`);
         }
         else {

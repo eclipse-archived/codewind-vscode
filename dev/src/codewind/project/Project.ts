@@ -160,8 +160,8 @@ export default class Project implements vscode.QuickPickItem {
         // The function calling the constructor must await on this promise before expecting the project to be ready.
         this.initPromise = Promise.all([
             this.updateCapabilities(),
-            // skip the debug config step in Theia
-            global.isTheia ? Promise.resolve() : this.updateDebugConfig(),
+            // skip the debug config step in Che
+            global.isChe ? Promise.resolve() : this.updateDebugConfig(),
         ])
         .then(() => Promise.resolve());
 

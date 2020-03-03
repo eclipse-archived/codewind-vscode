@@ -46,6 +46,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Declared as 'any' type, but will always be assigned globalState which is a vscode.Memento
     global.extGlobalState = context.globalState;
     global.isTheia = vscode.env.appName.toLowerCase().includes("theia");
+    global.isChe = !!process.env[Constants.CHE_WORKSPACEID_ENVVAR];
 
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");
@@ -95,7 +96,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Connect to local codewind if it's started, but don't start it automatically.
     connectLocalCodewindCmd(LocalCodewindManager.instance, false);
 
-    if (!global.isTheia && CWConfigurations.SHOW_HOMEPAGE.get()) {
+    if (!global.isChe && CWConfigurations.SHOW_HOMEPAGE.get()) {
         showHomePageCmd();
     }
 

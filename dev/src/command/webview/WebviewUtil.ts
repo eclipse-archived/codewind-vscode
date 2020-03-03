@@ -65,7 +65,6 @@ namespace WebviewUtil {
         // These should be loaded first so they can be overridden
         stylesheets.unshift("common.css");
 
-        // Change this to a an if (true) if you're debugging in the browser
         if (global.isTheia || !!process.env[ENVVAR_WEBVIEW_DEBUG_DIR]) {
             stylesheets.unshift("theia.css");
         }

@@ -128,7 +128,7 @@ export default class LocalCodewindManager {
      * Check if the local Codewind URL has changed due to a command-line restart, and recreate the local connection if it has changed.
      */
     public async refresh(): Promise<boolean> {
-        if (global.isTheia) {
+        if (global.isChe) {
             return false;
         }
 
@@ -152,7 +152,7 @@ export default class LocalCodewindManager {
      * Theia Only -
      * For the theia case where we do not control CW's lifecycle, we simply wait for it to start.
      */
-    public async waitForCodewindToStartTheia(): Promise<void> {
+    public async waitForCodewindToStartChe(): Promise<void> {
         Log.i(`In theia; waiting for Codewind to come up on ${CHE_CW_URL}`);
         this.setState(CodewindStates.STARTING);
         const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);

@@ -29,8 +29,8 @@ export default async function connectLocalCodewindCmd(
     Log.i("Start Local Codewind Cmd");
 
     try {
-        if (global.isTheia) {
-            await LocalCodewindManager.instance.waitForCodewindToStartTheia();
+        if (global.isChe) {
+            await LocalCodewindManager.instance.waitForCodewindToStartChe();
             return;
         }
 
