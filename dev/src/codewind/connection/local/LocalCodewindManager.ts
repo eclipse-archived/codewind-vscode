@@ -149,11 +149,10 @@ export default class LocalCodewindManager {
     }
 
     /**
-     * Theia Only -
-     * For the theia case where we do not control CW's lifecycle, we simply wait for it to start.
+     * For the Che case where we do not control CW's lifecycle, we simply wait for it to start.
      */
     public async waitForCodewindToStartChe(): Promise<void> {
-        Log.i(`In theia; waiting for Codewind to come up on ${CHE_CW_URL}`);
+        Log.i(`In Che; waiting for Codewind to come up on ${CHE_CW_URL}`);
         this.setState(CodewindStates.STARTING);
         const cheCwUrl = vscode.Uri.parse(CHE_CW_URL);
 
@@ -177,7 +176,7 @@ export default class LocalCodewindManager {
                     return resolve(false);
                 }
                 else if (tries === longerThanUsualTries) {
-                    this.onTheiaStartTimeout(false, tries * delayS);
+                    this.onCheStartTimeout(false, tries * delayS);
                 }
             }, delayS * 1000);
         }).then((result) => {
@@ -196,7 +195,7 @@ export default class LocalCodewindManager {
 
         const isCodewindUp = await waitingForReadyProm;
         if (!isCodewindUp) {
-            this.onTheiaStartTimeout(true, timeoutS);
+            this.onCheStartTimeout(true, timeoutS);
             this.setState(CodewindStates.ERR_CONNECTING);
             return;
         }
@@ -204,7 +203,7 @@ export default class LocalCodewindManager {
         await this.connect(cheCwUrl);
     }
 
-    private onTheiaStartTimeout(failure: boolean, secsElapsed: number): void {
+    private onCheStartTimeout(failure: boolean, secsElapsed: number): void {
         const helpBtn = "Help";
 
         const msg = failure ?

@@ -205,7 +205,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
                 const cheExternalUrl = vscode.Uri.parse(cheExternalUrlStr);
                 const authority = cheExternalUrl.authority;
                 if (authority) {
-                    Log.i("Setting connection host in Theia to " + authority);
+                    Log.i("Setting connection host in Che to " + authority);
                     return authority;
                 }
             }
@@ -351,7 +351,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     /**
      * Returns if this connection's CW instance is running in Kube.
-     * This is the case for remote connections, or the local connection in theia.
+     * This is the case for remote connections, or the local connection in che.
      */
     public get isKubeConnection(): boolean {
         return this.isRemote || global.isChe;

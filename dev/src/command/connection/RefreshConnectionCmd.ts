@@ -20,7 +20,7 @@ export default async function refreshConnectionCmd(connection: Connection): Prom
     try {
         if (!connection.isRemote) {
             // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
-            // In Theia this has no effect
+            // In Che this has no effect
             const localHasChanged = await LocalCodewindManager.instance.refresh();
             if (localHasChanged) {
                 vscode.window.showInformationMessage(`Reconnected to Local Codewind`);

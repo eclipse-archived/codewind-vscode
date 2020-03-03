@@ -99,8 +99,8 @@ namespace WebviewUtil {
     }
 
     export function buildTitleSection(rp: WebviewResourceProvider, title: string, connectionLabel: string, isRemoteConnection: boolean): string {
-        // the subtitle is ommitted in theia since there is only one connection
-        const hasSubtitle = !global.isTheia;
+        // the subtitle is ommitted in Che since there is only one connection
+        const hasSubtitle = !global.isChe;
 
         return `<div class="title-section ${hasSubtitle ? "title-section-subtitled" : ""}">
             <div id="logo-container">
