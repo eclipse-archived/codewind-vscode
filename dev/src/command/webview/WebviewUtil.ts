@@ -65,7 +65,6 @@ namespace WebviewUtil {
         // These should be loaded first so they can be overridden
         stylesheets.unshift("common.css");
 
-        // Change this to a an if (true) if you're debugging in the browser
         if (global.isTheia || !!process.env[ENVVAR_WEBVIEW_DEBUG_DIR]) {
             stylesheets.unshift("theia.css");
         }
@@ -100,8 +99,8 @@ namespace WebviewUtil {
     }
 
     export function buildTitleSection(rp: WebviewResourceProvider, title: string, connectionLabel: string, isRemoteConnection: boolean): string {
-        // the subtitle is ommitted in theia since there is only one connection
-        const hasSubtitle = !global.isTheia;
+        // the subtitle is ommitted in Che since there is only one connection
+        const hasSubtitle = !global.isChe;
 
         return `<div class="title-section ${hasSubtitle ? "title-section-subtitled" : ""}">
             <div id="logo-container">

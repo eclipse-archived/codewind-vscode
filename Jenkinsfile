@@ -14,7 +14,7 @@ spec:
     tty: true
     command:
       - cat
-  - name: theia-builder
+  - name: che-builder
     image: node:lts
     tty: true
     command:
@@ -64,7 +64,7 @@ spec:
                 }
             }
         }
-        // we duplicate the cloned repo so that we can build vscode and theia in parallel without the builds interfering with one another
+        // we duplicate the cloned repo so that we can build vscode and che-theia in parallel without the builds interfering with one another
         stage("Duplicate code") {
             steps {
                 dir ("..") {
@@ -73,7 +73,7 @@ spec:
                         shopt -s extglob
                         export dir_name=$(echo *codewind-vscode_$GIT_BRANCH!(*tmp))
                         echo "Duplicating $dir_name"
-                        cp -r "$dir_name" codewind-theia
+                        cp -r "$dir_name" codewind-che
                     '''
                 }
             }
@@ -89,12 +89,12 @@ spec:
                         }
                     }
                 }
-                stage("Build for Theia") {
+                stage("Build for Che") {
                     steps {
-                        container("theia-builder") {
-                            dir("../codewind-theia") {
-                                sh 'ci-scripts/package.sh theia'
-                                stash includes: '*.vsix', name: 'theia-vsix'
+                        container("che-builder") {
+                            dir("../codewind-che") {
+                                sh 'ci-scripts/package.sh che'
+                                stash includes: '*.vsix', name: 'che-vsix'
                             }
                         }
                     }
@@ -119,11 +119,11 @@ spec:
             steps {
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
                     unstash 'vscode-vsix'
-                    unstash 'theia-vsix'
+                    unstash 'che-vsix'
                     sh '''#!/usr/bin/env bash
                     export REPO_NAME="codewind-vscode"
                     export OUTPUT_NAME="codewind"
-                    export OUTPUT_THEIA_NAME="codewind-theia"
+                    export OUTPUT_CHE_NAME="codewind-che"
                     export DOWNLOAD_AREA_URL="https://download.eclipse.org/codewind/$REPO_NAME"
                     export LATEST_DIR="latest"
                     export BUILD_INFO="build_info.properties"
@@ -137,16 +137,16 @@ spec:
                     ssh $sshHost rm -rf $deployParentDir/$GIT_BRANCH/$LATEST_DIR
                     ssh $sshHost mkdir -p $deployParentDir/$GIT_BRANCH/$LATEST_DIR
 
-                    cp $OUTPUT_THEIA_NAME-*.vsix $OUTPUT_THEIA_NAME.vsix
-                    scp $OUTPUT_THEIA_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_THEIA_NAME.vsix
+                    cp $OUTPUT_CHE_NAME-*.vsix $OUTPUT_CHE_NAME.vsix
+                    scp $OUTPUT_CHE_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_CHE_NAME.vsix
 
                     echo "# Build date: $(date +%F-%T)" >> $BUILD_INFO
                     echo "build_info.url=$BUILD_URL" >> $BUILD_INFO
-                    SHA1_THEIA=$(sha1sum ${OUTPUT_THEIA_NAME}.vsix | cut -d ' ' -f 1)
-                    echo "build_info.theia.SHA-1=${SHA1_THEIA}" >> $BUILD_INFO
-                    rm $OUTPUT_THEIA_NAME.vsix
+                    SHA1_CHE=$(sha1sum ${OUTPUT_CHE_NAME}.vsix | cut -d ' ' -f 1)
+                    echo "build_info.che.SHA-1=${SHA1_CHE}" >> $BUILD_INFO
+                    rm $OUTPUT_CHE_NAME.vsix
                     mkdir $BACKUP_DIR
-                    mv $OUTPUT_THEIA_NAME-*.vsix $BACKUP_DIR/
+                    mv $OUTPUT_CHE_NAME-*.vsix $BACKUP_DIR/
 
                     cp $OUTPUT_NAME-*.vsix $OUTPUT_NAME.vsix
                     scp $OUTPUT_NAME.vsix $sshHost:$deployParentDir/$GIT_BRANCH/$LATEST_DIR/$OUTPUT_NAME.vsix

@@ -26,6 +26,10 @@ declare namespace NodeJS {
          * If true, the extension is running in Theia, else it is running in VS Code.
          */
         isTheia: boolean,
+        /**
+         * If true, the extension is running in Theia in Che.
+         */
+        isChe: boolean,
 
         // For some reason, importing anything at the top of this file causes all the properties declared here to not work anymore.
         // So, we use 'any' for extGlobalState - but it's a vscode.Memento.

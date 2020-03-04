@@ -353,7 +353,7 @@ async function promptForProjectName(connection: Connection, template: CWTemplate
  */
 async function getParentDirectory(): Promise<vscode.Uri | undefined> {
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
-        && (global.isTheia || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
+        && (global.isChe || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
 
         // if it is a single-root workspace, create the project under that root
         if (vscode.workspace.workspaceFolders.length === 1) {

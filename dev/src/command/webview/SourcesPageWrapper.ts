@@ -33,7 +33,7 @@ const SOURCES_PAGE_TITLE = "Template Source Manager";
 
 function getTitle(connection: Connection): string {
     let title = SOURCES_PAGE_TITLE;
-    if (!global.isTheia) {
+    if (!global.isChe) {
         title += ` (${connection.label})`;
     }
     return title;

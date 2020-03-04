@@ -34,8 +34,8 @@ namespace TreeItemFactory {
         const cwStarted = LocalCodewindManager.instance.isStarted;
 
         let label = "Local";
-        if (global.isTheia) {
-            // it's confusing to say "local" in Theia
+        if (global.isChe) {
+            // it's confusing to say "local" in Che
             label = "Projects";
         }
         // Show state except when started (since it's obvious in that case).
