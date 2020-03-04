@@ -28,7 +28,7 @@ export const CWDocs = {
     INSTALL_INFO:           new CWDoc("vsc-getting-started.html"),
     PROJECT_SETTINGS:       new CWDoc("project-settings.html"),
     WORKSPACE_NEWS:         new CWDoc("news06.html#codewind-workspace-updates"),
-    REGISTRIES:             new CWDoc("image-registry-credentials.html"),
+    REGISTRIES:             new CWDoc("che-setupregistries.html"),
     CHE_INSTALL:            new CWDoc("che-installinfo.html"),
     REMOTE_UI:              new CWDoc("remotedeploy-vscode.html"),
     REMOTE_DEPLOYING:       new CWDoc("remotedeploy-combo.html"),
