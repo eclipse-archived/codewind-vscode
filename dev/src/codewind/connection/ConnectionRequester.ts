@@ -10,10 +10,9 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import { RequestPromiseOptions } from "request-promise-native";
 
 import Log from "../../Logger";
-import Requester from "../Requester";
+import Requester, { RequesterOptions, HttpVerb } from "../Requester";
 import Connection from "./Connection";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import { PFEProjectData, RawCWEnvData, CWTemplateData, SourceEnablement, PFELogLevels } from "../Types";
@@ -46,7 +45,7 @@ export default class ConnectionRequester extends Requester {
     }
 
     private async doConnectionRequest<T = void>(
-        endpoint: MCEndpoints, verb: keyof typeof Requester.HTTP_VERBS, options?: RequestPromiseOptions): Promise<T> {
+        endpoint: MCEndpoints, verb: HttpVerb, options?: RequesterOptions): Promise<T> {
 
         const url = EndpointUtil.resolveMCEndpoint(this.connection, endpoint);
 
@@ -63,7 +62,7 @@ export default class ConnectionRequester extends Requester {
     }
 
     public async getTemplates(): Promise<CWTemplateData[]> {
-        const result = await this.doConnectionRequest<CWTemplateData[]>(MCEndpoints.TEMPLATES, "GET", { qs: { showEnabledOnly: true }});
+        const result = await this.doConnectionRequest<CWTemplateData[]>(MCEndpoints.TEMPLATES, "GET", { query: { showEnabledOnly: true }});
         if (result == null) {
             return [];
         }

@@ -21,6 +21,7 @@ import projectOverviewCmd from "../../command/project/ProjectOverviewCmd";
 import { CWConfigurations } from "../../constants/Configurations";
 import { PFEProjectData } from "../Types";
 import addProjectToWorkspaceCmd from "../../command/project/AddToWorkspaceCmd";
+import MCUtil from "../../MCUtil";
 
 /**
  * Receives and reacts to socket events from Portal
@@ -249,17 +250,18 @@ export default class MCSocket implements vscode.Disposable {
         return project.onSettingsChangedEvent(payload);
     }
 
-    private readonly onLoadRunnerStatusChanged = async (payload: {projectID: string, status: string, timestamp: string}):
-        Promise<void> => {
+    private readonly onLoadRunnerStatusChanged = async (payload: SocketEvents.LoadRunnerStatusEvent): Promise<void> => {
         const project = await this.getProject(payload);
         if (project == null) {
             return;
         }
+
         try {
             await project.onLoadRunnerUpdate(payload);
-        } catch (error) {
-            Log.e("Error retrieving profiling data from pfe", error);
-            vscode.window.showErrorMessage(`Error retrieving profiling data from pfe for ${project.name}`);
+        }
+        catch (err) {
+            Log.e("Error retrieving profiling data from pfe", err);
+            vscode.window.showErrorMessage(`Error retrieving profiling data for ${project.name}: ${MCUtil.errToString(err)}`);
         }
     }
 

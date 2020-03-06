@@ -169,10 +169,9 @@ export interface PFEProjectData {
     readonly injection?: MetricsInjectionStatus;
 }
 
-
 export interface MetricsDashboardStatus {
-    hosting: "project" | "performanceContainer" | null;
-    path: string | null;
+    readonly hosting: "project" | "performanceContainer" | null;
+    readonly path: string | null;
 }
 
 export interface MetricsInjectionStatus {
@@ -193,13 +192,13 @@ export interface ILogObject {
 ///// Project creation /////
 
 export interface IDetectedProjectType {
-    language: string;
-    projectType: string;
-    projectSubtype?: string;
+    readonly language: string;
+    readonly projectType: string;
+    readonly projectSubtype?: string;
 }
 
 export interface IInitializationResponse {
-    status: string;
-    result: IDetectedProjectType | string | { error: string };
-    projectPath?: string;
+    readonly status: string;
+    readonly result: IDetectedProjectType | string | { error: string };
+    readonly projectPath?: string;
 }

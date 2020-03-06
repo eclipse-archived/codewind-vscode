@@ -26,13 +26,12 @@ import ProjectPendingRestart from "./ProjectPendingRestart";
 import Connection from "../connection/Connection";
 import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
-import Requester from "../Requester";
 import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
-import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
 import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData } from "../Types";
+import Requester from "../Requester";
 import ProjectRequester from "./ProjectRequester";
 
 const STRING_NS = StringNamespaces.PROJECT;
@@ -527,54 +526,52 @@ export default class Project implements vscode.QuickPickItem {
         await this.clearValidationErrors();
     }
 
-    public async onLoadRunnerUpdate(event: {projectID: string, status: string, timestamp: string}): Promise<void> {
-        Log.d(`${this.name} load runner status changed to ${event.status}`, event);
+    public async onLoadRunnerUpdate(event: SocketEvents.LoadRunnerStatusEvent): Promise<void> {
+        Log.d(`${this.name} load runner status changed to "${event.status}" at ${event.timestamp}`);
         if (![ "hcdReady", "profilingReady"].includes(event.status)) {
             return;
         }
         Log.d("Profiling data is ready to be saved to workspace");
+
         const loadTestFolder = "load-test";
         const loadTestPath = path.join(this.localPath.fsPath, loadTestFolder);
         const timestampPath = path.join(loadTestPath, event.timestamp);
+
         let fileName = "";
         if (this.language.toLowerCase() === ProjectType.Languages.JAVA) {
             fileName = "profiling.hcd";
         } else if (this.language.toLowerCase() === ProjectType.Languages.NODE) {
             fileName = "profiling.json";
         } else {
+            // should not be possible because the load test should not have run in the first place
             Log.e(`Project language ${this.language} not supported for profiling`);
             return;
         }
+
         const profilingOutPath = path.join(timestampPath, fileName);
         try {
             await fs.promises.mkdir(loadTestPath);
-        } catch (error) {
-            if (error.code !== "EEXIST") {
-                Log.e(`Error creating directory ${loadTestPath}`, error);
-                vscode.window.showErrorMessage(`Could not create directory at ${loadTestPath}`);
+        }
+        catch (err) {
+            if (err.code !== "EEXIST") {
+                Log.e(`Error creating directory ${loadTestPath}`, err);
+                vscode.window.showErrorMessage(`Could not create directory at ${loadTestPath}: ${MCUtil.errToString(err)}`);
                 return;
             }
         }
+
         try {
             await fs.promises.mkdir(timestampPath);
-        } catch (error) {
-            if (error.code !== "EEXIST") {
-                Log.e(`Error creating directory ${timestampPath}`, error);
-                vscode.window.showErrorMessage(`Could not create directory at ${timestampPath}`);
+        }
+        catch (err) {
+            if (err.code !== "EEXIST") {
+                Log.e(`Error creating directory ${timestampPath}`, err);
+                vscode.window.showErrorMessage(`Could not create directory at ${timestampPath}: ${MCUtil.errToString(err)}`);
                 return;
             }
         }
-        const endpoint = ProjectEndpoints.PROFILING.toString().concat(`/${event.timestamp}`);
-        const url = EndpointUtil.resolveProjectEndpoint(this.connection, this.id, endpoint as ProjectEndpoints);
-        try {
-            await this.requester.getProfilingData(url, profilingOutPath);
-        } catch (error) {
-            Log.e(`Error receiving profiling data from pfe for ${this.name}`, error);
-            vscode.window.showErrorMessage(`Error receiving profiling data for ${this.name}`);
-            return;
-        }
-        Log.d(`Saved profiling data to project ${this.name} at ${profilingOutPath}`);
 
+        await this.requester.receiveProfilingData(event.timestamp, profilingOutPath);
     }
 
     public deleteFromCodewind(deleteFiles: boolean): Promise<void> {

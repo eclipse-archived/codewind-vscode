@@ -12,17 +12,12 @@
 
 // import * as vscode from "vscode";
 
-import { RequestPromiseOptions } from "request-promise-native";
-import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
-
+import Requester, { HttpVerb } from "../Requester";
 import Project from "./Project";
 import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
-import RemoteConnection from "../connection/RemoteConnection";
 import ProjectCapabilities, { StartModes, ControlCommands } from "./ProjectCapabilities";
 import { ILogResponse } from "../Types";
-import Requester from "../Requester";
+import Log from "../../Logger";
 
 export default class ProjectRequester extends Requester {
 
@@ -33,16 +28,12 @@ export default class ProjectRequester extends Requester {
     }
 
     private async doProjectRequest<T = void>(
-        endpoint: ProjectEndpoints, verb: keyof typeof Requester.HTTP_VERBS, body: {} = {}): Promise<T> {
+        endpoint: ProjectEndpoints, verb: HttpVerb, body?: {}): Promise<T> {
 
         const url = EndpointUtil.resolveProjectEndpoint(this.project.connection, this.project.id, endpoint as ProjectEndpoints);
 
-        const options: RequestPromiseOptions = {
-            body,
-        };
-
         const accessToken = await this.project.connection.getAccessToken();
-        const result = await Requester.req<T>(verb, url, options, accessToken);
+        const result = await Requester.req<T>(verb, url, { body }, accessToken);
         return result;
     }
 
@@ -113,28 +104,11 @@ export default class ProjectRequester extends Requester {
         return new ProjectCapabilities(result.startModes, result.controlCommands);
     }
 
-    public async getProfilingData(url: string, filePath: string): Promise<void> {
-        let protocol;
-        let options = {};
+    public async receiveProfilingData(timestamp: string, profilingOutPath: string): Promise<void> {
+        const endpoint = ProjectEndpoints.PROFILING.toString().concat(`/${timestamp}`);
+        const url = EndpointUtil.resolveProjectEndpoint(this.project.connection, this.project.id, endpoint as ProjectEndpoints);
 
-        if (this.project.connection instanceof RemoteConnection) {
-            if (!url.startsWith("https")) {
-                throw new Error(`Refusing to send access token to non-secure URL ${url}`);
-            }
-            const accessToken = await this.project.connection.getAccessToken();
-            options = {
-                agent: new https.Agent({ rejectUnauthorized: false }),
-                headers: {
-                    Authorization: ` Bearer ${accessToken.access_token}`
-                }
-            } as https.RequestOptions;
-            protocol = https;
-        }
-        else {
-            protocol = http;
-        }
-
-        const wStream = fs.createWriteStream(filePath);
-        return await Requester.httpWriteStreamToFile(url, options, protocol, wStream);
+        await Requester.httpWriteStreamToFile(url, profilingOutPath, await this.project.connection.getAccessToken());
+        Log.d(`Saved profiling data to project ${this.project.name} at ${profilingOutPath}`);
     }
 }
