@@ -11,10 +11,11 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
-import * as request from "request-promise-native";
-import { StatusCodeError } from "request-promise-native/errors";
+import got, { NormalizedOptions, Response } from "got";
+import * as stream from "stream";
+import { promisify } from "util";
+
+const pipeline = promisify(stream.pipeline);
 
 import Log from "../Logger";
 import { AccessToken } from "./Types";
@@ -25,56 +26,62 @@ import { AccessToken } from "./Types";
  *
  * API doc - https://eclipse.github.io/codewind/
  */
-export default class Requester {
-
-    // tslint:disable-next-line: typedef
-    protected static readonly HTTP_VERBS = {
-        GET: request.get,
-        POST: request.post,
-        PUT: request.put,
-        PATCH: request.patch,
-        DELETE: request.delete,
-    } as const;
+export class Requester {
 
     private static readonly ERR_LOGIN_PAGE: string = "Authentication required";
 
     // By enforcing all requests to go through this function,
-    // we can inject options to abstract away required configuration like using json, handling ssl, and authentication.
+    // we can inject options to abstract away required configuration like using json content-type, handling insecure ssl, and authentication.
 
-    protected static async req<T>(
-        verb: keyof typeof Requester.HTTP_VERBS, url: string, options: request.RequestPromiseOptions = {},
-        accessToken?: AccessToken): Promise<T> {
-
-        const optionsCopy = Object.assign({}, options);
-        optionsCopy.json = true;
-        // we resolve with full response so we can look out for redirects below
-        optionsCopy.resolveWithFullResponse = true;
-        optionsCopy.followRedirect = false;
-        // TODO ...
-        optionsCopy.rejectUnauthorized = false;
-        if (!optionsCopy.timeout) {
-            optionsCopy.timeout = 60000;
-        }
-
-        const requestFunc = Requester.HTTP_VERBS[verb];
+    protected static async req<T>(verb: HttpVerb, url: string, options: RequesterOptions = {}, accessToken?: AccessToken): Promise<T> {
 
         Log.d(`Doing ${verb} request to ${url}`); // with options:`, options);
 
-        if (accessToken) {
-            if (!url.startsWith("https")) {
-                throw new Error(`Refusing to send access token to non-secure URL ${url}`);
+        // https://github.com/sindresorhus/got#api
+        const response = await got<T>(url, {
+            method: verb,
+            responseType: "json",
+            rejectUnauthorized: false,
+            json: options.body,
+            searchParams: options.query,
+            timeout: options.timeout || 30000,
+            headers: this.getAuthorizationHeader(url, accessToken),
+            retry: {
+                // https://github.com/sindresorhus/got#retry
+                // Retry on no status codes -> only on network errors.
+                errorCodes: [],
+            },
+            hooks: {
+                beforeRedirect: [
+                    this.detectAuthBeforeRedirect
+                ]
             }
-            optionsCopy.auth = {
-                bearer: accessToken.access_token,
-            };
-        }
-
-        const response = await requestFunc(url, optionsCopy) as request.FullResponse;
-        if (response.statusCode === 302 && response.headers.location && response.headers.location.includes("openid-connect/auth")) {
-            throw new Error(this.ERR_LOGIN_PAGE);
-        }
+        });
 
         return response.body;
+    }
+
+    private static getAuthorizationHeader(url: string, accessToken?: AccessToken): { Authorization: string } | undefined {
+        if (!accessToken) {
+            return undefined;
+        }
+        if (!url.startsWith("https")) {
+            throw new Error(`Refusing to send access token to non-secure URL ${url}`);
+        }
+
+        return { Authorization: "Bearer " + accessToken.access_token };
+    }
+
+    /**
+     * When redirected, check if it's to our openid login page, and throw an error if so.
+     */
+    private static readonly detectAuthBeforeRedirect = (_options: NormalizedOptions, redirectResponse: Response): void => {
+        if (redirectResponse.statusCode === 302 &&
+            redirectResponse.headers.location &&
+            redirectResponse.headers.location.includes("openid-connect/auth")) {
+
+            throw new Error(Requester.ERR_LOGIN_PAGE);
+        }
     }
 
     /**
@@ -105,9 +112,9 @@ export default class Requester {
                 Log.d(`Received login page when pinging ${url}`);
                 return true;
             }
-            else if (err instanceof StatusCodeError) {
-                Log.d(`Received status ${err.statusCode} when pinging ${url}`);
-                if (rejectStatusCodes.includes(err.statusCode)) {
+            else if (err instanceof got.HTTPError) {
+                Log.d(`Received status ${err.code} when pinging ${url}`);
+                if (rejectStatusCodes.includes(Number(err.code))) {
                     return false;
                 }
                 return true;
@@ -119,27 +126,35 @@ export default class Requester {
         }
     }
 
-    protected static async httpWriteStreamToFile(
-        url: string, options: https.RequestOptions, protocol: typeof http | typeof https, wStream: fs.WriteStream): Promise<void> {
-
-        return new Promise((resolve, reject) => {
-            const newRequest = protocol.request(url, options, (res: any) => {
-                res.on("error", (err: any) => {
-                    return reject(err);
-                });
-                res.on("data", (data: any) => {
-                    wStream.write(data);
-                });
-                res.on("end", () => {
-                    return resolve();
-                });
-                res.on("aborted", () => {
-                    return reject();
-                });
-            }).on("error", (err: any) => {
-                return reject(err);
-            });
-            newRequest.end();
+    public static async httpWriteStreamToFile(url: string, destFile: string, accessToken?: AccessToken): Promise<void> {
+        // https://github.com/sindresorhus/got#streams
+        const httpStream = got.stream(url, {
+            rejectUnauthorized: false,
+            timeout: 30000,
+            headers: this.getAuthorizationHeader(url, accessToken),
+            retry: {
+                // https://github.com/sindresorhus/got#retry
+                // Retry on no status codes -> only on network errors.
+                errorCodes: [],
+            },
+            hooks: {
+                beforeRedirect: [
+                    this.detectAuthBeforeRedirect
+                ]
+            }
         });
+
+        await pipeline(httpStream, fs.createWriteStream(destFile));
     }
 }
+
+// namespace Requester {
+export interface RequesterOptions {
+    body?: {};
+    query?: {};
+    timeout?: number;
+}
+export type HttpVerb = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+// }
+
+export default Requester;

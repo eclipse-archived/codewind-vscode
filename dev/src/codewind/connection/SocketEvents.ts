@@ -87,6 +87,12 @@ namespace SocketEvents {
         readonly status: string;
     }
 
+    export interface LoadRunnerStatusEvent {
+        readonly projectID: string;
+        readonly status: string;
+        readonly timestamp: string;
+    }
+
     /**
      * Socket events we listen for from Portal
      * See MCSocket
