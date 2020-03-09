@@ -33,7 +33,7 @@ export class Requester {
     // By enforcing all requests to go through this function,
     // we can inject options to abstract away required configuration like using json content-type, handling insecure ssl, and authentication.
 
-    protected static async req<T>(verb: HttpVerb, url: string, options: RequesterOptions = {}, accessToken?: AccessToken): Promise<T> {
+    protected static async req<T = void>(verb: HttpVerb, url: string, options: RequesterOptions = {}, accessToken?: AccessToken): Promise<T> {
 
         Log.d(`Doing ${verb} request to ${url}`); // with options:`, options);
 
@@ -45,7 +45,9 @@ export class Requester {
             json: options.body,
             searchParams: options.query,
             timeout: options.timeout || 30000,
-            headers: this.getAuthorizationHeader(url, accessToken),
+            headers: {
+                ...this.getAuthorizationHeader(url, accessToken),
+            },
             retry: {
                 // https://github.com/sindresorhus/got#retry
                 // Retry on no status codes -> only on network errors.
@@ -103,7 +105,10 @@ export class Requester {
         }
 
         try {
-            await this.req("GET", url, { timeout: timeoutMS });
+            await got(url, {
+                rejectUnauthorized: false,
+                timeout: timeoutMS,
+            });
             // It succeeded
             return true;
         }
