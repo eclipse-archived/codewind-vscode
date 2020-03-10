@@ -102,19 +102,25 @@ export class ProjectState {
             return `[${this.appState}]`;
         }
 
-        const buildStatusStr = this.getBuildString();
-        if (this.appState === ProjectState.AppStates.UNKNOWN) {
-            if (!buildStatusStr) {
-                // Log.w(`${this.projectName} has unknown app and build statuses`);
-                return "[Unknown]";
+        const hasAppState = this.appState !== ProjectState.AppStates.UNKNOWN;
+        const hasBuildState = this.buildState !== ProjectState.BuildStates.UNKNOWN;
+
+        if (hasAppState) {
+            if (hasBuildState) {
+                // both states
+                return `[${this.appState}] [${this.getBuildString()}]`;
             }
-            // Return only the build status if app status is unknown
-            return `[${buildStatusStr}]`;
+            else {
+                // app state only
+                return `[${this.appState}]`;
+            }
         }
-        else {
-            // Return both statuses
-            return `[${this.appState}] [${buildStatusStr}]`;
+        else if (hasBuildState) {
+            // build state only
+            return `[${this.getBuildString()}]`;
         }
+        // Log.w(`${this.projectName} has unknown app and build statuses`);
+        return "[Unknown]";
     }
 
     public getBuildString(): string | undefined {
