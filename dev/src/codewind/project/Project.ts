@@ -426,7 +426,7 @@ export default class Project implements vscode.QuickPickItem {
     private async updateDebugConfig(): Promise<void> {
         try {
             if (this.type.debugType !== undefined) {
-                DebugUtils.setDebugConfig(this);
+                await DebugUtils.setDebugConfig(this);
             }
         }
         catch (err) {
