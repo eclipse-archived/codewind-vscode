@@ -3,7 +3,7 @@ body {
     padding-left: 5%;
     padding-right: 5%;
     padding-bottom: 2%;
-    font-family: "IBM Plex Sans";
+    font-family: 'IBM Plex Sans', Arial, Helvetica, sans-serif;
 
     /* This colour is taken from the VS Code welcome page, but doesn't appear to be available in other webviews. */
     --welcomePage-tileBackground: #171717;
