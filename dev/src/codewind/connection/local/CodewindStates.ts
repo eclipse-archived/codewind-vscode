@@ -10,13 +10,14 @@
  *******************************************************************************/
 
 export enum CodewindStates {
+    SETUP = "Setting up",
     STOPPED = "Stopped",
     STARTED = "Started",
     STARTING = "Starting",
     STOPPING = "Stopping",
     INSTALLING = "Installing",
-    ERR_INSTALLING = "Error Installing",
-    ERR_STARTING = "Error Starting",
-    ERR_CONNECTING = "Error Connecting",
+    ERR_INSTALLING = "Error installing",
+    ERR_STARTING = "Error starting",
+    ERR_CONNECTING = "Error connecting",
     ERR_GENERIC = "Error",
 }

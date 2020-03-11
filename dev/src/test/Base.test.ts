@@ -39,8 +39,8 @@ describe("Codewind for VS Code", function() {
     // TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type undefined
     // It likely means you called extension code before the extension was activated
     it("should activate when the Codewind view is opened", async function() {
-        this.timeout(TestUtil.ms(10, "sec"));
-        this.slow(TestUtil.ms(5, "sec"));
+        this.timeout(TestUtil.ms(30, "sec"));
+        this.slow(TestUtil.ms(10, "sec"));
 
         // Log.t("Loaded extensions:", vscode.extensions.all.map((ext) => ext.id).join(", "));
         const extension = vscode.extensions.getExtension(extensionID);

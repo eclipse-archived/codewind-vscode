@@ -12,11 +12,11 @@
 import * as vscode from "vscode";
 
 import { CodewindStates } from "./CodewindStates";
-import CLIWrapper from "../CLIWrapper";
+import CLIWrapper from "../../cli/CLIWrapper";
 import MCUtil from "../../../MCUtil";
 import Log from "../../../Logger";
 import Connection from "../Connection";
-import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
+import { CLILifecycleWrapper } from "../../cli/CLILifecycleWrapper";
 import CodewindEventListener from "../CodewindEventListener";
 import ConnectionManager from "../ConnectionManager";
 import { getOcticon, Octicons } from "../../../constants/CWImages";
@@ -35,7 +35,7 @@ export default class LocalCodewindManager {
     private static _instance: LocalCodewindManager;
 
     private _localConnection: Connection | undefined;
-    private _state: CodewindStates = CodewindStates.STOPPED;
+    private _state: CodewindStates = CodewindStates.SETUP;
 
     public static get instance(): LocalCodewindManager {
         if (this._instance == null) {

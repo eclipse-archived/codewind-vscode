@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -14,36 +14,25 @@ import { Readable } from "stream";
 import * as readline from "readline";
 import * as fs from "fs";
 
-import Log from "../../../Logger";
-import StringNamespaces from "../../../constants/strings/StringNamespaces";
-import Translator from "../../../constants/strings/translator";
-import { CodewindStates } from "./CodewindStates";
-import MCUtil from "../../../MCUtil";
-import Constants from "../../../constants/Constants";
-import CLIWrapper from "../CLIWrapper";
-import Commands from "../../../constants/Commands";
-import LocalCodewindManager from "./LocalCodewindManager";
+import Log from "../../Logger";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
+import Translator from "../../constants/strings/translator";
+import { CodewindStates } from "../connection/local/CodewindStates";
+import MCUtil from "../../MCUtil";
+import Constants from "../../constants/Constants";
+import CLIWrapper from "./CLIWrapper";
+import Commands from "../../constants/Commands";
+import LocalCodewindManager from "../connection/local/LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
-import { CLICommandRunner } from "../CLICommandRunner";
-import { promisify } from "util";
-import CWDocs from "../../../constants/CWDocs";
-import { CLIStatus } from "../../Types";
+import { CLICommandRunner } from "./CLICommandRunner";
+import CWDocs from "../../constants/CWDocs";
+import { CLIStatus } from "../Types";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
 const TAG_OPTION = "-t";
 
 export namespace CLILifecycleWrapper {
-
-    /**
-     * Used only in development.
-     */
-    export const TAG_LATEST = "latest";
-    /**
-     * Codewind tag to install if CW_TAG is not set in env
-     * UPDATE THIS on release branches to eg "0.6.0"
-     */
-    export const DEFAULT_CW_TAG = TAG_LATEST;
 
     // serves as a lock, only one operation at a time.
     let currentOperation: CLILifecycleCommand | undefined;
@@ -80,7 +69,7 @@ export namespace CLILifecycleWrapper {
 
         try {
             currentOperation = cmd;
-            await CLIWrapper.cliExec(cmd, args, progressTitle);
+            await CLIWrapper.cwctlExec(cmd, args, progressTitle);
         }
         catch (err) {
             if (CLIWrapper.isCancellation(err)) {
@@ -114,7 +103,16 @@ export namespace CLILifecycleWrapper {
      */
     export async function getCodewindStartedStatus(status?: CLIStatus): Promise<LocalCWInstallStatus> {
         if (!status) {
-            status = await CLICommandRunner.status();
+            try {
+                status = await CLICommandRunner.status();
+            }
+            catch (err) {
+                if (CLIWrapper.isCancellation(err)) {
+                    return "stopped";
+                }
+                // else throw unexpected
+                throw err;
+            }
         }
 
         if (!status.isDockerRunning) {
@@ -235,7 +233,7 @@ export namespace CLILifecycleWrapper {
         const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
 
         let response;
-        if (!promptForInstall || process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST) {
+        if (!promptForInstall || MCUtil.isTestEnv()) {
             response = installAffirmBtn;
         }
         else {
@@ -356,29 +354,21 @@ export namespace CLILifecycleWrapper {
         });
     }
 
-    function isDevEnv(): boolean {
-        const env = process.env[Constants.CW_ENV_VAR];
-        return env === Constants.CW_ENV_DEV || env === Constants.CW_ENV_TEST;
-    }
-
     function getTag(): string {
-        let tag = DEFAULT_CW_TAG;
+        let tag = Constants.CODEWIND_IMAGE_VERSION;
         const versionVarValue = process.env[Constants.CW_ENV_TAG_VAR];
         if (versionVarValue) {
             tag = versionVarValue;
-        }
-        else if (isDevEnv()) {
-            tag = TAG_LATEST;
         }
         return tag;
     }
 
     /**
-     * We have to do a cwctl upgrade (workspace migration) if the old version was older than 0.6, and the workspace was createdƒ
+     * We have to do a cwctl upgrade (workspace migration) if the old version was older than 0.6, and the workspace was created at some point.
      */
     async function isWorkspaceMigrationReqd(startedVersions: string[], installedVersions: string[]): Promise<boolean> {
         try {
-            await promisify(fs.access)(MCUtil.getCWWorkspacePath());
+            await fs.promises.access(MCUtil.getCWWorkspacePath());
         }
         catch (err) {
             // no workspace -> no upgrade required

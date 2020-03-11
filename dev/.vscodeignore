@@ -6,6 +6,6 @@ src/**
 test/**
 .gitignore
 tsconfig.json
-vsc-extension-quickstart.md
 tslint.json
-bin/*.sh
+bin/**
+prebuild.js

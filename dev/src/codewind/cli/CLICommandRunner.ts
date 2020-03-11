@@ -26,7 +26,7 @@ export namespace CLICommandRunner {
     export async function status(): Promise<CLIStatus> {
         let statusResult: CLIStatus;
         try {
-            statusResult = await CLIWrapper.cliExec(CLICommands.STATUS);
+            statusResult = await CLIWrapper.cwctlExec(CLICommands.STATUS);
             // if there was no error then docker is running
             statusResult.isDockerRunning = true;
         }
@@ -63,7 +63,7 @@ export namespace CLICommandRunner {
     export async function createProject(connectionID: string, projectPath: string, url: string)
         : Promise<IInitializationResponse> {
 
-        return CLIWrapper.cliExec(CLICommands.PROJECT.CREATE, [
+        return CLIWrapper.cwctlExec(CLICommands.PROJECT.CREATE, [
             "--conid", connectionID,
             "--path", projectPath,
             "--url", url
@@ -82,7 +82,7 @@ export namespace CLICommandRunner {
         if (desiredType) {
             args.push("--type", desiredType);
         }
-        return CLIWrapper.cliExec(CLICommands.PROJECT.VALIDATE, args, `Processing ${projectPath}...`);
+        return CLIWrapper.cwctlExec(CLICommands.PROJECT.VALIDATE, args, `Processing ${projectPath}...`);
     }
 
     /**
@@ -91,7 +91,7 @@ export namespace CLICommandRunner {
     export async function bindProject(connectionID: string, projectName: string, projectPath: string, detectedType: IDetectedProjectType)
         : Promise<{ projectID: string, name: string }> {
 
-        const bindRes = await CLIWrapper.cliExec(CLICommands.PROJECT.BIND, [
+        const bindRes = await CLIWrapper.cwctlExec(CLICommands.PROJECT.BIND, [
             "--conid", connectionID,
             "--name", projectName,
             "--language", detectedType.language,
@@ -123,7 +123,7 @@ export namespace CLICommandRunner {
      * Perform a workspace upgrade from a version older than 0.6
      */
     export async function upgrade(): Promise<WorkspaceUpgradeResult> {
-        return CLIWrapper.cliExec(CLICommands.UPGRADE, [
+        return CLIWrapper.cwctlExec(CLICommands.UPGRADE, [
             "--ws", MCUtil.getCWWorkspacePath(),
         ]);
     }
@@ -134,7 +134,7 @@ export namespace CLICommandRunner {
      * @returns The data for the new Connection
      */
     export async function addConnection(label: string, url: string, username: string): Promise<CLIConnectionData> {
-        return await CLIWrapper.cliExec(CLICommands.CONNECTIONS.ADD, [
+        return await CLIWrapper.cwctlExec(CLICommands.CONNECTIONS.ADD, [
             "--label", label,
             "--url", url,
             "--username", username,
@@ -145,7 +145,7 @@ export namespace CLICommandRunner {
      * @returns The data for all current connections, except Local
      */
     export async function getRemoteConnections(): Promise<CLIConnectionData[]> {
-        const connections = await CLIWrapper.cliExec(CLICommands.CONNECTIONS.LIST);
+        const connections = await CLIWrapper.cwctlExec(CLICommands.CONNECTIONS.LIST);
         if (!connections.connections) {
             // the local connection should at least be there
             Log.e(`Received no connections back from connections list`);
@@ -159,11 +159,11 @@ export namespace CLICommandRunner {
      * @returns The data for all current connections, after removal.
      */
     export async function removeConnection(id: string): Promise<void> {
-        await CLIWrapper.cliExec(CLICommands.CONNECTIONS.REMOVE, [ "--conid", id ]);
+        await CLIWrapper.cwctlExec(CLICommands.CONNECTIONS.REMOVE, [ "--conid", id ]);
     }
 
     export async function updateConnection(newData: CLIConnectionData): Promise<void> {
-        await CLIWrapper.cliExec(CLICommands.CONNECTIONS.UPDATE, [
+        await CLIWrapper.cwctlExec(CLICommands.CONNECTIONS.UPDATE, [
             "--conid", newData.id,
             "--label", newData.label,
             "--url", newData.url,
@@ -184,19 +184,19 @@ export namespace CLICommandRunner {
             args.push("--description", descr);
         }
 
-        return CLIWrapper.cliExec(CLICommands.TEMPLATE_SOURCES.ADD, args);
+        return CLIWrapper.cwctlExec(CLICommands.TEMPLATE_SOURCES.ADD, args);
     }
 
     export async function getTemplateSources(connectionID: string, showProgress: boolean): Promise<TemplateSource[]> {
         const progress = showProgress ? undefined : "Fetching template sources...";
 
-        return CLIWrapper.cliExec(CLICommands.TEMPLATE_SOURCES.LIST, [
+        return CLIWrapper.cwctlExec(CLICommands.TEMPLATE_SOURCES.LIST, [
             "--conid", connectionID,
         ], progress);
     }
 
     export async function removeTemplateSource(connectionID: string, url: string): Promise<TemplateSource[]> {
-        return CLIWrapper.cliExec(CLICommands.TEMPLATE_SOURCES.REMOVE, [
+        return CLIWrapper.cwctlExec(CLICommands.TEMPLATE_SOURCES.REMOVE, [
             "--conid", connectionID,
             "--url", url
         ]);
@@ -206,7 +206,7 @@ export namespace CLICommandRunner {
 
     export async function updateKeyringCredentials(connectionID: string, username: string, password: string): Promise<void> {
         // in the success case, the output is just an OK status
-        await CLIWrapper.cliExec(CLICommands.AUTHENTICATION.KEYRING_UPDATE, [
+        await CLIWrapper.cwctlExec(CLICommands.AUTHENTICATION.KEYRING_UPDATE, [
             "--conid", connectionID,
             "--username", username,
             "--password", password
@@ -217,7 +217,7 @@ export namespace CLICommandRunner {
 
     export async function getAccessToken(connectionID: string, username: string): Promise<AccessToken> {
         try {
-            const result = await CLIWrapper.cliExec(CLICommands.AUTHENTICATION.GET_SECTOKEN, [
+            const result = await CLIWrapper.cwctlExec(CLICommands.AUTHENTICATION.GET_SECTOKEN, [
                 "--conid", connectionID,
                 "--username", username,
             ]);
