@@ -84,7 +84,7 @@ export default class DebugUtils {
      * Returns a promise that resolves to whether or not a matching launch config was found and deleted.
      */
     public static async removeDebugLaunchConfigFor(project: Project): Promise<boolean> {
-        const workspaceConfig = this.getWorkspaceLaunchConfig(project);
+        const workspaceConfig = this.getLaunchConfig(project);
         const launchConfigs = this.getLaunchConfigurationsFrom(workspaceConfig);
 
         const debugName = this.getDebugName(project);
@@ -136,17 +136,13 @@ export default class DebugUtils {
     private static readonly LAUNCH: string = "launch";                      // non-nls
     private static readonly CONFIGURATIONS: string = "configurations";      // non-nls
 
-    private static getWorkspaceLaunchConfig(project: Project): vscode.WorkspaceConfiguration {
+    private static getLaunchConfig(project: Project): vscode.WorkspaceConfiguration {
         // Prefer the project's workspace folder if it exists, otherwise fall back to whatever is open
-        let workspaceFolder = vscode.workspace.getWorkspaceFolder(project.localPath);
-        if (!workspaceFolder) {
-            workspaceFolder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
-        }
-        return vscode.workspace.getConfiguration(DebugUtils.LAUNCH, workspaceFolder ? workspaceFolder.uri : undefined);
+           return vscode.workspace.getConfiguration(DebugUtils.LAUNCH, project.workspaceFolder?.uri);
     }
 
     private static getLaunchConfigurationsFrom(workspaceConfig: vscode.WorkspaceConfiguration): vscode.DebugConfiguration[] {
-        return workspaceConfig.get(DebugUtils.CONFIGURATIONS, [{}]) as [vscode.DebugConfiguration];
+        return workspaceConfig.get<vscode.DebugConfiguration[]>(DebugUtils.CONFIGURATIONS, []);
     }
 
     private static async updateWorkspaceLaunchConfigs(
@@ -173,7 +169,7 @@ export default class DebugUtils {
 
         let launchToWrite: vscode.DebugConfiguration | undefined;
 
-        const workspaceConfig = this.getWorkspaceLaunchConfig(project);
+        const workspaceConfig = this.getLaunchConfig(project);
         const launchConfigs = this.getLaunchConfigurationsFrom(workspaceConfig);
 
         // See if we already have a debug launch for this project, so we can replace it
