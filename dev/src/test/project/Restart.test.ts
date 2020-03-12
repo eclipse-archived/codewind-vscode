@@ -126,7 +126,7 @@ export async function testRestart(ctx: Mocha.Context, project: Project, debug: b
     Log.t(`Testing restart debug=${debug} on project ${project.name}`);
 
     const restartCmdResult = await restartProjectCmd(project, debug);
-    expect(restartCmdResult, "Restart command returned null").to.be.true;
+    expect(restartCmdResult, "Restart command returned failure").to.be.true;
 
     expect(restartCmdResult, `Restart failed`).to.equal(true);
 

@@ -60,8 +60,8 @@ describe(`Project creation`, async function() {
     // it would be great to have one test per project type instead of one test for all the project types
     it(`should create test projects`, async function() {
         // Long timeout because this will block subsequent tests if it fails
-        this.timeout(TestUtil.ms(30, "sec"));
-        this.slow(TestUtil.ms(15, "sec"));
+        this.timeout(TestUtil.ms(60, "sec"));
+        this.slow(TestUtil.ms(30, "sec"));
 
         const nowStr = Date.now().toString();
         const timestamp = nowStr.substring(nowStr.length - 4);
