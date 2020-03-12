@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -24,21 +24,23 @@ import ConnectionManager from "./codewind/connection/ConnectionManager";
 import LocalCodewindManager from "./codewind/connection/local/LocalCodewindManager";
 import { CWConfigurations } from "./constants/Configurations";
 import showHomePageCmd from "./command/HomePageCmd";
-
-// configures json as the language of the codewind settings file.
-function setSettingsFileLanguage(doc: vscode.TextDocument): void {
-    // sometimes the path has .git appended, see https://github.com/Microsoft/vscode/issues/22561
-    // since we are using the uri, the path separator will always be a forward slash.
-    if ((doc.uri.scheme === "file" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}`)) ||
-        doc.uri.scheme === "git" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}.git`)) {
-        vscode.languages.setTextDocumentLanguage(doc, "json");
-    }
-}
+import MCUtil from "./MCUtil";
+import CLIWrapper from "./codewind/cli/CLIWrapper";
+import { CodewindStates } from "./codewind/connection/local/CodewindStates";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    try {
+        await activateInner(context);
+    }
+    catch (err) {
+        Log.e(`Uncaught error activating`, err);
+        throw err;
+    }
+}
 
+async function activateInner(context: vscode.ExtensionContext): Promise<void> {
     process.on("unhandledRejection", (err) => Log.e("Unhandled promise rejection:", err));
 
     // Initialize our globals
@@ -85,16 +87,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // configure json as the language of the codewind settings file.  ensure that this is applied
     // to any settings file active in the editor at the time this extension activates.
-    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((doc) => setSettingsFileLanguage(doc)));
+    context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((doc) => MCUtil.setLanguageIfCWSettings(doc)));
     setImmediate(() => {
         if (vscode.window.activeTextEditor) {
-            setSettingsFileLanguage(vscode.window.activeTextEditor.document);
+            MCUtil.setLanguageIfCWSettings(vscode.window.activeTextEditor.document);
         }
     });
-
-    await ConnectionManager.instance.activate();
-    // Connect to local codewind if it's started, but don't start it automatically.
-    connectLocalCodewindCmd(LocalCodewindManager.instance, false);
 
     if (!global.isChe && CWConfigurations.SHOW_HOMEPAGE.get()) {
         showHomePageCmd();
@@ -102,6 +100,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     subscriptions.forEach((e) => {
         context.subscriptions.push(e);
+    });
+
+    CLIWrapper.initialize()
+    .then(() => {
+        LocalCodewindManager.instance.setState(CodewindStates.STOPPED);
+        ConnectionManager.instance.activate();
+
+        // Connect to local codewind if it's started, but don't start it automatically.
+        connectLocalCodewindCmd(LocalCodewindManager.instance, false);
+
+        Log.d(`Finished async activation`);
+    })
+    .catch((err) => {
+        Log.e(`Uncaught error initializing!`, err);
     });
 
     Log.d("Finished activating");

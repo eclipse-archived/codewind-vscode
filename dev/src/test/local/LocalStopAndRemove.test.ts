@@ -12,7 +12,7 @@
 import { expect } from "chai";
 
 import TestUtil from "../TestUtil";
-import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
+import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import Log from "../../Logger";
 import stopLocalCodewindCmd from "../../command/StopCodewindCmd";
 import removeImagesCmd from "../../command/RemoveImagesCmd";

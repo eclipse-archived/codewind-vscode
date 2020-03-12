@@ -1,11 +1,12 @@
 .vscode/**
 .vscode-test/**
+.npm/**
+bin/**
 out/test/**
 out/**/*.map
 src/**
-test/**
 .gitignore
 tsconfig.json
-vsc-extension-quickstart.md
 tslint.json
-bin/*.sh
+**/*.ts
+prebuild.js

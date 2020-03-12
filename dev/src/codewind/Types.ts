@@ -202,3 +202,9 @@ export interface IInitializationResponse {
     readonly result: IDetectedProjectType | string | { error: string };
     readonly projectPath?: string;
 }
+
+// For use with vscode.Progress
+export interface ProgressUpdate {
+    message?: string;
+    increment?: number;
+}

@@ -21,13 +21,13 @@ import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { LogSettings as FWLogSettings } from "codewind-filewatcher/lib/Logger";
 import LocalCodewindManager from "./local/LocalCodewindManager";
 import CodewindEventListener, { OnChangeCallbackArgs } from "./CodewindEventListener";
-import CLIWrapper from "./CLIWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
 import { SourcesPageWrapper } from "../../command/webview/SourcesPageWrapper";
 import { RegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
 import TemplateSourcesList from "./TemplateSourceList";
 import ConnectionRequester from "./ConnectionRequester";
 import { AccessToken } from "../Types";
+import CLISetup from "../cli/CLISetup";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -196,7 +196,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         Log.i("Establishing file watcher");
-        const cliPath = await CLIWrapper.getExecutablePath();
+        const cliPath = CLISetup.CWCTL_FINAL_PATH;
 
         this.fileWatcher = await this.createFileWatcher(cliPath);
 

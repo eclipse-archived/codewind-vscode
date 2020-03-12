@@ -14,7 +14,7 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import ConnectionManager from "./ConnectionManager";
 import MCUtil from "../../MCUtil";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner } from "../cli/CLICommandRunner";
 import remoteConnectionOverviewCmd from "../../command/connection/ConnectionOverviewCmd";
 import { CLIConnectionData } from "../Types";
 

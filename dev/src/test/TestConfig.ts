@@ -19,7 +19,7 @@ namespace TestConfig {
     // Use GetProjectTypes.js to get values you can put here
     const TEST_PROJECT_TYPES = {
         codewind: [
-            "springJavaTemplate",               // https://github.com/eclipse/codewind/issues/1877
+            // "springJavaTemplate",               // https://github.com/eclipse/codewind/issues/1877
             "nodeExpressTemplate",
             "goTemplate",
             // "javaMicroProfileTemplate",      // very slow

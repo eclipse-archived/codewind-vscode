@@ -16,7 +16,7 @@ import { CWConfigurations } from "../../../constants/Configurations";
 import { HomePageWVMessages, CREATE_PROJECT_DATA, ADD_PROJECT_DATA } from "../HomePageWrapper";
 import CWDocs from "../../../constants/CWDocs";
 import { USEFUL_EXTENSIONS } from "../UsefulExtensionsPageWrapper";
-import CLILifecycleWrapper from "../../../codewind/connection/local/CLILifecycleWrapper";
+import CLILifecycleWrapper from "../../../codewind/cli/CLILifecycleWrapper";
 
 export const DOCKER_INSTALL_URL = "https://docs.docker.com/install/";
 

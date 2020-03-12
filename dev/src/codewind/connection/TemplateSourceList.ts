@@ -1,5 +1,5 @@
 import Connection from "./Connection";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner } from "../cli/CLICommandRunner";
 import { TemplateSource, SourceEnablement } from "../Types";
 
 export enum SourceProjectStyles {

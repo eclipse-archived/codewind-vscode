@@ -27,6 +27,7 @@ import manageRegistriesCmd from "../connection/ManageRegistriesCmd";
 import manageSourcesCmd from "../connection/ManageSourcesCmd";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import Requester from "../../codewind/Requester";
+import CLIWrapper from "../../codewind/cli/CLIWrapper";
 
 export enum ConnectionOverviewWVMessages {
     HELP = "help",
@@ -130,9 +131,11 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
                         this.refresh();
                     }
                     catch (err) {
-                        // the err from createNewConnection is user-friendly
-                        Log.w(`Error creating new connection to ${newInfo.url}`, err);
-                        vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
+                        if (!CLIWrapper.isCancellation(err)) {
+                            // the err from createNewConnection is user-friendly
+                            Log.w(`Error creating new connection to ${newInfo.url}`, err);
+                            vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
+                        }
                     }
                 }
                 break;

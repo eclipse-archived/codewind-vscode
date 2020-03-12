@@ -11,14 +11,14 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs";
-import got, { NormalizedOptions, Response } from "got";
+import got, { NormalizedOptions, Response, Progress } from "got";
 import * as stream from "stream";
 import { promisify } from "util";
 
 const pipeline = promisify(stream.pipeline);
 
 import Log from "../Logger";
-import { AccessToken } from "./Types";
+import { AccessToken, ProgressUpdate } from "./Types";
 
 /**
  * These functions wrap all our API calls to the Codewind backend.
@@ -152,11 +152,28 @@ export class Requester {
         }
     }
 
-    public static async httpWriteStreamToFile(url: string, destFile: string, accessToken?: AccessToken): Promise<void> {
+    /**
+     * Open a stream to the given url and write out its response to destFile.
+     */
+    public static async httpWriteStreamToFile(
+        url: string, destFile: string,
+        options: {
+            progress?: vscode.Progress<ProgressUpdate>,
+            /**
+             * When the download is finished, the progress meter will be this % full (defaults to 100)
+             */
+            progressEndPercent?: number,
+            destFileMode?: number
+        } = {},
+        accessToken?: AccessToken): Promise<void> {
+
+        Log.i(`Downloading ${url} to ${destFile}`);
+
         // https://github.com/sindresorhus/got#streams
         const httpStream = got.stream(url, {
             rejectUnauthorized: false,
-            timeout: 30000,
+            // timeout: 30000,
+            // decompress: true,        // doesn't work?
             headers: this.getAuthorizationHeader(url, accessToken),
             retry: {
                 // https://github.com/sindresorhus/got#retry
@@ -170,7 +187,44 @@ export class Requester {
             }
         });
 
-        await pipeline(httpStream, fs.createWriteStream(destFile));
+        const pipelinePromise = pipeline(httpStream, fs.createWriteStream(destFile));
+
+        let previousPercentDone = 0;
+        let didLogLength = false;
+        const progressEndPercent = options.progressEndPercent || 100;
+
+        // https://github.com/sindresorhus/got#ondownloadprogress-progress
+        httpStream.on("downloadProgress", (progressEvent: Progress) => {
+            // the increment reported has to be the difference from before since vs code sums them up
+            const increment = (progressEvent.percent - previousPercentDone) * progressEndPercent;
+
+            let message;
+            if (progressEvent.total) {
+                // log total once
+                if (!didLogLength) {
+                    didLogLength = true;
+                    Log.i(`Download length is ${this.bytesToMB(progressEvent.total)} MB`);
+                }
+                if (options.progress) {
+                    message = `${this.bytesToMB(progressEvent.transferred)} / ${this.bytesToMB(progressEvent.total)} MB`;
+                }
+            }
+
+            options.progress?.report({ message, increment });
+            previousPercentDone = progressEvent.percent;
+        });
+
+        await pipelinePromise;
+
+        if (options.destFileMode) {
+            await fs.promises.chmod(destFile, options.destFileMode);
+        }
+
+        Log.d(`Finished downloading ${url}`);
+    }
+
+    private static bytesToMB(bytes: number): string {
+        return (bytes / 1024 / 1024).toFixed(1);
     }
 }
 

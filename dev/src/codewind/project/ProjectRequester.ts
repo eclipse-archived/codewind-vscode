@@ -11,6 +11,7 @@
  *******************************************************************************/
 
 // import * as vscode from "vscode";
+// import * as fs from "fs";
 
 import Requester, { HttpMethod, RequesterOptions } from "../Requester";
 import Project from "./Project";
@@ -118,7 +119,7 @@ export default class ProjectRequester extends Requester {
         const endpoint = ProjectEndpoints.PROFILING.toString().concat(`/${timestamp}`);
         const url = EndpointUtil.resolveProjectEndpoint(this.project.connection, this.project.id, endpoint as ProjectEndpoints);
 
-        await Requester.httpWriteStreamToFile(url, profilingOutPath, await this.project.connection.getAccessToken());
+        await Requester.httpWriteStreamToFile(url, profilingOutPath);
         Log.d(`Saved profiling data to project ${this.project.name} at ${profilingOutPath}`);
     }
 }

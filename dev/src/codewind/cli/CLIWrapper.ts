@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -12,108 +12,111 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as child_process from "child_process";
-import * as fs from "fs";
-import * as os from "os";
 
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
-import { CLILifecycleWrapper } from "./local/CLILifecycleWrapper";
-import { CLILifecycleCommand } from "./local/CLILifecycleCommands";
-import Constants from "../../constants/Constants";
+import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
+import { CLILifecycleCommand } from "./CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
-
-const BIN_DIR = "bin";
-const CLI_EXECUTABLE = "cwctl";
-const CLI_EXECUTABLE_WIN = "cwctl.exe";
-const CLI_PREREQS: { [s: string]: string[]; } = {
-    [CLI_EXECUTABLE]: ["appsody"],
-    [CLI_EXECUTABLE_WIN]: ["appsody.exe"]
-};
+import CLISetup from "./CLISetup";
+import Constants from "../../constants/Constants";
 
 const cliOutputChannel = vscode.window.createOutputChannel("Codewind");
 
+let _hasInitialized = false;
+
 namespace CLIWrapper {
+
+    export function hasInitialized(): boolean {
+        return _hasInitialized;
+    }
+
+    /**
+     * Check if cwctl and appsody are installed and the correct version. If not, download them.
+     * Should not throw, but if this fails the extension will malfunction, so it shows obvious errors.
+     */
+    export async function initialize(): Promise<void> {
+        const binariesInitStartTime = Date.now();
+        Log.i(`Initializing CLI binaries`);
+
+        let isCwctlSetup = false;
+        let isAppsodySetup = false;
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Window,
+            cancellable: false,
+            title: `Initializing Codewind...`,
+        }, async () => {
+            if (await CLISetup.doesBinariesTargetDirExist()) {
+                [ isCwctlSetup, isAppsodySetup ] = await Promise.all([ CLISetup.isCwctlSetup(), CLISetup.isAppsodySetup() ]);
+            }
+        });
+        Log.d(`Finished determining if binaries are installed, took ${Date.now() - binariesInitStartTime}ms`);
+
+        const downloadPromises: Array<Promise<void>> = [];
+
+        if (isCwctlSetup) {
+            cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.CWCTL_FINAL_PATH}`);
+        }
+        else {
+            cliOutputChannel.appendLine(`Downloading cwctl from ${CLISetup.getCwctlZipDownloadUrl()}...`);
+            downloadPromises.push(
+                CLISetup.downloadCwctl()
+                .then((cwctlPath) => {
+                    cliOutputChannel.appendLine(`cwctl is now available at ${cwctlPath}`);
+                })
+                .catch((err) => {
+                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlZipDownloadUrl(), CLISetup.CWCTL_FINAL_PATH);
+                })
+            );
+        }
+
+        if (isAppsodySetup) {
+            cliOutputChannel.appendLine(`appsody ${Constants.APPSODY_VERSION} is available at ${CLISetup.APPSODY_FINAL_PATH}`);
+        }
+        else {
+            cliOutputChannel.appendLine(`Downloading appsody ${Constants.APPSODY_VERSION} from ${CLISetup.getAppsodyDownloadUrl()}...`);
+            downloadPromises.push(CLISetup.downloadAppsody()
+                .then((appsodyPath) => {
+                    cliOutputChannel.appendLine(`appsody ${Constants.APPSODY_VERSION} is now available at ${appsodyPath}`);
+                })
+                .catch((err) => {
+                    onSetupFailed(err, CLISetup.APPSODY_DOWNLOAD_NAME, CLISetup.getAppsodyDownloadUrl(), CLISetup.APPSODY_FINAL_PATH);
+                })
+            );
+        }
+
+        // download promises don't throw
+        await Promise.all(downloadPromises);
+        _hasInitialized = true;
+        Log.i(`Finished initializing the CLI binaries, took ${Date.now() - binariesInitStartTime}ms`);
+        CLISetup.lsBinariesTargetDir();
+    }
+
+    function onSetupFailed(err: any, binaryName: string, downloadUrl: string, targetPath: string): void {
+        Log.e(`Failed to initialize ${binaryName}`, err);
+        const errMsg = `Error initalizing ${binaryName}`;
+
+        cliOutputChannel.appendLine(`***** ${errMsg}: ${MCUtil.errToString(err)}\n` +
+            `Restart the extension to try again.\nIf the error persists, download the ${binaryName} binary from ` +
+            `${downloadUrl} and place it in ${targetPath}.`);
+
+        showCLIError(errMsg);
+    }
 
     // check error against this to see if it's a real error or just a user cancellation
     export const CLI_CMD_CANCELLED = "Cancelled";
 
-    /**
-     * Returns the location of the executable as within the extension. It cannot be run from this location - see initialize()
-     */
-    function getInternalExecutable(): string {
-        const platform = MCUtil.getOS();
-        const executable = platform === "windows" ? CLI_EXECUTABLE_WIN : CLI_EXECUTABLE;
-        return path.join(global.__extRoot, BIN_DIR, platform, executable);
-    }
-
-    // abs path to copied-out executable. Set and returned by initialize()
-    let _cwctlPath: string;
-
-    /**
-     * Copies the CLI to somewhere writeable if not already done, and sets exectablePath.
-     * @returns The path to the CLI executable after moving it to a writeable directory.
-     */
-    export async function initialize(): Promise<string> {
-        if (_cwctlPath) {
-            return _cwctlPath;
-        }
-
-        // The executable is copied out to eg ~/.codewind/0.7.0/cwctl
-
-        const cwctlSourcePath = getInternalExecutable();
-        const binarySourceDir = path.dirname(cwctlSourcePath);
-        const cwctlBasename = path.basename(cwctlSourcePath);
-
-        const dotCodewindPath = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR);
-        const codewindVersion = CLILifecycleWrapper.DEFAULT_CW_TAG;
-        const binaryTargetDir = path.join(dotCodewindPath, codewindVersion);
-
-        // fails on windows, see note about electron https://github.com/nodejs/node/issues/24698#issuecomment-486405542
-        // await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
-        try {
-            await fs.promises.access(dotCodewindPath);
-        }
-        catch (err) {
-            await fs.promises.mkdir(dotCodewindPath);
-            Log.d(`Created ${dotCodewindPath}`);
-        }
-
-        try {
-            await fs.promises.access(binaryTargetDir);
-        }
-        catch (err) {
-            await fs.promises.mkdir(binaryTargetDir);
-            Log.d(`Created ${binaryTargetDir}`);
-        }
-
-        const cwctlTargetPath = path.join(binaryTargetDir, cwctlBasename);
-        Log.d(`Copying ${cwctlSourcePath} to ${cwctlTargetPath}`);
-        await fs.promises.copyFile(cwctlSourcePath, cwctlTargetPath);
-        _cwctlPath = cwctlTargetPath;
-
-        Log.d("Copying CLI prerequisites");
-        for (const prereq of CLI_PREREQS[cwctlBasename]) {
-            const source = path.join(binarySourceDir, prereq);
-            const target = path.join(binaryTargetDir, prereq);
-            Log.d(`Copying ${source} to ${target}`);
-            await fs.promises.copyFile(source, target);
-        }
-        Log.i("Binary copy-out succeeded to " + _cwctlPath);
-        cliOutputChannel.appendLine(`cwctl is available at ${_cwctlPath}`);
-        return _cwctlPath;
-    }
-
-    export async function getExecutablePath(): Promise<string> {
-        if (_cwctlPath) {
-            return _cwctlPath;
-        }
-        return initialize();
-    }
-
     const PASSWORD_ARG = "--password";
 
-    export async function cliExec(cmd: CLICommand, args: string[] = [], progressPrefix?: string): Promise<any> {
-        const executablePath = await initialize();
+    export async function cwctlExec(cmd: CLICommand, args: string[] = [], progressPrefix?: string): Promise<any> {
+        if (!hasInitialized()) {
+            Log.d(`Trying to run CLI command before initialization finished`);
+            vscode.window.showWarningMessage(`Please wait for the extension to finish setting up.`);
+            throw new Error(CLI_CMD_CANCELLED);
+        }
+
+        const cwctlPath = CLISetup.CWCTL_FINAL_PATH;
 
         args = cmd.command.concat(args);
         if (!(cmd instanceof CLILifecycleCommand)) {
@@ -123,7 +126,7 @@ namespace CLIWrapper {
 
         // cmdStr will be the full command, eg `cwctl --insecure project create <path> --url <url>`
         // is generally only used for debugging
-        let cmdStr = [ path.basename(executablePath), ...args ].join(" ");
+        let cmdStr = [ path.basename(cwctlPath), ...args ].join(" ");
         if (cmdStr.includes(PASSWORD_ARG)) {
             const words = cmdStr.split(" ");
             const pwIndex = words.findIndex((word) => word === PASSWORD_ARG) + 1;
@@ -140,9 +143,9 @@ namespace CLIWrapper {
             cliOutputChannel.appendLine(`<Output hidden>`);
         }
 
-        const executableDir = path.dirname(executablePath);
+        const executableDir = path.dirname(cwctlPath);
 
-        const cwctlProcess = child_process.spawn(executablePath, args, {
+        const cwctlProcess = child_process.spawn(cwctlPath, args, {
             cwd: executableDir
         });
 
@@ -178,12 +181,17 @@ namespace CLIWrapper {
                 }
                 else if (code !== 0) {
                     Log.e(`Error running ${cmdStr}`);
-                    Log.e("Stdout:", outStr.trim());
+                    if (outStr.trim()) {
+                        Log.e("Stdout:", outStr.trim());
+                    }
+                    else {
+                        Log.e("<No std output>");
+                    }
                     if (errStr) {
                         Log.e("Stderr:", errStr.trim());
                     }
 
-                    let errMsg = `Error running ${path.basename(_cwctlPath)} ${cmd.command.join(" ")}`;
+                    let errMsg = `Error running ${path.basename(cwctlPath)} ${cmd.command.join(" ")}`;
                     if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
                         const asObj = JSON.parse(outStr);
                         if (asObj.error_description) {

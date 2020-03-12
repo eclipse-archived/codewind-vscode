@@ -17,7 +17,7 @@ import Requester from "../Requester";
 import MCUtil from "../../MCUtil";
 import ConnectionOverviewWrapper from "../../command/webview/ConnectionOverviewPageWrapper";
 import { ConnectionStates, ConnectionState } from "./ConnectionState";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner } from "../cli/CLICommandRunner";
 import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";

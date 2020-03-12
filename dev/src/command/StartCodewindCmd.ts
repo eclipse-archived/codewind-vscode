@@ -13,9 +13,9 @@ import * as vscode from "vscode";
 
 import Log from "../Logger";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
-import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrapper";
+import CLILifecycleWrapper from "../codewind/cli/CLILifecycleWrapper";
 import MCUtil from "../MCUtil";
-import CLIWrapper from "../codewind/connection/CLIWrapper";
+import CLIWrapper from "../codewind/cli/CLIWrapper";
 
 /**
  *
@@ -56,7 +56,9 @@ export default async function connectLocalCodewindCmd(
         }
     }
     catch (err) {
-        Log.e("StartCodewindCmd error", err);
-        CLIWrapper.showCLIError(`Error initializing Codewind: ${MCUtil.errToString(err)}`);
+        if (!CLIWrapper.isCancellation(err)) {
+            Log.e("StartCodewindCmd error", err);
+            CLIWrapper.showCLIError(`Error initializing Codewind: ${MCUtil.errToString(err)}`);
+        }
     }
 }

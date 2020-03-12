@@ -45,7 +45,7 @@ describe(`Project removal wrapper`, function() {
                     });
                 });
 
-                it(`${project.name} should be deleted from the filesystem`, async function() {
+                it(`${project.name} should have been deleted from the filesystem`, async function() {
                     this.timeout(TestUtil.ms(15, "sec"));
                     this.slow(TestUtil.ms(5, "sec"));
 
