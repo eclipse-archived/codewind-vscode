@@ -12,7 +12,7 @@
 
 // import * as vscode from "vscode";
 
-import Requester, { HttpVerb } from "../Requester";
+import Requester, { HttpMethod, RequesterOptions } from "../Requester";
 import Project from "./Project";
 import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
 import ProjectCapabilities, { StartModes, ControlCommands } from "./ProjectCapabilities";
@@ -27,25 +27,32 @@ export default class ProjectRequester extends Requester {
         super();
     }
 
-    private async doProjectRequest<T = void>(
-        endpoint: ProjectEndpoints, verb: HttpVerb, body?: {}): Promise<T> {
+    /**
+     *
+     * @param json - If this is true, the response is expected to be JSON. Pass a generic parameter to indicate the response body's type.
+     *  If `json = false`, the response will be of type `string`.
+     */
+    private async doProjectRequest<T>(
+        endpoint: ProjectEndpoints, method: HttpMethod, json: boolean, options?: RequesterOptions): Promise<T> {
 
         const url = EndpointUtil.resolveProjectEndpoint(this.project.connection, this.project.id, endpoint as ProjectEndpoints);
 
         const accessToken = await this.project.connection.getAccessToken();
-        const result = await Requester.req<T>(verb, url, { body }, accessToken);
-        return result;
+        if (json) {
+            return Requester.req<T>(method, url, { ...options, accessToken });
+        }
+        else {
+            // danger - T must be string!
+            return Requester.reqText(method, url, { ...options, accessToken }) as unknown as T;
+        }
     }
 
-    /**
-     * @returns If the restart was accepted by the server
-     */
     public async requestProjectRestart(startMode: StartModes): Promise<void> {
         const body = {
             startMode: startMode.toString()
         };
 
-        await this.doProjectRequest(ProjectEndpoints.RESTART_ACTION, "POST", body);
+        await this.doProjectRequest(ProjectEndpoints.RESTART_ACTION, "POST", false, { body });
     }
 
     public async requestBuild(): Promise<void> {
@@ -53,7 +60,7 @@ export default class ProjectRequester extends Requester {
             action: "build"         // non-nls
         };
 
-        await this.doProjectRequest(ProjectEndpoints.BUILD_ACTION, "POST", body);
+        await this.doProjectRequest(ProjectEndpoints.BUILD_ACTION, "POST", false, { body });
     }
 
     public async requestToggleAutoBuild(newAutoBuild: boolean): Promise<void>    {
@@ -63,7 +70,7 @@ export default class ProjectRequester extends Requester {
             action: newAutoBuildAction
         };
 
-        await this.doProjectRequest(ProjectEndpoints.BUILD_ACTION, "POST", body);
+        await this.doProjectRequest(ProjectEndpoints.BUILD_ACTION, "POST", false, { body });
     }
 
     public async requestToggleInjectMetrics(newInjectMetrics: boolean): Promise<void> {
@@ -71,16 +78,16 @@ export default class ProjectRequester extends Requester {
             enable: newInjectMetrics
         };
 
-        await this.doProjectRequest(ProjectEndpoints.METRICS_INJECTION, "POST", body);
+        await this.doProjectRequest(ProjectEndpoints.METRICS_INJECTION, "POST", false, { body });
     }
 
     public async requestToggleEnablement(newEnablement: boolean): Promise<void> {
         const endpoint = EndpointUtil.getEnablementAction(newEnablement);
-        await this.doProjectRequest(endpoint, "PUT");
+        await this.doProjectRequest(endpoint, "PUT", false);
     }
 
     public async requestUnbind(): Promise<void> {
-        await this.doProjectRequest(ProjectEndpoints.UNBIND, "POST");
+        await this.doProjectRequest(ProjectEndpoints.UNBIND, "POST", false);
     }
 
     public async requestAvailableLogs(): Promise<ILogResponse> {
@@ -90,17 +97,20 @@ export default class ProjectRequester extends Requester {
                 build: [], app: []
             };
         }
-        return this.doProjectRequest(ProjectEndpoints.LOGS, "GET");
+        return this.doProjectRequest(ProjectEndpoints.LOGS, "GET", true);
     }
 
     public async requestToggleLogs(enable: boolean): Promise<void> {
         const verb = enable ? "POST" : "DELETE";
-        await this.doProjectRequest(ProjectEndpoints.LOGS, verb);
+        await this.doProjectRequest(ProjectEndpoints.LOGS, verb, true);
     }
+
 
     public async getCapabilities(): Promise<ProjectCapabilities> {
         // https://eclipse.github.io/codewind/#/paths/~1api~1v1~1projects~1{id}~1capabilities/get
-        const result = await this.doProjectRequest<{ startModes: StartModes[], controlCommands: ControlCommands[] }>(ProjectEndpoints.CAPABILITIES, "GET");
+        const result = await
+            this.doProjectRequest<{ startModes: StartModes[], controlCommands: ControlCommands[] }>(ProjectEndpoints.CAPABILITIES, "GET", true);
+
         return new ProjectCapabilities(result.startModes, result.controlCommands);
     }
 
