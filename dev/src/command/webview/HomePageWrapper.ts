@@ -26,7 +26,7 @@ import bindProjectCmd from "../connection/BindProjectCmd";
 import { promptForConnection } from "../CommandUtil";
 import Commands from "../../constants/Commands";
 import { UsefulExtensionsPageWrapper } from "./UsefulExtensionsPageWrapper";
-import CLILifecycleWrapper from "../../codewind/connection/local/CLILifecycleWrapper";
+import CLILifecycleWrapper from "../../codewind/cli/CLILifecycleWrapper";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 
 export enum HomePageWVMessages {

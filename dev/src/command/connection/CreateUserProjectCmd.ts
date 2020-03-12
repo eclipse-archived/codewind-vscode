@@ -17,7 +17,7 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import { CWConfigurations } from "../../constants/Configurations";
 import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
-import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
+import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import manageSourcesCmd from "./ManageSourcesCmd";
 import SocketEvents from "../../codewind/connection/SocketEvents";
 import { ThemedImages } from "../../constants/CWImages";

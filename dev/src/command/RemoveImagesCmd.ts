@@ -11,13 +11,13 @@
 
 import * as vscode from "vscode";
 
-import CLIWrapper from "../codewind/connection/CLIWrapper";
+import CLIWrapper from "../codewind/cli/CLIWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Translator from "../constants/strings/translator";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
-import CLILifecycleWrapper from "../codewind/connection/local/CLILifecycleWrapper";
+import CLILifecycleWrapper from "../codewind/cli/CLILifecycleWrapper";
 
 const STRING_NS = StringNamespaces.STARTUP;
 

@@ -14,7 +14,6 @@
 const path = require("path");
 const fs = require("fs");
 const util = require("util");
-const { exec } = require("child_process");
 
 const che_cmdsToDelete = [
     "startCodewind",
@@ -104,18 +103,7 @@ async function prebuildChe(pj) {
     pj.contributes.commands = removeCommands(pj.contributes.commands, che_cmdsToDelete);
     pj.contributes.menus = removeMenus(pj.contributes.menus, che_cmdsToDelete);
 
-    // Delete the binaries that aren't needed.
-    const BIN_DIR = "bin";
-    const winInstaller = path.join(BIN_DIR, "windows");
-    const macInstaller = path.join(BIN_DIR, "darwin");
-    await rmrf(winInstaller);
-    await rmrf(macInstaller);
     return pj;
-}
-
-async function rmrf(path) {
-    await util.promisify(exec)(`rm -rfv ${path}`);
-    console.log(`Deleted ${path}`);
 }
 
 async function prebuildVSCode(pj) {

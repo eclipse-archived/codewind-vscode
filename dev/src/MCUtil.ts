@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,8 @@ import { promisify } from "util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as extractZipLib from "extract-zip";
+const unzipAsync = promisify(extractZipLib);
 
 import Log from "./Logger";
 import Constants from "./constants/Constants";
@@ -121,7 +123,7 @@ namespace MCUtil {
             .replace(/-+$/, "");            // trim - from end
     }
 
-    type OS = "windows" | "darwin" | "linux";
+    export type OS = "windows" | "darwin" | "linux";
     let currentOS: OS | undefined;
 
     export function getOS(): OS {
@@ -251,6 +253,10 @@ namespace MCUtil {
         return process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_DEV;
     }
 
+    export function isTestEnv(): boolean {
+        return process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST;
+    }
+
     export async function promptForProjectDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {
         const selectedDirs = await vscode.window.showOpenDialog({
             canSelectFiles: false,
@@ -288,6 +294,37 @@ namespace MCUtil {
             baseURL = baseURL.substring(0, baseURL.length - 1);
         }
         return baseURL + pathAndQuery;
+    }
+
+
+    /**
+     * Configures json as the language of the given file, if it is a codewind settings file.
+     */
+    export function setLanguageIfCWSettings(doc: vscode.TextDocument): void {
+        // sometimes the path has .git appended, see https://github.com/Microsoft/vscode/issues/22561
+        // since we are using the uri, the path separator will always be a forward slash.
+        if ((doc.uri.scheme === "file" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}`)) ||
+            doc.uri.scheme === "git" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}.git`)) {
+            vscode.languages.setTextDocumentLanguage(doc, "json");
+        }
+    }
+
+    export async function extractZip(zipFilePath: string, targetDir: string): Promise<string[]> {
+        Log.d(`Extracting ${zipFilePath} into ${targetDir}`);
+        const extractedFiles: string[] = [];
+        await unzipAsync(zipFilePath, {
+            dir: targetDir,
+            onEntry: (entry, _zipFile) => {
+                extractedFiles.push(entry.fileName);
+            }
+        });
+        if (extractedFiles.length > 0) {
+            Log.d(`Extracted files: ${extractedFiles.join(" ")}`);
+        }
+        else {
+            Log.d(`Extracted no files!`);
+        }
+        return extractedFiles;
     }
 }
 

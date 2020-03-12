@@ -18,7 +18,7 @@ import MCUtil from "../../MCUtil";
 import SocketEvents from "../../codewind/connection/SocketEvents";
 import ProjectType, { IProjectSubtypesDescriptor } from "../../codewind/project/ProjectType";
 import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
-import { CLICommandRunner } from "../../codewind/connection/CLICommandRunner";
+import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import { IDetectedProjectType, IInitializationResponse } from "../../codewind/Types";
 
 export default async function bindProjectCmd(connection: Connection): Promise<void> {

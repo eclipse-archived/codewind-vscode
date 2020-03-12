@@ -17,7 +17,7 @@ import Project from "../project/Project";
 import CodewindEventListener from "./CodewindEventListener";
 import MCUtil from "../../MCUtil";
 import RemoteConnection from "./RemoteConnection";
-import { CLICommandRunner } from "./CLICommandRunner";
+import { CLICommandRunner } from "../cli/CLICommandRunner";
 import { ConnectionMemento } from "./ConnectionMemento";
 import { CLIConnectionData } from "../Types";
 import { HomePageWrapper } from "../../command/webview/HomePageWrapper";

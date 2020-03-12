@@ -9,8 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import { CodewindStates } from "./CodewindStates";
-import { CLICommand } from "../CLICommands";
+import { CodewindStates } from "../connection/local/CodewindStates";
+import { CLICommand } from "./CLICommands";
 
 const TAG_PLACEHOLDER = `$tag$`;
 

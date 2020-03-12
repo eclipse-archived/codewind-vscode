@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 
-import CLIWrapper from "../codewind/connection/CLIWrapper";
+import CLIWrapper from "../codewind/cli/CLIWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
