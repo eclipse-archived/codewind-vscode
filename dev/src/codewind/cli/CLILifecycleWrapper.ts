@@ -103,6 +103,10 @@ export namespace CLILifecycleWrapper {
      */
     export async function getCodewindStartedStatus(status?: CLIStatus): Promise<LocalCWInstallStatus> {
         if (!status) {
+            if (!CLIWrapper.hasInitialized()) {
+                return "stopped";
+            }
+
             try {
                 status = await CLICommandRunner.status();
             }

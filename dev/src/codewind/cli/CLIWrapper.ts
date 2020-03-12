@@ -23,10 +23,18 @@ import Constants from "../../constants/Constants";
 
 const cliOutputChannel = vscode.window.createOutputChannel("Codewind");
 
-let hasInitialized = false;
+let _hasInitialized = false;
 
 namespace CLIWrapper {
 
+    export function hasInitialized(): boolean {
+        return _hasInitialized;
+    }
+
+    /**
+     * Check if cwctl and appsody are installed and the correct version. If not, download them.
+     * Should not throw, but if this fails the extension will malfunction, so it shows obvious errors.
+     */
     export async function initialize(): Promise<void> {
         const binariesInitStartTime = Date.now();
         Log.i(`Initializing CLI binaries`);
@@ -51,14 +59,14 @@ namespace CLIWrapper {
             cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.CWCTL_FINAL_PATH}`);
         }
         else {
-            cliOutputChannel.appendLine(`Downloading cwctl from ${CLISetup.getCwctlDownloadUrl()}...`);
+            cliOutputChannel.appendLine(`Downloading cwctl from ${CLISetup.getCwctlZipDownloadUrl()}...`);
             downloadPromises.push(
                 CLISetup.downloadCwctl()
                 .then((cwctlPath) => {
                     cliOutputChannel.appendLine(`cwctl is now available at ${cwctlPath}`);
                 })
                 .catch((err) => {
-                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlDownloadUrl(), CLISetup.CWCTL_FINAL_PATH);
+                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlZipDownloadUrl(), CLISetup.CWCTL_FINAL_PATH);
                 })
             );
         }
@@ -80,7 +88,7 @@ namespace CLIWrapper {
 
         // download promises don't throw
         await Promise.all(downloadPromises);
-        hasInitialized = true;
+        _hasInitialized = true;
         Log.i(`Finished initializing the CLI binaries, took ${Date.now() - binariesInitStartTime}ms`);
         CLISetup.lsBinariesTargetDir();
     }
@@ -102,7 +110,7 @@ namespace CLIWrapper {
     const PASSWORD_ARG = "--password";
 
     export async function cwctlExec(cmd: CLICommand, args: string[] = [], progressPrefix?: string): Promise<any> {
-        if (!hasInitialized) {
+        if (!hasInitialized()) {
             Log.d(`Trying to run CLI command before initialization finished`);
             vscode.window.showWarningMessage(`Please wait for the extension to finish setting up.`);
             throw new Error(CLI_CMD_CANCELLED);

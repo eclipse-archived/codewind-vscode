@@ -3,7 +3,7 @@
 set -e
 set -o pipefail
 
-jenkinsfile_url="https://raw.githubusercontent.com/eclipse/codewind-vscode/master/Jenkinsfile"
+jenkinsfile_url="https://raw.githubusercontent.com/eclipse/codewind-eclipse/master/Jenkinsfile"
 
 appsody_version=${APPSODY_VERSION}
 

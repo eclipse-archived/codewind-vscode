@@ -16,6 +16,8 @@ import * as fs from "fs";
 import Log from "../Logger";
 import TestUtil from "./TestUtil";
 import Commands from "../constants/Commands";
+import CLISetup from "../codewind/cli/CLISetup";
+import CLIWrapper from "../codewind/cli/CLIWrapper";
 
 const extensionID = "IBM.codewind";
 Log.t(`Starting ${extensionID} tests...`);
@@ -39,8 +41,8 @@ describe("Codewind for VS Code", function() {
     // TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type undefined
     // It likely means you called extension code before the extension was activated
     it("should activate when the Codewind view is opened", async function() {
-        this.timeout(TestUtil.ms(30, "sec"));
-        this.slow(TestUtil.ms(10, "sec"));
+        this.timeout(TestUtil.ms(60, "sec"));
+        this.slow(TestUtil.ms(15, "sec"));
 
         // Log.t("Loaded extensions:", vscode.extensions.all.map((ext) => ext.id).join(", "));
         const extension = vscode.extensions.getExtension(extensionID);
@@ -55,6 +57,20 @@ describe("Codewind for VS Code", function() {
 
         Log.t(`Codewind commands:`, (await vscode.commands.getCommands()).filter((cmd) => cmd.includes("ext.cw")));
         Log.t("Extension is loaded.");
+
+        // this is done async from .activate so we have to wait for it separately.
+        await new Promise((resolve) => {
+            let counter = 0;
+            setInterval(() => {
+                if (CLIWrapper.hasInitialized()) {
+                    resolve();
+                }
+                else if (counter % 5 === 5) {
+                    Log.t(`Waiting for CLIWrapper to initialize, ${counter}s elapsed`);
+                }
+                counter++;
+            }, 1000);
+        });
     });
 
     it("should have a log file file that is readable and non-empty", async function() {
@@ -65,5 +81,10 @@ describe("Codewind for VS Code", function() {
 
         const logContents = (await fs.promises.readFile(logPath)).toString("utf8");
         expect(logContents).to.have.length.greaterThan(0, "Log existed but was empty!");
+    });
+
+    it(`should have installed the CLI binaries`, async function() {
+        expect(await CLISetup.isCwctlSetup()).to.be.true;
+        expect(await CLISetup.isAppsodySetup()).to.be.true;
     });
 });
