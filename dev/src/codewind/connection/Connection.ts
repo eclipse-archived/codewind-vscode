@@ -82,7 +82,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.pfeHost = this.getPFEHost();
         this.enable()
         .catch((err) => {
-            const errMsg = `Error initializing ${this.label}:`;
+            const errMsg = `Error initializing Codewind connection:`;
             Log.e(errMsg, err);
             vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
         });
@@ -112,7 +112,21 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         const readyTimeoutS = 90;
         const ready = await this.requester.waitForReady(readyTimeoutS);
         if (!ready) {
-            throw new Error(`${this.label} connected, but was not ready after ${readyTimeoutS} seconds. Try reconnecting to, or restarting, this Codewind instance.`);
+            let troubleshootMsg: string = "To troubleshoot, you can ";
+            if (global.isChe) {
+                troubleshootMsg += `check the Codewind Workspace pod logs and refresh Theia.`;
+            }
+            else if (this.isRemote) {
+                troubleshootMsg += `check the Codewind pod logs and refresh this connection.`;
+            }
+            else {
+                // local, docker
+                troubleshootMsg += `check the Codewind container logs and restart local Codewind.`;
+            }
+
+            const errMsg = `${this.label} connected, but was not ready after ${readyTimeoutS} seconds. ${troubleshootMsg}`;
+            this.setState(ConnectionStates.NETWORK_ERROR);
+            throw new Error(errMsg);
         }
 
         const envData = await CWEnvironment.getEnvData(this);

@@ -34,7 +34,7 @@ describe(`Template sources`, function() {
         expect(projectStyles).to.contain(SourceProjectStyles.CODEWIND, SourceProjectStyles.APPSODY);
     });
 
-    it(`should have all sources disabled`, async function() {
+    it(`should disable all sources`, async function() {
         const templateSources = await connection.templateSourcesList.get();
         const noSourcesEnablement: SourceEnablement = {
             repos: templateSources.map((source) => {
@@ -141,7 +141,8 @@ describe(`Template sources`, function() {
         expect(newSource.protected).to.equal(false);
 
         const newTemplates = await connection.requester.getTemplates();
-        expect(newTemplates).to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
+        expect(newTemplates, `Number of templates was incorrect after source addition`)
+            .to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
     });
 
     it(`should remove the new template source`, async function() {
@@ -153,6 +154,7 @@ describe(`Template sources`, function() {
         expect(newSources).to.have.length(oldSources.length - 1);
 
         const newTemplates = await connection.requester.getTemplates();
-        expect(newTemplates).to.have.length(oldTemplates.length - TEST_SOURCE_NO_TEMPLATES);
+        expect(newTemplates, `Number of templates was incorrect after source removal`)
+            .to.have.length(oldTemplates.length - TEST_SOURCE_NO_TEMPLATES);
     });
 });

@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import Requester, { RequesterOptions, HttpVerb } from "../Requester";
+import Requester, { RequesterOptions, HttpMethod } from "../Requester";
 import Connection from "./Connection";
 import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
 import { PFEProjectData, RawCWEnvData, CWTemplateData, SourceEnablement, PFELogLevels } from "../Types";
@@ -44,13 +44,13 @@ export default class ConnectionRequester extends Requester {
         super();
     }
 
-    private async doConnectionRequest<T = void>(
-        endpoint: MCEndpoints, verb: HttpVerb, options?: RequesterOptions): Promise<T> {
+    private async doConnectionRequest<T>(
+        endpoint: MCEndpoints, method: HttpMethod, options?: RequesterOptions): Promise<T> {
 
         const url = EndpointUtil.resolveMCEndpoint(this.connection, endpoint);
 
         const accessToken = await this.connection.getAccessToken();
-        return Requester.req<T>(verb, url, options, accessToken);
+        return Requester.req<T>(method, url, { ...options, accessToken });
     }
 
     public async getProjects(): Promise<PFEProjectData[]> {

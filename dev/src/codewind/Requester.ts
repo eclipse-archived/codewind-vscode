@@ -11,6 +11,7 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as path from "path";
 import got, { NormalizedOptions, Response, Progress } from "got";
 import * as stream from "stream";
 import { promisify } from "util";
@@ -33,20 +34,43 @@ export class Requester {
     // By enforcing all requests to go through this function,
     // we can inject options to abstract away required configuration like using json content-type, handling insecure ssl, and authentication.
 
-    protected static async req<T = void>(verb: HttpVerb, url: string, options: RequesterOptions = {}, accessToken?: AccessToken): Promise<T> {
+    protected static async req<T>(method: HttpMethod, url: string, options: RequesterOptions = {}): Promise<T> {
 
-        Log.d(`Doing ${verb} request to ${url}`); // with options:`, options);
+        Log.d(`Doing JSON ${method} request to ${url}`); // with options:`, options);
+
+        const response = await got<T>(url, {
+            ...this.getGotOptions(method, url, options),
+            responseType: "json",
+        });
+
+        return response.body;
+    }
+
+    // Some of our APIs still returns text instead of JSON - https://github.com/eclipse/codewind/issues/2435
+    // Use this to access those APIs
+    protected static async reqText(method: HttpMethod, url: string, options: RequesterOptions = {}): Promise<string> {
+
+        Log.d(`Doing text ${method} request to ${url}`); // with options:`, options);
 
         // https://github.com/sindresorhus/got#api
-        const response = await got<T>(url, {
+        const response = await got(url, {
+            ...this.getGotOptions(method, url, options),
+            responseType: "text",
+        });
+
+        return response.body;
+    }
+
+    // tslint:disable-next-line: typedef - The typedef for the options accepted by Got is a total mess :)
+    private static getGotOptions(verb: HttpMethod, url: string, options: RequesterOptions) {
+        return {
             method: verb,
-            responseType: "json",
             rejectUnauthorized: false,
             json: options.body,
             searchParams: options.query,
             timeout: options.timeout || 30000,
             headers: {
-                ...this.getAuthorizationHeader(url, accessToken),
+                ...this.getAuthorizationHeader(url, options.accessToken),
             },
             retry: {
                 // https://github.com/sindresorhus/got#retry
@@ -58,9 +82,7 @@ export class Requester {
                     this.detectAuthBeforeRedirect
                 ]
             }
-        });
-
-        return response.body;
+        };
     }
 
     private static getAuthorizationHeader(url: string, accessToken?: AccessToken): { Authorization: string } | undefined {
@@ -182,7 +204,7 @@ export class Requester {
                 // log total once
                 if (!didLogLength) {
                     didLogLength = true;
-                    Log.i(`Download length is ${this.bytesToMB(progressEvent.total)} MB`);
+                    Log.i(`Download size of ${path.basename(url)} is ${this.bytesToMB(progressEvent.total)} MB`);
                 }
                 if (options.progress) {
                     message = `${this.bytesToMB(progressEvent.transferred)} / ${this.bytesToMB(progressEvent.total)} MB`;
@@ -209,11 +231,21 @@ export class Requester {
 
 // namespace Requester {
 export interface RequesterOptions {
+    accessToken?: AccessToken;
+    /**
+     * Request body object.
+     */
     body?: {};
+    /**
+     * Querystring key-values to append to the url.
+     */
     query?: {};
+    /**
+     * In milliseconds
+     */
     timeout?: number;
 }
-export type HttpVerb = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 // }
 
 export default Requester;
