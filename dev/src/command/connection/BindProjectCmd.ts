@@ -23,10 +23,7 @@ import { IDetectedProjectType, IInitializationResponse } from "../../codewind/Ty
 
 export default async function bindProjectCmd(connection: Connection): Promise<void> {
     try {
-        const defaultPath = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
-            ? vscode.workspace.workspaceFolders[0].uri : undefined;
-
-        const dirToBindUri = await MCUtil.promptForProjectDir(`Add to ${connection.label}`, defaultPath);
+        const dirToBindUri = await MCUtil.promptForProjectDir(`Add to ${connection.label}`);
         if (dirToBindUri == null) {
             return;
         }
