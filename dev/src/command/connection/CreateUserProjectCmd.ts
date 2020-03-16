@@ -352,6 +352,8 @@ async function promptForProjectName(connection: Connection, template: CWTemplate
  * Get parent directory to create the project under.
  */
 async function getParentDirectory(): Promise<vscode.Uri | undefined> {
+    // if in che or alwaysCreateInWorkspace, then create in the one workspace folder.
+
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
         && (global.isChe || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
 
@@ -361,11 +363,7 @@ async function getParentDirectory(): Promise<vscode.Uri | undefined> {
         }
     }
 
-    // Have the user select the parent dir from anywhere on disk
-    const defaultUri = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0] ?
-        vscode.workspace.workspaceFolders[0].uri : undefined;
-
-    return MCUtil.promptForProjectDir("Select Parent Directory", defaultUri);
+    return MCUtil.promptForProjectDir("Select Parent Directory");
 }
 
 const ILLEGAL_CHARS = [

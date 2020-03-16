@@ -257,13 +257,26 @@ namespace MCUtil {
         return process.env[Constants.CW_ENV_VAR] === Constants.CW_ENV_TEST;
     }
 
-    export async function promptForProjectDir(btnLabel: string, defaultUri: vscode.Uri | undefined): Promise<vscode.Uri | undefined> {
+    let previousProjectDir: vscode.Uri | undefined;
+
+    export async function promptForProjectDir(btnLabel: string): Promise<vscode.Uri | undefined> {
+        let defaultUri: vscode.Uri | undefined;
+
+        // The default location is either the previously selected one, or the single workspace folder if there is just one.
+        if (!previousProjectDir) {
+            if (vscode.workspace.workspaceFolders) {
+                if (vscode.workspace.workspaceFolders.length === 1) {
+                    defaultUri = vscode.workspace.workspaceFolders[0].uri;
+                }
+            }
+        }
+
         const selectedDirs = await vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: btnLabel,
-            defaultUri
+            defaultUri,
         });
 
         if (selectedDirs == null || selectedDirs[0] == null) {
@@ -277,6 +290,7 @@ namespace MCUtil {
             vscode.window.showErrorMessage(`You cannot create or add a project under ${cwDataPath}. Select a different directory.`);
             return undefined;
         }
+        previousProjectDir = selectedDir;
         return selectedDir;
     }
 
