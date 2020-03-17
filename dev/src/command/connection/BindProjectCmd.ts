@@ -33,7 +33,7 @@ export default async function bindProjectCmd(connection: Connection): Promise<vo
             return;
         }
 
-        vscode.window.showInformationMessage(`Added ${MCUtil.containerPathToFsPath(response.projectPath)} as ${response.projectName}`);
+        vscode.window.showInformationMessage(`Added ${MCUtil.containerPathToFsPath(response.projectPath)} to ${connection.label}`);
     }
     catch (err) {
         const errMsg = "Error importing project: ";

@@ -67,7 +67,7 @@ export class Requester {
             rejectUnauthorized: false,
             json: options.body,
             searchParams: options.query,
-            timeout: options.timeout || 30000,
+            timeout: options.timeout || 60000,
             headers: {
                 ...this.getAuthorizationHeader(url, options.accessToken),
             },

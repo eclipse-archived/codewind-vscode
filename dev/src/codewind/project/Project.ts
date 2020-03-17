@@ -26,13 +26,13 @@ import ProjectPendingRestart from "./ProjectPendingRestart";
 import Connection from "../connection/Connection";
 import SocketEvents from "../connection/SocketEvents";
 import Validator from "./Validator";
-import { deleteProjectDir } from "../../command/project/RemoveProjectCmd";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
 import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData } from "../Types";
 import Requester from "../Requester";
 import ProjectRequester from "./ProjectRequester";
+import { CLICommandRunner } from "../cli/CLICommandRunner";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -96,7 +96,6 @@ export default class Project implements vscode.QuickPickItem {
     private _overviewPage: ProjectOverviewPageWrapper | undefined;
 
     private resolvePendingDeletion: (() => void) | undefined;
-    private deleteFilesOnUnbind: boolean = false;
 
     constructor(
         projectInfo: PFEProjectData,
@@ -574,14 +573,26 @@ export default class Project implements vscode.QuickPickItem {
         await this.requester.receiveProfilingData(event.timestamp, profilingOutPath);
     }
 
-    public deleteFromCodewind(deleteFiles: boolean): Promise<void> {
+    public async deleteFromCodewind(deleteFiles: boolean): Promise<void> {
         Log.d(`Deleting ${this}`);
-        this.deleteFilesOnUnbind = deleteFiles;
-        const pendingDeletionProm = new Promise<void>((resolve) => {
-            this.resolvePendingDeletion = resolve;
-            this.requester.requestUnbind();
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: `Removing ${this.name} from ${this.connection.label}...`
+        }, async () => {
+            return new Promise<void>(async (resolve, reject) => {
+                this.resolvePendingDeletion = resolve;
+
+                try {
+                    await CLICommandRunner.removeProject(this.id, deleteFiles);
+                }
+                catch (err) {
+                    this.resolvePendingDeletion = undefined;
+                    reject(err);
+                }
+            });
         });
-        return pendingDeletionProm;
     }
 
     public async onDeletionEvent(event: SocketEvents.DeletionResult): Promise<void> {
@@ -599,13 +610,9 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         Log.i(`${this} was deleted from ${this.connection.label}`);
-        DebugUtils.removeDebugLaunchConfigFor(this);
+        await DebugUtils.removeDebugLaunchConfigFor(this);
 
-        const deleteFilesProm = this.deleteFilesOnUnbind ? deleteProjectDir(this) : Promise.resolve();
-        await Promise.all([
-            deleteFilesProm,
-            this.dispose(),
-        ]);
+        await this.dispose();
         this.resolvePendingDeletion();
         this.resolvePendingDeletion = undefined;
         this.connection.onProjectDeletion(this.id);

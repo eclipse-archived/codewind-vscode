@@ -87,9 +87,10 @@ export default class ProjectRequester extends Requester {
         await this.doProjectRequest(endpoint, "PUT", false);
     }
 
+    /*
     public async requestUnbind(): Promise<void> {
         await this.doProjectRequest(ProjectEndpoints.UNBIND, "POST", false);
-    }
+    }*/
 
     public async requestAvailableLogs(): Promise<ILogResponse> {
         if (!this.project.state.isEnabled) {

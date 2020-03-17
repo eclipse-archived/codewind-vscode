@@ -56,6 +56,7 @@ export namespace CLICommands {
         VALIDATE: new CLICommand([PROJECT_CMD, "validate"]),
         BIND:   new CLICommand([ PROJECT_CMD, "bind" ]),
         MANAGE_CONN: new CLICommand([ PROJECT_CMD, "connection" ]),
+        REMOVE: new CLICommand([ PROJECT_CMD, "remove" ], { hasJSONOutput: false }),
     };
 
     export const CONNECTIONS = {

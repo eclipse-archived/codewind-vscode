@@ -111,6 +111,18 @@ export namespace CLICommandRunner {
         return bindRes;
     }
 
+    export async function removeProject(projectID: string, deleteFiles: boolean): Promise<void> {
+        const removeArgs = [
+            "--id", projectID,
+        ];
+
+        if (deleteFiles) {
+            removeArgs.push("--delete");
+        }
+
+        await CLIWrapper.cwctlExec(CLICommands.PROJECT.REMOVE, removeArgs);
+    }
+
     interface WorkspaceUpgradeResult {
         readonly migrated: string[];
         readonly failed: Array<{
