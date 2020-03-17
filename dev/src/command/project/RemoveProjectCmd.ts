@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as rmrf from "rimraf";
 
 import Translator from "../../constants/strings/translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
@@ -79,37 +78,5 @@ export async function removeProject(project: Project, deleteFiles: boolean | und
         doDeleteProjectDir = deleteFiles;
     }
 
-    await vscode.window.withProgress({
-        cancellable: false,
-        location: vscode.ProgressLocation.Notification,
-        title: `Removing ${project.name} from ${project.connection.label}...`
-    }, async () => {
-        await project.deleteFromCodewind(doDeleteProjectDir);
-    });
-}
-
-export async function deleteProjectDir(project: Project): Promise<void> {
-    Log.i("Deleting project directory: " + project.localPath.fsPath);
-    const projectDirPath = project.localPath.fsPath;
-
-    try {
-        await new Promise<void>((resolve, reject) => {
-            rmrf(projectDirPath, { glob: false }, (err) => {
-                if (err) {
-                    reject(err);
-                }
-                return resolve();
-            });
-        });
-    }
-    catch (err) {
-        vscode.window.showErrorMessage(`Failed to delete ${project.name} directory: ${MCUtil.errToString(err)}`);
-        return;
-    }
-
-    // remove the project from the workspace if it is a workspace folder
-    const projectWsFolder = project.workspaceFolder;
-    if (projectWsFolder && projectWsFolder.isExactMatch) {
-        vscode.workspace.updateWorkspaceFolders(projectWsFolder.index, 1);
-    }
+    await project.deleteFromCodewind(doDeleteProjectDir);
 }

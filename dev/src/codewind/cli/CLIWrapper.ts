@@ -192,7 +192,7 @@ namespace CLIWrapper {
                     }
 
                     let errMsg = `Error running ${path.basename(cwctlPath)} ${cmd.command.join(" ")}`;
-                    if (cmd.hasJSONOutput && isProbablyJSON(outStr)) {
+                    if (isProbablyJSON(outStr)) {
                         const asObj = JSON.parse(outStr);
                         if (asObj.error_description) {
                             errMsg += `: ${asObj.error_description}`;
@@ -206,7 +206,10 @@ namespace CLIWrapper {
                 else {
                     let successMsg = `Successfully ran CLI command ${cmdStr}`;
                     if (echoOutput) {
-                        successMsg += `, Output was:\n` + outStr.trimRight();
+                        const output = outStr.trimRight();
+                        if (output) {
+                            successMsg += `, Output was:\n` + output;
+                        }
                     }
                     Log.d(successMsg);
 
