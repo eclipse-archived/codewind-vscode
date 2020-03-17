@@ -30,6 +30,7 @@ The project maintains the following source code repositories:
  *  https://github.com/eclipse/codewind-eclipse
  *  https://github.com/eclipse/codewind-filewatchers
  *  https://github.com/eclipse/codewind-installer
+ *  https://github.com/eclipse/codewind-intellij
  *  https://github.com/eclipse/codewind-java-profiler
  *  https://github.com/eclipse/codewind-odo-extension
  *  https://github.com/eclipse/codewind-openapi-eclipse
