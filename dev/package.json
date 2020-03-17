@@ -16,7 +16,6 @@
         "type": "git",
         "url": "https://github.com/eclipse/codewind-vscode"
     },
-    "preview": true,
     "icon": "res/img/codewind.png",
     "categories": [
         "Other"
