@@ -11,6 +11,8 @@
 
 import * as vscode from "vscode";
 
+import MCUtil from "./MCUtil";
+
 const BTN_BACK = "$btn-back";
 
 namespace InputUtil {
@@ -49,7 +51,7 @@ namespace InputUtil {
                 const result = await runInputStep(ib, i, prompt, step);
                 if (result == null) {
                     // quit
-                    ib.hide();
+                    ib.dispose();
                     return undefined;
                 }
                 results[i] = result;
@@ -66,8 +68,9 @@ namespace InputUtil {
                 }
             }
         }
-        // Log.d("IB Hide - Done");
-        ib.hide();
+        ib.dispose();
+        // Add a brief delay while the wizard disposes https://github.com/eclipse/codewind/issues/2330
+        await MCUtil.delay(10);
 
         return results;
     }
