@@ -72,6 +72,9 @@ export default async function createProjectCmd(connection: Connection): Promise<
                 return;
             }
 
+            // Add a brief delay while the template picker disposes https://github.com/eclipse/codewind/issues/2330
+            await MCUtil.delay(10);
+
             try {
                 projectName = await promptForProjectName(connection, template);
                 if (projectName == null) {
