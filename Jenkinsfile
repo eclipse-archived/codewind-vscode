@@ -34,9 +34,9 @@ spec:
         HOME="."
     }
 
-    triggers {
-        upstream(upstreamProjects: "Codewind/codewind-installer/${env.BRANCH_NAME}", threshold: hudson.model.Result.SUCCESS)
-    }
+    // triggers {
+
+    // }
 
     stages {
         // we duplicate the cloned repo so that we can build vscode and che-theia in parallel without the builds interfering with one another
