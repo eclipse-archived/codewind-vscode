@@ -14,7 +14,6 @@ import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import * as crypto from "crypto";
-import * as tar from "tar";
 import got from "got";
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -244,17 +243,17 @@ namespace CLISetup {
     }
 
     /**
-     * @returns The url to the cwctl zip file download.
+     * @returns The url to the cwctl targz file download.
      */
-    export function getCwctlZipDownloadUrl(): string {
-        // eg http://download.eclipse.org/codewind/codewind-installer/master/latest/zips/cwctl-win.exe.zip
-        return getCwctlDirectoryUrl() + "zips/" + getCwctlDownloadBinaryName() + ".zip";
+    export function getCwctlArchiveDownloadUrl(): string {
+        // eg http://download.eclipse.org/codewind/codewind-installer/master/latest/zips/cwctl-win.exe.tar.gz
+        return getCwctlDirectoryUrl() + "zips/" + getCwctlDownloadBinaryName() + ".tar.gz";
     }
 
     const EXECUTABLES_MODE = 0o755;
 
     /**
-     * Download cwctl.zip, unzip it, move it to the expected location, and give it the required permissions.
+     * Download cwctl.tar.gz, unzip it, move it to the expected location, and give it the required permissions.
      */
     export async function downloadCwctl(): Promise<string> {
         Log.i(`Downloading cwctl`);
@@ -264,22 +263,25 @@ namespace CLISetup {
             cancellable: false,
             title: `Downloading the Codewind CLI`,
         }, async (progress) => {
-            const cwctlZipDownloadUrl = getCwctlZipDownloadUrl();
-            const cwctlZipTargetPath = path.join(BINARIES_TARGET_DIR, path.basename(cwctlZipDownloadUrl));
+            const cwctlArchiveDownloadUrl = getCwctlArchiveDownloadUrl();
+            const cwctlArchiveTargetPath = path.join(BINARIES_TARGET_DIR, path.basename(cwctlArchiveDownloadUrl));
 
-            await Requester.httpWriteStreamToFile(cwctlZipDownloadUrl, cwctlZipTargetPath, {
+            await Requester.httpWriteStreamToFile(cwctlArchiveDownloadUrl, cwctlArchiveTargetPath, {
                 destFileMode: EXECUTABLES_MODE,
                 progress,
                 progressEndPercent: 90,
             });
 
-            progress.report({ message: `Extracting ${cwctlZipTargetPath}`, increment: 5 });
-            const extracted = await MCUtil.extractZip(cwctlZipTargetPath, BINARIES_TARGET_DIR);
+            progress.report({ message: `Extracting ${cwctlArchiveTargetPath}`, increment: 5 });
+
+            const cwctlTargetDir = path.dirname(CWCTL_FINAL_PATH);
+
+            const extracted = await MCUtil.extractTar(cwctlArchiveTargetPath, cwctlTargetDir);
             const extractCwctlFilename = extracted.find((file) => file.startsWith(CWCTL_DOWNLOAD_NAME));
             if (!extractCwctlFilename) {
                 throw new Error("Did not find cwctl after extracting cwctl archive");
             }
-            const extractCwctlPath = path.join(BINARIES_TARGET_DIR, extractCwctlFilename);
+            const extractCwctlPath = path.join(cwctlTargetDir, extractCwctlFilename);
 
             progress.report({ message: `Finishing up`, increment: 5 });
 
@@ -288,7 +290,7 @@ namespace CLISetup {
                 .then(() => {
                     fs.promises.chmod(CWCTL_FINAL_PATH, EXECUTABLES_MODE);
                 }),
-                fs.promises.unlink(cwctlZipTargetPath),
+                fs.promises.unlink(cwctlArchiveTargetPath),
             ]);
         });
 
@@ -333,15 +335,8 @@ namespace CLISetup {
             Log.i(`Extracting ${appsodyArchiveFile}`);
 
             progress.report({ message: `Extracting ${appsodyArchiveFile}`, increment: 5 });
-            await tar.extract({
-                file: appsodyArchiveFile,
-                cwd: path.dirname(APPSODY_FINAL_PATH),
-                filter: (file, _stat): boolean => {
-                    const extractThisFile = file === APPSODY_BASENAME;
-                    // Log.d(`Extract "${file}" ? ${doExtract}`);
-                    return extractThisFile;
-                },
-            });
+
+            await MCUtil.extractTar(appsodyArchiveFile, path.dirname(APPSODY_FINAL_PATH), [ APPSODY_BASENAME ]);
 
             progress.report({ message: `Finishing up`, increment: 5 });
 

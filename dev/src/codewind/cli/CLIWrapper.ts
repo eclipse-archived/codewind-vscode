@@ -59,14 +59,14 @@ namespace CLIWrapper {
             cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.CWCTL_FINAL_PATH}`);
         }
         else {
-            cliOutputChannel.appendLine(`Downloading cwctl from ${CLISetup.getCwctlZipDownloadUrl()}...`);
+            cliOutputChannel.appendLine(`Downloading cwctl from ${CLISetup.getCwctlArchiveDownloadUrl()}...`);
             downloadPromises.push(
                 CLISetup.downloadCwctl()
                 .then((cwctlPath) => {
                     cliOutputChannel.appendLine(`cwctl is now available at ${cwctlPath}`);
                 })
                 .catch((err) => {
-                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlZipDownloadUrl(), CLISetup.CWCTL_FINAL_PATH);
+                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlArchiveDownloadUrl(), CLISetup.CWCTL_FINAL_PATH);
                 })
             );
         }

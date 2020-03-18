@@ -14,8 +14,7 @@ import { promisify } from "util";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import * as extractZipLib from "extract-zip";
-const unzipAsync = promisify(extractZipLib);
+import * as tar from "tar";
 
 import Log from "./Logger";
 import Constants from "./constants/Constants";
@@ -310,6 +309,25 @@ namespace MCUtil {
         return baseURL + pathAndQuery;
     }
 
+    export async function extractTar(tarFilePath: string, targetDir: string, filenamesToExtract?: string[]): Promise<string[]> {
+        Log.d(`Extracting ${tarFilePath} into ${targetDir}`);
+        const extractedPaths: string[] = [];
+
+        await tar.extract({
+            file: tarFilePath,
+            cwd: targetDir,
+            filter: (filePath, _entry) => {
+                if (!filenamesToExtract || filenamesToExtract.includes(filePath)) {
+                    extractedPaths.push(filePath);
+                    return true;
+                }
+                return false;
+            },
+        });
+
+        Log.d(`Extracted ${extractedPaths.length} file${extractedPaths.length !== 1 ? "s" : ""}`);
+        return extractedPaths;
+    }
 
     /**
      * Configures json as the language of the given file, if it is a codewind settings file.
@@ -321,24 +339,6 @@ namespace MCUtil {
             doc.uri.scheme === "git" && doc.uri.path.endsWith(`/${Constants.PROJ_SETTINGS_FILE_NAME}.git`)) {
             vscode.languages.setTextDocumentLanguage(doc, "json");
         }
-    }
-
-    export async function extractZip(zipFilePath: string, targetDir: string): Promise<string[]> {
-        Log.d(`Extracting ${zipFilePath} into ${targetDir}`);
-        const extractedFiles: string[] = [];
-        await unzipAsync(zipFilePath, {
-            dir: targetDir,
-            onEntry: (entry, _zipFile) => {
-                extractedFiles.push(entry.fileName);
-            }
-        });
-        if (extractedFiles.length > 0) {
-            Log.d(`Extracted files: ${extractedFiles.join(" ")}`);
-        }
-        else {
-            Log.d(`Extracted no files!`);
-        }
-        return extractedFiles;
     }
 
     export async function delay(ms: number): Promise<void> {
