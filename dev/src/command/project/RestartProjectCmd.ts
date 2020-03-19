@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
 import Log from "../../Logger";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
 import MCUtil from "../../MCUtil";

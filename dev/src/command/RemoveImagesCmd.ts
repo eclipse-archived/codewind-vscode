@@ -15,7 +15,7 @@ import CLIWrapper from "../codewind/cli/CLIWrapper";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";
 import StringNamespaces from "../constants/strings/StringNamespaces";
-import Translator from "../constants/strings/translator";
+import Translator from "../constants/strings/Translator";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import CLILifecycleWrapper from "../codewind/cli/CLILifecycleWrapper";
 

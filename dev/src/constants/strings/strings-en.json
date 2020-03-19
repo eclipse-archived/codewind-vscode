@@ -1,5 +1,4 @@
 {
-    "productName": "Codewind",
     "activeMsg": "Codewind Tools for VSCode are active!",
     "failedToReconnect": "Couldn't reconnect to Codewind at {{- uri }}. Try re-creating the connection.",
     "versionChanged": "Codewind at {{- uri }} was previously version {{ oldVersion }}, but is now {{ newVersion }}.",
@@ -25,7 +24,10 @@
         "seeProblemsView": "See the Problems view for details.",
         "generateFilesBtn": "Generate",
         "validate": "Validate",
-        "removedConnection": "Removed Codewind connection at {{- uri }}."
+        "removedConnection": "Removed Codewind connection at {{- uri }}.",
+
+        "canOnlyOpenStartedProjects": "{{ projectName }} is not running - wait until the project is Starting or Started and try again.",
+        "failedDetermineAppUrl": "Could not determine application URL for {{ projectName }}."
     },
 
     "cmdResourcePrompt": {
@@ -92,18 +94,6 @@
         "restartFailedReasonTimeout": "failed to restart within {{ timeoutS }} seconds",
         "restartFailedReasonDisconnect": "Codewind disconnected",
         "restartFailedReasonDisabled": "The project was disabled"
-    },
-
-    "openInBrowserCmd": {
-        "canOnlyOpenStartedProjects": "{{ projectName }} is not running - wait until the project is Starting or Started and try again.",
-        "failedDetermineAppUrl": "Could not determine application URL for {{ projectName }}.",
-        "cantOpenDisconnected": "This connection is Disconnected. You cannot open Codewind if it is not running."
-    },
-
-    "openLogCmd": {
-        "noLogsForDisabled": "Application Logs are not available for Disabled projects.",
-        "projectIsNotStarted": "{{ projectName }} is {{ projectState }}; it might not have any application log output until it starts.",
-        "noBuildLogsForType": "Build logs are not available for {{ projectType }} projects."
     },
 
     "treeView": {

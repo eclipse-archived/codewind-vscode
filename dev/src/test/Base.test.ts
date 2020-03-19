@@ -18,6 +18,8 @@ import TestUtil from "./TestUtil";
 import Commands from "../constants/Commands";
 import CLISetup from "../codewind/cli/CLISetup";
 import CLIWrapper from "../codewind/cli/CLIWrapper";
+import Translator from "../constants/strings/Translator";
+import StringNamespaces from "../constants/strings/StringNamespaces";
 
 const extensionID = "IBM.codewind";
 Log.t(`Starting ${extensionID} tests...`);
@@ -86,5 +88,10 @@ describe("Codewind for VS Code", function() {
     it(`should have installed the CLI binaries`, async function() {
         expect(await CLISetup.isCwctlSetup()).to.be.true;
         expect(await CLISetup.isAppsodySetup()).to.be.true;
+    });
+
+    it(`should have initialized the translator`, async function() {
+        const activeMsg = Translator.t(StringNamespaces.DEFAULT, "activeMsg");
+        expect(activeMsg, `activeMsg did not match expected`).to.equal("Codewind Tools for VSCode are active!");
     });
 });

@@ -11,7 +11,7 @@
 
 // Adapted from https://github.com/microsoft/vscode-extension-samples/blob/master/helloworld-test-sample/src/test/suite/index.ts
 
-import * as Mocha from "mocha";
+import Mocha from "mocha";
 import * as path from "path";
 
 // tslint:disable: no-console

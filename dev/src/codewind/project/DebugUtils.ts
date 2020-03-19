@@ -15,7 +15,7 @@ import Project from "./Project";
 import Log from "../../Logger";
 import ProjectType from "./ProjectType";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 
 const STRING_NS = StringNamespaces.DEBUG;
 

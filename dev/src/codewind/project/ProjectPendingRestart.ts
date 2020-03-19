@@ -15,7 +15,7 @@ import ProjectState from "./ProjectState";
 import Log from "../../Logger";
 import Project from "./Project";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import { attachDebugger } from "../../command/project/AttachDebuggerCmd";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import { getOcticon, Octicons } from "../../constants/CWImages";

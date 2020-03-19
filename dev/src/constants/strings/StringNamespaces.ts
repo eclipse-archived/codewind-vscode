@@ -14,9 +14,6 @@
 enum StringNamespaces {
     DEFAULT = "",
 
-    // CMD_NEW_CONNECTION = "newConnectionCmd",
-    CMD_OPEN_IN_BROWSER = "openInBrowserCmd",
-    CMD_OPEN_LOG = "openLogCmd",
     CMD_MISC = "command",
     CMD_RES_PROMPT = "cmdResourcePrompt",
 

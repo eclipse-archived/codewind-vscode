@@ -18,7 +18,7 @@ import Project from "../../codewind/project/Project";
 import ProjectState from "../../codewind/project/ProjectState";
 import Log from "../../Logger";
 import DebugUtils from "../../codewind/project/DebugUtils";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 const STRING_NS = StringNamespaces.DEBUG;

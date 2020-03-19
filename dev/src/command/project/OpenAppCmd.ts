@@ -15,10 +15,10 @@ import Project from "../../codewind/project/Project";
 
 import { Log } from "../../Logger";
 import Commands from "../../constants/Commands";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
-const STRING_NS = StringNamespaces.CMD_OPEN_IN_BROWSER;
+const STRING_NS = StringNamespaces.CMD_MISC;
 
 export default async function openAppCmd(project: Project): Promise<void> {
     if (!(project.state.isStarted || project.state.isStarting)) {

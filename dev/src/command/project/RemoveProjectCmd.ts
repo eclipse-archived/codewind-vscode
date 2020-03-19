@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";

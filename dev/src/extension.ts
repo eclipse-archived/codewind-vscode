@@ -16,7 +16,7 @@ import { createCommands } from "./command/CommandUtil";
 import createViews from "./view/InitViews";
 import Log from "./Logger";
 
-import Translator from "./constants/strings/translator";
+import Translator from "./constants/strings/Translator";
 import StringNamespaces from "./constants/strings/StringNamespaces";
 import connectLocalCodewindCmd from "./command/StartCodewindCmd";
 import Constants from "./constants/Constants";
@@ -68,10 +68,11 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
     }
     catch (err) {
         // This string can't be translated for obvious reasons :)
-        const errmsg = "Error initializing i18next - placeholder strings will be used! " + (err.message || err);        // non-nls
-        Log.e(errmsg, err);
-        vscode.window.showErrorMessage(errmsg);
+        const errMsg = "Error initializing i18next - placeholder strings will be used! " + (err.message || err);        // non-nls
+        Log.e(errMsg, err);
+        vscode.window.showErrorMessage(errMsg);
     }
+
     const msg = Translator.t(StringNamespaces.DEFAULT, "activeMsg");
     // Make sure i18next loaded the strings properly here.
     Log.i("activeMsg:", msg);
