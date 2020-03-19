@@ -26,7 +26,7 @@ import LocalCodewindManager from "../connection/local/LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
 import { CLICommandRunner } from "./CLICommandRunner";
 import CWDocs from "../../constants/CWDocs";
-import { CLIStatus } from "../Types";
+import { CLIStatus, ProgressUpdate } from "../Types";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -320,7 +320,7 @@ export namespace CLILifecycleWrapper {
     }
 
     export function updateProgress(
-        cmd: CLILifecycleCommand, stdout: Readable, progress: vscode.Progress<{ message?: string, increment?: number }>): void {
+        cmd: CLILifecycleCommand, stdout: Readable, progress: vscode.Progress<ProgressUpdate>): void {
 
         const isInstallCmd = cmd === CLILifecycleCommands.INSTALL;
         const reader = readline.createInterface(stdout);
@@ -329,8 +329,9 @@ export namespace CLILifecycleWrapper {
                 return;
             }
             if (!isInstallCmd) {
-                // simple case for non-install, just update with the output
-                progress.report({ message: line });
+                // simple case for non-install, just update with the output, removing (some) terminal escapes
+                const message = line.replace(/\u001b\[\d+./g, "").trim();
+                progress.report({ message });
                 return;
             }
             if (line === "Image Tagging Successful") {
