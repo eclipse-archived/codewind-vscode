@@ -271,10 +271,7 @@ function buildDebugSection(rp: WebviewResourceProvider, project: Project): strin
     }
 
     let noDebugMsg;
-    if (project.connection.isRemote) {
-        noDebugMsg = "Remote projects do not support debug.";
-    }
-    else if (project.capabilities && !project.capabilities.supportsDebug) {
+    if (project.capabilities && !project.capabilities.supportsDebug) {
         if (project.type.isExtensionType) {
             noDebugMsg = `This project does not support debug.`;
         }
