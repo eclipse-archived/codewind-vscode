@@ -175,6 +175,7 @@ export default class Project implements vscode.QuickPickItem {
             this.clearValidationErrors(),
             this.logManager?.destroyAllLogs(),
             this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
+            DebugUtils.removeDebugLaunchConfigFor(this),
         ]);
     }
 
@@ -610,9 +611,14 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         Log.i(`${this} was deleted from ${this.connection.label}`);
-        await DebugUtils.removeDebugLaunchConfigFor(this);
 
-        await this.dispose();
+        try {
+            await this.dispose();
+        }
+        catch (err) {
+            Log.e(`Error disposing ${this.name}`, err);
+        }
+
         this.resolvePendingDeletion();
         this.resolvePendingDeletion = undefined;
         this.connection.onProjectDeletion(this.id);
