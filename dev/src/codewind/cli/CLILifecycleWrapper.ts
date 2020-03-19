@@ -16,7 +16,7 @@ import * as fs from "fs";
 
 import Log from "../../Logger";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import { CodewindStates } from "../connection/local/CodewindStates";
 import MCUtil from "../../MCUtil";
 import Constants from "../../constants/Constants";

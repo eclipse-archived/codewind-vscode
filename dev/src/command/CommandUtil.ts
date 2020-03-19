@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Commands from "../constants/Commands";
-import Translator from "../constants/strings/translator";
+import Translator from "../constants/strings/Translator";
 import StringNamespaces from "../constants/strings/StringNamespaces";
 import Log from "../Logger";
 import MCUtil from "../MCUtil";

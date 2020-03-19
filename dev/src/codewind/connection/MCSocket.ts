@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as io from "socket.io-client";
+import io from "socket.io-client";
 
 import Connection from "./Connection";
 import Project from "../project/Project";

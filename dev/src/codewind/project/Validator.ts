@@ -13,7 +13,7 @@ import * as vscode from "vscode";
 
 import Log from "../../Logger";
 import Project from "./Project";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Commands from "../../constants/Commands";
 import SocketEvents from "../connection/SocketEvents";

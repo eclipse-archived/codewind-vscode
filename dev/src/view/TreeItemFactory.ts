@@ -16,7 +16,7 @@ import TreeItemContext from "./TreeItemContext";
 import { ThemedImages } from "../constants/CWImages";
 import LocalCodewindManager from "../codewind/connection/local/LocalCodewindManager";
 import Connection from "../codewind/connection/Connection";
-import Translator from "../constants/strings/translator";
+import Translator from "../constants/strings/Translator";
 import { CodewindTreeItem } from "./CodewindTree";
 import Commands from "../constants/Commands";
 import Project from "../codewind/project/Project";

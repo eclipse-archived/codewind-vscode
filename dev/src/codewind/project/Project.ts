@@ -16,7 +16,7 @@ import * as fs from "fs";
 import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
 import Log from "../../Logger";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
 import MCLogManager from "./logs/MCLogManager";

@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
-import Translator from "../../constants/strings/translator";
+import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function containerShellCmd(project: Project): Promise<void> {
