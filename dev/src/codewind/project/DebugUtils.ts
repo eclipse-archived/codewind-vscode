@@ -97,15 +97,19 @@ export default class DebugUtils {
             }
         }
 
-        if (indexToDelete !== -1) {
-            launchConfigs.splice(indexToDelete, 1);
+        if (indexToDelete === -1) {
+            Log.d(`Requested to delete launch for ${project.name}, but no launch was found`);
+            return false;
+        }
+
+        launchConfigs.splice(indexToDelete, 1);
+        try {
             await this.updateWorkspaceLaunchConfigs(workspaceConfig, launchConfigs);
             Log.i(`Removed debug launch config for project ${project.name}`);
-
             return true;
         }
-        else {
-            Log.d(`Requested to delete launch for ${project.name}, but no launch was found`);
+        catch (err) {
+            Log.e(`Error updating debug config for ${project.name}`, err)
             return false;
         }
     }
