@@ -45,24 +45,30 @@ export default class ConnectionRequester extends Requester {
     }
 
     private async doConnectionRequest<T>(
-        endpoint: MCEndpoints, method: HttpMethod, options?: RequesterOptions): Promise<T> {
+        endpoint: MCEndpoints, method: HttpMethod, json: boolean, options?: RequesterOptions): Promise<T> {
 
         const url = EndpointUtil.resolveMCEndpoint(this.connection, endpoint);
 
         const accessToken = await this.connection.getAccessToken();
-        return Requester.req<T>(method, url, { ...options, accessToken });
+        if (json) {
+            return Requester.req<T>(method, url, { ...options, accessToken });
+        }
+        else {
+            // danger - T must be string!
+            return Requester.reqText(method, url, { ...options, accessToken }) as unknown as T;
+        }
     }
 
     public async getProjects(): Promise<PFEProjectData[]> {
-        return this.doConnectionRequest<PFEProjectData[]>(MCEndpoints.PROJECTS, "GET");
+        return this.doConnectionRequest<PFEProjectData[]>(MCEndpoints.PROJECTS, "GET", true);
     }
 
     public async getRawEnvironment(): Promise<RawCWEnvData> {
-        return this.doConnectionRequest<RawCWEnvData>(MCEndpoints.ENVIRONMENT, "GET");
+        return this.doConnectionRequest<RawCWEnvData>(MCEndpoints.ENVIRONMENT, "GET", true);
     }
 
     public async getTemplates(): Promise<CWTemplateData[]> {
-        const result = await this.doConnectionRequest<CWTemplateData[]>(MCEndpoints.TEMPLATES, "GET", { query: { showEnabledOnly: true }});
+        const result = await this.doConnectionRequest<CWTemplateData[]>(MCEndpoints.TEMPLATES, "GET", true, { query: { showEnabledOnly: true }});
         if (result == null) {
             return [];
         }
@@ -83,7 +89,7 @@ export default class ConnectionRequester extends Requester {
         });
 
         // status is always 207, we have to check the individual results for success status
-        const result = await this.doConnectionRequest<IRepoEnablementResult[]>(MCEndpoints.BATCH_TEMPLATE_REPOS, "PATCH", { body });
+        const result = await this.doConnectionRequest<IRepoEnablementResult[]>(MCEndpoints.BATCH_TEMPLATE_REPOS, "PATCH", true, { body });
 
         const failures = result.filter((opResult) => opResult.status !== 200);
         if (failures.length > 0) {
@@ -100,7 +106,7 @@ export default class ConnectionRequester extends Requester {
     }
 
     public async getProjectTypes(): Promise<IProjectTypeDescriptor[]> {
-        const result = await this.doConnectionRequest<IProjectTypeDescriptor[]>(MCEndpoints.PROJECT_TYPES, "GET");
+        const result = await this.doConnectionRequest<IProjectTypeDescriptor[]>(MCEndpoints.PROJECT_TYPES, "GET", true);
         if (result == null) {
             return [];
         }
@@ -115,7 +121,7 @@ export default class ConnectionRequester extends Requester {
     }
 
     public async getImageRegistries(): Promise<ContainerRegistry[]> {
-        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "GET");
+        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "GET", true);
 
         // Log.d(`Container registry response:`, response);
         const registries = response.map((reg) => this.asContainerRegistry(reg));
@@ -152,7 +158,7 @@ export default class ConnectionRequester extends Requester {
             credentials: credentialsEncoded,
         };
 
-        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "POST", { body });
+        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "POST", true, { body });
         const match = response.find((reg) => reg.address === address);
         if (match == null) {
             Log.e("Got success response when adding new registry secret, but was not found in api response");
@@ -167,16 +173,16 @@ export default class ConnectionRequester extends Requester {
         };
 
         if (toRemove.isPushRegistry) {
-            await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "DELETE", { body });
+            await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "DELETE", true, { body });
         }
 
-        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "DELETE", { body });
+        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "DELETE", true, { body });
         const registriesAfterDelete = response.map(this.asContainerRegistry);
         return registriesAfterDelete;
     }
 
     public async getPushRegistry(): Promise<{ imagePushRegistry: boolean, address?: string, namespace?: string }> {
-        return this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "GET");
+        return this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "GET", true);
     }
 
     public async setPushRegistry(registry: ContainerRegistry): Promise<void> {
@@ -186,7 +192,7 @@ export default class ConnectionRequester extends Requester {
             namespace: registry.namespace,
         };
 
-        await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "POST", { body });
+        await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "POST", true, { body });
     }
 
     public async testPushRegistry(registry: ContainerRegistry): Promise<SocketEvents.IPushRegistryStatus> {
@@ -196,16 +202,16 @@ export default class ConnectionRequester extends Requester {
             namespace: registry.namespace,
         };
 
-        return this.doConnectionRequest<SocketEvents.IPushRegistryStatus>(MCEndpoints.PUSH_REGISTRY, "POST", { body });
+        return this.doConnectionRequest<SocketEvents.IPushRegistryStatus>(MCEndpoints.PUSH_REGISTRY, "POST", true, { body });
     }
 
     public async getPFELogLevels(): Promise<PFELogLevels> {
-        return this.doConnectionRequest<PFELogLevels>(MCEndpoints.LOGGING, "GET");
+        return this.doConnectionRequest<PFELogLevels>(MCEndpoints.LOGGING, "GET", true);
     }
 
     public async setPFELogLevel(level: string): Promise<void> {
         const body = { level };
-        await this.doConnectionRequest(MCEndpoints.LOGGING, "PUT", { body });
+        await this.doConnectionRequest<string>(MCEndpoints.LOGGING, "PUT", false, { body });
     }
 
     /**
@@ -252,10 +258,9 @@ export default class ConnectionRequester extends Requester {
 
     private async isCodewindReady(logStatus: boolean, timeoutS: number): Promise<boolean> {
         try {
-            const res = await this.doConnectionRequest<boolean>(MCEndpoints.READY, "GET", { timeout: timeoutS * 1000 });
+            const res = await this.doConnectionRequest<string>(MCEndpoints.READY, "GET", false, { timeout: timeoutS * 1000 });
 
-            // tslint:disable-next-line: no-boolean-literal-compare
-            if (res === true) {
+            if (res === "true") {
                 return true;
             }
         }
