@@ -35,7 +35,7 @@ export async function setLogLevelCmd(connection: Connection): Promise<void> {
         // If you change this, also change the message below which specifies the highest level
         const levelsSorted = levelsResponse.allLevels.reverse();
 
-        const levelOptions: Array<vscode.QuickPickItem & { index: number }> = levelsSorted.map((level, index) => {
+        const levelOptions: (vscode.QuickPickItem & { index: number })[] = levelsSorted.map((level, index) => {
             const userFriendlyLevel = MCUtil.uppercaseFirstChar(level);
             const isSelectedLevel = levelsResponse.currentLevel === level;
 

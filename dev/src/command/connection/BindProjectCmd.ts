@@ -118,7 +118,7 @@ async function promptForProjectType(connection: Connection, detected: IDetectedP
         return connection.requester.getProjectTypes();
     });
 
-    const projectTypeQpis: Array<vscode.QuickPickItem & { projectType: string; index: number; }> = [];
+    const projectTypeQpis: (vscode.QuickPickItem & { projectType: string; index: number; })[] = [];
 
     let dockerType;
     projectTypes.forEach((type, index) => {
@@ -216,7 +216,7 @@ const OTHER_LANG_BTN = "Other";
 
 async function promptForLanguageOrSubtype(choices: IProjectSubtypesDescriptor): Promise<string | undefined> {
     Log.d("Prompting user for project language or subtype");
-    const languageQpis: Array<vscode.QuickPickItem & { id: string }> = choices.items.map((choice) => {
+    const languageQpis: (vscode.QuickPickItem & { id: string })[] = choices.items.map((choice) => {
         return {
             id: choice.id,
             label: choice.label,

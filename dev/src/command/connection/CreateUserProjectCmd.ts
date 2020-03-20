@@ -131,7 +131,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
         return "selected";
     }
 
-    const qpis: Array<({ url: string } & vscode.QuickPickItem)> = sources.map((repo) => {
+    const qpis: ({ url: string } & vscode.QuickPickItem)[] = sources.map((repo) => {
         const label = repo.name || repo.description || "No name available";
         const description = repo.name ? repo.description : undefined;
 
@@ -162,7 +162,7 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     }
 
     // enable the selected repo, only
-    const repoEnablement: Array<{ enable: boolean, repoID: string }> = sources.map((repo) => {
+    const repoEnablement: { enable: boolean, repoID: string }[] = sources.map((repo) => {
         return {
             enable: repo.url === selection.url,
             repoID: repo.url,
@@ -277,7 +277,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
     return selectedProjectType;
 }
 
-async function getTemplateQpis(connection: Connection): Promise<Array<vscode.QuickPickItem & CWTemplateData> | undefined>  {
+async function getTemplateQpis(connection: Connection): Promise<(vscode.QuickPickItem & CWTemplateData)[] | undefined>  {
     const templates = await connection.requester.getTemplates();
     Log.d(`Finished GETing templates`);
     // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
