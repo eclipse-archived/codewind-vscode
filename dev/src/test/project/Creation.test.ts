@@ -66,7 +66,7 @@ describe(`Project creation`, async function() {
         const nowStr = Date.now().toString();
         const timestamp = nowStr.substring(nowStr.length - 4);
 
-        const creationResults: Array<{ projectName: string, creationErr: any }> = [];
+        const creationResults: { projectName: string, creationErr: any }[] = [];
         for (const template of templatesToTest) {
             const simplerLabel = MCUtil.slug(template.label.replace("template", "").replace("®", ""));
             const projectName = `test-${simplerLabel}-${timestamp}`;

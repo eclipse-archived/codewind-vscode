@@ -302,7 +302,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         const oldProjects = this._projects;
         this._projects = [];
-        const initPromises: Array<Promise<void>> = [];
+        const initPromises: Promise<void>[] = [];
 
         for (const projectInfo of projectsData) {
             // This is a hard-coded exception for a backend bug where projects get stuck in the Deleting or Validating state

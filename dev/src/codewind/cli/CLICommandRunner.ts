@@ -125,10 +125,10 @@ export namespace CLICommandRunner {
 
     interface WorkspaceUpgradeResult {
         readonly migrated: string[];
-        readonly failed: Array<{
+        readonly failed: {
             error: string,
             projectName: string
-        }>;
+        }[];
     }
 
     /**

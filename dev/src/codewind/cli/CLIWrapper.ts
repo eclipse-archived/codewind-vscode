@@ -53,7 +53,7 @@ namespace CLIWrapper {
         });
         Log.d(`Finished determining if binaries are installed, took ${Date.now() - binariesInitStartTime}ms`);
 
-        const downloadPromises: Array<Promise<void>> = [];
+        const downloadPromises: Promise<void>[] = [];
 
         if (isCwctlSetup) {
             cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.CWCTL_FINAL_PATH}`);

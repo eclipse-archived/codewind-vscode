@@ -98,10 +98,10 @@ export interface TemplateSource {
  * 'data' field of ENABLE_DISABLE event, which can be converted to an enablement request.
  */
 export interface SourceEnablement {
-    readonly repos: Array<{
+    readonly repos: {
         readonly repoID: string;
         readonly enable: boolean;
-    }>;
+    }[];
 }
 
 /**

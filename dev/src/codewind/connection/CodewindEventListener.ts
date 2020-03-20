@@ -17,7 +17,7 @@ export type OnChangeCallbackArgs = CodewindTreeItem | undefined;
 
 export default class CodewindEventListener {
 
-    private static readonly listeners: Array<( (changed: OnChangeCallbackArgs) => void )> = [];
+    private static readonly listeners: ( (changed: OnChangeCallbackArgs) => void )[] = [];
 
     public static addOnChangeListener(callback: (changed: OnChangeCallbackArgs) => void): void {
         Log.i("Adding onChangeListener " + callback.name);
