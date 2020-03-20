@@ -657,7 +657,7 @@
     },
     "dependencies": {
         "circular-json": "^0.5.9",
-        "codewind-filewatcher": "https://download.eclipse.org/codewind/codewind-filewatcher-ts/v0.11.0//1/filewatcherd-node_0.11.0.tar.gz",
+        "codewind-filewatcher": "https://download.eclipse.org/codewind/codewind-filewatcher-ts/v0.11.0/2/filewatcherd-node_0.11.0.tar.gz",
         "got": "^10.6.0",
         "i18next": "^19.3.3",
         "socket.io-client": "^2.3.0",
