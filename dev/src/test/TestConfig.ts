@@ -21,11 +21,11 @@ namespace TestConfig {
         codewind: [
             // "springJavaTemplate",               // https://github.com/eclipse/codewind/issues/1877
             "nodeExpressTemplate",
-            "goTemplate",
+            // "goTemplate",
             // "javaMicroProfileTemplate",      // very slow
         ],
         appsody: [
-            "nodejs-express",
+            // "nodejs-express",
             "python-flask",
         ]
     };

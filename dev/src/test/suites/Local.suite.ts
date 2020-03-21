@@ -21,10 +21,10 @@ import * as Creation from "../project/Creation.test";
 Creation;
 import * as AutoBuild from "../project/AutoBuild.test";
 AutoBuild;
-import * as Miscellaneous from "../project/Miscellaneous.test";
-Miscellaneous;
-import * as Restart from "../project/Restart.test";
-Restart;
+// import * as Miscellaneous from "../project/Miscellaneous.test";
+// Miscellaneous;
+// import * as Restart from "../project/Restart.test";
+// Restart;
 import * as Removal from "../project/Removal.test";
 Removal;
 
