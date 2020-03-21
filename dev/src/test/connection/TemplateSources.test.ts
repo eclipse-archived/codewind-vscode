@@ -126,7 +126,8 @@ describe(`Template sources`, function() {
     const TEST_SOURCE_DESCR = "It is a template source for the tests to use";
     const TEST_SOURCE_NO_TEMPLATES = 8;
 
-    it(`should add a new template source`, async function() {
+    // skip due to https://github.com/eclipse/codewind/issues/2472
+    it.skip(`should add a new template source`, async function() {
         const oldSources = await connection.templateSourcesList.get();
         const oldTemplates = await connection.requester.getTemplates();
 
@@ -145,7 +146,8 @@ describe(`Template sources`, function() {
             .to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
     });
 
-    it(`should remove the new template source`, async function() {
+    // skip due to https://github.com/eclipse/codewind/issues/2472
+    it.skip(`should remove the new template source`, async function() {
         const oldSources = await connection.templateSourcesList.get();
         const oldTemplates = await connection.requester.getTemplates();
 

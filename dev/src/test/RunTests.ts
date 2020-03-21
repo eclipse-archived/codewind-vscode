@@ -11,8 +11,12 @@
 
 // https://github.com/microsoft/vscode-extension-samples/blob/master/helloworld-test-sample/src/test/runTest.ts
 
-import { runTests } from 'vscode-test';
-import * as path from 'path';
+import * as vscodeTest from "vscode-test";
+import { TestOptions } from "vscode-test/out/runTest";
+
+import * as os from "os";
+import * as path from "path";
+import * as fs from "fs";
 
 // tslint:disable: no-console
 
@@ -25,10 +29,77 @@ async function main(): Promise<number> {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './Index.js');
 
-    console.log(`Running extension tests from ${extensionTestsPath}`);
-    // Download VS Code, unzip it and run the integration test
-    return await runTests({ extensionDevelopmentPath, extensionTestsPath });
+    const workspaceEnv = process.env.CODE_TESTS_WORKSPACE;
+
+    let workspaceDir;
+    if (workspaceEnv) {
+        workspaceDir = workspaceEnv;
+    }
+    else {
+        workspaceDir = path.join(os.homedir(), "codewind-vscode-tests-workspace");
+    }
+
+    console.log(`Workspace dir is ${workspaceDir}`);
+
+    try {
+        await fs.promises.access(workspaceDir);
+    }
+    catch (err) {
+        if (err.code === "ENOENT") {
+            console.log(`Creating ${workspaceDir}`);
+            await fs.promises.mkdir(workspaceDir, { recursive: true });
+        }
+    }
+
+    const options: TestOptions = {
+        extensionDevelopmentPath, extensionTestsPath,
+        launchArgs: [ workspaceDir ],
+    }
+
+    console.log(`Running extension tests with options:`, options);
+
+    // Download VS Code, unzip it and run the integration tests
+    return await vscodeTest.runTests(options);
 }
+
+/*
+// For some reason, this hangs in Jenkins.
+async function installJavaDebugExtension(vscodePath) {
+    const args = [ "--install-extension", "vscjava.vscode-java-debug", "--force" ];
+    console.log(`Executing ${executablePath} ${args.join(" ")}`)
+
+    await new Promise((resolve, reject) => {
+        let tries = 0;
+        const interval = setInterval(() => {
+            console.log(`After ${10 * tries}s we are still waiting`);
+            tries++;
+        }, 10000);
+
+        execFile(executablePath, args, (err, stdout, stderr) => {
+            console.log("it exited");
+            if (stdout) {
+                console.log("Output:", stdout.trim());
+            }
+            if (stderr) {
+                console.error("Error:", stderr.trim());
+            }
+
+            clearInterval(interval);
+            if (err) {
+                return reject(err);
+            }
+            return resolve();
+        })
+        .on("close", () => console.log("close"))
+        .on("error", (err) => console.error("error", err))
+        .on("exit", () => console.log("exit"))
+        .on("message", (msg) => console.log("message", msg))
+        .on("disconnect", () => console.log("disconnect"));
+    });
+
+    console.log("Finished installing Java Debug extension");
+}
+*/
 
 main()
 .then((exitCode) => {

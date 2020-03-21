@@ -18,24 +18,31 @@ import stopLocalCodewindCmd from "../../command/StopCodewindCmd";
 import removeImagesCmd from "../../command/RemoveImagesCmd";
 import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindManager";
 
-describe("Local Codewind", function() {
-    it(`should stop and uninstall if present`, async function() {
-        this.timeout(TestUtil.ms(2, "min"));
-        this.slow(TestUtil.ms(1, "min"));
+describe(`Stop Local Codewind wrapper`, function() {
 
-        const preStatus = await CLICommandRunner.status();
-        Log.t(`Status at the start of local tests:`, preStatus);
+    before(async function() {
+        describe("Local Codewind - Stop", function() {
+            it(`should stop and uninstall if present`, async function() {
+                this.timeout(TestUtil.ms(2, "min"));
+                this.slow(TestUtil.ms(1, "min"));
 
-        // if (lcwm.isStarted) {
-        await stopLocalCodewindCmd();
-        expect(LocalCodewindManager.instance.isStarted).to.be.false;
-        expect(LocalCodewindManager.instance.localConnection).to.be.undefined;
-        // }
+                const preStatus = await CLICommandRunner.status();
+                Log.t(`Status at the start of local stop tests`, preStatus);
 
-        await removeImagesCmd(LocalCodewindManager.instance, true);
+                // if (lcwm.isStarted) {
+                await stopLocalCodewindCmd();
+                expect(LocalCodewindManager.instance.isStarted).to.be.false;
+                expect(LocalCodewindManager.instance.localConnection).to.be.undefined;
+                // }
 
-        const postStatus = await CLICommandRunner.status();
-        expect(postStatus["installed-versions"]).to.be.empty;
-        expect(postStatus.started).to.be.empty;
+                await removeImagesCmd(LocalCodewindManager.instance, true);
+
+                const postStatus = await CLICommandRunner.status();
+                expect(postStatus["installed-versions"]).to.be.empty;
+                expect(postStatus.started).to.be.empty;
+            });
+        });
     });
+
+    it(`stub`, function() { /* stub */ });
 });

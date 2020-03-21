@@ -16,6 +16,8 @@ else
     ./prebuild.js vscode
 fi
 
+echo "Building with node $(node --version) and npm $(npm --version)"
+
 # Test compilation to catch any errors
 npm ci
 npm run vscode:prepublish

@@ -639,7 +639,8 @@
         "lint": "tslint -p ./tsconfig.json -t verbose",
         "lint-f": "tslint -p ./tsconfig.json -t verbose --force",
         "copy-strings": "mkdir -p ./out/constants/strings/; cp -v ./src/constants/strings/strings-*.json ./out/constants/strings/",
-        "copy-license": "cp -v ../LICENSE ../README.md ."
+        "copy-license": "cp -v ../LICENSE ../README.md .",
+        "versions": "echo \"Node $(node --version) npm $(npm --version) tsc $(tsc --version) tslint $(tslint --version)\""
     },
     "devDependencies": {
         "@types/chai": "^4.2.11",

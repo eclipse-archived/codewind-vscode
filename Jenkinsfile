@@ -10,12 +10,12 @@ kind: Pod
 spec:
   containers:
   - name: vscode-builder
-    image: node:lts
+    image: node:10-stretch
     tty: true
     command:
       - cat
   - name: che-builder
-    image: node:lts
+    image: node:10-stretch
     tty: true
     command:
       - cat
@@ -26,20 +26,36 @@ spec:
     options {
         timestamps()
         skipStagesAfterUnstable()
-        timeout(time: 1, unit: 'HOURS')
+        timeout(time: 2, unit: "HOURS")
     }
 
-    environment {
-        // https://stackoverflow.com/a/43264045
-        HOME="."
+    triggers {
+        // https://jenkins.io/doc/book/pipeline/syntax/#cron-syntax
+        // nightly between 2300-2359 (eastern)
+        cron("H 23 * * *")
     }
-
-    // triggers {
-
-    // }
 
     stages {
+
+        stage("Test") {
+            options {
+                timeout(time: 45, unit: "MINUTES")
+                retry(2)
+            }
+
+            agent {
+                label "docker-build"
+            }
+
+            steps {
+                sh '''#!/usr/bin/env bash
+                    ./ci-scripts/run-tests.sh
+                '''
+            }
+        }
+
         // we duplicate the cloned repo so that we can build vscode and che-theia in parallel without the builds interfering with one another
+        // see that 'build for che' uses a different dir
         stage("Duplicate code") {
             steps {
                 dir ("..") {
@@ -53,6 +69,7 @@ spec:
                 }
             }
         }
+
         stage("Build") {
             parallel {
                 stage("Build for VS Code") {

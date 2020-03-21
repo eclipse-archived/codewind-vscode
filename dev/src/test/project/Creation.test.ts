@@ -22,7 +22,6 @@ import { CWTemplateData } from "../../codewind/Types";
 
 import { connection } from "../local/LocalStart.test";
 
-export const JAVA_DEBUG_EXT_ID = "vscjava.vscode-java-debug";
 export let testProjects: Project[];
 
 describe(`Project creation`, async function() {
@@ -60,7 +59,7 @@ describe(`Project creation`, async function() {
     // it would be great to have one test per project type instead of one test for all the project types
     it(`should create test projects`, async function() {
         // Long timeout because this will block subsequent tests if it fails
-        this.timeout(TestUtil.ms(60, "sec"));
+        this.timeout(TestUtil.ms(3, "min"));
         this.slow(TestUtil.ms(30, "sec"));
 
         const nowStr = Date.now().toString();
@@ -120,10 +119,6 @@ describe(`Project creation`, async function() {
             return TestUtil.waitForStarted(this, testProject);
         });
 
-        // since we've now created the projects, this is also a good time to activate the java extension if we have a java project.
-        // it should be much faster than any initial project build
-        awaitingStartPromises.push(activateJavaExtension());
-
         await Promise.all(awaitingStartPromises);
         Log.t(`${testProjects.length} test projects started successfully`);
     });
@@ -135,16 +130,4 @@ async function getProjectsParentDir(): Promise<vscode.Uri | undefined> {
         return undefined;
     }
     return wsFolders[0].uri;
-}
-
-/**
- * The java debug tests depend on the java extension being installed and active.
- * We
- */
-async function activateJavaExtension(): Promise<void> {
-    const javaExt = vscode.extensions.getExtension(JAVA_DEBUG_EXT_ID);
-    expect(javaExt, `Java extension is not installed - Java debug tests will fail!`).to.exist;
-    Log.t("Activating Java debug extension...");
-    await javaExt!.activate();
-    Log.t(`Finished activating Java debug extension`);
 }

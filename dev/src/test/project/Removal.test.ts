@@ -67,5 +67,5 @@ describe(`Project removal wrapper`, function() {
         });
     });
 
-    it.skip(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
+    it(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
 });

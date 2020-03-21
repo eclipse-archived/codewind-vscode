@@ -32,6 +32,10 @@ describe(`Restart tests wrapper`, async function() {
     before(async function() {
         describe(`Project restart and debug`, function() {
 
+            before(`should have the Java Debug extension installed`, async function() {
+                await TestUtil.activateJavaExtension();
+            });
+
             testProjects.forEach((project) => {
 
                 it(`${project.name} should have capabilities`, async function() {
@@ -119,7 +123,7 @@ describe(`Restart tests wrapper`, async function() {
         });
     });
 
-    it.skip(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
+    it(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
 });
 
 export async function testRestart(ctx: Mocha.Context, project: Project, debug: boolean): Promise<void> {

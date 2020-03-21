@@ -39,9 +39,17 @@ describe(`Project auto-build wrapper`, function() {
                     return;
                 }
 
+                const abTimeout = TestUtil.ms(90, "sec");
+                const abSlow = TestUtil.ms(45, "sec");
+
                 it(`${project.name} should disable auto-build`, async function() {
+                    this.timeout(abTimeout);
+                    this.slow(abSlow);
+
                     expect(project.autoBuildEnabled, `${project.name} auto-build was initially disabled, but should be enabled`).to.be.true;
                     await testToggleAutobuild(this, project);
+
+                    await TestUtil.waitForStarted(this, project);
                 });
 
                 it(`${project.name} should NOT build when a source file is edited, with auto-build off`, async function() {
@@ -63,12 +71,14 @@ describe(`Project auto-build wrapper`, function() {
                 });
 
                 it(`${project.name} should re-enable auto-build`, async function() {
+                    this.timeout(abTimeout);
+                    this.slow(abSlow);
+
                     expect(project.autoBuildEnabled, `${project.name} auto-build was unexpectedly enabled`).to.be.false;
                     await testToggleAutobuild(this, project);
-                });
 
-                const abTimeout = TestUtil.ms(90, "sec");
-                const abSlow = TestUtil.ms(45, "sec");
+                    await TestUtil.waitForStarted(this, project);
+                });
 
                 it(`${project.name} should build when a source file is edited, with auto-build on`, async function() {
                     expect(project.autoBuildEnabled, `${project.name} auto-build was unexpectedly disabled`).to.be.true;
@@ -106,7 +116,7 @@ describe(`Project auto-build wrapper`, function() {
         });
     });
 
-    it.skip(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
+    it(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
 });
 
 export async function testToggleAutobuild(ctx: Mocha.Context, project: Project): Promise<void> {
