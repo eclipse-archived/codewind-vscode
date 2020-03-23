@@ -55,7 +55,7 @@ namespace Translator {
             fallbackLng: "en",
             ns,
             defaultNS: ns,
-            debug: true,
+            // debug: true,
             saveMissing: true,
             resources: {
                 en: {

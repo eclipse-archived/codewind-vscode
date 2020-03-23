@@ -13,6 +13,10 @@
 
 import Mocha from "mocha";
 import * as path from "path";
+import * as fs from "fs";
+
+import Log from "../Logger";
+import CLISetup from "../codewind/cli/CLISetup";
 
 // tslint:disable: no-console
 
@@ -21,7 +25,38 @@ const SUITES_TO_RUN = [
 ]
 .map((suite) => path.join(__dirname, "suites", suite));
 
-export function run(): Promise<void> {
+async function deleteBinaries(): Promise<void> {
+    let binaries;
+    try {
+        binaries = await fs.promises.readdir(CLISetup.BINARIES_TARGET_DIR);
+    }
+    catch (err) {
+        if (err.code !== "ENOENT") {
+            Log.w(`Unexpected error reading ${CLISetup.BINARIES_TARGET_DIR}`, err);
+        }
+        Log.t(`${CLISetup.BINARIES_TARGET_DIR} did not exist`);
+        return;
+    }
+
+    await Promise.all(binaries.map(async (file) => {
+        try {
+            file = path.join(CLISetup.BINARIES_TARGET_DIR, file);
+            await fs.promises.unlink(file);
+            Log.t(`Deleted ${file}`);
+        }
+        catch (err) {
+            if (err.code !== "ENOENT") {
+                Log.w(`Unexpected error deleting ${file}`, err);
+            }
+        }
+    }));
+}
+
+export async function run(): Promise<void> {
+
+    // delete the binaries so the tests have to test the pull each time
+    await deleteBinaries();
+
     const mocha = new Mocha({
         ui: "bdd",
         useColors: true,
