@@ -195,6 +195,7 @@ export default class ConnectionRequester extends Requester {
         await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "POST", true, { body });
     }
 
+    /*
     public async testPushRegistry(registry: ContainerRegistry): Promise<SocketEvents.IPushRegistryStatus> {
         const body = {
             operation: "test",
@@ -204,6 +205,7 @@ export default class ConnectionRequester extends Requester {
 
         return this.doConnectionRequest<SocketEvents.IPushRegistryStatus>(MCEndpoints.PUSH_REGISTRY, "POST", true, { body });
     }
+    */
 
     public async getPFELogLevels(): Promise<PFELogLevels> {
         return this.doConnectionRequest<PFELogLevels>(MCEndpoints.LOGGING, "GET", true);
