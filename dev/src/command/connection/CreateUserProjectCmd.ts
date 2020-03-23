@@ -16,7 +16,7 @@ import Log from "../../Logger";
 import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import { CWConfigurations } from "../../constants/Configurations";
-import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
+import RegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
 import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import manageSourcesCmd from "./ManageSourcesCmd";
 import SocketEvents from "../../codewind/connection/SocketEvents";

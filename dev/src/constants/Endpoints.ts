@@ -13,13 +13,13 @@
 
 import Connection from "../codewind/connection/Connection";
 
-export type Endpoint = MCEndpoints | ProjectEndpoints;
+export type Endpoint = CWEndpoints | ProjectEndpoints;
 
 // non-nls-file
 /**
  *  "Regular" endpoints, eg "localhost:9090/api/v1/environment"
  */
-export enum MCEndpoints {
+export enum CWEndpoints {
     READY = "ready",
     ENVIRONMENT = "api/v1/environment",
     TEMPLATES = "api/v1/templates",
@@ -59,13 +59,13 @@ export namespace EndpointUtil {
         return Object.values(ProjectEndpoints).map((pe) => pe.toString()).includes(endpoint);
     }
 
-    export function resolveMCEndpoint(connection: Connection, endpoint: MCEndpoints): string {
+    export function resolveMCEndpoint(connection: Connection, endpoint: CWEndpoints): string {
         return connection.url.toString().concat(endpoint);
     }
 
     export function resolveProjectEndpoint(
         connection: Connection, projectID: string, endpoint: ProjectEndpoints): string {
-        return connection.url.toString().concat(`${MCEndpoints.PROJECTS}/${projectID}/${endpoint}`);
+        return connection.url.toString().concat(`${CWEndpoints.PROJECTS}/${projectID}/${endpoint}`);
     }
 
     export function getEnablementAction(enable: boolean): ProjectEndpoints {

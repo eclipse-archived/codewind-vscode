@@ -119,6 +119,8 @@ export default class LocalCodewindManager {
     public async stopCodewind(): Promise<void> {
         await CLILifecycleWrapper.stop();
         if (this.localConnection) {
+            this.localConnection.registriesPage?.dispose();
+            this.localConnection.sourcesPage?.dispose();
             await ConnectionManager.instance.removeConnection(this.localConnection);
         }
         this._localConnection = undefined;

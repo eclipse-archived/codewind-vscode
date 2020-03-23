@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-export default class ContainerRegistry {
+export default class ImageRegistry {
     private _isPushRegistry: boolean = false;
 
     constructor(

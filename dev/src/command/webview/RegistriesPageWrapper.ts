@@ -18,12 +18,13 @@ import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
 import MCUtil from "../../MCUtil";
-import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
 import CWDocs from "../../constants/CWDocs";
 import Commands from "../../constants/Commands";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
-import ContainerRegistry from "../../codewind/connection/ContainerRegistry";
+import ImageRegistry from "../../codewind/connection/registries/ImageRegistry";
+import ImageRegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
+import ImageRegistryWizard from "../../codewind/connection/registries/ImageRegistryWizard";
 
 export enum ManageRegistriesWVMessages {
     // EDIT = "edit",
@@ -44,7 +45,7 @@ function getTitle(connection: Connection): string {
 
 export class RegistriesPageWrapper extends WebviewWrapper {
 
-    private registries: ContainerRegistry[] = [];
+    private registries: ImageRegistry[] = [];
 
     constructor(
         private readonly connection: Connection
@@ -60,7 +61,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
             cancellable: false,
             title: `Fetching image registries...`,
         }, async () => {
-            return this.connection.requester.getImageRegistries();
+            return ImageRegistryUtils.getImageRegistries(this.connection);
         });
 
         const hasCWSourceEnabled = await this.connection.templateSourcesList.hasCodewindSourceEnabled();
@@ -86,7 +87,9 @@ export class RegistriesPageWrapper extends WebviewWrapper {
 
                 try {
                     const currentPushRegistry = this.registries.find((reg) => reg.isPushRegistry);
-                    const didUpdatePushRegistry = await RegistryUtils.setPushRegistry(this.connection, currentPushRegistry, newPushRegistry, true);
+                    const didUpdatePushRegistry =
+                        await ImageRegistryWizard.setPushRegistry(this.connection, currentPushRegistry, newPushRegistry, true);
+
                     if (!didUpdatePushRegistry) {
                         Log.d(`User cancelled changing push registry`);
                         return;
@@ -104,7 +107,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
             }
             case CommonWVMessages.ADD_NEW: {
                 try {
-                    const added = await RegistryUtils.addNewRegistry(this.connection, this.registries);
+                    const added = await ImageRegistryWizard.addNewRegistry(this.connection, this.registries);
                     if (!added) {
                         Log.d(`User cancelled added new image registry`);
                         return;
@@ -148,7 +151,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 }
 
                 try {
-                    await this.connection.requester.removeRegistrySecret(registry);
+                    await ImageRegistryUtils.removeRegistrySecret(this.connection, registry);
                     Log.d(`Deleted ${registry.isPushRegistry ? "push " : ""}registry ${registry.fullAddress}`);
                 }
                 catch (err) {
@@ -178,7 +181,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
         }
     }
 
-    private lookupRegistry(fullAddress: string): ContainerRegistry {
+    private lookupRegistry(fullAddress: string): ImageRegistry {
         const matchingRegistry = this.registries.find((registry) => registry.fullAddress === fullAddress);
         if (!matchingRegistry) {
             Log.e(`No matching registry found, expected to find fullAddress ${fullAddress}, registries are:`, this.registries);
