@@ -16,13 +16,11 @@ else
     ./prebuild.js vscode
 fi
 
-# Test compilation to catch any errors
+# Test build to catch any errors (vsce is bad at reporting them)
 npm ci
 npm run vscode:prepublish
 
-# Package for prod
-npm i vsce
-npx vsce package
+npm run package
 
 # rename to have datetime for clarity + prevent collisions
 artifact_name=$(basename *.vsix)
