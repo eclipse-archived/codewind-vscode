@@ -17,7 +17,7 @@ import Connection from "../../codewind/connection/Connection";
 import MCUtil from "../../MCUtil";
 import SocketEvents from "../../codewind/connection/SocketEvents";
 import ProjectType, { IProjectSubtypesDescriptor } from "../../codewind/project/ProjectType";
-import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
+import RegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
 import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import { IDetectedProjectType, IInitializationResponse } from "../../codewind/Types";
 

@@ -16,7 +16,7 @@ import Log from "../../Logger";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
 import { addProjectToConnection } from "../connection/BindProjectCmd";
-import RegistryUtils from "../../codewind/connection/ContainerRegistryUtils";
+import RegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
 import { removeProject } from "./RemoveProjectCmd";
 import MCUtil from "../../MCUtil";
 import { IDetectedProjectType } from "../../codewind/Types";

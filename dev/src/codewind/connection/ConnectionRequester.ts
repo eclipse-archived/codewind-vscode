@@ -14,11 +14,10 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import Requester, { RequesterOptions, HttpMethod } from "../Requester";
 import Connection from "./Connection";
-import EndpointUtil, { MCEndpoints } from "../../constants/Endpoints";
-import { PFEProjectData, RawCWEnvData, CWTemplateData, SourceEnablement, PFELogLevels } from "../Types";
+import EndpointUtil, { CWEndpoints } from "../../constants/Endpoints";
+import { PFEProjectData, RawCWEnvData, CWTemplateData, SourceEnablement, PFELogLevels, PushRegistryResponse } from "../Types";
 import { IProjectTypeDescriptor } from "../project/ProjectType";
-import ContainerRegistry from "./ContainerRegistry";
-import SocketEvents from "./SocketEvents";
+import ImageRegistry from "./registries/ImageRegistry";
 
 interface IRepoEnablementReq {
     op: "enable";
@@ -31,11 +30,6 @@ interface IRepoEnablementResult {
     requestedOperation: IRepoEnablementReq;
 }
 
-interface RegistrySecretResponse {
-    readonly address: string;
-    readonly username: string;
-}
-
 export default class ConnectionRequester extends Requester {
 
     constructor(
@@ -45,7 +39,7 @@ export default class ConnectionRequester extends Requester {
     }
 
     private async doConnectionRequest<T>(
-        endpoint: MCEndpoints, method: HttpMethod, json: boolean, options?: RequesterOptions): Promise<T> {
+        endpoint: CWEndpoints, method: HttpMethod, json: boolean, options?: RequesterOptions): Promise<T> {
 
         const url = EndpointUtil.resolveMCEndpoint(this.connection, endpoint);
 
@@ -60,15 +54,15 @@ export default class ConnectionRequester extends Requester {
     }
 
     public async getProjects(): Promise<PFEProjectData[]> {
-        return this.doConnectionRequest<PFEProjectData[]>(MCEndpoints.PROJECTS, "GET", true);
+        return this.doConnectionRequest<PFEProjectData[]>(CWEndpoints.PROJECTS, "GET", true);
     }
 
     public async getRawEnvironment(): Promise<RawCWEnvData> {
-        return this.doConnectionRequest<RawCWEnvData>(MCEndpoints.ENVIRONMENT, "GET", true);
+        return this.doConnectionRequest<RawCWEnvData>(CWEndpoints.ENVIRONMENT, "GET", true);
     }
 
     public async getTemplates(): Promise<CWTemplateData[]> {
-        const result = await this.doConnectionRequest<CWTemplateData[]>(MCEndpoints.TEMPLATES, "GET", true, { query: { showEnabledOnly: true }});
+        const result = await this.doConnectionRequest<CWTemplateData[]>(CWEndpoints.TEMPLATES, "GET", true, { query: { showEnabledOnly: true }});
         if (result == null) {
             return [];
         }
@@ -89,7 +83,7 @@ export default class ConnectionRequester extends Requester {
         });
 
         // status is always 207, we have to check the individual results for success status
-        const result = await this.doConnectionRequest<IRepoEnablementResult[]>(MCEndpoints.BATCH_TEMPLATE_REPOS, "PATCH", true, { body });
+        const result = await this.doConnectionRequest<IRepoEnablementResult[]>(CWEndpoints.BATCH_TEMPLATE_REPOS, "PATCH", true, { body });
 
         const failures = result.filter((opResult) => opResult.status !== 200);
         if (failures.length > 0) {
@@ -106,96 +100,33 @@ export default class ConnectionRequester extends Requester {
     }
 
     public async getProjectTypes(): Promise<IProjectTypeDescriptor[]> {
-        const result = await this.doConnectionRequest<IProjectTypeDescriptor[]>(MCEndpoints.PROJECT_TYPES, "GET", true);
+        const result = await this.doConnectionRequest<IProjectTypeDescriptor[]>(CWEndpoints.PROJECT_TYPES, "GET", true);
         if (result == null) {
             return [];
         }
         return result;
     }
 
-    private asContainerRegistry(response: RegistrySecretResponse): ContainerRegistry {
-        if (!response.address || !response.username) {
-            Log.e(`Received unexpected container registry response:`, response);
-        }
-        return new ContainerRegistry(response.address, response.username);
+    public async getPushRegistry(): Promise<PushRegistryResponse> {
+        return this.doConnectionRequest(CWEndpoints.PUSH_REGISTRY, "GET", true);
     }
 
-    public async getImageRegistries(): Promise<ContainerRegistry[]> {
-        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "GET", true);
-
-        // Log.d(`Container registry response:`, response);
-        const registries = response.map((reg) => this.asContainerRegistry(reg));
-
-        const pushRegistryRes = await this.getPushRegistry();
-        // Log.d(`Image push registry response`, pushRegistryRes);
-
-        // tslint:disable-next-line: no-boolean-literal-compare
-        if (pushRegistryRes.imagePushRegistry === true) {
-            const pushRegistry = registries.find((reg) => reg.address === pushRegistryRes.address);
-            if (!pushRegistry) {
-                Log.e(`Push registry response was ${JSON.stringify(pushRegistryRes)} but no registry with a matching address was found`);
-            }
-            else {
-                pushRegistry.isPushRegistry = true;
-                pushRegistry.namespace = pushRegistryRes.namespace || "";
-                Log.i(`Push registry is ${pushRegistry.address}`);
-            }
-        }
-        else {
-            Log.d(`No image push registry is set`);
-        }
-        return registries;
-    }
-
-    public async addRegistrySecret(address: string, username: string, password: string)
-        : Promise<ContainerRegistry> {
-
-        const credentialsPlain = { username, password };
-        const credentialsEncoded = Buffer.from(JSON.stringify(credentialsPlain)).toString("base64");
-
-        const body = {
-            address,
-            credentials: credentialsEncoded,
-        };
-
-        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "POST", true, { body });
-        const match = response.find((reg) => reg.address === address);
-        if (match == null) {
-            Log.e("Got success response when adding new registry secret, but was not found in api response");
-            throw new Error(`Error adding new registry secret`);
-        }
-        return this.asContainerRegistry(match);
-    }
-
-    public async removeRegistrySecret(toRemove: ContainerRegistry): Promise<ContainerRegistry[]> {
-        const body = {
-            address: toRemove.address,
-        };
-
-        if (toRemove.isPushRegistry) {
-            await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "DELETE", true, { body });
-        }
-
-        const response = await this.doConnectionRequest<RegistrySecretResponse[]>(MCEndpoints.REGISTRY_SECRETS, "DELETE", true, { body });
-        const registriesAfterDelete = response.map(this.asContainerRegistry);
-        return registriesAfterDelete;
-    }
-
-    public async getPushRegistry(): Promise<{ imagePushRegistry: boolean, address?: string, namespace?: string }> {
-        return this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "GET", true);
-    }
-
-    public async setPushRegistry(registry: ContainerRegistry): Promise<void> {
+    public async setPushRegistry(registry: ImageRegistry): Promise<void> {
         const body = {
             operation: "set",
             address: registry.address,
             namespace: registry.namespace,
         };
 
-        await this.doConnectionRequest(MCEndpoints.PUSH_REGISTRY, "POST", true, { body });
+        await this.doConnectionRequest(CWEndpoints.PUSH_REGISTRY, "POST", true, { body });
     }
 
-    public async testPushRegistry(registry: ContainerRegistry): Promise<SocketEvents.IPushRegistryStatus> {
+    public async deletePushRegistry(address: string): Promise<void> {
+        return this.doConnectionRequest(CWEndpoints.PUSH_REGISTRY, "DELETE", true, { body: { address } });
+    }
+
+    /*
+    public async testPushRegistry(registry: ImageRegistry): Promise<SocketEvents.IPushRegistryStatus> {
         const body = {
             operation: "test",
             address: registry.address,
@@ -204,14 +135,15 @@ export default class ConnectionRequester extends Requester {
 
         return this.doConnectionRequest<SocketEvents.IPushRegistryStatus>(MCEndpoints.PUSH_REGISTRY, "POST", true, { body });
     }
+    */
 
     public async getPFELogLevels(): Promise<PFELogLevels> {
-        return this.doConnectionRequest<PFELogLevels>(MCEndpoints.LOGGING, "GET", true);
+        return this.doConnectionRequest<PFELogLevels>(CWEndpoints.LOGGING, "GET", true);
     }
 
     public async setPFELogLevel(level: string): Promise<void> {
         const body = { level };
-        await this.doConnectionRequest<string>(MCEndpoints.LOGGING, "PUT", false, { body });
+        await this.doConnectionRequest<string>(CWEndpoints.LOGGING, "PUT", false, { body });
     }
 
     /**
@@ -258,7 +190,7 @@ export default class ConnectionRequester extends Requester {
 
     private async isCodewindReady(logStatus: boolean, timeoutS: number): Promise<boolean> {
         try {
-            const res = await this.doConnectionRequest<string>(MCEndpoints.READY, "GET", false, { timeout: timeoutS * 1000 });
+            const res = await this.doConnectionRequest<string>(CWEndpoints.READY, "GET", false, { timeout: timeoutS * 1000 });
 
             if (res === "true") {
                 return true;

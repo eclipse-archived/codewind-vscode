@@ -116,6 +116,17 @@ export interface CWTemplateData {
     source?: string;
 }
 
+export type RegistrySecret = {
+    readonly address: string;
+    readonly username: string;
+};
+
+export interface PushRegistryResponse {
+    readonly imagePushRegistry: boolean;
+    readonly address?: string;
+    readonly namespace?: string;
+}
+
 ///// Project /////
 
 /**

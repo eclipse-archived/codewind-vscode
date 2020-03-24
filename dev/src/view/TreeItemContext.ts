@@ -37,7 +37,7 @@ enum TreeItemContextValues {
     REMOTECONN_ENABLED = "remote.enabled",
     REMOTECONN_DISABLED = "remote.disabled",
 
-    CONN_WITH_REGISTRY = "registry",
+    // CONN_WITH_REGISTRY = "registry",
     CONN_WITH_TEKTON = "tekton",
 
     // Project
@@ -93,7 +93,6 @@ namespace TreeItemContext {
         if (connection.isConnected) {
             if (connection.isKubeConnection) {
                 contextValues.push(TreeItemContextValues.CONN_WITH_TEKTON);
-                contextValues.push(TreeItemContextValues.CONN_WITH_REGISTRY);
             }
             contextValues.push(TreeItemContextValues.CONN_CONNECTED);
         }

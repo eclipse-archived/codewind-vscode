@@ -13,7 +13,7 @@ import CLIWrapper from "./CLIWrapper";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import { CLICommands } from "./CLICommands";
-import { CLIStatus, IInitializationResponse, IDetectedProjectType, CLIConnectionData, TemplateSource, AccessToken } from "../Types";
+import { CLIStatus, IInitializationResponse, IDetectedProjectType, CLIConnectionData, TemplateSource, AccessToken, RegistrySecret } from "../Types";
 
 export namespace CLICommandRunner {
 
@@ -242,5 +242,29 @@ export namespace CLICommandRunner {
             }
             throw err;
         }
+    }
+
+    export async function addRegistrySecret(connectionID: string, registryAddress: string, username: string, password: string)
+        : Promise<RegistrySecret[]> {
+
+        return CLIWrapper.cwctlExec(CLICommands.REGISTRY_SECRETS.ADD, [
+            "--conid", connectionID,
+            "--address", registryAddress,
+            "--username", username,
+            "--password", password,
+        ]);
+    }
+
+    export async function getRegistrySecrets(connectionID: string): Promise<RegistrySecret[]> {
+        return CLIWrapper.cwctlExec(CLICommands.REGISTRY_SECRETS.LIST, [
+            "--conid", connectionID
+        ]);
+    }
+
+    export async function removeRegistrySecret(connectionID: string, registryAddress: string): Promise<RegistrySecret[]> {
+        return CLIWrapper.cwctlExec(CLICommands.REGISTRY_SECRETS.REMOVE, [
+            "--conid", connectionID,
+            "--address", registryAddress
+        ]);
     }
 }

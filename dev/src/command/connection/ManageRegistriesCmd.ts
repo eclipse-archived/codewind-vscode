@@ -18,11 +18,6 @@ import MCUtil from "../../MCUtil";
 import { RegistriesPageWrapper } from "../webview/RegistriesPageWrapper";
 
 export default async function manageRegistriesCmd(connection: Connection): Promise<void> {
-    if (!connection.isKubeConnection) {
-        vscode.window.showWarningMessage(`The local connection does not use container image registries.`);
-        return;
-    }
-
     try {
         if (connection.registriesPage) {
             // Show existing page

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019, 2020 IBM Corporation and others.
+ * Copyright (c) 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -11,51 +11,14 @@
 
 import * as vscode from "vscode";
 
-import Connection from "./Connection";
-import manageRegistriesCmd from "../../command/connection/ManageRegistriesCmd";
-import InputUtil from "../../InputUtil";
-import Log from "../../Logger";
-import MCUtil from "../../MCUtil";
-import ProjectType from "../project/ProjectType";
-import ContainerRegistry from "./ContainerRegistry";
+import InputUtil from "../../../InputUtil";
+import Connection from "../Connection";
+import ImageRegistry from "./ImageRegistry";
+import ImageRegistryUtils from "./ImageRegistryUtils";
+import Log from "../../../Logger";
+import MCUtil from "../../../MCUtil";
 
-namespace RegistryUtils {
-
-    /**
-     * Returns if this connection MUST set up a push registry before it can build a project of this type.
-     *
-     * If the project type requires a push registry and the connection does not have a push registry,
-     * shows an error message and returns true.
-     */
-    export async function doesNeedPushRegistry(internalType: string, connection: Connection): Promise<boolean> {
-        if (doesUsePushRegistry(internalType) && await connection.needsPushRegistry()) {
-            const manageRegistriesBtn = "Image Registry Manager";
-
-            vscode.window.showErrorMessage(`Codewind style projects on Kubernetes require an Image Push Registry to be configured. ` +
-                `Add a push registry using the Image Registry Manager.`,
-                manageRegistriesBtn
-            )
-            .then((res) => {
-                if (res === manageRegistriesBtn) {
-                    manageRegistriesCmd(connection);
-                }
-            });
-            return true;
-        }
-        return false;
-    }
-
-    function doesUsePushRegistry(projectType: string): boolean {
-        const isExtensionType = [
-            ProjectType.InternalTypes.EXTENSION_APPSODY,
-            ProjectType.InternalTypes.EXTENSION_ODO,
-        ]
-        .map((type) => type.toString())
-        .includes(projectType);
-
-        // these extension types do NOT require a push registry
-        return !isExtensionType;
-    }
+namespace ImageRegistryWizard {
 
     const newRegistryWizardSteps: InputUtil.InputStep[] = [
         {
@@ -77,7 +40,7 @@ namespace RegistryUtils {
      * Run the Add New Image Registry wizard.
      * @returns true if a new registry was successfully added, false if the user cancelled.
      */
-    export async function addNewRegistry(connection: Connection, existingRegistries: ContainerRegistry[]): Promise<boolean> {
+    export async function addNewRegistry(connection: Connection, existingRegistries: ImageRegistry[]): Promise<boolean> {
         const wizardTitle = "Sign in to a new Image Registry";
 
         newRegistryWizardSteps[0].validator = (input: string) => {
@@ -91,21 +54,26 @@ namespace RegistryUtils {
         const [ address, username, password ]: string[] = inputResult;
 
         // https://github.com/eclipse/codewind/issues/1469
-        const hasPushRegistry = existingRegistries.some((registry) => registry.isPushRegistry);
-        const needsPushRegistry = !hasPushRegistry && await connection.templateSourcesList.hasCodewindSourceEnabled();
 
+        let needsPushRegistry = false;
         let setAsPushRegistry: boolean | undefined;
         let namespace: string | undefined;
-        if (needsPushRegistry) {
-            Log.d(`Push registry is required`);
-            setAsPushRegistry = true;
-        }
-        else {
-            setAsPushRegistry = await promptSetAsPushRegistry(address);
-            if (setAsPushRegistry == null) {
-                Log.d(`Push registry prompt cancelled; not adding registry.`);
-                // cancel
-                return false;
+        // if it's a local connection, push registry is not used.
+        if (connection.isKubeConnection) {
+            const hasPushRegistry = existingRegistries.some((registry) => registry.isPushRegistry);
+            needsPushRegistry = !hasPushRegistry && await connection.templateSourcesList.hasCodewindSourceEnabled();
+
+            if (needsPushRegistry) {
+                Log.d(`Push registry is required`);
+                setAsPushRegistry = true;
+            }
+            else {
+                setAsPushRegistry = await promptSetAsPushRegistry(address);
+                if (setAsPushRegistry == null) {
+                    Log.d(`Push registry prompt cancelled; not adding registry.`);
+                    // cancel
+                    return false;
+                }
             }
         }
 
@@ -123,7 +91,7 @@ namespace RegistryUtils {
             location: vscode.ProgressLocation.Notification,
             title: `Creating registry secret for ${username} @ ${address}...`,
         }, async () => {
-            const newRegistry_ = await connection.requester.addRegistrySecret(address, username, password);
+            const newRegistry_ = await ImageRegistryUtils.addRegistrySecret(connection, address, username, password);
             Log.i(`Successfully added image registry ${address}`);
             return newRegistry_;
         });
@@ -195,8 +163,8 @@ namespace RegistryUtils {
     }
 
     export async function setPushRegistry(
-        connection: Connection, currentPushRegistry: ContainerRegistry | undefined, newPushRegistry: ContainerRegistry,
-        showProgress: boolean, namespace?: string): Promise<ContainerRegistry | undefined> {
+        connection: Connection, currentPushRegistry: ImageRegistry | undefined, newPushRegistry: ImageRegistry,
+        showProgress: boolean, namespace?: string): Promise<ImageRegistry | undefined> {
 
         // the secret for this registry must already have been created
 
@@ -265,7 +233,7 @@ namespace RegistryUtils {
     }
 
     /*
-    async function testRegistry(connection: Connection, registry: ContainerRegistry): Promise<boolean | "retry"> {
+    async function testRegistry(connection: Connection, registry: ImageRegistry): Promise<boolean | "retry"> {
         const testResult = await vscode.window.withProgress({
             title: `Pushing a test image to ${registry}...`,
             location: vscode.ProgressLocation.Notification,
@@ -346,4 +314,4 @@ namespace RegistryUtils {
     }
 }
 
-export default RegistryUtils;
+export default ImageRegistryWizard;

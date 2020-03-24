@@ -49,6 +49,7 @@ export namespace CLICommands {
     const TEMPLATES_CMD = "templates";
     // we call them 'sources' cwctl calls them 'repos'
     const SOURCES_CMD = "repos";
+    const REGISTRY_SECRETS_CMD = "registrysecrets";
 
     export const PROJECT = {
         CREATE: new CLICommand([ PROJECT_CMD, "create" ]),
@@ -77,4 +78,10 @@ export namespace CLICommands {
         // KEYRING_VALIDATE: new CLICommand([ "seckeyring", "validate" ]),
         GET_SECTOKEN: new CLICommand([ "sectoken", "get" ], { censorOutput: true }),
     };
+
+    export const REGISTRY_SECRETS = {
+        ADD: new CLICommand([ REGISTRY_SECRETS_CMD, "add" ]),
+        LIST: new CLICommand([ REGISTRY_SECRETS_CMD, "list" ]),
+        REMOVE: new CLICommand([ REGISTRY_SECRETS_CMD, "remove" ]),
+    }
 }

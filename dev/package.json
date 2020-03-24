@@ -444,7 +444,7 @@
                 },
                 {
                     "command": "%cmdID_manageRegistries%",
-                    "when": "%isConnectionWithRegistry%",
+                    "when": "%isConnectedConnection%",
                     "group": "ext.cw.conn.c@1"
                 },
                 {

@@ -18,12 +18,12 @@ import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageRegistriesWVMessages } from "../RegistriesPageWrapper";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import Connection from "../../../codewind/connection/Connection";
-import ContainerRegistry from "../../../codewind/connection/ContainerRegistry";
+import ImageRegistry from "../../../codewind/connection/registries/ImageRegistry";
 
 export default function getManageRegistriesPage(
     rp: WebviewResourceProvider,
     connection: Connection,
-    registries: ContainerRegistry[],
+    registries: ImageRegistry[],
     isCWSourceEnabled: boolean): string {
 
     return `
@@ -94,7 +94,7 @@ export default function getManageRegistriesPage(
 }
 
 function buildTable(
-    rp: WebviewResourceProvider, registries: ContainerRegistry[], showPushRegistryColumns: boolean, isCWSourceEnabled: boolean): string {
+    rp: WebviewResourceProvider, registries: ImageRegistry[], showPushRegistryColumns: boolean, isCWSourceEnabled: boolean): string {
 
     if (registries.length === 0) {
         return `
@@ -136,7 +136,7 @@ function buildTable(
     `;
 }
 
-function buildRow(rp: WebviewResourceProvider, registry: ContainerRegistry, needsPushRegistry: boolean): string {
+function buildRow(rp: WebviewResourceProvider, registry: ImageRegistry, needsPushRegistry: boolean): string {
     // These two columns are left out for the local non-che connection, which does not use a push registry.
     let namespaceTD = "";
     let pushRegistryTD = "";
