@@ -278,7 +278,7 @@ export default class MCSocket implements vscode.Disposable {
     }
 
     // prevents multiple events from simultaneously requesting a projects refresh
-    private refreshingProjectsProm: Promise<unknown> | undefined;
+    private refreshingProjectsProm: Promise<Project | undefined> | undefined;
 
     private readonly getProject = async (payload: { projectID: string }): Promise<Project | undefined> => {
         const projectID = payload.projectID;
@@ -292,39 +292,41 @@ export default class MCSocket implements vscode.Disposable {
             await this.refreshingProjectsProm;
         }
 
-        const result = await this.connection.getProjectByID(projectID);
-        if (result == null) {
-            Log.w(`${this} received socket event for nonexistent project`, projectID);
+        const existingProject = await this.connection.getProjectByID(projectID);
+        if (existingProject) {
+            return existingProject;
+        }
 
-            this.refreshingProjectsProm = this.connection.updateProjects();
-            await this.refreshingProjectsProm;
-            this.refreshingProjectsProm = undefined;
+        Log.w(`${this} received socket event for nonexistent project`, projectID);
 
-            const newProject = await this.connection.getProjectByID(projectID);
-            if (newProject) {
-                Log.i(`Project ${newProject.name} has been created`);
+        this.refreshingProjectsProm = this.connection.updateProjects().then(() => {
+            return this.connection.getProjectByID(projectID);
+        });
+        const newProject = await this.refreshingProjectsProm;
+        this.refreshingProjectsProm = undefined;
 
-                if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
-                    projectOverviewCmd(newProject);
-                }
+        if (!newProject) {
+            Log.e(`Still did not find project with ID ${projectID} after refreshing projects list, `
+            + `${this.connection.projects.length} projects were found`);
+            return undefined;
+        }
 
-                if (!newProject.isInVSCodeWorkspace) {
-                    if (CWConfigurations.ADD_NEW_PROJECTS_TO_WORKSPACE.get()) {
-                        addProjectToWorkspaceCmd(newProject);
-                    }
-                    else {
-                        vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
-                            `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
-                    }
-                }
-                return newProject;
+        Log.i(`Project ${newProject.name} has been created`);
+
+        if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
+            projectOverviewCmd(newProject);
+        }
+
+        if (!newProject.isInVSCodeWorkspace) {
+            if (CWConfigurations.ADD_NEW_PROJECTS_TO_WORKSPACE.get()) {
+                addProjectToWorkspaceCmd(newProject);
             }
             else {
-                Log.e(`Still did not find project with ID ${projectID} after refreshing projects list, `
-                    + `${this.connection.projects.length} projects were found`);
+                vscode.window.showWarningMessage(`${newProject.name} is not in your VS Code workspace. ` +
+                    `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
             }
         }
-        return result;
+        return newProject;
     }
 
     public toString(): string {
