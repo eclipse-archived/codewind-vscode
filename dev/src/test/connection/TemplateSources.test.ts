@@ -15,6 +15,7 @@ import { SourceProjectStyles } from "../../codewind/connection/TemplateSourceLis
 import { SourceEnablement } from "../../codewind/Types";
 
 import { connection } from "../local/LocalStart.test";
+import Log from "../../Logger";
 
 describe(`Template sources`, function() {
 
@@ -129,6 +130,7 @@ describe(`Template sources`, function() {
     it(`should add a new template source`, async function() {
         const oldSources = await connection.templateSourcesList.get();
         const oldTemplates = await connection.requester.getTemplates();
+        Log.t(`Before adding a new template source, there are ${oldSources.length} sources and ${oldTemplates.length} templates`);
 
         await connection.templateSourcesList.add(TEST_SOURCE_URL, TEST_SOURCE_NAME, TEST_SOURCE_DESCR);
         const newSources = await connection.templateSourcesList.get();

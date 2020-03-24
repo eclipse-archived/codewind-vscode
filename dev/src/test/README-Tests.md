@@ -2,7 +2,7 @@
 
 To run the integration tests:
 1. In `dev/launch.json`, locate the `Extension Tests` launch configuration and add an argument for the workspace directory to use. The workspace directory must exist before you run the launch.
-2. See `index.ts` for the suites to run, and edit the index or the suites if you want to run different tests.
+2. See `Index.ts` for the suites to run, and edit the index or the suites if you want to run different tests.
 3. See `TestConfig.ts` for the project types to test. Use src/test/GetProjectTypes.js get the names of the project types which may be tested.
 4. Run the `Extension Tests` launch.
 
@@ -11,7 +11,7 @@ To run the integration tests:
 - The `LocalStart` test must run second, to start Codewind. This will eventually be replacable by creating a remote connection and providing that to the other tests instead.
 - All Project tests must run after the `Creation` test.
 
-The order in the suite file is followed, due to how `index.ts` loads the tests instead of letting Mocha discover them with a glob. In that case, alphabetical order would be used.
+The order in the suite file is followed, due to how `Index.ts` loads the tests instead of letting Mocha discover them with a glob. In that case, alphabetical order would be used.
 
 ### What's up with the "wrapper" `describe` blocks, and `stub` tests?
 
