@@ -11,6 +11,7 @@
 
 import * as vscode from "vscode";
 import * as fs from "fs";
+import * as path from "path";
 import got, { NormalizedOptions, Response, Progress } from "got";
 import * as stream from "stream";
 import { promisify } from "util";
@@ -191,6 +192,7 @@ export class Requester {
 
         let previousPercentDone = 0;
         let didLogLength = false;
+        let didLogHalfDone = false;
         const progressEndPercent = options.progressEndPercent || 100;
 
         // https://github.com/sindresorhus/got#ondownloadprogress-progress
@@ -203,11 +205,16 @@ export class Requester {
                 // log total once
                 if (!didLogLength) {
                     didLogLength = true;
-                    Log.i(`Download length is ${this.bytesToMB(progressEvent.total)} MB`);
+                    Log.i(`Download length of ${path.basename(url)} is ${this.bytesToMB(progressEvent.total)} MB`);
                 }
                 if (options.progress) {
                     message = `${this.bytesToMB(progressEvent.transferred)} / ${this.bytesToMB(progressEvent.total)} MB`;
                 }
+            }
+
+            if (progressEvent.percent > 50 && !didLogHalfDone) {
+                Log.d(`Download of ${path.basename(url)} is 50% finished, downloaded ${this.bytesToMB(progressEvent.transferred)} MB`);
+                didLogHalfDone = true;
             }
 
             options.progress?.report({ message, increment });

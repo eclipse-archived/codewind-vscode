@@ -59,8 +59,13 @@ describe("Codewind for VS Code", function() {
 
         Log.t(`Codewind commands:`, (await vscode.commands.getCommands()).filter((cmd) => cmd.includes("ext.cw")));
         Log.t("Extension is loaded.");
+    });
 
-        // this is done async from .activate so we have to wait for it separately.
+    it(`should have installed the CLI binaries`, async function() {
+        // the download can be really slow
+        this.timeout(TestUtil.ms(2, "min"));
+        this.slow(TestUtil.ms(1, "min"));
+
         await new Promise((resolve) => {
             let counter = 0;
             setInterval(() => {
@@ -73,6 +78,9 @@ describe("Codewind for VS Code", function() {
                 counter++;
             }, 1000);
         });
+
+        expect(await CLISetup.isCwctlSetup()).to.be.true;
+        expect(await CLISetup.isAppsodySetup()).to.be.true;
     });
 
     it("should have a log file file that is readable and non-empty", async function() {
@@ -83,11 +91,6 @@ describe("Codewind for VS Code", function() {
 
         const logContents = (await fs.promises.readFile(logPath)).toString("utf8");
         expect(logContents).to.have.length.greaterThan(0, "Log existed but was empty!");
-    });
-
-    it(`should have installed the CLI binaries`, async function() {
-        expect(await CLISetup.isCwctlSetup()).to.be.true;
-        expect(await CLISetup.isAppsodySetup()).to.be.true;
     });
 
     it(`should have initialized the translator`, async function() {

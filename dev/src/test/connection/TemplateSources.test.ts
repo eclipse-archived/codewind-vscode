@@ -16,6 +16,7 @@ import { SourceEnablement } from "../../codewind/Types";
 
 import { connection } from "../local/LocalStart.test";
 import Log from "../../Logger";
+import TestUtil from "../TestUtil";
 
 describe(`Template sources`, function() {
 
@@ -35,7 +36,13 @@ describe(`Template sources`, function() {
         expect(projectStyles).to.contain(SourceProjectStyles.CODEWIND, SourceProjectStyles.APPSODY);
     });
 
+    const SOURCES_TIMEOUT = TestUtil.ms(10, "sec");
+    const SOURCES_SLOW = TestUtil.ms(5, "sec");
+
     it(`should disable all sources`, async function() {
+        this.timeout(SOURCES_TIMEOUT);
+        this.slow(SOURCES_SLOW);
+
         const templateSources = await connection.templateSourcesList.get();
         const noSourcesEnablement: SourceEnablement = {
             repos: templateSources.map((source) => {
@@ -63,6 +70,9 @@ describe(`Template sources`, function() {
     const NO_APPSODY_STACKS = 11;
 
     it(`should enable the Codewind template source`, async function() {
+        this.timeout(SOURCES_TIMEOUT);
+        this.slow(SOURCES_SLOW);
+
         const templateSources = await connection.templateSourcesList.get();
 
         // The codewind source is at https://github.com/codewind-resources/codewind-templates/blob/master/devfiles/index.json
@@ -94,6 +104,9 @@ describe(`Template sources`, function() {
     });
 
     it(`should enable the Appsody stack source`, async function() {
+        this.timeout(SOURCES_TIMEOUT);
+        this.slow(SOURCES_SLOW);
+
         const templateSources = await connection.templateSourcesList.get();
 
         // The appsody source is at https://github.com/appsody/stacks/releases/latest/download/incubator-index.json
@@ -127,7 +140,11 @@ describe(`Template sources`, function() {
     const TEST_SOURCE_DESCR = "It is a template source for the tests to use";
     const TEST_SOURCE_NO_TEMPLATES = 8;
 
-    it(`should add a new template source`, async function() {
+    // skip due to https://github.com/eclipse/codewind/issues/2472
+    it.skip(`should add a new template source`, async function() {
+        this.timeout(SOURCES_TIMEOUT);
+        this.slow(SOURCES_SLOW);
+
         const oldSources = await connection.templateSourcesList.get();
         const oldTemplates = await connection.requester.getTemplates();
         Log.t(`Before adding a new template source, there are ${oldSources.length} sources and ${oldTemplates.length} templates`);
@@ -147,7 +164,11 @@ describe(`Template sources`, function() {
             .to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
     });
 
-    it(`should remove the new template source`, async function() {
+    // skip due to https://github.com/eclipse/codewind/issues/2472
+    it.skip(`should remove the new template source`, async function() {
+        this.timeout(SOURCES_TIMEOUT);
+        this.slow(SOURCES_SLOW);
+
         const oldSources = await connection.templateSourcesList.get();
         const oldTemplates = await connection.requester.getTemplates();
 

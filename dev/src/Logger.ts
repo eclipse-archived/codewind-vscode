@@ -139,7 +139,6 @@ export class Log {
         }
 
         const label: string = `[${level}: ${getDateTime()}${caller}]:`;
-        const msg: string = `${label} ${argsStr}${os.EOL}`;
 
         return new Promise<void>((resolve) => {
             // Send the message to both the 'console' and the logfile.
@@ -151,6 +150,7 @@ export class Log {
                 consoleFn(label, s);
             }
 
+            const msg: string = `${label} ${argsStr}${os.EOL}`;
             fs.appendFile(this.logFilePath, msg, (err) => {
                 if (err != null) {
                     console.error("FS error when logging:", err);

@@ -20,6 +20,8 @@ import ProjectState from "../codewind/project/ProjectState";
 
 namespace TestUtil {
 
+    export const JAVA_DEBUG_EXT_ID = "vscjava.vscode-java-debug";
+
     export function ms(num: number, unit: "min" | "sec") {
         let result = num * 1000;
         if (unit === "min") {
@@ -259,6 +261,22 @@ namespace TestUtil {
         const comment = `\n\n${commentStart} Here is a comment`;
         Log.t(`Writing "${comment}" to ${filePath}`);
         await fs.promises.appendFile(filePath, comment);
+    }
+
+    /**
+     * The java debug tests depend on the java extension being installed and active.
+     */
+    export async function activateJavaExtension(): Promise<void> {
+        const javaExt = vscode.extensions.getExtension(JAVA_DEBUG_EXT_ID);
+        expect(javaExt, `Java extension is not installed - Java debug tests will fail!`).to.exist;
+
+        if (javaExt?.isActive) {
+            return;
+        }
+
+        Log.t("Activating Java debug extension...");
+        await javaExt!.activate();
+        Log.t(`Finished activating Java debug extension`);
     }
 }
 

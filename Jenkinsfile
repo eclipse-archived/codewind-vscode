@@ -1,24 +1,54 @@
 #!groovy
 
+
+def BUILD_CONTAINER = """
+    image: node:10-jessie-slim
+    tty: true
+    command:
+      - cat
+    resources:
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+      requests:
+        memory: "2Gi"
+        cpu: "1"
+"""
+
+def IS_MASTER_BRANCH = env.BRANCH_NAME == "master"
+def IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
+
+echo "Branch is ${env.BRANCH_NAME}"
+echo "Is master branch build ? ${IS_MASTER_BRANCH}"
+echo "Is release branch build ? ${IS_RELEASE_BRANCH}"
+
+// https://stackoverflow.com/a/44902622
+def CRON_STRING = ""
+// https://jenkins.io/doc/book/pipeline/syntax/#cron-syntax
+if (IS_MASTER_BRANCH || IS_RELEASE_BRANCH) {
+    // Build daily between 2300-2359
+    CRON_STRING = "H 23 * * *"
+}
+
+def VSCODE_BUILDER = "vscode-builder"
+def CHE_BUILDER = "che-builder"
+
+def STASH_VSCODE = "vscode-vsix"
+def STASH_CHE = "che-vsix"
+
 pipeline {
     agent {
         kubernetes {
-            label 'vscode-buildpod'
+            label "vscode-buildpod"
             yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: vscode-builder
-    image: node:lts
-    tty: true
-    command:
-      - cat
-  - name: che-builder
-    image: node:lts
-    tty: true
-    command:
-      - cat
+  - name: ${VSCODE_BUILDER}
+    ${BUILD_CONTAINER}
+  - name: ${CHE_BUILDER}
+    ${BUILD_CONTAINER}
 """
         }
     }
@@ -26,50 +56,80 @@ spec:
     options {
         timestamps()
         skipStagesAfterUnstable()
-        timeout(time: 1, unit: 'HOURS')
+        timeout(time: 2, unit: "HOURS")
     }
 
-    environment {
-        // https://stackoverflow.com/a/43264045
-        HOME="."
+    triggers {
+        cron(CRON_STRING)
     }
-
-    // triggers {
-
-    // }
 
     stages {
+        stage("Test") {
+            when {
+                beforeAgent true
+                not {
+                    environment name: "SKIP_TESTS", value: "true"
+                }
+            }
+
+            options {
+                timeout(time: 1, unit: "HOURS")
+                retry(3)
+            }
+
+            agent {
+                label "docker-build"
+            }
+
+            steps {
+                sh '''#!/usr/bin/env bash
+                    echo "Git commit is: $(git log --format=medium -1 ${GIT_COMMIT})"
+                    ./ci-scripts/run-tests.sh
+                '''
+            }
+        }
+
         // we duplicate the cloned repo so that we can build vscode and che-theia in parallel without the builds interfering with one another
+        // see that 'build for che' uses a different dir
         stage("Duplicate code") {
             steps {
-                dir ("..") {
-                    // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
-                    sh '''#!/usr/bin/env bash
-                        shopt -s extglob
-                        export dir_name=$(echo *codewind-vscode_$GIT_BRANCH!(*tmp))
-                        echo "Duplicating $dir_name"
-                        cp -r "$dir_name" codewind-che
-                    '''
+                container(VSCODE_BUILDER) {
+                    dir ("..") {
+                        // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
+                        sh '''#!/usr/bin/env bash
+                            shopt -s extglob
+                            export dir_name=$(echo *codewind-vscode_$GIT_BRANCH!(*tmp))
+                            echo "Duplicating $dir_name to codewind-che"
+                            cp -r "$dir_name" codewind-che
+                        '''
+                    }
                 }
             }
         }
+
         stage("Build") {
+            // In the build containers, HOME gets set to / which causes permissions issues.
+            environment {
+                HOME="${env.WORKSPACE}"
+            }
+
             parallel {
                 stage("Build for VS Code") {
                     steps {
-                        container("vscode-builder") {
+                        container(VSCODE_BUILDER) {
                             sh 'ci-scripts/package.sh'
                             // The parallel stages cannot share a stash or they will overwrite and corrupt each other
-                            stash includes: '*.vsix', name: 'vscode-vsix'
+                            stash includes: '*.vsix', name: STASH_VSCODE
                         }
                     }
                 }
                 stage("Build for Che") {
                     steps {
-                        container("che-builder") {
+                        container(CHE_BUILDER) {
+                            // use the dir from the duplicate step
                             dir("../codewind-che") {
                                 sh 'ci-scripts/package.sh che'
-                                stash includes: '*.vsix', name: 'che-vsix'
+                                stash includes: '*.vsix', name: STASH_CHE
                             }
                         }
                     }
@@ -93,8 +153,9 @@ spec:
             agent any
             steps {
                 sshagent (['projects-storage.eclipse.org-bot-ssh']) {
-                    unstash 'vscode-vsix'
-                    unstash 'che-vsix'
+                    unstash STASH_VSCODE
+                    unstash STASH_CHE
+
                     sh '''#!/usr/bin/env bash
                     export REPO_NAME="codewind-vscode"
                     export OUTPUT_NAME="codewind"
@@ -152,7 +213,7 @@ spec:
         stage("Report") {
             when {
                 beforeAgent true
-                triggeredBy 'UpstreamCause'
+                triggeredBy 'TimerTrigger'
             }
 
             options {
@@ -161,7 +222,7 @@ spec:
 
             steps {
                 mail to: 'jspitman@ca.ibm.com, timetchells@ibm.com',
-                subject: "${currentBuild.currentResult}: Upstream triggered build for ${currentBuild.fullProjectName}",
+                subject: "${currentBuild.currentResult}: Nightly build result for ${currentBuild.fullProjectName}",
                 body: "${currentBuild.absoluteUrl}\n${currentBuild.getBuildCauses()[0].shortDescription} had status ${currentBuild.currentResult}"
             }
         }

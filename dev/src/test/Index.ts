@@ -18,12 +18,63 @@ import * as fs from "fs";
 import Log from "../Logger";
 import CLISetup from "../codewind/cli/CLISetup";
 
-// tslint:disable: no-console
+import TestConfig from "./TestConfig";
 
-const SUITES_TO_RUN = [
-    "Local.suite.js"
-]
-.map((suite) => path.join(__dirname, "suites", suite));
+// See ./suites for suites we can put here.
+let suites: string[] = [];
+if (TestConfig.isJenkins()) {
+    suites.push("Jenkins");
+}
+else {
+    suites.push("Local");
+}
+
+suites = suites.map((suite) => path.join(__dirname, "suites", suite) + ".suite.js");
+
+export async function run(): Promise<void> {
+
+    // delete the binaries so the tests have to test the pull each time
+    await deleteBinaries();
+
+    const options: Mocha.MochaOptions = {
+        ui: "bdd",
+        color: !TestConfig.isJenkins(),
+        reporter: "spec",
+        fullStackTrace: true,
+        slow: 2500,
+        timeout: 5000,
+    };
+
+    Log.t(`========== Starting Codewind for VS Code tests ==========`);
+    Log.t(`Launching tests with options:`, options);
+
+    const mocha = new Mocha(options);
+
+    // Base test always runs first, once
+    mocha.addFile(path.join(__dirname, "Base.test.js"));
+    suites.forEach((suite) => mocha.addFile(suite));
+
+    Log.t(`Running test files: ${mocha.files.map((f) => path.basename(f)).join(", ")}`);
+
+    return new Promise<void>((resolve, reject) => {
+        try {
+            mocha.run((failures) => {
+                Log.t(`========== Finished Codewind for VS Code tests ==========`);
+                if (failures > 0) {
+                    return reject(`${failures} tests failed.`);
+                }
+                else {
+                    Log.t(`All tests passed!`);
+                    return resolve();
+                }
+            });
+        }
+        catch (err) {
+            Log.e(`Error running tests:`, err);
+            return reject(err);
+        }
+    });
+}
 
 async function deleteBinaries(): Promise<void> {
     let binaries;
@@ -42,7 +93,7 @@ async function deleteBinaries(): Promise<void> {
         try {
             file = path.join(CLISetup.BINARIES_TARGET_DIR, file);
             await fs.promises.unlink(file);
-            Log.t(`Deleted ${file}`);
+            Log.t(`Deleting ${file} pre-test`);
         }
         catch (err) {
             if (err.code !== "ENOENT") {
@@ -50,38 +101,4 @@ async function deleteBinaries(): Promise<void> {
             }
         }
     }));
-}
-
-export async function run(): Promise<void> {
-
-    // delete the binaries so the tests have to test the pull each time
-    await deleteBinaries();
-
-    const mocha = new Mocha({
-        ui: "bdd",
-        useColors: true,
-        reporter: "spec",
-        fullStackTrace: true,
-        slow: 2500,
-        timeout: 5000,
-    });
-
-    // Base test always runs first, once
-    mocha.addFile(path.join(__dirname, "Base.test.js"));
-    SUITES_TO_RUN.forEach((suite) => mocha.addFile(suite));
-
-    return new Promise<void>((cb, err) => {
-        try {
-            mocha.run((failures) => {
-                if (failures > 0) {
-                    return err(`${failures} tests failed.`);
-                }
-                cb();
-            });
-        }
-        catch (err) {
-            console.error(err);
-            return err(err);
-        }
-    });
 }

@@ -14,25 +14,37 @@ import * as path from "path";
 import Log from "../Logger";
 import { CWTemplateData } from "../codewind/Types";
 
+// Use GetProjectTypes.js to get values you can put here
+const TEST_PROJECT_TYPES = {
+    codewind: [
+        // "springJavaTemplate",               // https://github.com/eclipse/codewind/issues/1877
+        "nodeExpressTemplate",
+        "goTemplate",
+    ],
+    appsody: [
+        "nodejs-express",
+        "python-flask",
+    ]
+};
+
+const JENKINS_PROJECT_TYPES = {
+    codewind: [
+        "nodeExpressTemplate",
+        "goTemplate",
+    ],
+    appsody: [
+        "nodejs-express",
+        "python-flask",
+    ]
+};
+
 namespace TestConfig {
 
-    // Use GetProjectTypes.js to get values you can put here
-    const TEST_PROJECT_TYPES = {
-        codewind: [
-            // "springJavaTemplate",               // https://github.com/eclipse/codewind/issues/1877
-            "nodeExpressTemplate",
-            "goTemplate",
-            // "javaMicroProfileTemplate",      // very slow
-        ],
-        appsody: [
-            "nodejs-express",
-            "python-flask",
-        ]
-    };
+    const projectTypesToTest = isJenkins() ? JENKINS_PROJECT_TYPES : TEST_PROJECT_TYPES;
 
     export function getTemplatesToTest(allTemplates: CWTemplateData[]): CWTemplateData[] {
         const templatesToTest: CWTemplateData[] = [];
-        TEST_PROJECT_TYPES.codewind.forEach((testTemplateName) => {
+        projectTypesToTest.codewind.forEach((testTemplateName) => {
             const match = allTemplates
                 .filter((template) => path.basename(template.url) === testTemplateName);
 
@@ -47,7 +59,7 @@ namespace TestConfig {
             }
         });
 
-        TEST_PROJECT_TYPES.appsody.forEach((testStackName) => {
+        projectTypesToTest.appsody.forEach((testStackName) => {
             const match = allTemplates
                 .filter((stack) => {
                     const tarName = path.basename(stack.url);
@@ -76,6 +88,11 @@ namespace TestConfig {
         return s.split(",").map((s_) => s_.toLowerCase().trim());
     }
     */
+
+    export function isJenkins(): boolean {
+        return !!process.env.JENKINS_URL;
+        // return true;
+    }
 }
 
 export default TestConfig;

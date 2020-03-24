@@ -139,7 +139,7 @@ export default class ConnectionManager implements vscode.Disposable {
         }
         connection.dispose();
         this.connections.splice(indexToRemove, 1);
-        Log.i("Removed connection", connection);
+        Log.i(`Removed connection ${connection}`);
         CodewindEventListener.onChange(undefined);
         HomePageWrapper.instance?.refreshConnectionsStatus();
         return true;

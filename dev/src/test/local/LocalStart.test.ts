@@ -18,7 +18,7 @@ import Connection from "../../codewind/connection/Connection";
 
 export let connection: Connection;
 
-describe(`Local Codewind`, function() {
+describe(`Start Local Codewind`, function() {
 
     this.bail(true);
 
