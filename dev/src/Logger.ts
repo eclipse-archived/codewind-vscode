@@ -12,9 +12,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import * as util from "util";
 import { ExtensionContext, Uri } from "vscode";
-import * as Stacktrace from "stack-trace";
 import * as CircularJson from "circular-json";
 
 import Project from "./codewind/project/Project";
@@ -49,22 +47,22 @@ export class Log {
             fs.accessSync(logDir, mode);
         }
         catch (err) {
-            // logDir doesn't exist, we must create it
-            try {
-                fs.mkdirSync(logDir, mode);
-                console.log("Codewind Tools created logs dir", logDir);
-            }
-            catch (err) {
-                // This shouldn't happen, but fall back to console.log if it does.
-                console.error("Error creating log file!", err);
-                this.logInner = util.promisify(console.log);
+            if (err.code === "ENOENT") {
+                try {
+                    // logDir doesn't exist, we must create it
+                    fs.mkdirSync(logDir, mode);
+                    console.log("Codewind Tools created logs dir", logDir);
+                }
+                catch (err) {
+                    console.error("Error creating log file!", err);
+                }
             }
         }
 
         this.logDir = context.logPath;
         const fullPath = path.join(context.logPath, this.LOG_NAME);
         this.logFilePath = fullPath;
-        console.log("Codewind Tools log file is at " + this.logFilePath);
+        // console.log("Codewind Tools log file is at " + this.logFilePath);
         this.i("Logger initialized at " + this.logFilePath);
     }
 
@@ -95,17 +93,7 @@ export class Log {
     }
 
     private static async logInner(level: Log.Levels, s: string, args: any[]): Promise<void> {
-        if (this.logFilePath == null) {
-            // console.error("Logger.log error - No log file path set!");
-            if (level === Log.Levels.ERROR) {
-                console.error(s, ...args);
-            }
-            else {
-                console.log(s, ...args);
-            }
-            return;
-        }
-        else if (this.disabledLevels.includes(level)) {
+        if (this.disabledLevels.includes(level)) {
             return;
         }
 
@@ -151,41 +139,57 @@ export class Log {
                 consoleFn(label, s);
             }
 
-            fs.appendFile(this.logFilePath, msg, (err) => {
-                if (err != null) {
-                    console.error("FS error when logging:", err);
-                }
-                return resolve();
-            });
+            if (this.logFilePath) {
+                fs.appendFile(this.logFilePath, msg, (err) => {
+                    if (err != null) {
+                        console.error("FS error when logging:", err);
+                    }
+                    return resolve();
+                });
+            }
         });
     }
 
     private static getCaller(): string {
+        const failureMsg = "";
         // get the stack trace above logInner. casting is necessary because the stack trace package only accepts () => void functions.
-        const stack = Stacktrace.get(Log.logInner as unknown as () => void);
-        // 6 frames is the magic number to get around __awaiters, past the Log.x function, and up to the frame we care about.
-        const frame = stack[6];
+        const stack = (new Error()).stack?.split("\n");
+        if (stack == null) {
+            return failureMsg;
+        }
+        const thisFunction = stack.findIndex((stackLine) => stackLine.includes("Function.getCaller"));
+        if (thisFunction === -1) {
+            return failureMsg;
+        }
+
+        // 13 is the magic number to get around __awaiters, past the Log.x function, and up to the frame we care about.
+        // The frame-line looks like:
+        // "at Function.<anonymous> (/Users/tim/programs/codewind-vscode/dev/src/codewind/Requester.ts:38:13)"
+        // but if the function is missing, it'll look like:
+        // "at /Users/tim/programs/codewind-vscode/dev/src/extension.ts:65:9"
+        const frame = stack[thisFunction + 13]?.trim();
         if (frame == null) {
-            return "N/A";
+            return failureMsg;
         }
 
-        let methodName = frame.getMethodName() || frame.getFunctionName();
-        if (methodName != null) {
-            // If it's a callback, there will be extra stuff we aren't interested in separated by dots
-            // eg "Project.__dirname.constructor.connection.update"
-            // strip out everything up to the last dot, if there is one
-            const splitByPeriod: string[] = methodName.split(".");
-            if (splitByPeriod.length > 1) {
-                methodName = splitByPeriod[splitByPeriod.length - 1];
+        let functionName = "";
+        if (frame.split(" ").length > 2) {
+            // extracts "Function.<anonymous>" then "<anonymous>" from the first example above
+            functionName = (frame.split(" ")[1])?.split(".")[1];
+
+            if (!functionName || functionName === "<anonymous>") {
+                functionName = "";
             }
-            methodName = `.${methodName}()`;
-        }
-        else {
-            methodName = "";
+            else {
+                functionName = ` ${functionName}()`
+            }
         }
 
-        const fileName = path.basename(frame.getFileName());
-        return `${fileName}${methodName}:${frame.getLineNumber()}`;
+        // from the example above, this extracts "Requester.ts:38"
+        const basename = frame.substring(frame.lastIndexOf(path.sep) + 1).trim();
+        const [ filename, lineNo ]: string[] = basename.split(":");
+
+        return `${filename}:${lineNo}${functionName}`;
     }
 }
 

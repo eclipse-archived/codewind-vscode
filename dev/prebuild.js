@@ -115,22 +115,11 @@ async function prebuildVSCode(pj) {
 
 async function main() {
 
-    const prebuildType = process.argv[2];
-    let isForChe;
-    if (prebuildType === "che") {
-        isForChe = true;
-    }
-    else if (prebuildType === "vscode") {
-        isForChe = false;
-    }
-    else {
-        throw new Error(`This script must be called with either "che" or "vscode" as argv[2]. ` +
-            `Received "${prebuildType}"`);
-    }
-
+    const prebuildType = process.argv[2] || process.env["CW_PREBUILD_TYPE"] || "VS Code";
+    const isForChe = prebuildType === "che";
     console.log("Prebuilding for " + prebuildType);
 
-    let pj = JSON.parse(await util.promisify(fs.readFile)(PACKAGE_JSON_PATH));
+    let pj = JSON.parse(await fs.promises.readFile(PACKAGE_JSON_PATH));
 
     if (isForChe) {
         pj = await prebuildChe(pj);
@@ -138,6 +127,11 @@ async function main() {
     else {
         pj = await prebuildVSCode(pj);
     }
+
+    const prodEntrypoint = "./dist/extension.js";
+    // replace dev entrypoint with production one
+    console.log(`Changing extension entrypoint from ${pj.main} to ${prodEntrypoint}`);
+    pj.main = prodEntrypoint;
 
     const toWrite = JSON.stringify(pj, undefined, 4) + '\n';
     await util.promisify(fs.writeFile)(PACKAGE_JSON_PATH, toWrite);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -41,7 +41,7 @@ namespace Translator {
      * Must call this before calling t
      */
     export async function init(): Promise<TFunction> {
-        const defaultStringsFile = path.resolve(__dirname, "strings-en.json");
+        const defaultStringsFile = path.resolve(global.__extRoot, "translations", "en.json");
         const defaultStringsFileContents = await fs.promises.readFile(defaultStringsFile);
         const defaultStrings: {
             [key: string]: string;

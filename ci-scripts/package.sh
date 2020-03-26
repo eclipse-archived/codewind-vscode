@@ -9,16 +9,12 @@ set -ex
 cd $(dirname $0)/../dev
 
 if [[ $is_che ]]; then
-    echo "Building for Che"
-    ./prebuild.js che
-else
-    echo "Building for VS Code"
-    ./prebuild.js vscode
+    export CW_PREBUILD_TYPE = "che"
 fi
 
 # Test build to catch any errors (vsce is bad at reporting them)
 npm ci
-npm run vscode:prepublish
+npm run compile
 
 npm run package
 
