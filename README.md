@@ -14,7 +14,7 @@ For more information, see [the Codewind website](https://www.eclipse.org/codewin
 - Pull in your existing applications and use Codewind to help get them cloud ready.
 - See code changes reflected in your containerized application almost instantaneously. The Codewind advanced inner loop manages your application updates efficiently.
 - Develop in containers without feeling like you're developing in containers. Development flow within the IDE feels the same as traditional application development.
-- Without leaving the comfort of your local IDE, iteratively develop on Kubernetes and interact with Kubernetes services.
+- Without leaving the comfort of your local IDE, iteratively develop on Kubernetes and interact with Kubernetes resources.
 
 ## Features
 - Create new containerized projects or add existing ones.
