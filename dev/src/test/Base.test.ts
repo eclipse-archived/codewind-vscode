@@ -39,9 +39,6 @@ describe("Codewind for VS Code", function() {
 
     this.bail(true);
 
-    // If you get the error:
-    // TypeError [ERR_INVALID_ARG_TYPE]: The "path" argument must be of type string. Received type undefined
-    // It likely means you called extension code before the extension was activated
     it("should activate when the Codewind view is opened", async function() {
         this.timeout(TestUtil.ms(60, "sec"));
         this.slow(TestUtil.ms(15, "sec"));
@@ -63,11 +60,13 @@ describe("Codewind for VS Code", function() {
         // this is done async from .activate so we have to wait for it separately.
         await new Promise((resolve) => {
             let counter = 0;
-            setInterval(() => {
-                if (CLIWrapper.hasInitialized()) {
+            const interval = setInterval(() => {
+                const hasInitialized = CLIWrapper.hasInitialized();
+                if (hasInitialized) {
+                    clearInterval(interval);
                     resolve();
                 }
-                else if (counter % 5 === 5) {
+                else if (counter % 5 === 0) {
                     Log.t(`Waiting for CLIWrapper to initialize, ${counter}s elapsed`);
                 }
                 counter++;

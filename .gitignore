@@ -1,7 +1,9 @@
 out/
+dist/
 node_modules/
 .vscode-test/
 *.vsix
+package.json.backup
 
 .DS_Store
 .nyc_output

@@ -11,6 +11,7 @@
 
 "use strict";
 import * as vscode from "vscode";
+import "source-map-support/register";
 
 import { createCommands } from "./command/CommandUtil";
 import createViews from "./view/InitViews";
@@ -104,12 +105,12 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
     });
 
     CLIWrapper.initialize()
-    .then(() => {
+    .then(async () => {
         LocalCodewindManager.instance.setState(CodewindStates.STOPPED);
-        ConnectionManager.instance.activate();
+        await ConnectionManager.instance.activate();
 
         // Connect to local codewind if it's started, but don't start it automatically.
-        connectLocalCodewindCmd(LocalCodewindManager.instance, false);
+        await connectLocalCodewindCmd(LocalCodewindManager.instance, false);
 
         Log.d(`Finished async activation`);
     })

@@ -7,20 +7,15 @@ fi
 set -ex
 
 cd $(dirname $0)/../dev
+npm ci
+# Test build to catch any errors (vsce suppresses error output from the prepublish script for some reason)
+npm run ts-compile
 
 if [[ $is_che ]]; then
-    echo "Building for Che"
-    ./prebuild.js che
+    npm run package-che
 else
-    echo "Building for VS Code"
-    ./prebuild.js vscode
+    npm run package
 fi
-
-# Test build to catch any errors (vsce is bad at reporting them)
-npm ci
-npm run vscode:prepublish
-
-npm run package
 
 # rename to have datetime for clarity + prevent collisions
 artifact_name=$(basename *.vsix)

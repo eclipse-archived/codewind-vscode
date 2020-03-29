@@ -1,24 +1,35 @@
 #!groovy
 
+def BUILD_CONTAINER = """
+    image: node:10-jessie
+    tty: true
+    command:
+      - cat
+    resources:
+      limits:
+        memory: "2Gi"
+        cpu: "1"
+      requests:
+        memory: "2Gi"
+        cpu: "1"
+"""
+
+def VSCODE_BUILDER = "vscode-builder"
+def CHE_BUILDER = "che-builder"
+
 pipeline {
     agent {
         kubernetes {
-            label 'vscode-buildpod'
+            label "vscode-buildpod"
             yaml """
 apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: vscode-builder
-    image: node:lts
-    tty: true
-    command:
-      - cat
-  - name: che-builder
-    image: node:lts
-    tty: true
-    command:
-      - cat
+  - name: ${VSCODE_BUILDER}
+    ${BUILD_CONTAINER}
+  - name: ${CHE_BUILDER}
+    ${BUILD_CONTAINER}
 """
         }
     }
@@ -57,7 +68,7 @@ spec:
             parallel {
                 stage("Build for VS Code") {
                     steps {
-                        container("vscode-builder") {
+                        container(VSCODE_BUILDER) {
                             sh 'ci-scripts/package.sh'
                             // The parallel stages cannot share a stash or they will overwrite and corrupt each other
                             stash includes: '*.vsix', name: 'vscode-vsix'
@@ -66,7 +77,7 @@ spec:
                 }
                 stage("Build for Che") {
                     steps {
-                        container("che-builder") {
+                        container(CHE_BUILDER) {
                             dir("../codewind-che") {
                                 sh 'ci-scripts/package.sh che'
                                 stash includes: '*.vsix', name: 'che-vsix'
