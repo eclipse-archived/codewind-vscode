@@ -1,12 +1,20 @@
-.vscode/**
-.vscode-test/**
-.npm/**
-bin/**
-out/test/**
-out/**/*.map
-src/**
+.vscode/
+.vscode-test/
+.npm/
+bin/
+out/
+node_modules/
+src/
 .gitignore
 tsconfig.json
 tslint.json
 **/*.ts
 prebuild.js
+webpack.config.js
+webpack.plugins.js
+package.json.backup
+
+# Critical dynamic dependency
+!node_modules/keyv
+# and its dependency
+!node_modules/json-buffer

@@ -13,12 +13,12 @@
             "args": [
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 // put a workspace (.code-workspace, or folder) path below this comment to launch into a non-empty workspace
-                // eg, "/Users/tim/vscode-codewind-workspace"
+                "/Users/tim/vscode-codewind-workspace"
             ],
             "outFiles": [
-                "${workspaceFolder}/dev/out/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
-            "preLaunchTask": "build",
+            "preLaunchTask": "ts-watch",
             "env": {
                 "CW_ENV": "dev",
                 // To debug weviews in the browser, set WEBVIEW_DEBUG_DIR to an output directory. See WebviewUtil.debugWriteOutWebview
@@ -38,12 +38,19 @@
                 "/Users/tim/codewind-vscode-testworkspace",
             ],
             "outFiles": [
-                "${workspaceFolder}/dev/out/test/**/*.js"
+                "${workspaceFolder}/out/test/**/*.js"
             ],
             "env": {
                 "CW_ENV": "test",
             },
-            "preLaunchTask": "build"
+            "preLaunchTask": "ts-watch"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch package.js",
+            "program": "${workspaceFolder}/vsce-package.js",
+            "args": []
         }
     ]
 }

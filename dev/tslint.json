@@ -1,7 +1,6 @@
 {
 	"extends": "tslint:recommended",
 	"rules": {
-		// Disable some recommended rules.
 		"interface-name": false,
 		"member-ordering": false,
 		"no-consecutive-blank-lines": false,
@@ -14,7 +13,6 @@
 		"typedef-whitespace": false,
 		"variable-name": [ true, "allow-leading-underscore", "allow-trailing-underscore" ],
 
-		// Below are my rules.
 		"await-promise": [
 			true,
 			"Thenable",
@@ -27,7 +25,10 @@
 		"deprecation": true,
 		"max-line-length": [
 			true,
-			150
+			{
+				"limit": 150,
+				"check-strings": true
+			}
 		],
 		"no-boolean-literal-compare": true,
 		"no-duplicate-variable": true,
