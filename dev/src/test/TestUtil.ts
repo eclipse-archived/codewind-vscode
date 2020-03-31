@@ -11,7 +11,7 @@
 
 import { expect } from "chai";
 import * as vscode from "vscode";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as path from "path";
 
 import Log from "../Logger";
@@ -232,15 +232,15 @@ namespace TestUtil {
     const sourceFileExtensions = [ "java", "js", "go", "py" ];
     async function findSourceFile(rootDir: string): Promise<string | undefined> {
         // Log.t(`Scanning ${rootDir}/ for source files`);
-        const rootDirFiles = await fs.promises.readdir(rootDir, { withFileTypes: true });
+        const rootDirFilenames = await fs.readdir(rootDir);
 
-        for (const file of rootDirFiles) {
-            const fullPath = path.join(rootDir, file.name);
-            if (sourceFileExtensions.includes(path.extname((file.name)).substring(1))) {
-                return fullPath;
+        for (const filename of rootDirFilenames) {
+            const filepath = path.join(rootDir, filename);
+            if (sourceFileExtensions.includes(path.extname((filename)).substring(1))) {
+                return filepath;
             }
-            if (file.isDirectory()) {
-                const recursiveResult = await findSourceFile(fullPath);
+            if ((await fs.stat(filepath)).isDirectory()) {
+                const recursiveResult = await findSourceFile(filepath);
                 if (recursiveResult) {
                     return recursiveResult;
                 }
@@ -258,7 +258,7 @@ namespace TestUtil {
         }
         const comment = `\n\n${commentStart} Here is a comment`;
         Log.t(`Writing "${comment}" to ${filePath}`);
-        await fs.promises.appendFile(filePath, comment);
+        await fs.appendFile(filePath, comment);
     }
 }
 

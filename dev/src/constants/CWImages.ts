@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import { Uri } from "vscode";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as path from "path";
 import Log from "../Logger";
 
@@ -38,7 +38,7 @@ function getBaseImagePath(): string {
 async function checkExists(...paths: string[]): Promise<void> {
     paths.forEach(async (imagePath) => {
         try {
-            await fs.promises.access(imagePath, fs.constants.R_OK);
+            await fs.access(imagePath, fs.constants.R_OK);
             // Log.d(`Loaded image: ${imagePath}`);
         }
         catch (err) {

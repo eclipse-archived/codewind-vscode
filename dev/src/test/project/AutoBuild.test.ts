@@ -12,7 +12,7 @@
 import { expect } from "chai";
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 
 import Log from "../../Logger";
 import Project from "../../codewind/project/Project";
@@ -99,7 +99,7 @@ describe(`Project auto-build wrapper`, function() {
                     this.slow(abSlow);
 
                     await TestUtil.waitForStarted(this, project);
-                    await fs.promises.unlink(addedFilePath);
+                    await fs.unlink(addedFilePath);
                     await TestUtil.waitForUpdate(this, project);
                 });
             });

@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import got, { NormalizedOptions, Response, Progress } from "got";
 import * as stream from "stream";
 import { promisify } from "util";
@@ -217,7 +217,7 @@ export class Requester {
         await pipelinePromise;
 
         if (options.destFileMode) {
-            await fs.promises.chmod(destFile, options.destFileMode);
+            await fs.chmod(destFile, options.destFileMode);
         }
 
         Log.d(`Finished downloading ${url}`);

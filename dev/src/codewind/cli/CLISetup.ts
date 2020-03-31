@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as os from "os";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as crypto from "crypto";
 import got from "got";
 import { execFile } from "child_process";
@@ -48,20 +48,18 @@ namespace CLISetup {
     export async function doesBinariesTargetDirExist(): Promise<boolean> {
         let existed = true;
 
-        // fails on windows, see note about electron https://github.com/nodejs/node/issues/24698#issuecomment-486405542
-        // await promisify(fs.mkdir)(binaryTargetDir, { recursive: true });
         try {
-            await fs.promises.access(DOT_CODEWIND_PATH);
+            await fs.access(DOT_CODEWIND_PATH);
         }
         catch (err) {
-            await fs.promises.mkdir(DOT_CODEWIND_PATH);
+            await fs.mkdir(DOT_CODEWIND_PATH);
             Log.d(`Created ${DOT_CODEWIND_PATH}`);
             existed = false;
         }
 
         try {
             if (existed) {
-                await fs.promises.access(BINARIES_TARGET_DIR);
+                await fs.access(BINARIES_TARGET_DIR);
             }
         }
         catch (err) {
@@ -69,7 +67,7 @@ namespace CLISetup {
         }
         finally {
             if (!existed) {
-                await fs.promises.mkdir(BINARIES_TARGET_DIR);
+                await fs.mkdir(BINARIES_TARGET_DIR);
                 Log.d(`Created ${BINARIES_TARGET_DIR}`);
             }
         }
@@ -82,7 +80,7 @@ namespace CLISetup {
      */
     export async function isCwctlSetup(): Promise<boolean> {
         try {
-            await fs.promises.access(CWCTL_FINAL_PATH, fs.constants.X_OK);
+            await fs.access(CWCTL_FINAL_PATH, fs.constants.X_OK);
         }
         catch (err) {
             Log.d(`${CWCTL_FINAL_PATH} was not found or not executable`);
@@ -104,7 +102,7 @@ namespace CLISetup {
         if (expectedHash !== actualHash) {
             Log.i(`Latest CLI hash ${expectedHash} did not match CLI on disk ${actualHash}; an update is required.`);
             // Delete the invalid executable
-            await fs.promises.unlink(CWCTL_FINAL_PATH);
+            await fs.unlink(CWCTL_FINAL_PATH);
             return false;
         }
 
@@ -117,7 +115,7 @@ namespace CLISetup {
      */
     export async function isAppsodySetup(): Promise<boolean> {
         try {
-            await fs.promises.access(APPSODY_FINAL_PATH, fs.constants.X_OK);
+            await fs.access(APPSODY_FINAL_PATH, fs.constants.X_OK);
         }
         catch (err) {
             Log.d(`${APPSODY_FINAL_PATH} was not found or not executable`);
@@ -154,7 +152,7 @@ namespace CLISetup {
         else {
             Log.i(`Appsody version "${currentVersion}" doesn't match expected "${Constants.APPSODY_VERSION}"`);
             // Delete the invalid executable
-            await fs.promises.unlink(APPSODY_FINAL_PATH);
+            await fs.unlink(APPSODY_FINAL_PATH);
         }
         return isCorrectVersion;
     }
@@ -286,11 +284,11 @@ namespace CLISetup {
             progress.report({ message: `Finishing up`, increment: 5 });
 
             await Promise.all([
-                fs.promises.rename(extractCwctlPath, CWCTL_FINAL_PATH)
+                fs.rename(extractCwctlPath, CWCTL_FINAL_PATH)
                 .then(() => {
-                    fs.promises.chmod(CWCTL_FINAL_PATH, EXECUTABLES_MODE);
+                    fs.chmod(CWCTL_FINAL_PATH, EXECUTABLES_MODE);
                 }),
-                fs.promises.unlink(cwctlArchiveTargetPath),
+                fs.unlink(cwctlArchiveTargetPath),
             ]);
         });
 
@@ -341,8 +339,8 @@ namespace CLISetup {
             progress.report({ message: `Finishing up`, increment: 5 });
 
             await Promise.all([
-                fs.promises.chmod(APPSODY_FINAL_PATH, EXECUTABLES_MODE),
-                fs.promises.unlink(appsodyArchiveFile),
+                fs.chmod(APPSODY_FINAL_PATH, EXECUTABLES_MODE),
+                fs.unlink(appsodyArchiveFile),
             ]);
         });
 
@@ -352,8 +350,8 @@ namespace CLISetup {
     }
 
     export async function lsBinariesTargetDir(): Promise<void> {
-        const files = await fs.promises.readdir(BINARIES_TARGET_DIR, { withFileTypes: true });
-        Log.d(`Contents of ${BINARIES_TARGET_DIR}: ${files.map((f) => f.name).join(" ")}`);
+        const files = await fs.readdir(BINARIES_TARGET_DIR);
+        Log.d(`Contents of ${BINARIES_TARGET_DIR}: ${files.join(" ")}`);
     }
 }
 

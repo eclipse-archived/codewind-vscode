@@ -10,8 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import { promisify } from "util";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as tar from "tar";
@@ -208,8 +207,7 @@ namespace MCUtil {
     }
 
     async function isCwWorkspaceOrProject(dirPath: string): Promise<boolean> {
-        return (await promisify(fs.readdir)(dirPath))
-            .some((file) => CW_FILES.includes(file.toString()));
+        return (await fs.readdir(dirPath)).some((file) => CW_FILES.includes(file.toString()));
     }
 
     export function getCWWorkspacePath(): string {

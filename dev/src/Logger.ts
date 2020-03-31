@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import { ExtensionContext, Uri } from "vscode";
@@ -44,19 +44,11 @@ export class Log {
         const mode = 0o744;
 
         try {
-            fs.accessSync(logDir, mode);
+            fs.ensureDirSync(logDir, mode);
         }
         catch (err) {
-            if (err.code === "ENOENT") {
-                try {
-                    // logDir doesn't exist, we must create it
-                    fs.mkdirSync(logDir, mode);
-                    console.log("Codewind Tools created logs dir", logDir);
-                }
-                catch (err) {
-                    console.error("Error creating log file!", err);
-                }
-            }
+            console.error("Error creating logs dir!", err);
+            return;
         }
 
         this.logDir = context.logPath;
@@ -129,25 +121,23 @@ export class Log {
         const label: string = `[${level}: ${getDateTime()}${caller}]:`;
         const msg: string = `${label} ${argsStr}${os.EOL}`;
 
-        return new Promise<void>((resolve) => {
-            // Send the message to both the 'console' and the logfile.
-            const consoleFn = level === this.Levels.ERROR ? console.error : console.log;
-            if (args.length > 0) {
-                consoleFn(label, s, ...args);
-            }
-            else {
-                consoleFn(label, s);
-            }
+        // Send the message to both the 'console' and the logfile.
+        const consoleFn = level === this.Levels.ERROR ? console.error : console.log;
+        if (args.length > 0) {
+            consoleFn(label, s, ...args);
+        }
+        else {
+            consoleFn(label, s);
+        }
 
-            if (this.logFilePath) {
-                fs.appendFile(this.logFilePath, msg, (err) => {
-                    if (err != null) {
-                        console.error("FS error when logging:", err);
-                    }
-                    return resolve();
-                });
+        if (this.logFilePath) {
+            try {
+                await fs.appendFile(this.logFilePath, msg);
             }
-        });
+            catch (err) {
+                console.error("FS error when logging:", err);
+            }
+        }
     }
 
     private static getCaller(): string {

@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 import { expect } from "chai";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 
 import Log from "../Logger";
 import TestUtil from "./TestUtil";
@@ -80,7 +80,7 @@ describe("Codewind for VS Code", function() {
         expect(logPath).to.exist;
         Log.t("The logs are at " + logPath);
 
-        const logContents = (await fs.promises.readFile(logPath)).toString("utf8");
+        const logContents = (await fs.readFile(logPath)).toString("utf8");
         expect(logContents).to.have.length.greaterThan(0, "Log existed but was empty!");
     });
 
