@@ -40,7 +40,8 @@ async function manageLogsInner(project: Project, all?: "show" | "hide"): Promise
     }
 
     if (logs.length === 0) {
-        vscode.window.showWarningMessage(`${project.name} does not have any logs available at this time. Wait for the project to build, and try again.`);
+        vscode.window.showWarningMessage(`${project.name} does not have any logs available at this time. ` +
+           `Wait for the project to build, and try again.`);
         return;
     }
 
@@ -55,7 +56,7 @@ async function manageLogsInner(project: Project, all?: "show" | "hide"): Promise
     };
 
     // https://github.com/Microsoft/vscode/issues/64014
-    const logsToShow: MCLog[] | undefined = await vscode.window.showQuickPick<MCLog>(logs, options) as (MCLog[] | undefined);
+    const logsToShow = await vscode.window.showQuickPick<MCLog>(logs, options) as (MCLog[] | undefined);
     if (logsToShow == null) {
         return;
     }
