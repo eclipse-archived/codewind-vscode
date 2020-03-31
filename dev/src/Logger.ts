@@ -119,7 +119,6 @@ export class Log {
         }
 
         const label: string = `[${level}: ${getDateTime()}${caller}]:`;
-        const msg: string = `${label} ${argsStr}${os.EOL}`;
 
         // Send the message to both the 'console' and the logfile.
         const consoleFn = level === this.Levels.ERROR ? console.error : console.log;
@@ -132,6 +131,7 @@ export class Log {
 
         if (this.logFilePath) {
             try {
+                const msg: string = `${label} ${argsStr}${os.EOL}`;
                 await fs.appendFile(this.logFilePath, msg);
             }
             catch (err) {

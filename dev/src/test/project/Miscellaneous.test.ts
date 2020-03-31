@@ -92,29 +92,9 @@ describe(`Project miscellaneous wrapper`, function() {
 
                     Log.t(`${project.name} has ${project.logManager.logs.length} log files`);
                 });
-
-                it(`${project.name} should be disabled and re-enabled`, async function() {
-                    this.timeout(TestUtil.ms(5, "min"));
-                    this.slow(TestUtil.ms(3, "min"));
-
-                    Log.t("Disabling " + project.name);
-                    await vscode.commands.executeCommand(Commands.DISABLE_PROJECT, project);
-                    await TestUtil.waitForCondition(this, {
-                        label: `Waiting for ${project.name} to disable`,
-                        condition: () => !project.state.isEnabled,
-                    });
-                    await vscode.commands.executeCommand(Commands.ENABLE_PROJECT, project);
-
-                    await TestUtil.waitForCondition(this, {
-                        label: `Waiting for ${project.name} to enable`,
-                        condition: () => project.state.isEnabled,
-                    });
-
-                    await TestUtil.waitForStarted(this, project);
-                });
             });
         });
     });
 
-    it.skip(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
+    it(`stub`, function() { /* stub https://stackoverflow.com/a/54681623 */ } );
 });

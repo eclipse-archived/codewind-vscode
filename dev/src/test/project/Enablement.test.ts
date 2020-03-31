@@ -9,15 +9,16 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
 import { expect } from "chai";
-import * as fs from "fs-extra";
 
 import TestUtil from "../TestUtil";
-import { removeProject } from "../../command/project/RemoveProjectCmd";
+import Log from "../../Logger";
+import Commands from "../../constants/Commands";
 
 import { testProjects } from "./Creation.test";
 
-describe(`Project removal wrapper`, function() {
+describe(`Project enablement (enable/disable)`, function() {
 
     before(`should use the precreated test projects`, function() {
         expect(testProjects, `No test projects were found`).to.exist.and.have.length.greaterThan(0);
@@ -26,33 +27,27 @@ describe(`Project removal wrapper`, function() {
     // We nest the dynamically generated tests in a before() so they don't execute too soon
     // https://stackoverflow.com/a/54681623
     before(async function() {
-        describe(`Project removal`, function() {
+        describe(`Project enablement`, function() {
             testProjects.forEach((project) => {
 
-                let projectPath: string;
+                it(`${project.name} should be disabled and re-enabled`, async function() {
+                    this.timeout(TestUtil.ms(10, "min"));
+                    this.slow(TestUtil.ms(3, "min"));
 
-                it(`${project.name} should be deleted from Codewind`, async function() {
-                    this.timeout(TestUtil.ms(15, "sec"));
-                    this.slow(TestUtil.ms(5, "sec"));
-
-                    projectPath = project.localPath.fsPath;
-
-                    await removeProject(project, true);
+                    Log.t("Disabling " + project.name);
+                    await vscode.commands.executeCommand(Commands.DISABLE_PROJECT, project);
+                    await TestUtil.waitForCondition(this, {
+                        label: `Waiting for ${project.name} to disable`,
+                        condition: () => !project.state.isEnabled,
+                    });
+                    await vscode.commands.executeCommand(Commands.ENABLE_PROJECT, project);
 
                     await TestUtil.waitForCondition(this, {
-                        label: `Waiting for ${project.name} to be removed from ${project.connection.label}`,
-                        condition: async () => (await project.connection.getProjectByID(project.id)) == null
+                        label: `Waiting for ${project.name} to enable`,
+                        condition: () => project.state.isEnabled,
                     });
-                });
 
-                it(`${project.name} should have been deleted from the filesystem`, async function() {
-                    this.timeout(TestUtil.ms(15, "sec"));
-                    this.slow(TestUtil.ms(5, "sec"));
-
-                    await TestUtil.waitForCondition(this, {
-                        label: `Waiting for ${projectPath} to be deleted`,
-                        condition: async () => !(await fs.pathExists(projectPath)),
-                    });
+                    await TestUtil.waitForStarted(this, project);
                 });
             });
         });
