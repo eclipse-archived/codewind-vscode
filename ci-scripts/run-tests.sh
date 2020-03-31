@@ -85,6 +85,12 @@ set +e
 npm test
 result=$?
 
+if [[ result != 0 ]]; then
+    echo "========== Tests failed; PFE logs follow: =========="
+    docker logs $(docker ps | grep codewind-pfe | awk '{ print $1 }')
+    echo "========== End PFE logs =========="
+fi
+
 cleanup
 
 cd -
