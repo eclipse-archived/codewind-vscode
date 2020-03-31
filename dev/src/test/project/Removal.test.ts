@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import { expect } from "chai";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 
 import TestUtil from "../TestUtil";
 import { removeProject } from "../../command/project/RemoveProjectCmd";
@@ -51,16 +51,7 @@ describe(`Project removal wrapper`, function() {
 
                     await TestUtil.waitForCondition(this, {
                         label: `Waiting for ${projectPath} to be deleted`,
-                        condition: async () => {
-                            try {
-                                await fs.promises.access(projectPath);
-                                // file exists
-                                return false;
-                            }
-                            catch (err) {
-                                return true;
-                            }
-                        }
+                        condition: async () => !(await fs.pathExists(projectPath)),
                     });
                 });
             });

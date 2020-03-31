@@ -25,8 +25,8 @@ namespace TestConfig {
             // "javaMicroProfileTemplate",      // very slow
         ],
         appsody: [
-            "nodejs-express",
-            "python-flask",
+            // "nodejs-express",
+            // "python-flask",
         ]
     };
 

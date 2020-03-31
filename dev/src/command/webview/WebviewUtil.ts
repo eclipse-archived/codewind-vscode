@@ -10,7 +10,7 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as path from "path";
 
 import { getBaseResourcesPath, ThemelessImages } from "../../constants/CWImages";
@@ -88,8 +88,10 @@ namespace WebviewUtil {
         if (global.isTheia || MCUtil.isDevEnv()) {
             return "";
         }
-        return `<meta http-equiv="Content-Security-Policy"
-            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline'; style-src vscode-resource: 'unsafe-inline'; style-src-elem: vscode-resource: https:;"
+        return `
+        <meta http-equiv="Content-Security-Policy"
+            content="default-src 'none'; img-src vscode-resource: https:; script-src vscode-resource: 'unsafe-inline';
+            style-src vscode-resource: 'unsafe-inline'; style-src-elem: vscode-resource: https:;"
         >`;
     }
 
@@ -189,13 +191,7 @@ namespace WebviewUtil {
             filename = filename + ".html";
         }
 
-        try {
-            await fs.promises.access(destDir);
-        }
-        catch (err) {
-            Log.d(`Creating ${destDir}`);
-            await fs.promises.mkdir(destDir, { recursive: true });
-        }
+        await fs.ensureDir(destDir);
 
         const destFile = path.join(destDir, filename);
         const htmlWithFileProto = html.replace(/vscode-resource:\/\/file\/\//g, "file://");

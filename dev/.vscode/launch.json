@@ -44,13 +44,6 @@
                 "CW_ENV": "test",
             },
             "preLaunchTask": "ts-watch"
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch package.js",
-            "program": "${workspaceFolder}/vsce-package.js",
-            "args": []
         }
     ]
 }

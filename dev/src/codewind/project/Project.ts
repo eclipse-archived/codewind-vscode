@@ -11,7 +11,7 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 
 import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
@@ -533,9 +533,7 @@ export default class Project implements vscode.QuickPickItem {
         }
         Log.d("Profiling data is ready to be saved to workspace");
 
-        const loadTestFolder = "load-test";
-        const loadTestPath = path.join(this.localPath.fsPath, loadTestFolder);
-        const timestampPath = path.join(loadTestPath, event.timestamp);
+        const timestampPath = path.join(this.localPath.fsPath, "load-test", event.timestamp);
 
         let fileName = "";
         if (this.language.toLowerCase() === ProjectType.Languages.JAVA) {
@@ -550,25 +548,12 @@ export default class Project implements vscode.QuickPickItem {
 
         const profilingOutPath = path.join(timestampPath, fileName);
         try {
-            await fs.promises.mkdir(loadTestPath);
+            await fs.ensureDir(timestampPath);
         }
         catch (err) {
-            if (err.code !== "EEXIST") {
-                Log.e(`Error creating directory ${loadTestPath}`, err);
-                vscode.window.showErrorMessage(`Could not create directory at ${loadTestPath}: ${MCUtil.errToString(err)}`);
-                return;
-            }
-        }
-
-        try {
-            await fs.promises.mkdir(timestampPath);
-        }
-        catch (err) {
-            if (err.code !== "EEXIST") {
-                Log.e(`Error creating directory ${timestampPath}`, err);
-                vscode.window.showErrorMessage(`Could not create directory at ${timestampPath}: ${MCUtil.errToString(err)}`);
-                return;
-            }
+            Log.e(`Error creating directory ${timestampPath}`, err);
+            vscode.window.showErrorMessage(`Could not create directory at ${timestampPath}: ${MCUtil.errToString(err)}`);
+            return;
         }
 
         await this.requester.receiveProfilingData(event.timestamp, profilingOutPath);
@@ -937,14 +922,7 @@ export default class Project implements vscode.QuickPickItem {
 
     public async tryOpenSettingsFile(): Promise<void> {
         const settingsFilePath = path.join(this.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME);
-        let settingsFileExists: boolean;
-        try {
-            await fs.promises.access(settingsFilePath);
-            settingsFileExists = true;
-        }
-        catch (err) {
-            settingsFileExists = false;
-        }
+        const settingsFileExists = await fs.pathExists(settingsFilePath);
 
         if (settingsFileExists) {
             vscode.commands.executeCommand(Commands.VSC_OPEN, vscode.Uri.file(settingsFilePath));

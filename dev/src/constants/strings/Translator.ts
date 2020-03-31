@@ -11,7 +11,7 @@
 
 import i18next, { TFunction, TOptions } from "i18next";
 import * as path from "path";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 
 import Log from "../../Logger";
 import StringNamespaces from "./StringNamespaces";
@@ -42,7 +42,7 @@ namespace Translator {
      */
     export async function init(): Promise<TFunction> {
         const defaultStringsFile = path.resolve(global.__extRoot, "translations", "en.json");
-        const defaultStringsFileContents = await fs.promises.readFile(defaultStringsFile);
+        const defaultStringsFileContents = await fs.readFile(defaultStringsFile);
         const defaultStrings: {
             [key: string]: string;
         } = JSON.parse(defaultStringsFileContents.toString());

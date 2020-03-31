@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 import { Readable } from "stream";
 import * as readline from "readline";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 
 import Log from "../../Logger";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
@@ -373,7 +373,7 @@ export namespace CLILifecycleWrapper {
      */
     async function isWorkspaceMigrationReqd(startedVersions: string[], installedVersions: string[]): Promise<boolean> {
         try {
-            await fs.promises.access(MCUtil.getCWWorkspacePath());
+            await fs.access(MCUtil.getCWWorkspacePath());
         }
         catch (err) {
             // no workspace -> no upgrade required

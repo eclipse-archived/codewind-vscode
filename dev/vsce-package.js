@@ -19,7 +19,7 @@
  *****/
 
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs-extra");
 const { spawn } = require("child_process");
 
 const che_cmdsToDelete = [
@@ -162,7 +162,7 @@ async function preparePackageJSON(pj, isForChe) {
     newPJ.main = prodEntrypoint;
 
     const toWrite = JSON.stringify(newPJ, undefined, 4) + '\n';
-    await fs.promises.writeFile(PACKAGE_JSON_PATH, toWrite);
+    await fs.writeFile(PACKAGE_JSON_PATH, toWrite);
     console.log(`Wrote out new ${PACKAGE_JSON}`);
     return newPJ;
 }
@@ -198,16 +198,16 @@ async function main() {
     const isForChe = prebuildType === "che";
     console.log("Building for " + prebuildType);
 
-    await fs.promises.copyFile(PACKAGE_JSON_PATH, PACKAGE_JSON_BACKUP);
+    await fs.copyFile(PACKAGE_JSON_PATH, PACKAGE_JSON_BACKUP);
 
-    const originalPJ = JSON.parse(await fs.promises.readFile(PACKAGE_JSON_PATH));
+    const originalPJ = JSON.parse(await fs.readFile(PACKAGE_JSON_PATH));
 
     try {
         await preparePackageJSON(originalPJ, isForChe);
         await spawnWithOutput("vsce", [ "package" ]);
     }
     finally {
-        await fs.promises.rename(PACKAGE_JSON_BACKUP, PACKAGE_JSON_PATH);
+        await fs.rename(PACKAGE_JSON_BACKUP, PACKAGE_JSON_PATH);
         console.log(`Finished restoring ${PACKAGE_JSON}`);
     }
 
