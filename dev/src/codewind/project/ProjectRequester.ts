@@ -101,9 +101,11 @@ export default class ProjectRequester extends Requester {
 
     public async requestToggleLogs(enable: boolean): Promise<void> {
         const verb = enable ? "POST" : "DELETE";
-        await this.doProjectRequest(ProjectEndpoints.LOGS, verb, true);
-    }
+        // the POST response is JSON but the DELETE response is text
+        const isJSON = enable;
 
+        await this.doProjectRequest(ProjectEndpoints.LOGS, verb, isJSON);
+    }
 
     public async getCapabilities(): Promise<ProjectCapabilities> {
         // https://eclipse.github.io/codewind/#/paths/~1api~1v1~1projects~1{id}~1capabilities/get

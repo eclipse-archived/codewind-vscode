@@ -60,6 +60,7 @@ export default class MCLog implements vscode.QuickPickItem {
     public removeOutput(): void {
         // Log.d("Hide log " + this.displayName);
         if (this.output) {
+            this.output.hide();
             this.output.dispose();
             this.output = undefined;
         }
