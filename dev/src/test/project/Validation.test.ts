@@ -14,7 +14,7 @@
 /*
 describe(`Project validation`, function() {
     let validatorWorked = false;
-    it.skip(`${testType.projectType} - should have a validation error after deleting the Dockerfile`, async function() {
+    it(`${testType.projectType} - should have a validation error after deleting the Dockerfile`, async function() {
         expect(project, "Failed to get test project").to.exist;
         this.timeout(TestUtil.getMinutes(1));
 
@@ -43,7 +43,7 @@ describe(`Project validation`, function() {
         validatorWorked = true;
     });
 
-    it.skip(`${testType.projectType} - should be able to regenerate the removed Dockerfile`, async function() {
+    it(`${testType.projectType} - should be able to regenerate the removed Dockerfile`, async function() {
         expect(project, "Failed to get test project").to.exist;
         expect(validatorWorked, "Precondition failed").to.be.true;
         this.timeout(TestUtil.getMinutes(1));

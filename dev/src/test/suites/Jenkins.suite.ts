@@ -9,27 +9,17 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-// This is how we determine the tests to run, and order them.
-
-// import * as LocalStopAndRemove from "../local/LocalStopAndRemove.test";
-
 import * as LocalStart from "../local/LocalStart.test";
 LocalStart;
 import * as TemplateSources from "../connection/TemplateSources.test";
 TemplateSources;
-import * as ImageRegistries from "../connection/ImageRegistries.test";
-ImageRegistries;
 import * as Creation from "../project/Creation.test";
 Creation;
 import * as AutoBuild from "../project/AutoBuild.test";
 AutoBuild;
 import * as Miscellaneous from "../project/Miscellaneous.test";
 Miscellaneous;
-import * as Enablement from "../project/Enablement.test";
-Enablement;
-import * as Restart from "../project/Restart.test";
-Restart;
 import * as Removal from "../project/Removal.test";
 Removal;
-
-// import * as LocalStopAndRemove from "../local/LocalStopAndRemove.test";
+import * as LocalStopAndRemove from "../local/LocalStopAndRemove.test";
+LocalStopAndRemove;

@@ -34,14 +34,13 @@
                 "--extensionDevelopmentPath=${workspaceFolder}",
                 "--extensionTestsPath=${workspaceFolder}/out/test/Index.js",
                 // Set your tests' workspace path here. It can be any existing directory.
-                // If it's a .code-workspace with multiple directories, the first one is used.
-                "/Users/tim/codewind-vscode-testworkspace",
+                "/Users/tim/codewind-vscode-testworkspace"
             ],
             "outFiles": [
                 "${workspaceFolder}/out/test/**/*.js"
             ],
             "env": {
-                "CW_ENV": "test",
+                "CW_ENV": "test"
             },
             "preLaunchTask": "ts-watch"
         }
