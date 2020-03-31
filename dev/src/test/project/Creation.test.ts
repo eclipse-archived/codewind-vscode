@@ -22,7 +22,6 @@ import { CWTemplateData } from "../../codewind/Types";
 
 import { connection } from "../local/LocalStart.test";
 
-export const JAVA_DEBUG_EXT_ID = "vscjava.vscode-java-debug";
 export let testProjects: Project[];
 
 describe(`Project creation`, async function() {
@@ -54,14 +53,14 @@ describe(`Project creation`, async function() {
         templatesToTest = TestConfig.getTemplatesToTest(allEnabledTemplates);
         expect(templatesToTest, `No templates to test were configured`).to.have.length.greaterThan(0);
 
-        Log.t(`Testing the following templates`, templatesToTest.map((template) => `${template.label}`).join(", "));
+        Log.t(`Testing the following templates:`, templatesToTest.map((template) => `${template.label}`).join(", "));
     });
 
     // it would be great to have one test per project type instead of one test for all the project types
     it(`should create test projects`, async function() {
         // Long timeout because this will block subsequent tests if it fails
-        this.timeout(TestUtil.ms(60, "sec"));
-        this.slow(TestUtil.ms(30, "sec"));
+        this.timeout(TestUtil.ms(5, "min"));
+        this.slow(TestUtil.ms(2, "min"));
 
         const nowStr = Date.now().toString();
         const timestamp = nowStr.substring(nowStr.length - 4);
@@ -72,24 +71,17 @@ describe(`Project creation`, async function() {
             const projectName = `test-${simplerLabel}-${timestamp}`;
             let creationErr;
             try {
+                Log.t(`Creating project ${projectName}`);
                 await createProject(connection, template, parentDir, projectName);
                 // it seems to cause download errors if you create projects too quickly, so add a short delay
-                await new Promise((resolve) => setTimeout(resolve, 50));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             }
             catch (err) {
+                Log.e(`Error creating test project ${projectName}`, err);
                 creationErr = err;
             }
             creationResults.push({ projectName, creationErr });
         }
-
-        creationResults.forEach((result) => {
-            if (result.creationErr) {
-                Log.e(`Test error creating project ${result.projectName}`, result.creationErr);
-            }
-            else {
-                Log.t(`Creating project ${result.projectName}`);
-            }
-        });
 
         const testProjectCreationPromises = creationResults.map((creationResult) => {
             if (creationResult.creationErr != null) {
@@ -120,10 +112,6 @@ describe(`Project creation`, async function() {
             return TestUtil.waitForStarted(this, testProject);
         });
 
-        // since we've now created the projects, this is also a good time to activate the java extension if we have a java project.
-        // it should be much faster than any initial project build
-        awaitingStartPromises.push(activateJavaExtension());
-
         await Promise.all(awaitingStartPromises);
         Log.t(`${testProjects.length} test projects started successfully`);
     });
@@ -135,16 +123,4 @@ async function getProjectsParentDir(): Promise<vscode.Uri | undefined> {
         return undefined;
     }
     return wsFolders[0].uri;
-}
-
-/**
- * The java debug tests depend on the java extension being installed and active.
- * We
- */
-async function activateJavaExtension(): Promise<void> {
-    const javaExt = vscode.extensions.getExtension(JAVA_DEBUG_EXT_ID);
-    expect(javaExt, `Java extension is not installed - Java debug tests will fail!`).to.exist;
-    Log.t("Activating Java debug extension...");
-    await javaExt!.activate();
-    Log.t(`Finished activating Java debug extension`);
 }

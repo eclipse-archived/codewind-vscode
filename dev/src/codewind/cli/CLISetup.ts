@@ -195,6 +195,7 @@ namespace CLISetup {
 
     /**
      * The build site uses slightly different operating system names from this extension.
+     * @returns The OS the cwctl build site uses.
      */
     function getCwctlOS(): "win" | "macos" | "linux" {
         const ourOS = MCUtil.getOS();
