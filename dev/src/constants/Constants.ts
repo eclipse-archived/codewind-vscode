@@ -21,7 +21,7 @@ namespace Constants {
      */
     export const CODEWIND_IMAGE_VERSION = CODEWIND_IMAGE_VERSION_DEV;
 
-    export const APPSODY_VERSION = "0.5.9";
+    export const APPSODY_VERSION = "0.6.0";
 
     export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
     export const DOT_CODEWIND_DIR = ".codewind";
