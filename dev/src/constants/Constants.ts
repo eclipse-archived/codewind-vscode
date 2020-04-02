@@ -19,7 +19,7 @@ namespace Constants {
      * The Codewind image version when starting local Codewind.
      * Change this on release branches to match the release, eg. "0.9.0"
      */
-    export const CODEWIND_IMAGE_VERSION = CODEWIND_IMAGE_VERSION_DEV;
+    export const CODEWIND_IMAGE_VERSION = "0.11.0";
 
     export const APPSODY_VERSION = "0.6.0";
 
