@@ -30,7 +30,7 @@ namespace CLISetup {
     /**
      * Eg ~/.codewind/0.9.0
      */
-    export const BINARIES_TARGET_DIR = path.join(DOT_CODEWIND_PATH, Constants.CODEWIND_IMAGE_VERSION);
+    export const BINARIES_TARGET_DIR = path.join(DOT_CODEWIND_PATH, Constants.getCodewindImageVersion());
 
     export const CWCTL_DOWNLOAD_NAME = "cwctl";
     const CWCTL_BASENAME = MCUtil.getOS() === "windows" ? "cwctl.exe" : "cwctl";
@@ -161,7 +161,7 @@ namespace CLISetup {
      * @returns The download site directory that contains the cwctl builds that this version of the extension should use.
      */
     function getCwctlDirectoryUrl(): string {
-        let cliBranch = Constants.CODEWIND_IMAGE_VERSION;
+        let cliBranch = Constants.getCodewindImageVersion();
         if (cliBranch === Constants.CODEWIND_IMAGE_VERSION_DEV) {
             cliBranch = "master";
         }

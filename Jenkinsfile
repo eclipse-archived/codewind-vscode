@@ -1,5 +1,8 @@
 #!groovy
 
+import groovy.json.JsonSlurper;
+import groovy.json.JsonOutput;
+
 def BUILD_CONTAINER = """
     image: node:10-jessie
     tty: true
@@ -63,6 +66,28 @@ spec:
     }
 
     stages {
+        stage("Set isReleaseVersion") {
+            // Set isReleaseVersion in package.json to determine the local Codewind image version pulled
+            // If this value is true, the image version is the extension version. Else, the image version is "latest" for development.
+            when {
+                equals expected: true, actual: isReleaseVersion
+            }
+
+            dir("dev") {
+                steps {
+                    def packageJson = new File("package.json");
+                    def packageContents = new JsonSlurper().parse(packageJson);
+
+                    def key = "isReleaseVersion";
+                    def value = true;
+                    packageContents[key] = true;
+
+                    packageJson.write(JsonOutput.prettyPrint(JsonOutput.toJson(packageContents)));
+                    println("Updated ${packageJson.getName()} to have ${key}=${value}");
+                }
+            }
+        }
+
         stage("Test") {
             when {
                 beforeAgent true

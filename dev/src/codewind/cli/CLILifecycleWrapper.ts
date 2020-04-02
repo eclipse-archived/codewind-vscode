@@ -360,7 +360,7 @@ export namespace CLILifecycleWrapper {
     }
 
     function getTag(): string {
-        let tag = Constants.CODEWIND_IMAGE_VERSION;
+        let tag = Constants.getCodewindImageVersion();
         const versionVarValue = process.env[Constants.CW_ENV_TAG_VAR];
         if (versionVarValue) {
             tag = versionVarValue;

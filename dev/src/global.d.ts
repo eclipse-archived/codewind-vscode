@@ -40,5 +40,11 @@ declare namespace NodeJS {
          * The running version of this extension, eg "0.7.0"
          */
         extVersion: string,
+
+        /**
+         * If this is a release version (production or pre-production) of the extension. This is set in package.json to false,
+         * but is overwritten by the Jenkins build on release branches.
+         */
+        isReleaseVersion: boolean,
     }
 }
