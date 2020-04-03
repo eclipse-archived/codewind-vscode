@@ -7,7 +7,10 @@
             "label": "delete-dist",
             "type": "shell",
             "command": "rm",
-            "args": [ "-rf", "dist/" ],
+            "args": [
+                "-rf",
+                "dist/"
+            ]
         },
         {
             "label": "ts-watch",
@@ -28,7 +31,7 @@
             },
             "group": "build",
             "runOptions": {
-                "instanceLimit": 1,
+                "instanceLimit": 1
             }
         },
         {
@@ -46,43 +49,53 @@
                 "revealProblems": "onProblem"
             },
             "runOptions": {
-                "instanceLimit": 1,
+                "instanceLimit": 1
             },
-            "problemMatcher": [{
-                "fileLocation": "relative",
-                "owner": "typescript",
-                "pattern": [{
-                        "regexp": "ERROR in (.*)\nModule not found: Error: (.*)",
-                        "file": 1,
-                        "message": 2
-                    },
-                    {
-                        "regexp": "WARNING in (.*) (\\d+):(\\d+).*\n(.*)",
-                        "file": 1,
-                        "line": 2,
-                        "column": 3,
-                        "message": 4
-                    },
-                    {
-                        "regexp": "\\[tsl\\] ERROR in (.*) \\((\\d+), (\\d+)\\)\n(.*)",
-                        "file": 1,
-                        "line": 2,
-                        "column": 3,
-                        "message": 4
-                    }
-                ],
-                "severity": "warning",
-                "source": "tslint",
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": {
-                        "regexp": "webpack is watching the files…"
-                    },
-                    "endsPattern": {
-                        "regexp": "### Webpack finished compiling!"
+            "problemMatcher": [
+                {
+                    "fileLocation": "relative",
+                    "owner": "typescript",
+                    "pattern": [
+                        {
+                            "regexp": "ERROR in (.*)\nModule not found: Error: (.*)",
+                            "file": 1,
+                            "message": 2
+                        },
+                        {
+                            "regexp": "WARNING in (.*) (\\d+):(\\d+).*\n(.*)",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "message": 4
+                        },
+                        {
+                            "regexp": "\\[tsl\\] ERROR in (.*) \\((\\d+), (\\d+)\\)\n(.*)",
+                            "file": 1,
+                            "line": 2,
+                            "column": 3,
+                            "message": 4
+                        }
+                    ],
+                    "severity": "warning",
+                    "source": "tslint",
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "webpack is watching the files…"
+                        },
+                        "endsPattern": {
+                            "regexp": "### Webpack finished compiling!"
+                        }
                     }
                 }
-            }]
+            ]
+        },
+        {
+            "type": "npm",
+            "script": "lint",
+            "problemMatcher": [
+                "$tslint5"
+            ]
         }
     ]
 }

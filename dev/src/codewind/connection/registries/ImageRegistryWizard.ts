@@ -307,7 +307,8 @@ namespace ImageRegistryWizard {
             .find(((addr) => addr === input));
 
         if (existing) {
-            return `You already have a registry at ${existing}. You can only have one login for a given registry at a time. Remove the existing registry to add a new one at the same address.`;
+            return `You already have a registry at ${existing}. You can only have one login for a given registry at a time. ` +
+                `Remove the existing registry to add a new one at the same address.`;
         }
 
         return undefined;

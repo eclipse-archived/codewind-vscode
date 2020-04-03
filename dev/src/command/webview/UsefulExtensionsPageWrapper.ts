@@ -41,7 +41,8 @@ export const USEFUL_EXTENSIONS: { [key: string]: UsefulExtension } = {
     },
     OPENAPI_TOOLS: {
         name: "Codewind OpenAPI Tools",
-        description: `Provides commands that invoke the OpenAPI Generator to create API clients, server stubs, and HTML documentation from OpenAPI Specifications.`,
+        description: `Provides commands that invoke the OpenAPI Generator to create API clients, ` +
+            `server stubs, and HTML documentation from OpenAPI Specifications.`,
         link: getVSCExtensionLink("IBM.codewind-openapi-tools"),
     },
     DOCKER: {
@@ -51,7 +52,8 @@ export const USEFUL_EXTENSIONS: { [key: string]: UsefulExtension } = {
     },
     KUBE: {
         name: "Visual Studio Code Kubernetes Tools",
-        description: `The extension for developers building applications to run in Kubernetes clusters and for DevOps staff troubleshooting Kubernetes applications.`,
+        description: `The extension for developers building applications to run in ` +
+            `Kubernetes clusters and for DevOps staff troubleshooting Kubernetes applications.`,
         link: getVSCExtensionLink("ms-kubernetes-tools.vscode-kubernetes-tools"),
     },
 };

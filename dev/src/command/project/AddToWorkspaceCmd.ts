@@ -30,7 +30,10 @@ export default async function addProjectToWorkspaceCmd(project: Project): Promis
         }
 
         const addAnywayBtn = "Add Anyway";
-        const res = await vscode.window.showInformationMessage(`${project.name} is already in your VS Code workspace under ${projectWsFolder.uri.fsPath}`, addAnywayBtn);
+        const res = await vscode.window.showInformationMessage(
+            `${project.name} is already in your VS Code workspace under ${projectWsFolder.uri.fsPath}`,
+            addAnywayBtn
+        );
 
         if (res !== addAnywayBtn) {
             return;
