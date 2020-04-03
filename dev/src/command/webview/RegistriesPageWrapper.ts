@@ -80,7 +80,9 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 const newPushRegistry = this.lookupRegistry(data.fullAddress);
                 if (newPushRegistry.isPushRegistry) {
                     // This is not ideal but once there is a push registry the only way to remove it is to select a new one
-                    vscode.window.showWarningMessage(`To stop using the current push registry ${newPushRegistry.fullAddress}, select a new push registry.`);
+                    vscode.window.showWarningMessage(
+                        `To stop using the current push registry ${newPushRegistry.fullAddress}, select a new push registry.`
+                    );
                     return;
                 }
 
