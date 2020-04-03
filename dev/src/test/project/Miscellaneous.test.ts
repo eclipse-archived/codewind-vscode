@@ -19,6 +19,7 @@ import Commands from "../../constants/Commands";
 
 import { testProjects } from "./Creation.test";
 import { LogTypes } from "../../codewind/project/logs/MCLogManager";
+import TestConfig from "../TestConfig";
 
 describe(`Project miscellaneous wrapper`, function() {
 
@@ -30,12 +31,16 @@ describe(`Project miscellaneous wrapper`, function() {
     // https://stackoverflow.com/a/54681623
     before(async function() {
         describe(`Project miscellaneous`, function() {
+
+            const buildTimeout =    TestConfig.isJenkins() ? TestUtil.ms(5, "min") : TestUtil.ms(2, "min");
+            const buildSlow =       TestConfig.isJenkins() ? TestUtil.ms(2, "min") : TestUtil.ms(1, "min");
+
             testProjects.forEach((project) => {
 
                 if (!project.type.isAppsody) {
                     it(`${project.name} should build manually`, async function() {
-                        this.timeout(TestUtil.ms(2, "min"));
-                        this.slow(TestUtil.ms(30, "sec"));
+                        this.timeout(buildTimeout);
+                        this.slow(buildSlow);
 
                         await vscode.commands.executeCommand(Commands.REQUEST_BUILD, project);
 
@@ -56,8 +61,8 @@ describe(`Project miscellaneous wrapper`, function() {
                 else {
                     // Appsody projects don't use the Building states.
                     it(`${project.name} should build manually (Appsody)`, async function() {
-                        this.timeout(TestUtil.ms(1, "min"));
-                        this.slow(TestUtil.ms(30, "sec"));
+                        this.timeout(buildTimeout);
+                        this.slow(buildSlow);
 
                         Log.t("Requesting an appsody build for " + project.name);
                         await vscode.commands.executeCommand(Commands.REQUEST_BUILD, project);
@@ -70,8 +75,8 @@ describe(`Project miscellaneous wrapper`, function() {
                 }
 
                 it(`${project.name} should re-start after the build`, async function() {
-                    this.timeout(TestUtil.ms(2, "min"));
-                    this.slow(TestUtil.ms(1, "min"));
+                    this.timeout(buildTimeout);
+                    this.slow(buildSlow);
                     await TestUtil.waitForStarted(this, project);
                 });
 
