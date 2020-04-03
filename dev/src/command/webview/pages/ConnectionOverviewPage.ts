@@ -54,7 +54,9 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                 <div>
                     <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
                     ${connectionExists ? `
-                        <input type="image" id="copy-url-btn" onclick="copyURL(event)" title="Copy URL" alt="Copy URL" src="${rp.getImage(ThemedImages.Copy)}"/>
+                        <input type="image" id="copy-url-btn" onclick="copyURL(event)" title="Copy URL" alt="Copy URL"
+                            src="${rp.getImage(ThemedImages.Copy)}"
+                        />
                         <div id="copy-url-btn-tooltip" style="display: none">Copied!</div>`
                         : ""
                     }
@@ -107,7 +109,9 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                 </h3>
                 <div class="box-content">
                     <p>A source contains templates for creating cloud-native projects. Select the template sources that you want to use.</p>
-                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>Open Template Source Manager</button>
+                    <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.SOURCES}");>
+                        Open Template Source Manager
+                    </button>
                 </div>
             </div>
             <div class="box link-container-box">
@@ -119,7 +123,9 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                     </div>
                 </h3>
                 <div class="box-content">
-                    <p class="registry-help-label">Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.</p>
+                    <p class="registry-help-label">
+                        Optional: Add registries to pull private project images, or add a push registry for Codewind style projects.
+                    </p>
                     <button type="button" class="btn" onclick=sendMsg("${ConnectionOverviewWVMessages.REGISTRY}")>Open Image Registry Manager</button>
                 </div>
             </div>
@@ -154,7 +160,8 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
 
             <!-- These two below are shown when editing, or when a new connection, so the display: none is reversed-->
 
-            <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}" onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
+            <button type="button" id="cancel-btn" class="btn ${connectionExists ? "btn-background" : "btn-red"}"
+                onclick="sendMsg('${ConnectionOverviewWVMessages.CANCEL}')"
                 style="display: ${connectionExists ? "none" : `${BTN_DISPLAY}`};"
             >
                 Cancel

@@ -172,7 +172,8 @@ async function showTemplateSourceQuickpick(connection: Connection): Promise<"sel
     await connection.templateSourcesList.toggleEnablement({ repos: repoEnablement });
 
     vscode.window.showInformationMessage(
-        `Set template source to ${selection.label}. The other sources have been disabled. You can change this setting at any time with the Template Source Manager command. `
+        `Set template source to ${selection.label}. The other sources have been disabled. ` +
+        `You can change this setting at any time with the Template Source Manager command. `
     );
     return "selected";
 }

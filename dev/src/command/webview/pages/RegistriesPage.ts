@@ -97,10 +97,13 @@ function buildTable(
     rp: WebviewResourceProvider, registries: ImageRegistry[], showPushRegistryColumns: boolean, isCWSourceEnabled: boolean): string {
 
     if (registries.length === 0) {
+        const registryRequiredMsg = showPushRegistryColumns && isCWSourceEnabled ?
+            "At least one image registry is required in order to build Codewind-style projects." : "";
+
         return `
             <h2 id="no-registries-msg">
                 You have not yet added any image registries. Click <a title="Add New" onclick="addNew()">Add New.</a> <br><br>
-                ${showPushRegistryColumns && isCWSourceEnabled ? "At least one image registry is required in order to build Codewind-style projects." : ""}
+                ${registryRequiredMsg}
             </h2>
         `;
     }
@@ -173,7 +176,8 @@ function buildRow(rp: WebviewResourceProvider, registry: ImageRegistry, needsPus
             />
         </td-->
         <td class="btn-cell">
-            <input type="image" ${WebviewUtil.ATTR_ID}="${registry.fullAddress}" alt="Delete ${registry.fullAddress}" title="Delete ${registry.fullAddress}"
+            <input type="image" ${WebviewUtil.ATTR_ID}="${registry.fullAddress}"
+                alt="Delete ${registry.fullAddress}" title="Delete ${registry.fullAddress}"
                 onclick="deleteRegistry(this)" class="btn" src="${rp.getImage(ThemedImages.Trash)}"
             />
         </td>

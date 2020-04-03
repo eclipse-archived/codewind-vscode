@@ -52,7 +52,8 @@ export default function getHomePage(
                     <div id="welcome-text">
                         <h2>Welcome</h2>
                         <p>
-                            Codewind simplifies and enhances development in containers by extending your IDE with features to write, debug, and deploy cloud-native applications.
+                            Codewind simplifies and enhances development in containers by extending your IDE
+                            with features to write, debug, and deploy cloud-native applications.
                             <br><br>
                             Locate the
                             <a title="Open the Codewind View" onclick="sendMsg('${HomePageWVMessages.OPEN_CODEWIND_VIEW}')" tabindex="0">
@@ -172,12 +173,18 @@ export default function getHomePage(
                     <div class="learn-card-header">
                         <a title="Useful Extensions" onclick="sendMsg('${HomePageWVMessages.OPEN_USEFUL_EXTENSIONS}')">
                             <h3>Useful Extensions</h3>
-                            <input type="image" title="Open Useful Extensions" alt="Open Useful Extensions" src="${rp.getImage(ThemedImages.Split_Horizontal)}"/>
+                            <input type="image"
+                                title="Open Useful Extensions"
+                                alt="Open Useful Extensions"
+                                src="${rp.getImage(ThemedImages.Split_Horizontal)}"
+                            />
                         </a>
                     </div>
                     <p>
-                        Access a list of useful extensions that work well with Codewind,
-                        such as the ${getUsefulExtensionA("NODE_PROFILER")}, ${getUsefulExtensionA("OPENAPI_TOOLS")} and ${getUsefulExtensionA("DOCKER")}.
+                        Access a list of useful extensions that work well with Codewind, such as the
+                        ${getUsefulExtensionA("NODE_PROFILER")},
+                        ${getUsefulExtensionA("OPENAPI_TOOLS")} and
+                        ${getUsefulExtensionA("DOCKER")}.
                     </p>
                 </div>
             </div>
