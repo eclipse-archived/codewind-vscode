@@ -17,8 +17,15 @@ cleanup() {
         rm -rf "$CODE_TESTS_WORKSPACE"
     fi
 
-    docker stop $(docker ps -q)
-    docker image rm -f $(docker images | grep "eclipse/codewind\|<none>" | awk '{ print $3 }')
+    running=$(docker ps -q)
+    if [[ -n $running ]]; then
+        docker stop $running
+    fi
+
+    images=$(docker images | grep "eclipse/codewind\|<none>" | awk '{ print $3 }')
+    if [[ -n $images ]]; then
+        docker image rm -f $images
+    fi
     docker network prune -f
     docker volume prune -f
     docker builder prune -a -f
@@ -85,11 +92,18 @@ set +e
 npm test
 result=$?
 
-if [[ result != 0 ]]; then
-    echo "========== Tests failed; PFE logs follow: =========="
-    docker logs $(docker ps | grep codewind-pfe | awk '{ print $1 }')
-    echo "========== End PFE logs =========="
+set +x
+if [[ result -ne 0 ]]; then
+    pfeContainer=$(docker ps | grep codewind-pfe | awk '{ print $1 }')
+    if [[ -n $pfeContainer ]]; then
+        echo "========== Tests failed; PFE logs follow: =========="
+        docker logs $pfeContainer
+        echo "========== End PFE logs =========="
+    else
+        echo "PFE container is not running"
+    fi
 fi
+set -x
 
 cleanup
 

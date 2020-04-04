@@ -22,6 +22,7 @@ import { testProjects } from "./Creation.test";
 import TestUtil from "../TestUtil";
 import ProjectType from "../../codewind/project/ProjectType";
 import ProjectState from "../../codewind/project/ProjectState";
+import TestConfig from "../TestConfig";
 
 describe(`Project auto-build wrapper`, function() {
 
@@ -39,8 +40,8 @@ describe(`Project auto-build wrapper`, function() {
                     return;
                 }
 
-                const abTimeout = TestUtil.ms(90, "sec");
-                const abSlow = TestUtil.ms(45, "sec");
+                const abTimeout = TestConfig.isJenkins() ? TestUtil.ms(5, "min") : TestUtil.ms(2, "min");
+                const abSlow = TestConfig.isJenkins() ? TestUtil.ms(2, "min") : TestUtil.ms(1, "min");
 
                 it(`${project.name} should disable auto-build`, async function() {
                     this.timeout(abTimeout);
