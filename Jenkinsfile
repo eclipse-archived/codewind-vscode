@@ -93,15 +93,11 @@ spec:
         stage("Duplicate code") {
             steps {
                 container(VSCODE_BUILDER) {
-                    dir ("..") {
-                        // The cloned directory will have a name like 'wind_codewind-vscode_master', and there will be another copy with '@tmp' at the end we should ignore
-                        sh '''#!/usr/bin/env bash
-                            shopt -s extglob
-                            export dir_name=$(echo *codewind-vscode_$GIT_BRANCH!(*tmp))
-                            echo "Duplicating $dir_name to codewind-che"
-                            cp -r "$dir_name" codewind-che
-                        '''
-                    }
+                    sh '''#!/usr/bin/env bash
+                        set -x
+                        cd ..
+                        cp -r "$OLDPWD" codewind-che
+                    '''
                 }
             }
         }
@@ -208,22 +204,13 @@ spec:
                 }
             }
         }
+    }
 
-        stage("Report") {
-            when {
-                beforeAgent true
-                triggeredBy 'TimerTrigger'
-            }
-
-            options {
-                skipDefaultCheckout()
-            }
-
-            steps {
-                mail to: 'jspitman@ca.ibm.com, timetchells@ibm.com',
-                subject: "${currentBuild.currentResult}: Nightly build result for ${currentBuild.fullProjectName}",
-                body: "${currentBuild.absoluteUrl}\n${currentBuild.getBuildCauses()[0].shortDescription} had status ${currentBuild.currentResult}"
-            }
+    post {
+        failure {
+            mail to: 'timetchells@ibm.com',
+                subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
+                body: "${currentBuild.absoluteUrl}\nHad status ${currentBuild.currentResult}"
         }
     }
 }
