@@ -733,7 +733,7 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public get canContainerShell(): boolean {
-        return !this.connection.isRemote; // && !!this.containerID;
+        return !global.IS_CHE; // && !!this.containerID;
     }
 
     /**
