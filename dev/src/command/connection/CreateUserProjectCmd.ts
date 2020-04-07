@@ -31,7 +31,7 @@ const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 export default async function createProjectCmd(connection: Connection): Promise<void> {
     if (!connection.isRemote) {
         // On initial project create, prompt the user to select a template source
-        const extState = global.extGlobalState as vscode.Memento;
+        const extState = global.EXT_GLOBAL_STATE as vscode.Memento;
         const hasSelectedSource = extState.get(HAS_SELECTED_SOURCE_KEY) as boolean;
         if (!hasSelectedSource) {
             try {
@@ -203,7 +203,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
     qp.title = getWizardTitle(connection);
     qp.ignoreFocusOut = true;
 
-    if (!global.isTheia) {
+    if (!global.IS_THEIA) {
         // Theia quickpicks misbehave if the quickpick is shown before populating the items
         // https://github.com/eclipse-theia/theia/issues/6221#issuecomment-533268856
         // In VS Code, the items are populated after showing, so we can show the quickpick sooner, which looks better.
@@ -230,7 +230,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
     qp.busy = false;
     qp.enabled = true;
 
-    if (global.isTheia) {
+    if (global.IS_THEIA) {
         // it wasn't shown above, so show it now
         qp.show();
     }
@@ -359,7 +359,7 @@ async function getParentDirectory(): Promise<vscode.Uri | undefined> {
     // if in che or alwaysCreateInWorkspace, then create in the one workspace folder.
 
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]
-        && (global.isChe || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
+        && (global.IS_CHE || CWConfigurations.ALWAYS_CREATE_IN_WORKSPACE.get())) {
 
         // if it is a single-root workspace, create the project under that root
         if (vscode.workspace.workspaceFolders.length === 1) {

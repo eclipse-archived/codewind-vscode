@@ -44,25 +44,27 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 async function activateInner(context: vscode.ExtensionContext): Promise<void> {
     process.on("unhandledRejection", (err) => Log.e("Unhandled promise rejection:", err));
 
-    // Initialize our globals
-    global.__extRoot = context.extensionPath;
-    // Declared as 'any' type, but will always be assigned globalState which is a vscode.Memento
-    global.extGlobalState = context.globalState;
-    global.isTheia = vscode.env.appName.toLowerCase().includes("theia");
-    global.isChe = !!process.env[Constants.CHE_WORKSPACEID_ENVVAR];
-
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");
 
-    try {
-        const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
-        global.extVersion = thisExtension.packageJSON.version;
-    }
-    catch (err) {
-        Log.e("Error determining extension version", err);
-        global.extVersion = "unknown";
-    }
-    Log.i("Extension version is " + global.extVersion);
+    // Initialize our globals
+    global.EXTENSION_ROOT = context.extensionPath;
+    // Declared as 'any' type, but will always be assigned globalState which is a vscode.Memento
+    global.EXT_GLOBAL_STATE = context.globalState;
+    global.IS_THEIA = vscode.env.appName.toLowerCase().includes("theia");
+    global.IS_CHE = !!process.env[Constants.CHE_WORKSPACEID_ENVVAR]
+
+    const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
+    global.EXT_VERSION = thisExtension.packageJSON.version;
+    global.CODEWIND_IMAGE_TAG = thisExtension.packageJSON.codewindImageVersion;
+    global.APPSODY_VERSION = thisExtension.packageJSON.appsodyVersion;
+
+    Log.i(`Node version is ${process.version}`);
+    Log.i(`Extension version is ${global.EXT_VERSION}`);
+    Log.i(`Codewind image version is ${global.CODEWIND_IMAGE_TAG}`);
+    Log.i(`Appsody version is ${global.APPSODY_VERSION}`);
+    Log.i(`Running in Theia ? ${global.IS_THEIA}`);
+    Log.i(`Running in Che ? ${global.IS_CHE}`);
 
     try {
         await Translator.init();
@@ -96,7 +98,7 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
         }
     });
 
-    if (!global.isChe && CWConfigurations.SHOW_HOMEPAGE.get()) {
+    if (!global.IS_CHE && CWConfigurations.SHOW_HOMEPAGE.get()) {
         showHomePageCmd();
     }
 

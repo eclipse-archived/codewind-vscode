@@ -26,11 +26,8 @@ import MCUtil from "../../MCUtil";
 import Requester from "../Requester";
 
 namespace CLISetup {
-    const DOT_CODEWIND_PATH = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR);
-    /**
-     * Eg ~/.codewind/0.9.0
-     */
-    export const BINARIES_TARGET_DIR = path.join(DOT_CODEWIND_PATH, Constants.CODEWIND_IMAGE_VERSION);
+
+    export const DOT_CODEWIND_DIR = path.join(os.homedir(), ".codewind");
 
     export const CWCTL_DOWNLOAD_NAME = "cwctl";
     const CWCTL_BASENAME = MCUtil.getOS() === "windows" ? "cwctl.exe" : "cwctl";
@@ -38,8 +35,38 @@ namespace CLISetup {
     export const APPSODY_DOWNLOAD_NAME = "appsody";
     const APPSODY_BASENAME = MCUtil.getOS() === "windows" ? "appsody.exe" : "appsody";
 
-    export const CWCTL_FINAL_PATH = path.join(BINARIES_TARGET_DIR, CWCTL_BASENAME);
-    export const APPSODY_FINAL_PATH = path.join(BINARIES_TARGET_DIR, APPSODY_BASENAME);
+    let binariesTargetDir: string | undefined;
+    /**
+     * Eg ~/.codewind/0.9.0
+     */
+    export function getBinariesTargetDir(): string {
+        if (!binariesTargetDir) {
+            binariesTargetDir = path.join(DOT_CODEWIND_DIR, global.CODEWIND_IMAGE_TAG)
+        }
+        return binariesTargetDir;
+    }
+
+    let cwctlPath: string | undefined;
+    /**
+     * The absolute path to the cwctl executable after it's set up, eg ~/.codewind/0.9.0/cwctl
+     */
+    export function getCwctlPath(): string {
+        if (!cwctlPath) {
+            cwctlPath = path.join(getBinariesTargetDir(), CWCTL_BASENAME);
+        }
+        return cwctlPath
+    }
+
+    let appsodyPath: string | undefined;
+    /**
+     * The absolute path to the appsody executable after it's set up, eg ~/.codewind/0.9.0/appsody
+     */
+    export function getAppsodyPath(): string {
+        if (!appsodyPath) {
+            appsodyPath = path.join(DOT_CODEWIND_DIR, APPSODY_BASENAME);
+        }
+        return appsodyPath;
+    }
 
     /**
      * Ensures that the BINARIES_TARGET_DIR exists.
@@ -49,17 +76,17 @@ namespace CLISetup {
         let existed = true;
 
         try {
-            await fs.access(DOT_CODEWIND_PATH);
+            await fs.ensureDir(DOT_CODEWIND_DIR);
         }
         catch (err) {
-            await fs.mkdir(DOT_CODEWIND_PATH);
-            Log.d(`Created ${DOT_CODEWIND_PATH}`);
+            await fs.mkdir(DOT_CODEWIND_DIR);
+            Log.d(`Created ${DOT_CODEWIND_DIR}`);
             existed = false;
         }
 
         try {
             if (existed) {
-                await fs.access(BINARIES_TARGET_DIR);
+                await fs.access(getBinariesTargetDir());
             }
         }
         catch (err) {
@@ -67,8 +94,8 @@ namespace CLISetup {
         }
         finally {
             if (!existed) {
-                await fs.mkdir(BINARIES_TARGET_DIR);
-                Log.d(`Created ${BINARIES_TARGET_DIR}`);
+                await fs.ensureDir(getBinariesTargetDir());
+                Log.d(`Created ${getBinariesTargetDir()}`);
             }
         }
 
@@ -80,14 +107,14 @@ namespace CLISetup {
      */
     export async function isCwctlSetup(): Promise<boolean> {
         try {
-            await fs.access(CWCTL_FINAL_PATH, fs.constants.X_OK);
+            await fs.access(getCwctlPath(), fs.constants.X_OK);
         }
         catch (err) {
-            Log.d(`${CWCTL_FINAL_PATH} was not found or not executable`);
+            Log.d(`${getCwctlPath()} was not found or not executable`);
             return false;
         }
 
-        Log.d(`${CWCTL_FINAL_PATH} exists and is executable`);
+        Log.d(`${getCwctlPath()} exists and is executable`);
 
         if (!!process.env[Constants.ENV_CWCTL_DEVMODE]) {
             Log.i(`cwctl devmode is enabled; skipping sha check`);
@@ -102,7 +129,7 @@ namespace CLISetup {
         if (expectedHash !== actualHash) {
             Log.i(`Latest CLI hash ${expectedHash} did not match CLI on disk ${actualHash}; an update is required.`);
             // Delete the invalid executable
-            await fs.unlink(CWCTL_FINAL_PATH);
+            await fs.unlink(getCwctlPath());
             return false;
         }
 
@@ -115,14 +142,14 @@ namespace CLISetup {
      */
     export async function isAppsodySetup(): Promise<boolean> {
         try {
-            await fs.access(APPSODY_FINAL_PATH, fs.constants.X_OK);
+            await fs.access(getAppsodyPath(), fs.constants.X_OK);
         }
         catch (err) {
-            Log.d(`${APPSODY_FINAL_PATH} was not found or not executable`);
+            Log.d(`${getAppsodyPath()} was not found or not executable`);
             return false;
         }
 
-        Log.d(`${APPSODY_FINAL_PATH} exists and is executable`);
+        Log.d(`${getAppsodyPath()} exists and is executable`);
 
         if (!!process.env[Constants.ENV_APPSODY_DEVMODE]) {
             Log.i(`appsody devmode is enabled; skipping version check`);
@@ -131,10 +158,10 @@ namespace CLISetup {
 
         let versionOutput;
         try {
-            versionOutput = await execFileAsync(APPSODY_FINAL_PATH, [ "version" ]);
+            versionOutput = await execFileAsync(getAppsodyPath(), [ "version" ]);
         }
         catch (err) {
-            Log.w(`Unexpected error running "${APPSODY_FINAL_PATH} version"`, err);
+            Log.w(`Unexpected error running "${getAppsodyPath()} version"`, err);
             return false;
         }
 
@@ -144,15 +171,15 @@ namespace CLISetup {
 
         // The output is eg "appsody 0.5.9"
         const currentVersion = versionOutput.stdout.trim().split(" ")[1];
-        const isCorrectVersion = currentVersion === Constants.APPSODY_VERSION;
+        const isCorrectVersion = currentVersion === global.APPSODY_VERSION;
 
         if (isCorrectVersion) {
-            Log.i(`Appsody binary is the correct version`);
+            Log.i(`Appsody binary is the correct version ${currentVersion}`);
         }
         else {
-            Log.i(`Appsody version "${currentVersion}" doesn't match expected "${Constants.APPSODY_VERSION}"`);
+            Log.i(`Appsody version "${currentVersion}" doesn't match expected "${global.APPSODY_VERSION}"`);
             // Delete the invalid executable
-            await fs.unlink(APPSODY_FINAL_PATH);
+            await fs.unlink(getAppsodyPath());
         }
         return isCorrectVersion;
     }
@@ -161,7 +188,7 @@ namespace CLISetup {
      * @returns The download site directory that contains the cwctl builds that this version of the extension should use.
      */
     function getCwctlDirectoryUrl(): string {
-        let cliBranch = Constants.CODEWIND_IMAGE_VERSION;
+        let cliBranch = global.CODEWIND_IMAGE_TAG;
         if (cliBranch === Constants.CODEWIND_IMAGE_VERSION_DEV) {
             cliBranch = "master";
         }
@@ -218,7 +245,7 @@ namespace CLISetup {
         const sha1 = crypto.createHash("sha1");
 
         return new Promise<string>((resolve, reject) => {
-            fs.createReadStream(CWCTL_FINAL_PATH)
+            fs.createReadStream(getCwctlPath())
             .on("error", (err) => {
                 reject(err);
             })
@@ -263,7 +290,7 @@ namespace CLISetup {
             title: `Downloading the Codewind CLI`,
         }, async (progress) => {
             const cwctlArchiveDownloadUrl = getCwctlArchiveDownloadUrl();
-            const cwctlArchiveTargetPath = path.join(BINARIES_TARGET_DIR, path.basename(cwctlArchiveDownloadUrl));
+            const cwctlArchiveTargetPath = path.join(getBinariesTargetDir(), path.basename(cwctlArchiveDownloadUrl));
 
             await Requester.httpWriteStreamToFile(cwctlArchiveDownloadUrl, cwctlArchiveTargetPath, {
                 destFileMode: EXECUTABLES_MODE,
@@ -273,7 +300,7 @@ namespace CLISetup {
 
             progress.report({ message: `Extracting ${cwctlArchiveTargetPath}`, increment: 5 });
 
-            const cwctlTargetDir = path.dirname(CWCTL_FINAL_PATH);
+            const cwctlTargetDir = path.dirname(getCwctlPath());
 
             const extracted = await MCUtil.extractTar(cwctlArchiveTargetPath, cwctlTargetDir);
             const extractCwctlFilename = extracted.find((file) => file.startsWith(CWCTL_DOWNLOAD_NAME));
@@ -285,9 +312,9 @@ namespace CLISetup {
             progress.report({ message: `Finishing up`, increment: 5 });
 
             await Promise.all([
-                fs.rename(extractCwctlPath, CWCTL_FINAL_PATH)
+                fs.rename(extractCwctlPath, getCwctlPath())
                 .then(() => {
-                    fs.chmod(CWCTL_FINAL_PATH, EXECUTABLES_MODE);
+                    fs.chmod(getCwctlPath(), EXECUTABLES_MODE);
                 }),
                 fs.unlink(cwctlArchiveTargetPath),
             ]);
@@ -295,7 +322,7 @@ namespace CLISetup {
 
         Log.i("Finished cwctl setup");
 
-        return CWCTL_FINAL_PATH;
+        return getCwctlPath();
     }
 
     /**
@@ -308,7 +335,7 @@ namespace CLISetup {
 
         // eg https://github.com/appsody/appsody/releases/download/0.5.9/appsody-0.5.9-darwin-amd64.tar.gz
         return `https://github.com/appsody/appsody/releases/download/` +
-            `${Constants.APPSODY_VERSION}/${APPSODY_DOWNLOAD_NAME}-${Constants.APPSODY_VERSION}-${appsodyOS}.tar.gz`;
+            `${global.APPSODY_VERSION}/${APPSODY_DOWNLOAD_NAME}-${global.APPSODY_VERSION}-${appsodyOS}.tar.gz`;
     }
 
     /**
@@ -323,7 +350,7 @@ namespace CLISetup {
             title: `Downloading the Appsody CLI`,
         }, async (progress) => {
             const appsodyDownloadUrl = getAppsodyDownloadUrl();
-            const appsodyArchiveFile = path.join(BINARIES_TARGET_DIR, path.basename(appsodyDownloadUrl));
+            const appsodyArchiveFile = path.join(getBinariesTargetDir(), path.basename(appsodyDownloadUrl));
 
             await Requester.httpWriteStreamToFile(appsodyDownloadUrl, appsodyArchiveFile, {
                 destFileMode: EXECUTABLES_MODE,
@@ -331,28 +358,26 @@ namespace CLISetup {
                 progressEndPercent: 90,
             });
 
-            Log.i(`Extracting ${appsodyArchiveFile}`);
-
             progress.report({ message: `Extracting ${appsodyArchiveFile}`, increment: 5 });
 
-            await MCUtil.extractTar(appsodyArchiveFile, path.dirname(APPSODY_FINAL_PATH), [ APPSODY_BASENAME ]);
+            await MCUtil.extractTar(appsodyArchiveFile, path.dirname(getAppsodyPath()), [ APPSODY_BASENAME ]);
 
             progress.report({ message: `Finishing up`, increment: 5 });
 
             await Promise.all([
-                fs.chmod(APPSODY_FINAL_PATH, EXECUTABLES_MODE),
+                fs.chmod(getAppsodyPath(), EXECUTABLES_MODE),
                 fs.unlink(appsodyArchiveFile),
             ]);
         });
 
         Log.d(`Finished appsody setup`);
 
-        return APPSODY_FINAL_PATH;
+        return getAppsodyPath();
     }
 
     export async function lsBinariesTargetDir(): Promise<void> {
-        const files = await fs.readdir(BINARIES_TARGET_DIR);
-        Log.d(`Contents of ${BINARIES_TARGET_DIR}: ${files.join(" ")}`);
+        const files = await fs.readdir(getBinariesTargetDir());
+        Log.d(`Contents of ${getBinariesTargetDir()}: ${files.join(" ")}`);
     }
 }
 

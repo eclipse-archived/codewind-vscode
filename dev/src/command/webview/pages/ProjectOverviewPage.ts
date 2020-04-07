@@ -63,7 +63,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             ${buildRow(rp, "Type", project.type.toString())}
             ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
             ${buildRow(rp, "Project ID", project.id)}
-            ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: global.isChe ? undefined : "folder"})}
+            ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: global.IS_CHE ? undefined : "folder"})}
         </table>
     </div>
     <div class="section">
@@ -264,7 +264,7 @@ function buildContainerPodSection(rp: WebviewResourceProvider, project: Project)
 }
 
 function buildDebugSection(rp: WebviewResourceProvider, project: Project): string {
-    if (global.isChe) {
+    if (global.IS_CHE) {
         return `
             </table>
         `;

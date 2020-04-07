@@ -15,16 +15,7 @@ namespace Constants {
      */
     export const CODEWIND_IMAGE_VERSION_DEV = "latest";
 
-    /**
-     * The Codewind image version when starting local Codewind.
-     * Change this on release branches to match the release, eg. "0.9.0"
-     */
-    export const CODEWIND_IMAGE_VERSION = CODEWIND_IMAGE_VERSION_DEV;
-
-    export const APPSODY_VERSION = "0.6.0";
-
     export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
-    export const DOT_CODEWIND_DIR = ".codewind";
 
     export const CHE_WORKSPACEID_ENVVAR = "CHE_WORKSPACE_ID";
     export const CHE_API_EXTERNAL_ENVVAR = "CHE_API_EXTERNAL";

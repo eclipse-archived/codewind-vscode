@@ -29,7 +29,7 @@ export default async function connectLocalCodewindCmd(
     Log.i("Start Local Codewind Cmd");
 
     try {
-        if (global.isChe) {
+        if (global.IS_CHE) {
             await LocalCodewindManager.instance.waitForCodewindToStartChe();
             return;
         }

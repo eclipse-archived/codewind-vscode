@@ -33,8 +33,15 @@ suites = suites.map((suite) => path.join(__dirname, "suites", suite) + ".suite.j
 
 export async function run(): Promise<void> {
 
-    // delete the binaries so the tests have to test the pull each time
-    await fs.remove(CLISetup.BINARIES_TARGET_DIR);
+    if (TestConfig.isJenkins()) {
+        // delete all the binary dirs so the tests have to test the pull each time
+        const binaryDirs = (await fs.readdir(CLISetup.DOT_CODEWIND_DIR)).filter((dirname) => dirname === "latest" || /\d+\.\d+\.\d+/.test(dirname));
+        await Promise.all(binaryDirs.map((dir) => {
+            const fullPath = path.join(CLISetup.DOT_CODEWIND_DIR, dir);
+            Log.t(`Deleting ${fullPath} before starting tests`)
+            return fs.remove(fullPath);
+        }));
+    }
 
     const options: Mocha.MochaOptions = {
         ui: "bdd",

@@ -28,7 +28,7 @@ interface IconPaths {
 }
 
 export function getBaseResourcesPath(): string {
-    return path.join(global.__extRoot, RES_FOLDER_NAME);
+    return path.join(global.EXTENSION_ROOT, RES_FOLDER_NAME);
 }
 
 function getBaseImagePath(): string {

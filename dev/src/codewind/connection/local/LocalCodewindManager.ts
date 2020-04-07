@@ -130,7 +130,7 @@ export default class LocalCodewindManager {
      * Check if the local Codewind URL has changed due to a command-line restart, and recreate the local connection if it has changed.
      */
     public async refresh(): Promise<boolean> {
-        if (global.isChe) {
+        if (global.IS_CHE) {
             return false;
         }
 

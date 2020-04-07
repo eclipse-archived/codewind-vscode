@@ -1,5 +1,23 @@
 #!groovy
 
+def emailPostBuild() {
+    def defaultRecipents = "timetchells@ibm.com";
+
+    def recipent = env.CHANGE_AUTHOR_EMAIL != null ? env.CHANGE_AUTHOR_EMAIL : defaultRecipents;
+
+    emailext(
+        to: defaultRecipents,
+        subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
+        body: """
+            ${currentBuild.absoluteUrl}\n
+            ${currentBuild.currentResult}\n\n
+
+            ${env.CHANGE_URL}\n
+            ${env.CHANGE_TITLE}\n
+        """
+    );
+}
+
 def BUILD_CONTAINER = """
     image: node:10-jessie
     tty: true
@@ -25,13 +43,14 @@ echo "Is release branch build ? ${IS_RELEASE_BRANCH}"
 def CRON_STRING = ""
 // https://jenkins.io/doc/book/pipeline/syntax/#cron-syntax
 if (IS_MASTER_BRANCH || IS_RELEASE_BRANCH) {
-    // Build daily between 2300-2359
-    CRON_STRING = "H 23 * * *"
+    // Build daily between 0600-0659
+    CRON_STRING = "H 6 * * *"
 }
 
 def VSCODE_BUILDER = "vscode-builder"
 def CHE_BUILDER = "che-builder"
 
+def STASH_PJ = "release-package-json"
 def STASH_VSCODE = "vscode-vsix"
 def STASH_CHE = "che-vsix"
 
@@ -63,6 +82,42 @@ spec:
     }
 
     stages {
+        stage("Set Codewind version") {
+            when {
+                equals expected: true, actual: IS_RELEASE_BRANCH
+            }
+
+            steps {
+                container(VSCODE_BUILDER) {
+                    dir("dev") {
+                        println "Release branch detected; updating Codewind image version"
+                        sh '''#!/usr/bin/env node
+                            const fs = require("fs");
+                            const { promisify } = require("util");
+
+                            const PJ = "package.json";
+
+                            (async function() {
+                                const packageJsonStr = await promisify(fs.readFile)(PJ);
+                                const packageJson = JSON.parse(packageJsonStr);
+                                const codewindImageVersion = packageJson.version;
+
+                                packageJson.codewindImageVersion = codewindImageVersion;
+
+                                await promisify(fs.writeFile)(PJ, JSON.stringify(packageJson, undefined, 4));
+
+                                console.log(`Updated ${PJ} to have codewindImageVersion=${codewindImageVersion}`);
+                            })().catch((err) => {
+                                console.error(err);
+                                process.exit(1);
+                            });
+                        '''
+                        stash includes: "package.json", name: STASH_PJ
+                    }
+                }
+            }
+        }
+
         stage("Test") {
             when {
                 beforeAgent true
@@ -81,6 +136,16 @@ spec:
             }
 
             steps {
+                script {
+                    if (IS_RELEASE_BRANCH) {
+                        unstash STASH_PJ
+
+                        sh '''#!/usr/bin/env bash
+                            echo "Unstashed release package.json"
+                            mv -v package.json dev/
+                        '''
+                    }
+                }
                 sh '''#!/usr/bin/env bash
                     echo "Git commit is: $(git log --format=medium -1 ${GIT_COMMIT})"
                     ./ci-scripts/run-tests.sh
@@ -208,9 +273,7 @@ spec:
 
     post {
         failure {
-            mail to: 'timetchells@ibm.com',
-                subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
-                body: "${currentBuild.absoluteUrl}\nHad status ${currentBuild.currentResult}"
+            emailPostBuild()
         }
     }
 }

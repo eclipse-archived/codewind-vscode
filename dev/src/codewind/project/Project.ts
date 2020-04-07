@@ -159,7 +159,7 @@ export default class Project implements vscode.QuickPickItem {
         this.initPromise = Promise.all([
             this.updateCapabilities(),
             // skip the debug config step in Che
-            global.isChe ? Promise.resolve() : this.updateDebugConfig(),
+            global.IS_CHE ? Promise.resolve() : this.updateDebugConfig(),
         ])
         .then(() => Promise.resolve());
 

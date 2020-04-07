@@ -65,7 +65,7 @@ namespace WebviewUtil {
         // These should be loaded first so they can be overridden
         stylesheets.unshift("common.css");
 
-        if (global.isTheia || !!process.env[ENVVAR_WEBVIEW_DEBUG_DIR]) {
+        if (global.IS_THEIA || !!process.env[ENVVAR_WEBVIEW_DEBUG_DIR]) {
             stylesheets.unshift("theia.css");
         }
 
@@ -85,7 +85,7 @@ namespace WebviewUtil {
     }
 
     function getCSP(): string {
-        if (global.isTheia || MCUtil.isDevEnv()) {
+        if (global.IS_THEIA || MCUtil.isDevEnv()) {
             return "";
         }
         return `
@@ -102,7 +102,7 @@ namespace WebviewUtil {
 
     export function buildTitleSection(rp: WebviewResourceProvider, title: string, connectionLabel: string, isRemoteConnection: boolean): string {
         // the subtitle is ommitted in Che since there is only one connection
-        const hasSubtitle = !global.isChe;
+        const hasSubtitle = !global.IS_CHE;
 
         return `<div class="title-section ${hasSubtitle ? "title-section-subtitled" : ""}">
             <div id="logo-container">

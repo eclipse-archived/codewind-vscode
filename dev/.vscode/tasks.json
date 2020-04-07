@@ -29,7 +29,10 @@
                 "showReuseMessage": true,
                 "clear": true
             },
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true,
+            },
             "runOptions": {
                 "instanceLimit": 1
             }
@@ -38,10 +41,7 @@
             "type": "npm",
             "script": "webpack-watch",
             "isBackground": true,
-            "group": {
-                "isDefault": true,
-                "kind": "build"
-            },
+            "group": "build",
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated",

@@ -113,7 +113,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         const ready = await this.requester.waitForReady(readyTimeoutS);
         if (!ready) {
             let troubleshootMsg: string = "To troubleshoot, you can ";
-            if (global.isChe) {
+            if (global.IS_CHE) {
                 troubleshootMsg += `check the Codewind Workspace pod logs and refresh Theia.`;
             }
             else if (this.isRemote) {
@@ -190,13 +190,13 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     private async initFileWatcher(): Promise<void> {
-        if (global.isChe) {
+        if (global.IS_CHE) {
             Log.i("In Che; no filewatcher required");
             return;
         }
 
         Log.i("Establishing file watcher");
-        const cliPath = CLISetup.CWCTL_FINAL_PATH;
+        const cliPath = CLISetup.getCwctlPath();
 
         this.fileWatcher = await this.createFileWatcher(cliPath);
 
@@ -209,7 +209,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     private getPFEHost(): string {
-        if (global.isChe) {
+        if (global.IS_CHE) {
             // On Che we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
             const cheExternalUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
@@ -368,7 +368,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
      * This is the case for remote connections, or the local connection in che.
      */
     public get isKubeConnection(): boolean {
-        return this.isRemote || global.isChe;
+        return this.isRemote || global.IS_CHE;
     }
 
     public async needsPushRegistry(): Promise<boolean> {
@@ -439,7 +439,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public get pfeBaseURL(): vscode.Uri {
-        if (!global.isChe) {
+        if (!global.IS_CHE) {
             return this.url;
         }
 
