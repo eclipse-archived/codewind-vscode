@@ -196,7 +196,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         }
 
         Log.i("Establishing file watcher");
-        const cliPath = CLISetup.CWCTL_FINAL_PATH;
+        const cliPath = CLISetup.getCwctlPath();
 
         this.fileWatcher = await this.createFileWatcher(cliPath);
 

@@ -40,5 +40,9 @@ declare namespace NodeJS {
          * The running version of this extension, eg "0.7.0"
          */
         extVersion: string,
+
+        CODEWIND_IMAGE_TAG: string,
+
+        APPSODY_VERSION: string,
     }
 }

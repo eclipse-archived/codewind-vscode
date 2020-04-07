@@ -19,7 +19,6 @@ import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
 import { CLILifecycleCommand } from "./CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
 import CLISetup from "./CLISetup";
-import Constants from "../../constants/Constants";
 
 const cliOutputChannel = vscode.window.createOutputChannel("Codewind");
 
@@ -56,7 +55,7 @@ namespace CLIWrapper {
         const downloadPromises: Promise<void>[] = [];
 
         if (isCwctlSetup) {
-            cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.CWCTL_FINAL_PATH}`);
+            cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.getCwctlPath()}`);
         }
         else {
             cliOutputChannel.appendLine(`Downloading cwctl from ${CLISetup.getCwctlArchiveDownloadUrl()}...`);
@@ -66,22 +65,22 @@ namespace CLIWrapper {
                     cliOutputChannel.appendLine(`cwctl is now available at ${cwctlPath}`);
                 })
                 .catch((err) => {
-                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlArchiveDownloadUrl(), CLISetup.CWCTL_FINAL_PATH);
+                    onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlArchiveDownloadUrl(), CLISetup.getCwctlPath());
                 })
             );
         }
 
         if (isAppsodySetup) {
-            cliOutputChannel.appendLine(`appsody ${Constants.APPSODY_VERSION} is available at ${CLISetup.APPSODY_FINAL_PATH}`);
+            cliOutputChannel.appendLine(`appsody ${global.APPSODY_VERSION} is available at ${CLISetup.getAppsodyPath()}`);
         }
         else {
-            cliOutputChannel.appendLine(`Downloading appsody ${Constants.APPSODY_VERSION} from ${CLISetup.getAppsodyDownloadUrl()}...`);
+            cliOutputChannel.appendLine(`Downloading appsody ${global.APPSODY_VERSION} from ${CLISetup.getAppsodyDownloadUrl()}...`);
             downloadPromises.push(CLISetup.downloadAppsody()
                 .then((appsodyPath) => {
-                    cliOutputChannel.appendLine(`appsody ${Constants.APPSODY_VERSION} is now available at ${appsodyPath}`);
+                    cliOutputChannel.appendLine(`appsody ${global.APPSODY_VERSION} is now available at ${appsodyPath}`);
                 })
                 .catch((err) => {
-                    onSetupFailed(err, CLISetup.APPSODY_DOWNLOAD_NAME, CLISetup.getAppsodyDownloadUrl(), CLISetup.APPSODY_FINAL_PATH);
+                    onSetupFailed(err, CLISetup.APPSODY_DOWNLOAD_NAME, CLISetup.getAppsodyDownloadUrl(), CLISetup.getAppsodyPath());
                 })
             );
         }
@@ -116,7 +115,7 @@ namespace CLIWrapper {
             throw new Error(CLI_CMD_CANCELLED);
         }
 
-        const cwctlPath = CLISetup.CWCTL_FINAL_PATH;
+        const cwctlPath = CLISetup.getCwctlPath();
 
         args = cmd.command.concat(args);
         if (!(cmd instanceof CLILifecycleCommand)) {

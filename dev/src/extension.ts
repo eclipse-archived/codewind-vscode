@@ -54,15 +54,15 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");
 
-    try {
-        const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
-        global.extVersion = thisExtension.packageJSON.version;
-    }
-    catch (err) {
-        Log.e("Error determining extension version", err);
-        global.extVersion = "unknown";
-    }
-    Log.i("Extension version is " + global.extVersion);
+    const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
+    global.extVersion = thisExtension.packageJSON.version;
+    global.CODEWIND_IMAGE_TAG = thisExtension.packageJSON.codewindImageVersion;
+    global.APPSODY_VERSION = thisExtension.packageJSON.appsodyVersion;
+
+    Log.i(`Node version is ${process.version}`);
+    Log.i(`Extension version is ${global.extVersion}`);
+    Log.i(`Codewind image version is ${global.CODEWIND_IMAGE_TAG}`);
+    Log.i(`Appsody version is ${global.APPSODY_VERSION}`);
 
     try {
         await Translator.init();
