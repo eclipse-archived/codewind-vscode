@@ -16,9 +16,9 @@ import * as path from "path";
 import * as fs from "fs-extra";
 
 import Log from "../Logger";
+import CLISetup from "../codewind/cli/CLISetup";
 
 import TestConfig from "./TestConfig";
-import Constants from "../constants/Constants";
 
 // See ./suites for suites we can put here.
 let suites: string[] = [];
@@ -35,13 +35,12 @@ export async function run(): Promise<void> {
 
     if (TestConfig.isJenkins()) {
         // delete all the binary dirs so the tests have to test the pull each time
-        (await fs.readdir(Constants.DOT_CODEWIND_DIR))
-            .filter((dirname) => dirname === "latest" || /\d+\.\d+\.\d+/.test(dirname))
-            .map((dir) => {
-                const fullPath = path.join(Constants.DOT_CODEWIND_DIR, dir);
-                Log.t(`Deleting ${fullPath} before starting tests`)
-                return fs.remove(fullPath);
-            });
+        const binaryDirs = (await fs.readdir(CLISetup.DOT_CODEWIND_DIR)).filter((dirname) => dirname === "latest" || /\d+\.\d+\.\d+/.test(dirname));
+        await Promise.all(binaryDirs.map((dir) => {
+            const fullPath = path.join(CLISetup.DOT_CODEWIND_DIR, dir);
+            Log.t(`Deleting ${fullPath} before starting tests`)
+            return fs.remove(fullPath);
+        }));
     }
 
     const options: Mocha.MochaOptions = {

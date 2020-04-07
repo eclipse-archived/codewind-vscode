@@ -16,7 +16,6 @@ namespace Constants {
     export const CODEWIND_IMAGE_VERSION_DEV = "latest";
 
     export const PROJ_SETTINGS_FILE_NAME = ".cw-settings";
-    export const DOT_CODEWIND_DIR = ".codewind";
 
     export const CHE_WORKSPACEID_ENVVAR = "CHE_WORKSPACE_ID";
     export const CHE_API_EXTERNAL_ENVVAR = "CHE_API_EXTERNAL";

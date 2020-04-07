@@ -26,7 +26,8 @@ import MCUtil from "../../MCUtil";
 import Requester from "../Requester";
 
 namespace CLISetup {
-    const DOT_CODEWIND_PATH = path.join(os.homedir(), Constants.DOT_CODEWIND_DIR);
+
+    export const DOT_CODEWIND_DIR = path.join(os.homedir(), ".codewind");
 
     export const CWCTL_DOWNLOAD_NAME = "cwctl";
     const CWCTL_BASENAME = MCUtil.getOS() === "windows" ? "cwctl.exe" : "cwctl";
@@ -40,7 +41,7 @@ namespace CLISetup {
      */
     export function getBinariesTargetDir(): string {
         if (!binariesTargetDir) {
-            binariesTargetDir = path.join(DOT_CODEWIND_PATH, global.CODEWIND_IMAGE_TAG)
+            binariesTargetDir = path.join(DOT_CODEWIND_DIR, global.CODEWIND_IMAGE_TAG)
         }
         return binariesTargetDir;
     }
@@ -62,7 +63,7 @@ namespace CLISetup {
      */
     export function getAppsodyPath(): string {
         if (!appsodyPath) {
-            appsodyPath = path.join(DOT_CODEWIND_PATH, APPSODY_BASENAME);
+            appsodyPath = path.join(DOT_CODEWIND_DIR, APPSODY_BASENAME);
         }
         return appsodyPath;
     }
@@ -75,11 +76,11 @@ namespace CLISetup {
         let existed = true;
 
         try {
-            await fs.ensureDir(DOT_CODEWIND_PATH);
+            await fs.ensureDir(DOT_CODEWIND_DIR);
         }
         catch (err) {
-            await fs.mkdir(DOT_CODEWIND_PATH);
-            Log.d(`Created ${DOT_CODEWIND_PATH}`);
+            await fs.mkdir(DOT_CODEWIND_DIR);
+            Log.d(`Created ${DOT_CODEWIND_DIR}`);
             existed = false;
         }
 
