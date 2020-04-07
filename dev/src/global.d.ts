@@ -20,26 +20,26 @@ declare namespace NodeJS {
         // Hold the path to the plugin's root folder,
         // so files don't each have to write their own logic to locate it using relative paths.
         // This is the folder which contains /src and /res, for example.
-        __extRoot: string,
+        EXTENSION_ROOT: string,
 
         /**
          * If true, the extension is running in Theia, else it is running in VS Code.
          */
-        isTheia: boolean,
+        IS_THEIA: boolean,
         /**
          * If true, the extension is running in Theia in Che.
          */
-        isChe: boolean,
+        IS_CHE: boolean,
 
         // For some reason, importing anything at the top of this file causes all the properties declared here to not work anymore.
         // So, we use 'any' for extGlobalState - but it's a vscode.Memento.
         // extGlobalState: vscode.Memento
-        extGlobalState: any,
+        EXT_GLOBAL_STATE: any,
 
         /**
          * The running version of this extension, eg "0.7.0"
          */
-        extVersion: string,
+        EXT_VERSION: string,
 
         CODEWIND_IMAGE_TAG: string,
 

@@ -59,7 +59,7 @@ export async function removeProject(project: Project, deleteFiles: boolean | und
         }
         else {
             // Ask user if they want to delete the files on disk too.
-            const cancelBtn = global.isTheia ? "Close" : "Cancel";
+            const cancelBtn = global.IS_THEIA ? "Close" : "Cancel";
 
             const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", {
                 projectName: project.name,

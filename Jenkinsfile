@@ -90,6 +90,7 @@ spec:
             steps {
                 container(VSCODE_BUILDER) {
                     dir("dev") {
+                        println "Release branch detected; updating Codewind image version"
                         sh '''#!/usr/bin/env node
                             const fs = require("fs");
                             const { promisify } = require("util");

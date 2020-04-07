@@ -34,7 +34,7 @@ namespace TreeItemFactory {
         const cwStarted = LocalCodewindManager.instance.isStarted;
 
         let label = "Local";
-        if (global.isChe) {
+        if (global.IS_CHE) {
             // it's confusing to say "local" in Che
             label = "Projects";
         }

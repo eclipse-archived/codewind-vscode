@@ -36,7 +36,7 @@ interface ManageRegistriesMsgData {
 
 function getTitle(connection: Connection): string {
     let title = "Image Registry Manager";
-    if (!global.isChe) {
+    if (!global.IS_CHE) {
         title += ` (${connection.label})`;
     }
     return title;

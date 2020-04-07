@@ -94,14 +94,14 @@ export abstract class WebviewWrapper {
                 }
 
                 const fsUri = useDarkThemeImage ? image.paths.dark : image.paths.light;
-                if (global.isTheia) {
+                if (global.IS_THEIA) {
                     return VSC_RESOURCE_SCHEME + fsUri.fsPath;
                 }
                 return this.webPanel.webview.asWebviewUri(fsUri).toString();
             },
             getStylesheet: (filename: string): string => {
                 const fsUri = WebviewUtil.getCssPath(filename);
-                if (global.isTheia) {
+                if (global.IS_THEIA) {
                     return VSC_RESOURCE_SCHEME + fsUri.fsPath;
                 }
                 return this.webPanel.webview.asWebviewUri(fsUri).toString();

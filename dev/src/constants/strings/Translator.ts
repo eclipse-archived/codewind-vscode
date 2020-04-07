@@ -41,7 +41,7 @@ namespace Translator {
      * Must call this before calling t
      */
     export async function init(): Promise<TFunction> {
-        const defaultStringsFile = path.resolve(global.__extRoot, "translations", "en.json");
+        const defaultStringsFile = path.resolve(global.EXTENSION_ROOT, "translations", "en.json");
         const defaultStringsFileContents = await fs.readFile(defaultStringsFile);
         const defaultStrings: {
             [key: string]: string;
