@@ -15,6 +15,7 @@ import Project from "../../codewind/project/Project";
 import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Log from "../../Logger";
+import MCUtil from "../../MCUtil";
 
 export default async function containerShellCmd(project: Project): Promise<void> {
     // true for pod (remote), false for container (local)
@@ -28,12 +29,6 @@ export default async function containerShellCmd(project: Project): Promise<void>
         vscode.window.showWarningMessage(msg);
         return;
     }
-    else if (usePod && !project.connection.namespace) {
-        const noNamespaceMsg = `Cannot open container shell for ${project.name}: No namespace set for ${project.connection}`;
-        Log.e(noNamespaceMsg);
-        vscode.window.showErrorMessage(noNamespaceMsg);
-        return;
-    }
 
     // exec bash if it's installed, else exec sh
     // prefix the path with extra slash to work around https://github.com/eclipse/codewind/issues/823 (no effect on unix-like)
@@ -45,8 +40,21 @@ export default async function containerShellCmd(project: Project): Promise<void>
 
     let textToSendToTerminal;
     if (usePod) {
-        const namespaceArg = `-n ${project.connection.namespace}`;
-        textToSendToTerminal = `kubectl exec ${namespaceArg} -it ${podOrContainerID} -- ${inContainerExec}`;
+        const command = await MCUtil.getKubeClient();
+        if (command == null) {
+            Log.i(`Container shell failed to find kube client`);
+            // getKubeclient will show the error message
+            return;
+        }
+
+        if (usePod && !project.connection.namespace) {
+            const noNamespaceMsg = `Cannot open container shell for ${project.name}: No namespace set for ${project.connection}`;
+            Log.e(noNamespaceMsg);
+            vscode.window.showErrorMessage(noNamespaceMsg);
+            return;
+        }
+
+        textToSendToTerminal = `${command} exec -n ${project.connection.namespace} -it ${podOrContainerID} -- ${inContainerExec}`;
     }
     else {
         textToSendToTerminal = `docker exec -it ${podOrContainerID} ${inContainerExec}`

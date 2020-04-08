@@ -14,6 +14,7 @@ import * as fs from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as tar from "tar";
+import commandExists from "command-exists";
 
 import Log from "./Logger";
 import Constants from "./constants/Constants";
@@ -341,6 +342,40 @@ namespace MCUtil {
 
     export async function delay(ms: number): Promise<void> {
         await new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    const KUBE_CLIENTS: string[] = [
+        "kubectl", "oc",
+    ];
+
+    let kubeClient: string | undefined;
+
+    export async function getKubeClient(): Promise<string | undefined> {
+        if (kubeClient) {
+            return kubeClient;
+        }
+
+        for (const client of KUBE_CLIENTS) {
+            let exists = false;
+            try {
+                await commandExists(client);
+                exists = true;
+            }
+            catch (err) {
+                /* it doesn't exist */
+            }
+
+            if (exists) {
+                kubeClient = client;
+                return client;
+            }
+        }
+
+        Log.w(`No kubernetes client found, options were ${KUBE_CLIENTS.join(", ")}`);
+        const errMsg = `No Kubernetes command-line client was found. ` +
+            `Please install the Kubernetes CLI (kubectl) or OpenShift CLI (oc) to use this feature.`;
+        vscode.window.showErrorMessage(errMsg);
+        return undefined;
     }
 }
 

@@ -56,6 +56,7 @@
     "devDependencies": {
         "@types/chai": "^4.2.11",
         "@types/circular-json": "^0.4.0",
+        "@types/command-exists": "^1.2.0",
         "@types/fs-extra": "^8.1.0",
         "@types/got": "^9.6.9",
         "@types/mocha": "^7.0.2",
@@ -77,6 +78,7 @@
     "dependencies": {
         "circular-json": "^0.5.9",
         "codewind-filewatcher": "https://download.eclipse.org/codewind/codewind-filewatcher-ts/v0.11.0/2/filewatcherd-node_0.11.0.tar.gz",
+        "command-exists": "^1.2.8",
         "fs-extra": "^9.0.0",
         "got": "^10.6.0",
         "i18next": "^19.3.3",
