@@ -14,7 +14,7 @@ import { expect } from "chai";
 import { connection } from "../local/LocalStart.test";
 import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 
-describe(`Image registries`, function() {
+describe.skip(`Image registries`, function() {
 
     before(`should use the precreated connection`, function() {
         expect(connection, `The connection does not exist`).to.exist;

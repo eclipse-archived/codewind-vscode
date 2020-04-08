@@ -97,6 +97,25 @@ describe(`Project miscellaneous wrapper`, function() {
 
                     Log.t(`${project.name} has ${project.logManager.logs.length} log files`);
                 });
+
+                it(`${project.name} should be able to open a container shell`, async function() {
+                    this.timeout(TestUtil.ms(1, "min"));
+                    this.slow(TestUtil.ms(30, "sec"));
+
+                    // close open terminals
+                    vscode.window.terminals.forEach((terminal) => terminal.dispose());
+
+                    await vscode.commands.executeCommand(Commands.CONTAINER_SHELL, project);
+                    Log.t(`Waiting before testing container shell terminal...`)
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                    const activeTerminal = vscode.window.activeTerminal;
+
+                    expect(activeTerminal, `No active terminal was found`).to.exist;
+                    Log.t(`Active terminal is ${activeTerminal?.name}`)
+                    expect(activeTerminal?.name, `Active terminal name didn't include project name`).to.include(project.name);
+
+                    activeTerminal?.dispose();
+                });
             });
         });
     });

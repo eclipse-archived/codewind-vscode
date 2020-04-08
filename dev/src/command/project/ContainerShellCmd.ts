@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2018, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -14,57 +14,54 @@ import * as vscode from "vscode";
 import Project from "../../codewind/project/Project";
 import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
+import Log from "../../Logger";
+import MCUtil from "../../MCUtil";
 
 export default async function containerShellCmd(project: Project): Promise<void> {
-    const containerID = project.containerID;
-    if (!containerID) {
-        vscode.window.showWarningMessage(Translator.t(StringNamespaces.CMD_MISC, "noContainerForShell", { projectName: project.name }));
+    // true for pod (remote), false for container (local)
+    const usePod = project.connection.isRemote;
+    const podOrContainerID = usePod ? project.podName : project.containerID;
+
+    if (!podOrContainerID) {
+        const podOrContainer = usePod ? "pod" : "container";
+        const msg = Translator.t(StringNamespaces.CMD_MISC, "noContainerForShell", { projectName: project.name, podOrContainer });
+        Log.i(msg)
+        vscode.window.showWarningMessage(msg);
         return;
     }
 
     // exec bash if it's installed, else exec sh
-    const toExec = `sh -c "if type bash > /dev/null; then bash; else sh; fi"`;      // non-nls
+    // prefix the path with extra slash to work around https://github.com/eclipse/codewind/issues/823 (no effect on unix-like)
+    const inContainerExec = `//usr/bin/env sh -c "if type bash > /dev/null; then bash; else sh; fi"`;      // non-nls
 
     const options: vscode.TerminalOptions = {
         name: `${project.name} shell`,        // non-nls
     };
 
-    const term: vscode.Terminal = vscode.window.createTerminal(options);
-    // prefix with extra slash to work around https://github.com/eclipse/codewind/issues/823 (no effect on unix-like)
-    term.sendText(`docker exec -it ${containerID} //usr/bin/env ${toExec}`);     // non-nls
-    term.show();
-}
-
-
-/*
-async function getExistingTerminals(name: string): Promise<vscode.Terminal[] | undefined> {
-    //const matchingTerms: vscode.Terminal[] = vscode.window.terminals.filter( (term) => term.name === name);
-    return vscode.window.terminals.filter( (term) => term.name === name);
-}*/
-
-/*
-// The format required for environment variables to be passed a vscode terminal
-interface TerminalEnv {
-    [key: string]: string | null;
-}*/
-
-/**
- * Convert a NodeJS.ProcessEnv to the slightly different format VSCode requires -
- * This actually only consists of replacing 'undefined' values with 'null'.
- */
-/*
-function convertNodeEnvToTerminalEnv(nodeEnv: NodeJS.ProcessEnv): TerminalEnv {
-    // Create an empty object, then loop over the key/values of the NodeEnv.
-    // If the value is not undefined, set the new k/v into the new object.
-    // if it is undefined, set key=null into the new object. Then return that reconstructed object.
-
-    return Object.keys(nodeEnv).reduce( (result: TerminalEnv, key): {} => {
-        let value: string | null = nodeEnv[key] || null;
-        if (value === undefined) {
-            // Replace 'undefined' with 'null' because that is what TerminalOptions requires
-            value = null;
+    let textToSendToTerminal;
+    if (usePod) {
+        const command = await MCUtil.getKubeClient();
+        if (command == null) {
+            Log.i(`Container shell failed to find kube client`);
+            // getKubeclient will show the error message
+            return;
         }
-        result[key] = value;
-        return result;
-    }, {});
-}*/
+
+        if (usePod && !project.connection.namespace) {
+            const noNamespaceMsg = `Cannot open container shell for ${project.name}: No namespace set for ${project.connection}`;
+            Log.e(noNamespaceMsg);
+            vscode.window.showErrorMessage(noNamespaceMsg);
+            return;
+        }
+
+        textToSendToTerminal = `${command} exec -n ${project.connection.namespace} -it ${podOrContainerID} -- ${inContainerExec}`;
+    }
+    else {
+        textToSendToTerminal = `docker exec -it ${podOrContainerID} ${inContainerExec}`
+    }
+
+    const term: vscode.Terminal = vscode.window.createTerminal(options);
+    term.sendText(textToSendToTerminal, true);     // non-nls
+    term.show();
+    Log.d(`Showing container shell for ${project.name}`);
+}

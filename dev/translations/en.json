@@ -12,7 +12,7 @@
     "connectFailed": "Connecting to Codewind at {{- uri }} failed.",
 
     "command": {
-        "noContainerForShell": "{{ projectName }} does not have an application container running. Wait until the project is Running.",
+        "noContainerForShell": "{{ projectName }} does not have an application {{ podOrContainer }} running. Wait until the project is Running.",
         "alreadyInCodewindWorkspace": "The Codewind workspace is already your workspace root.",
         "confirmDeleteProjectMsg": "Are you sure you want to remove {{ projectName }} from {{ connectionLabel }}?",
         "confirmDeleteBtn": "Remove Project",
