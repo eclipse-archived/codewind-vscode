@@ -9,11 +9,11 @@ def emailPostBuild() {
         to: defaultRecipents,
         subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
         body: """
-            ${currentBuild.absoluteUrl}\n
-            ${currentBuild.currentResult}\n\n
+            ${currentBuild.currentResult}: <a href="${currentBuild.absoluteUrl}">${currentBuild.absoluteUrl}</a>
+            <br><br>
 
-            ${env.CHANGE_URL}\n
-            ${env.CHANGE_TITLE}\n
+            ${env.CHANGE_URL} - ${env.CHANGE_TITLE}
+            <br>
         """
     );
 }
@@ -128,7 +128,6 @@ spec:
 
             options {
                 timeout(time: 1, unit: "HOURS")
-                retry(3)
             }
 
             agent {

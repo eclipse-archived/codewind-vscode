@@ -135,13 +135,12 @@ describe(`Template sources`, function() {
         expect(appsodyTemplates).to.have.length.of.at.least(NO_APPSODY_STACKS);
     });
 
-    const TEST_SOURCE_URL = "https://raw.githubusercontent.com/tetchel/codewind-templates/master/devfiles/index2.json";
+    const TEST_SOURCE_URL = "https://raw.githubusercontent.com/tetchel/codewind-templates/master/devfiles/index-test.json";
     const TEST_SOURCE_NAME = "Test Source";
     const TEST_SOURCE_DESCR = "It is a template source for the tests to use";
     const TEST_SOURCE_NO_TEMPLATES = 8;
 
-    // skip due to https://github.com/eclipse/codewind/issues/2472
-    it.skip(`should add a new template source`, async function() {
+    it(`should add a new template source`, async function() {
         this.timeout(SOURCES_TIMEOUT);
         this.slow(SOURCES_SLOW);
 
@@ -164,8 +163,7 @@ describe(`Template sources`, function() {
             .to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
     });
 
-    // skip due to https://github.com/eclipse/codewind/issues/2472
-    it.skip(`should remove the new template source`, async function() {
+    it(`should remove the new template source`, async function() {
         this.timeout(SOURCES_TIMEOUT);
         this.slow(SOURCES_SLOW);
 
