@@ -92,19 +92,6 @@ set +e
 npm test
 result=$?
 
-set +x
-if [[ result -ne 0 ]]; then
-    pfeContainer=$(docker ps | grep codewind-pfe | awk '{ print $1 }')
-    if [[ -n $pfeContainer ]]; then
-        echo "========== Tests failed; PFE logs follow: =========="
-        docker logs $pfeContainer
-        echo "========== End PFE logs =========="
-    else
-        echo "PFE container is not running"
-    fi
-fi
-set -x
-
 cleanup
 
 cd -
