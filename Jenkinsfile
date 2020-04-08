@@ -1,5 +1,23 @@
 #!groovy
 
+def emailPostBuild() {
+    def defaultRecipents = "timetchells@ibm.com";
+
+    def recipent = env.CHANGE_AUTHOR_EMAIL != null ? env.CHANGE_AUTHOR_EMAIL : defaultRecipents;
+
+    emailext(
+        to: defaultRecipents,
+        subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
+        body: """
+            ${currentBuild.currentResult}: <a href="${currentBuild.absoluteUrl}">${currentBuild.absoluteUrl}</a>
+            <br><br>
+
+            ${env.CHANGE_URL} - ${env.CHANGE_TITLE}
+            <br>
+        """
+    );
+}
+
 def BUILD_CONTAINER = """
     image: node:10-jessie
     tty: true
@@ -73,7 +91,6 @@ spec:
 
             options {
                 timeout(time: 1, unit: "HOURS")
-                retry(3)
             }
 
             agent {
@@ -208,9 +225,7 @@ spec:
 
     post {
         failure {
-            mail to: 'timetchells@ibm.com',
-                subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
-                body: "${currentBuild.absoluteUrl}\nHad status ${currentBuild.currentResult}"
+           emailPostBuild()
         }
     }
 }
