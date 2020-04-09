@@ -21,5 +21,5 @@ import * as Miscellaneous from "../project/Miscellaneous.test";
 Miscellaneous;
 import * as Removal from "../project/Removal.test";
 Removal;
-// import * as LocalStopAndRemove from "../local/LocalStopAndRemove.test";
-// LocalStopAndRemove;
+import * as LocalStopAndRemove from "../local/LocalStopAndRemove.test";
+LocalStopAndRemove;
