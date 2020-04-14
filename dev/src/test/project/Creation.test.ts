@@ -102,9 +102,12 @@ describe(`Project creation`, async function() {
         expect(creationFailures, `The following projects failed to be created: ${failureNames}`).to.be.empty;
     });
 
+    const startTimeout = TestUtil.ms(TestConfig.isJenkins() ? 20 : 10, "min");
+    const startSlow = startTimeout / 2;
+
     it(`should have the projects build and start`, async function() {
-        this.timeout(TestUtil.ms(10, "min"));
-        this.slow(TestUtil.ms(5, "min"));
+        this.timeout(startTimeout);
+        this.slow(startSlow);
 
         expect(testProjects, `No test projects were created`).to.exist.and.have.length.greaterThan(0);
 
