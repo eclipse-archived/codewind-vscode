@@ -63,7 +63,7 @@ namespace CLISetup {
      */
     export function getAppsodyPath(): string {
         if (!appsodyPath) {
-            appsodyPath = path.join(DOT_CODEWIND_DIR, APPSODY_BASENAME);
+            appsodyPath = path.join(getBinariesTargetDir(), APPSODY_BASENAME);
         }
         return appsodyPath;
     }
