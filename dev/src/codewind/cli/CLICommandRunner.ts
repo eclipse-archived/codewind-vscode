@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v20.html
  *
  * Contributors:
- *     IBM Corporation - initial API and implementationgd
+ *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
 import CLIWrapper from "./CLIWrapper";
