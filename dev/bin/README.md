@@ -1,6 +1,6 @@
 ### `cli-pull.sh`
 
-Downloads `cwctl` from [https://archive.eclipse.org/codewind/codewind-installer](https://archive.eclipse.org/codewind/codewind-installer/).
+Downloads `cwctl` from [https://download.eclipse.org/codewind/codewind-installer](https://download.eclipse.org/codewind/codewind-installer/).
 By default, the CLI version is the latest available from master.
 You may override the branch with `CW_CLI_BRANCH` in the env.
 The download will be skipped if the version on disk matches.
