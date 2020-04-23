@@ -50,7 +50,6 @@ class CWConfiguration<T> {
     }
 }
 
-// tslint:disable-next-line: variable-name
 export const CWConfigurations = {
     SHOW_HOMEPAGE:                  new CWConfiguration("showHomePage", true, vscode.ConfigurationTarget.Global),
     AUTO_SHOW_VIEW:                 new CWConfiguration("autoShowView", true, vscode.ConfigurationTarget.Global),

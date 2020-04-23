@@ -42,7 +42,6 @@ export class CLILifecycleCommand extends CLICommand {
     }
 }
 
-// tslint:disable-next-line: variable-name
 export const CLILifecycleCommands = {
     INSTALL:
         new CLILifecycleCommand([ "install" ], `Pulling Codewind ${TAG_PLACEHOLDER} Docker images`, true, {

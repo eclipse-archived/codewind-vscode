@@ -21,7 +21,6 @@ class CWDoc {
     }
 }
 
-// tslint:disable-next-line: variable-name
 export const CWDocs = {
     HOME:                   new CWDoc(""),
     TEMPLATE_MANAGEMENT:    new CWDoc("workingwithtemplates.html"),
