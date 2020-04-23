@@ -192,7 +192,7 @@ namespace CLISetup {
         if (cliBranch === Constants.CODEWIND_IMAGE_VERSION_DEV) {
             cliBranch = "master";
         }
-        return `https://archive.eclipse.org/codewind/codewind-installer/${cliBranch}/latest/`;
+        return `https://download.eclipse.org/codewind/codewind-installer/${cliBranch}/latest/`;
     }
 
     /**
@@ -272,7 +272,7 @@ namespace CLISetup {
      * @returns The url to the cwctl targz file download.
      */
     export function getCwctlArchiveDownloadUrl(): string {
-        // eg http://archive.eclipse.org/codewind/codewind-installer/master/latest/zips/cwctl-win.exe.tar.gz
+        // eg http://download.eclipse.org/codewind/codewind-installer/master/latest/zips/cwctl-win.exe.tar.gz
         return getCwctlDirectoryUrl() + "zips/" + getCwctlDownloadBinaryName() + ".tar.gz";
     }
 

@@ -97,7 +97,7 @@ is_cli_upgrade_available () {
     fi
 }
 
-download_dir_url="https://archive.eclipse.org/codewind/codewind-installer/${cli_branch}/latest"
+download_dir_url="https://download.eclipse.org/codewind/codewind-installer/${cli_branch}/latest"
 get_cli () {
     local platform=$1
     local filename="${cli_basename}-${platform}"
