@@ -53,6 +53,11 @@ describe(`Project removal wrapper`, function() {
                         label: `Waiting for ${projectPath} to be deleted`,
                         condition: async () => !(await fs.pathExists(projectPath)),
                     });
+
+                    await TestUtil.waitForCondition(this, {
+                        label: `Waiting for ${project.name} to be removed from the VS Code workspace`,
+                        condition: async () => !(project.workspaceFolder == null),
+                    });
                 });
             });
         });
