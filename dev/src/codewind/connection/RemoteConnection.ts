@@ -82,6 +82,12 @@ export default class RemoteConnection extends Connection {
             throw new Error(`Failed to connect to ${this.url}. Make sure the Codewind instance is running, and reachable from your machine.`);
         }
 
+        if ((await this.getAccessToken()) == null) {
+            this.setState(ConnectionStates.AUTH_ERROR);
+            throw new Error(`Authentication error. Make sure your credentials are correct, ` +
+                `and that "${this.username}" has access to this Codewind instance.`);
+        }
+
         try {
             await super.enable();
             if (!this._socket) {
