@@ -103,8 +103,8 @@ export class SourcesPageWrapper extends WebviewWrapper {
         }
         catch (err) {
             // If any of the enablements fail, the checkboxes will be out of sync with the backend state, so refresh the page to reset
-            await this.refresh();
         }
+        await this.refresh();
     }
 
     private async addNew(): Promise<void> {

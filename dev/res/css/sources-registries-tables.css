@@ -13,7 +13,7 @@ body {
     position: sticky;
     height: 3em;
 
-    padding-bottom: 1em;
+    margin-bottom: 1em;
 }
 
 #toolbar > * > .btn {
@@ -29,6 +29,38 @@ body {
 #add-btn {
     padding-left: 1em;
     padding-right: 1.5em;
+}
+
+/*
+#info-banner-container {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    min-height: 5em;
+
+    display: flex;
+    align-items: center;
+}
+*/
+
+#warning-banner {
+    background-color: #fc0b;
+    color: #222;
+
+    padding: 0.5em;
+    padding-left: 2em;
+    padding-right: 2em;
+    margin-bottom: 1em;
+
+    /* fill banner container horizontally */
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+}
+
+#warning-banner img {
+    padding-right: 1em;
+    height: 2.5em;
 }
 
 table {

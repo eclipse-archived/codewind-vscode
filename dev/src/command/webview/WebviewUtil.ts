@@ -197,7 +197,7 @@ namespace WebviewUtil {
         const htmlWithFileProto = html.replace(/vscode-resource:\/\/file\/\//g, "file://");
 
         try {
-            await fs.promises.writeFile(destFile, htmlWithFileProto);
+            await fs.writeFile(destFile, htmlWithFileProto);
             Log.d(`Wrote out debug webview to ${destFile}`);
         }
         catch (err) {
