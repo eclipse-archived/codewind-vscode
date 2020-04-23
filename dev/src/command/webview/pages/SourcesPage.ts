@@ -11,7 +11,7 @@
 
 // import * as vscode from "vscode";
 
-import { ThemedImages } from "../../../constants/CWImages";
+import { ThemedImages, ThemelessImages } from "../../../constants/CWImages";
 // import MCUtil from "../../MCUtil";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { ManageSourcesWVMessages } from "../SourcesPageWrapper";
@@ -48,6 +48,14 @@ export default function getManageSourcesPage(
             </div>
         </div>
     </div>
+
+    <!-- If there are no sources enabled, show a warning that you can't create projects -->
+    <!--div id="info-banner-container"-->
+        <div id="warning-banner" ${sources.some((source) => source.enabled) ? `style="display: none;"` : ""}>
+            <img src="${rp.getImage(ThemelessImages.Warning)}" alt="Warning"/>
+            No template sources are enabled. You must enable at least one template source before creating projects.
+        </div>
+    <!--/div-->
 
     ${buildTemplateTable(rp, sources)}
 

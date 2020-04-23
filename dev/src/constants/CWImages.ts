@@ -56,7 +56,13 @@ export class CWImage {
     private _paths: IconPaths | undefined;
 
     constructor(
+        /**
+         * true to look under dark/ and light/, false for themeless/
+         */
         private readonly themed: boolean,
+        /**
+         * Filename under one of the above theme folders. Assumes an SVG extension if not given.
+         */
         private readonly filename: string,
     ) {
         if (!path.extname(filename)) {
@@ -91,7 +97,6 @@ export class CWImage {
     }
 }
 
-// tslint:disable-next-line: variable-name
 export const ThemedImages = {
     Connection_Connected:       new CWImage(true, "connection_connected"),
     Connection_Disconnected:    new CWImage(true, "connection_disconnected"),
@@ -121,7 +126,6 @@ export const ThemedImages = {
     Warning:    new CWImage(true, "warning"),
 };
 
-// tslint:disable-next-line: variable-name
 export const ThemelessImages = {
     Logo:       new CWImage(false, "codewind"),
     Download:   new CWImage(false, "download"),
@@ -131,10 +135,10 @@ export const ThemelessImages = {
     ToggleOnThin:     new CWImage(false, "toggle_on_thin"),
     ToggleOffThin:    new CWImage(false, "toggle_off_thin"),
 
+    Warning: new CWImage(false, "warning"),
     Welcome_Screenshot: new CWImage(false, "welcome_screenshot.png"),
 };
 
-// tslint:disable-next-line: variable-name
 export const ProjectTypeImages = {
     Generic:        new CWImage(false, "project-types/generic"),
     Go:             new CWImage(false, "project-types/go"),
