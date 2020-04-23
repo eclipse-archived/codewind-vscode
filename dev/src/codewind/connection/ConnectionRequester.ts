@@ -15,7 +15,7 @@ import Log from "../../Logger";
 import Requester, { RequesterOptions, HttpMethod } from "../Requester";
 import Connection from "./Connection";
 import EndpointUtil, { CWEndpoints } from "../../constants/Endpoints";
-import { PFEProjectData, RawCWEnvData, CWTemplateData, SourceEnablement, PFELogLevels, PushRegistryResponse } from "../Types";
+import { PFEProjectData, RawCWEnvData, SourceEnablement, PFELogLevels, PushRegistryResponse } from "../Types";
 import { IProjectTypeDescriptor } from "../project/ProjectType";
 import ImageRegistry from "./registries/ImageRegistry";
 
@@ -59,14 +59,6 @@ export default class ConnectionRequester extends Requester {
 
     public async getRawEnvironment(): Promise<RawCWEnvData> {
         return this.doConnectionRequest<RawCWEnvData>(CWEndpoints.ENVIRONMENT, "GET", true);
-    }
-
-    public async getTemplates(): Promise<CWTemplateData[]> {
-        const result = await this.doConnectionRequest<CWTemplateData[]>(CWEndpoints.TEMPLATES, "GET", true, { query: { showEnabledOnly: true }});
-        if (result == null) {
-            return [];
-        }
-        return result;
     }
 
     /**

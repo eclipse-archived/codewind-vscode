@@ -215,13 +215,13 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
         templateQpis = await getTemplateQpis(connection);
     }
     catch (err) {
-        qp.hide();
+        qp.dispose();
         throw err;
     }
 
     if (templateQpis == null) {
         // getTemplateQpis will have shown the error message
-        qp.hide();
+        qp.dispose();
         return undefined;
     }
 
@@ -279,8 +279,7 @@ async function promptForTemplate(connection: Connection): Promise<CWTemplateData
 }
 
 async function getTemplateQpis(connection: Connection): Promise<(vscode.QuickPickItem & CWTemplateData)[] | undefined>  {
-    const templates = await connection.requester.getTemplates();
-    Log.d(`Finished GETing templates`);
+    const templates = await connection.enabledTemplates;
     // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
     const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
 
@@ -303,10 +302,10 @@ async function getTemplateQpis(connection: Connection): Promise<(vscode.QuickPic
     if (templateQpis.length === 0) {
         // The user has no repos or has disabled all repos
         const manageReposBtn = "Template Source Manager";
-        await vscode.window.showErrorMessage(
+        vscode.window.showErrorMessage(
             "You have no enabled template sources. You must enable at least one template source in order to create projects.",
-            manageReposBtn)
-        .then((res) => {
+            manageReposBtn
+        ).then((res) => {
             if (res === manageReposBtn) {
                 manageSourcesCmd(connection);
             }
