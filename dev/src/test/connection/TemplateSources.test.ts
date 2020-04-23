@@ -60,7 +60,7 @@ describe(`Template sources`, function() {
         // but now they are not enabled
         const enabledSources = await connection.templateSourcesList.getEnabled();
         expect(enabledSources).to.have.length(0);
-        const templates = await connection.requester.getTemplates();
+        const templates = await connection.enabledTemplates;
         // no sources -> no templates
         expect(templates).to.have.length(0);
     });
@@ -96,7 +96,7 @@ describe(`Template sources`, function() {
         expect(enabledStyles).to.not.contain(SourceProjectStyles.APPSODY);
 
         // Templates should have updated to include the codewind templates.
-        const templates = await connection.requester.getTemplates();
+        const templates = await connection.enabledTemplates;
         expect(templates).to.have.length.of.at.least(NO_CODEWIND_TEMPLATES);
         // Appsody templates should still be disabled.
         const appsodyTemplates = templates.filter((template) => template.projectType.includes("appsody"));
@@ -129,7 +129,7 @@ describe(`Template sources`, function() {
         expect(enabledStyles).to.contain(SourceProjectStyles.CODEWIND);
         expect(enabledStyles).to.contain(SourceProjectStyles.APPSODY);
 
-        const templates = await connection.requester.getTemplates();
+        const templates = await connection.enabledTemplates;
         expect(templates).to.have.length.of.at.least(NO_APPSODY_STACKS);
         const appsodyTemplates = templates.filter((template) => template.projectType.includes("appsody"));
         expect(appsodyTemplates).to.have.length.of.at.least(NO_APPSODY_STACKS);
@@ -146,7 +146,7 @@ describe(`Template sources`, function() {
         this.slow(SOURCES_SLOW);
 
         const oldSources = await connection.templateSourcesList.get();
-        const oldTemplates = await connection.requester.getTemplates();
+        const oldTemplates = await connection.enabledTemplates;
         Log.t(`Before adding a new template source, there are ${oldSources.length} sources and ${oldTemplates.length} templates`);
 
         await connection.templateSourcesList.add(TEST_SOURCE_URL, TEST_SOURCE_NAME, TEST_SOURCE_DESCR);
@@ -159,7 +159,7 @@ describe(`Template sources`, function() {
         expect(newSource.description).to.equal(TEST_SOURCE_DESCR);
         expect(newSource.protected).to.equal(false);
 
-        const newTemplates = await connection.requester.getTemplates();
+        const newTemplates = await connection.enabledTemplates;
         expect(newTemplates, `Number of templates was incorrect after source addition`)
             .to.have.length(oldTemplates.length + TEST_SOURCE_NO_TEMPLATES);
     });
@@ -170,13 +170,13 @@ describe(`Template sources`, function() {
         this.slow(SOURCES_SLOW);
 
         const oldSources = await connection.templateSourcesList.get();
-        const oldTemplates = await connection.requester.getTemplates();
+        const oldTemplates = await connection.enabledTemplates;
 
         await connection.templateSourcesList.remove(TEST_SOURCE_URL);
         const newSources = await connection.templateSourcesList.get();
         expect(newSources).to.have.length(oldSources.length - 1);
 
-        const newTemplates = await connection.requester.getTemplates();
+        const newTemplates = await connection.enabledTemplates;
         expect(newTemplates, `Number of templates was incorrect after source removal`)
             .to.have.length(oldTemplates.length - TEST_SOURCE_NO_TEMPLATES);
     });

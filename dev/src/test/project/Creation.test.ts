@@ -45,7 +45,7 @@ describe(`Project creation`, async function() {
     let templatesToTest: CWTemplateData[] = [];
 
     it(`should get the list of project templates to use`, async function() {
-        const allEnabledTemplates = await connection.requester.getTemplates();
+        const allEnabledTemplates = await connection.enabledTemplates;
         expect(allEnabledTemplates, `No templates are enabled`).to.have.length.greaterThan(0);
 
         // All the templates we are interested in should be available

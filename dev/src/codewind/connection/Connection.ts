@@ -26,8 +26,9 @@ import { SourcesPageWrapper } from "../../command/webview/SourcesPageWrapper";
 import { RegistriesPageWrapper } from "../../command/webview/RegistriesPageWrapper";
 import TemplateSourcesList from "./TemplateSourceList";
 import ConnectionRequester from "./ConnectionRequester";
-import { AccessToken } from "../Types";
+import { AccessToken, CWTemplateData } from "../Types";
 import CLISetup from "../cli/CLISetup";
+import { CLICommandRunner } from "../cli/CLICommandRunner";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -467,6 +468,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.codewindCheIngress = vscode.Uri.parse(`${cheApiUrl.scheme}://${codewindIngressAuthority}`);
         Log.i(`Codewind Ingress URL is ${this.codewindCheIngress}`);
         return this.codewindCheIngress;
+    }
+
+    public get enabledTemplates(): Promise<CWTemplateData[]> {
+        return CLICommandRunner.getTemplates(this.id);
     }
 
     ///// Webview management
