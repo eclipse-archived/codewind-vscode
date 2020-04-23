@@ -23,7 +23,6 @@ export class ConnectionState {
     }
 }
 
-// tslint:disable-next-line: variable-name
 export const ConnectionStates = {
     INITIALIZING:   new ConnectionState(false, true, "Connecting..."),
     READY:          new ConnectionState(true, true, "Ready"),
