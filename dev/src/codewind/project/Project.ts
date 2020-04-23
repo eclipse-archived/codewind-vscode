@@ -579,6 +579,11 @@ export default class Project implements vscode.QuickPickItem {
                 }
             });
         });
+
+        if (deleteFiles && this.workspaceFolder?.isExactMatch) {
+            Log.i(`${this.name} is a workspace folder; removing it`);
+            vscode.workspace.updateWorkspaceFolders(this.workspaceFolder.index, 1);
+        }
     }
 
     public async onDeletionEvent(event: SocketEvents.DeletionResult): Promise<void> {
