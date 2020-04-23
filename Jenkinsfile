@@ -5,14 +5,14 @@ def emailPostBuild() {
 
     def recipent = env.CHANGE_AUTHOR_EMAIL != null ? env.CHANGE_AUTHOR_EMAIL : defaultRecipents;
 
+    def change = env.CHANGE_URL != null ? "<br><br>${env.CHANGE_URL} - ${env.CHANGE_TITLE}" : "";
+
     emailext(
-        to: defaultRecipents,
+        to: recipent,
         subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
         body: """
             ${currentBuild.currentResult}: <a href="${currentBuild.absoluteUrl}">${currentBuild.absoluteUrl}</a>
-            <br><br>
-
-            ${env.CHANGE_URL} - ${env.CHANGE_TITLE}
+            ${change}
             <br>
         """
     );
