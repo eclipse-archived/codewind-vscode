@@ -121,7 +121,7 @@ namespace CLISetup {
             return true;
         }
 
-        const [expectedHash, actualHash]: string[] = await Promise.all([
+        const [ expectedHash, actualHash ]: string[] = await Promise.all([
             getLatestCwctlSha1(),
             getOnDiskCwctlSha1(),
         ]);
@@ -158,7 +158,7 @@ namespace CLISetup {
 
         let versionOutput;
         try {
-            versionOutput = await execFileAsync(getAppsodyPath(), ["version"]);
+            versionOutput = await execFileAsync(getAppsodyPath(), [ "version" ]);
         }
         catch (err) {
             Log.w(`Unexpected error running "${getAppsodyPath()} version"`, err);
@@ -246,16 +246,16 @@ namespace CLISetup {
 
         return new Promise<string>((resolve, reject) => {
             fs.createReadStream(getCwctlPath())
-                .on("error", (err) => {
-                    reject(err);
-                })
-                .on("data", (data) => {
-                    sha1.update(data);
-                })
-                .on("close", () => {
-                    const hash = sha1.digest("hex");
-                    resolve(hash.toString());
-                });
+            .on("error", (err) => {
+                reject(err);
+            })
+            .on("data", (data) => {
+                sha1.update(data);
+            })
+            .on("close", () => {
+                const hash = sha1.digest("hex");
+                resolve(hash.toString());
+            });
         });
     }
 
@@ -313,9 +313,9 @@ namespace CLISetup {
 
             await Promise.all([
                 fs.rename(extractCwctlPath, getCwctlPath())
-                    .then(() => {
-                        fs.chmod(getCwctlPath(), EXECUTABLES_MODE);
-                    }),
+                .then(() => {
+                    fs.chmod(getCwctlPath(), EXECUTABLES_MODE);
+                }),
                 fs.unlink(cwctlArchiveTargetPath),
             ]);
         });
@@ -360,7 +360,7 @@ namespace CLISetup {
 
             progress.report({ message: `Extracting ${appsodyArchiveFile}`, increment: 5 });
 
-            await MCUtil.extractTar(appsodyArchiveFile, path.dirname(getAppsodyPath()), [APPSODY_BASENAME]);
+            await MCUtil.extractTar(appsodyArchiveFile, path.dirname(getAppsodyPath()), [ APPSODY_BASENAME ]);
 
             progress.report({ message: `Finishing up`, increment: 5 });
 
