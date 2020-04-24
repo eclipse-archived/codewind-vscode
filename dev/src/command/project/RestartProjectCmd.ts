@@ -17,6 +17,7 @@ import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import ProjectCapabilities from "../../codewind/project/ProjectCapabilities";
 import MCUtil from "../../MCUtil";
+import ProjectState from "../../codewind/project/ProjectState";
 
 export default async function restartProjectCmd(project: Project, debug: boolean): Promise<boolean> {
     const capabilities = project.capabilities;
@@ -30,6 +31,15 @@ export default async function restartProjectCmd(project: Project, debug: boolean
         const alreadyRestartingMsg = Translator.t(StringNamespaces.PROJECT, "alreadyRestarting", { projectName: project.name });
         Log.i(alreadyRestartingMsg);
         vscode.window.showWarningMessage(alreadyRestartingMsg);
+        return false;
+    }
+
+    const restartableStates = ProjectState.getAppStateSet("started-starting");
+
+    if (!restartableStates.states.includes(project.state.appState)) {
+        Log.d(`Blocking restart because ${project.name} is not ${restartableStates.userLabel}`);
+        vscode.window.showWarningMessage(`Projects can only be restarted if they are starting or running. ` +
+            `Wait for ${project.name} to build and start.`);
         return false;
     }
 

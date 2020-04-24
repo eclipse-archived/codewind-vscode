@@ -212,7 +212,7 @@ export namespace CLILifecycleWrapper {
     }
 
     async function onWrongVersionInstalled(installedVersions: string[], requiredTag: string): Promise<void> {
-        const installedVersionsStr = MCUtil.joinWithAnd(installedVersions);
+        const installedVersionsStr = MCUtil.joinList(installedVersions, "and");
 
         const yesBtn = "OK";
         const resp = await vscode.window.showWarningMessage(
@@ -422,7 +422,7 @@ export namespace CLILifecycleWrapper {
         else if (upgradeResult.failed.length === 0) {
             Log.i(`Upgrade totally succeeded`);
             vscode.window.showInformationMessage(`Successfully migrated ${upgradeResult.migrated.length} projects: ` +
-                `${MCUtil.joinWithAnd(upgradeResult.migrated)}.`);
+                `${MCUtil.joinList(upgradeResult.migrated, "and")}.`);
         }
         else if (upgradeResult.migrated.length === 0) {
             Log.i(`Upgrade totally failed`);
@@ -431,8 +431,8 @@ export namespace CLILifecycleWrapper {
         }
         else {
             Log.i(`Upgrade partially succeeded`);
-            const projectsSucceeded = MCUtil.joinWithAnd(upgradeResult.migrated);
-            const projectsFailed = MCUtil.joinWithAnd(upgradeResult.failed.map((failed) => failed.projectName));
+            const projectsSucceeded = MCUtil.joinList(upgradeResult.migrated, "and");
+            const projectsFailed = MCUtil.joinList(upgradeResult.failed.map((failed) => failed.projectName), "and");
             CLIWrapper.showCLIError(`Successfully migrated ${projectsSucceeded}, but failed to migrate ${projectsFailed}. ` +
                 `Use the Add Existing project command to add the failed projects back to Codewind.`);
         }
