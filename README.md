@@ -49,7 +49,7 @@ For more information, see [Installing Codewind for VS Code](https://www.eclipse.
 Submit issues and contributions:
 - [Submitting issues](https://github.com/eclipse/codewind/issues)
 - [Contributing](CONTRIBUTING.md)
-- [Development Builds](https://download.eclipse.org/codewind/codewind-vscode/)
+- [Development Builds](https://archive.eclipse.org/codewind/codewind-vscode/)
 - [Jenkins](https://ci.eclipse.org/codewind/job/Codewind/job/codewind-vscode/)
 
 ## Developing

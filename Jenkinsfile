@@ -219,11 +219,11 @@ spec:
                     export REPO_NAME="codewind-vscode"
                     export OUTPUT_NAME="codewind"
                     export OUTPUT_CHE_NAME="codewind-che"
-                    export DOWNLOAD_AREA_URL="https://download.eclipse.org/codewind/$REPO_NAME"
+                    export DOWNLOAD_AREA_URL="https://archive.eclipse.org/codewind/$REPO_NAME"
                     export LATEST_DIR="latest"
                     export BUILD_INFO="build_info.properties"
                     export sshHost="genie.codewind@projects-storage.eclipse.org"
-                    export deployParentDir="/home/data/httpd/download.eclipse.org/codewind/$REPO_NAME"
+                    export deployParentDir="/home/data/httpd/archive.eclipse.org/codewind/$REPO_NAME"
                     export BACKUP_DIR=temp_backup
 
                     UPLOAD_DIR="$GIT_BRANCH/$BUILD_ID"
