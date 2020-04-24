@@ -71,52 +71,52 @@ export function createCommands(): vscode.Disposable[] {
         vscode.commands.registerCommand(Commands.SEPARATOR, () => { /**/ }),
 
         // For connection commands, make sure the connected-ness requirement matches the context enablement regex used in package.json
-        registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, undefined, false, true),
-        registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablementCmd, true, false, true),
-        registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, false, false, true),
-        registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, undefined, false, false),
+        registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, [], false, true),
+        registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablementCmd, [ true ], false, true),
+        registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, [ false ], false, true),
+        registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, [], false, false),
 
-        registerConnectionCommand(Commands.CREATE_PROJECT, createProjectCmd, undefined, true, false),
-        registerConnectionCommand(Commands.BIND_PROJECT, bindProjectCmd, undefined, true, false),
+        registerConnectionCommand(Commands.CREATE_PROJECT, createProjectCmd, [], true, false),
+        registerConnectionCommand(Commands.BIND_PROJECT, bindProjectCmd, [], true, false),
 
-        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, undefined, false, true),
-        registerConnectionCommand(Commands.MANAGE_TEMPLATE_SOURCES, manageSourcesCmd, undefined, true, false),
-        registerConnectionCommand(Commands.MANAGE_REGISTRIES, manageRegistriesCmd, undefined, true, false),
-        registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, undefined, true, false),
-        registerConnectionCommand(Commands.SET_LOG_LEVEL, setLogLevelCmd, undefined, true, false),
+        registerConnectionCommand(Commands.CONNECTION_OVERVIEW, connectionOverviewCmd, [], false, true),
+        registerConnectionCommand(Commands.MANAGE_TEMPLATE_SOURCES, manageSourcesCmd, [], true, false),
+        registerConnectionCommand(Commands.MANAGE_REGISTRIES, manageRegistriesCmd, [], true, false),
+        registerConnectionCommand(Commands.OPEN_TEKTON, openTektonDashboard, [], true, false),
+        registerConnectionCommand(Commands.SET_LOG_LEVEL, setLogLevelCmd, [], true, false),
 
-        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, undefined, ProjectState.getAllAppStates()),
-        registerProjectCommand(Commands.OPEN_APP, openAppCmd, undefined, ProjectState.getStartedOrStartingStates()),
-        registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, undefined, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.PROJECT_OVERVIEW, projectOverviewCmd, []),
+        registerProjectCommand(Commands.OPEN_APP, openAppCmd, [], ProjectState.getAppStateSet("started-starting")),
+        registerProjectCommand(Commands.CONTAINER_SHELL, containerShellCmd, [], ProjectState.getAppStateSet("started-starting")),
 
-        registerProjectCommand(Commands.ADD_PROJECT_TO_WS, addProjectToWorkspaceCmd, undefined, ProjectState.getAllAppStates()),
+        registerProjectCommand(Commands.ADD_PROJECT_TO_WS, addProjectToWorkspaceCmd, []),
 
-        registerProjectCommand(Commands.REQUEST_BUILD, requestBuildCmd, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.TOGGLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.REQUEST_BUILD, requestBuildCmd, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.TOGGLE_AUTOBUILD, toggleAutoBuildCmd, [], ProjectState.getAppStateSet("enabled")),
         // Enable and disable AB are the same as Toggle AB - they are just presented to the user differently.
-        registerProjectCommand(Commands.ENABLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.DISABLE_AUTOBUILD, toggleAutoBuildCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.ENABLE_AUTOBUILD, toggleAutoBuildCmd, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.DISABLE_AUTOBUILD, toggleAutoBuildCmd, [], ProjectState.getAppStateSet("enabled")),
 
-        registerProjectCommand(Commands.ATTACH_DEBUGGER, attachDebuggerCmd, undefined, ProjectState.getDebuggableStates()),
-        registerProjectCommand<boolean>(Commands.RESTART_RUN, restartProjectCmd, false, ProjectState.getStartedOrStartingStates()),
-        registerProjectCommand<boolean>(Commands.RESTART_DEBUG, restartProjectCmd, true, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.ATTACH_DEBUGGER, attachDebuggerCmd, [], ProjectState.getAppStateSet("debuggable")),
+        registerProjectCommand(Commands.RESTART_RUN, restartProjectCmd, [ false ], ProjectState.getAppStateSet("started-starting")),
+        registerProjectCommand(Commands.RESTART_DEBUG, restartProjectCmd, [ true ], ProjectState.getAppStateSet("started-starting")),
 
-        registerProjectCommand(Commands.MANAGE_LOGS, manageLogs, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.SHOW_ALL_LOGS, showAllLogs, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.HIDE_ALL_LOGS, hideAllLogs, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.MANAGE_LOGS, manageLogs, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.SHOW_ALL_LOGS, showAllLogs, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.HIDE_ALL_LOGS, hideAllLogs, [], ProjectState.getAppStateSet("enabled")),
 
-        registerProjectCommand(Commands.ENABLE_PROJECT, toggleEnablementCmd, undefined, [ ProjectState.AppStates.DISABLED ]),
-        registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, undefined, ProjectState.getAllAppStates()),
-        registerProjectCommand(Commands.CHANGE_PROJECT_CONNECTION, changeProjectConnectionCmd, undefined, ProjectState.getAllAppStates()),
+        registerProjectCommand(Commands.ENABLE_PROJECT, toggleEnablementCmd, [], ProjectState.getAppStateSet("disabled")),
+        registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, []),
+        registerProjectCommand(Commands.CHANGE_PROJECT_CONNECTION, changeProjectConnectionCmd, []),
 
-        registerProjectCommand(Commands.OPEN_APP_MONITOR, openMetricsDashboardCmd, undefined, ProjectState.getStartedOrStartingStates()),
-        registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, undefined, ProjectState.getStartedOrStartingStates()),
+        registerProjectCommand(Commands.OPEN_APP_MONITOR, openMetricsDashboardCmd, [], ProjectState.getAppStateSet("started-starting")),
+        registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, [], ProjectState.getAppStateSet("started-starting")),
 
-        registerProjectCommand(Commands.TOGGLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.TOGGLE_INJECT_METRICS, toggleInjectMetricsCmd, [], ProjectState.getAppStateSet("enabled")),
         // Enable and disable "Inject Metrics" are the same as Toggle "Inject Metrics" - they are just presented to the user differently.
-        registerProjectCommand(Commands.ENABLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
-        registerProjectCommand(Commands.DISABLE_INJECT_METRICS, toggleInjectMetricsCmd, undefined, ProjectState.getEnabledStates()),
+        registerProjectCommand(Commands.ENABLE_INJECT_METRICS, toggleInjectMetricsCmd, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.DISABLE_INJECT_METRICS, toggleInjectMetricsCmd, [], ProjectState.getAppStateSet("enabled")),
     ];
 }
 
@@ -132,9 +132,9 @@ export function createCommands(): vscode.Disposable[] {
  * @param acceptableStates - If the user runs the command through the command palette,
  *      the list of projects presented to choose from is filtered to projects in these states
  */
-function registerProjectCommand<T>(
-    id: string, executor: (project: Project, params: T) => void, params: T,
-    acceptableStates: ProjectState.AppStates[]): vscode.Disposable {
+function registerProjectCommand<P extends any[] = [ void ]>(
+    id: string, executor: (project: Project, ...params: P) => Promise<unknown>, params: P,
+    acceptableStates?: ProjectState.AppStateSet): vscode.Disposable {
 
     return vscode.commands.registerCommand(id, async (selection: Project | undefined) => {
         if (!selection) {
@@ -143,12 +143,13 @@ function registerProjectCommand<T>(
                 return;
             }
         }
+
         try {
-            executor(selection, params);
+            await executor(selection, ...params);
         }
         catch (err) {
             Log.e(`Unexpected error running command ${id}`, err);
-            vscode.window.showErrorMessage(`Error running command ${id}: on project ${selection.name} ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Error running command ${id} on project ${selection.name} ${MCUtil.errToString(err)}`);
         }
     });
 }
@@ -165,8 +166,8 @@ function registerProjectCommand<T>(
  * @param connectedOnly - If the user runs the command through the command palette,
  *      only currently connected connections will be presented as options
  */
-function registerConnectionCommand<T>(
-    id: string, executor: (connection: Connection, params: T) => void, params: T,
+function registerConnectionCommand<P extends any[] = [ void ]>(
+    id: string, executor: (connection: Connection, ...params: P) => Promise<unknown>, params: P,
     connectedOnly: boolean, remoteOnly: boolean): vscode.Disposable {
 
     // The selection can be a TreeItem if the command was run from the tree root's context menu,
@@ -183,12 +184,13 @@ function registerConnectionCommand<T>(
                 return;
             }
         }
+
         try {
-            executor(selection, params);
+            await executor(selection, ...params);
         }
         catch (err) {
             Log.e(`Unexpected error running command ${id}`, err);
-            vscode.window.showErrorMessage(`Error running command ${id}: on connection ${selection.url} ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Error running command ${id} on connection ${selection.url} ${MCUtil.errToString(err)}`);
         }
     });
 }
@@ -197,26 +199,19 @@ function registerConnectionCommand<T>(
  * If the user runs a Project command through the Command Palette, have them pick the project to run the cmd on
  * @param acceptableStates - If at least one state is passed, only projects in one of these states will be presented to the user.
  */
-async function promptForProject(acceptableStates: ProjectState.AppStates[]): Promise<Project | undefined> {
-    // for now, assume if they want Started, they also accept Debugging. This may change.
-    if (acceptableStates.includes(ProjectState.AppStates.STARTED) && !acceptableStates.includes(ProjectState.AppStates.DEBUGGING)) {
-        acceptableStates.push(ProjectState.AppStates.DEBUGGING);
+async function promptForProject(acceptableStates?: ProjectState.AppStateSet): Promise<Project | undefined> {
+    let projectChoices = await ConnectionManager.instance.allProjects;
+    if (acceptableStates) {
+        projectChoices = projectChoices.filter((p) => acceptableStates.states.includes(p.state.appState));
     }
-    // same for Starting / Starting - Debug
-    if (acceptableStates.includes(ProjectState.AppStates.STARTING) && !acceptableStates.includes(ProjectState.AppStates.DEBUG_STARTING)) {
-        acceptableStates.push(ProjectState.AppStates.DEBUG_STARTING);
-    }
-
-    const choices: vscode.QuickPickItem[] = (await ConnectionManager.instance.allProjects)
-        .filter((p) => acceptableStates.includes(p.state.appState));
 
     // If no choices are available, show a popup message
-    if (choices.length === 0) {
+    if (projectChoices.length === 0) {
         showNoValidProjectsMsg(acceptableStates);
         return undefined;
     }
 
-    return /* await */ vscode.window.showQuickPick(choices, {
+    return /* await */ vscode.window.showQuickPick(projectChoices, {
         canPickMany: false,
         placeHolder: "Select a project to run this command on",
     }) as Promise<Project>;
@@ -224,20 +219,16 @@ async function promptForProject(acceptableStates: ProjectState.AppStates[]): Pro
 
 const STRING_NS = StringNamespaces.CMD_RES_PROMPT;
 
-function showNoValidProjectsMsg(acceptableStates: ProjectState.AppStates[]): void {
-    const statesSpecified = acceptableStates.length !== 0;
-    let noValidResourcesMsg: string;
-    let requiredStatesStr: string = "";
-    if (statesSpecified) {
-        // this builds something like "Starting - Debug or Debugging", to represent the project states this command can run on.
-        const sep = Translator.t(StringNamespaces.DEFAULT, "statesSeparator");
-        requiredStatesStr += acceptableStates.map((state) => state.toString()).join(sep);
-        noValidResourcesMsg = Translator.t(STRING_NS, "noProjToRunOnWithStates", { states: requiredStatesStr });
+function showNoValidProjectsMsg(acceptableStates?: ProjectState.AppStateSet): void {
+    let noValidProjectsMsg: string;
+    if (!acceptableStates) {
+        noValidProjectsMsg = Translator.t(STRING_NS, "noProjToRunOn");
     }
     else {
-        noValidResourcesMsg = Translator.t(STRING_NS, "noProjToRunOn");
+        noValidProjectsMsg = Translator.t(STRING_NS, "noProjToRunOnWithStates", { states: acceptableStates.userLabel });
     }
-    vscode.window.showWarningMessage(noValidResourcesMsg);
+
+    vscode.window.showWarningMessage(noValidProjectsMsg);
 }
 /**
  * If the user runs a Connection command through the Command Palette, have them pick the connection to run the cmd on

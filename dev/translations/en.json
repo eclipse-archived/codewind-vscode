@@ -36,11 +36,7 @@
         "noProjToRunOnWithStates":
             "There is no {{ states }} Codewind project to run this command on.",
         "noConnToRunOn":
-            "You are not currently connected to a Codewind instance. Start Local Codewind, or create a New Remote Connection.",
-        "noConnOrProjToRunOn":
-            "There is no Codewind connection or project to run this command on.",
-        "noConnOrProjToRunOnWithStates":
-            "There is no Codewind connection, or {{ states }} project, to run this command on."
+            "You are not currently connected to a Codewind instance. Start Local Codewind, or create a New Remote Connection."
     },
 
     "debug": {

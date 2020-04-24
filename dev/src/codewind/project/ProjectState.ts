@@ -14,6 +14,7 @@ import * as vscode from "vscode";
 import Log from "../../Logger";
 import ProjectCapabilities from "./ProjectCapabilities";
 import Commands from "../../constants/Commands";
+import MCUtil from "../../MCUtil";
 
 interface DetailedAppStatus {
     readonly severity: "INFO" | "WARN" | "ERROR";
@@ -225,6 +226,49 @@ export namespace ProjectState {
         BUILD_QUEUED = "Build Queued",
 
         UNKNOWN = "N/A"
+    }
+
+    export type AppStateSet = { states: ProjectState.AppStates[], userLabel: string };
+
+    export function getAppStateSet(stateSet: "enabled" | "disabled" | "started" | "started-starting" | "debuggable"): AppStateSet {
+
+        let states;
+
+        // tslint:disable-next-line: switch-default
+        switch (stateSet) {
+            case "enabled": {
+                states = getEnabledStates();
+                break;
+            };
+            case "disabled": {
+                states = [ ProjectState.AppStates.DISABLED ];
+                break;
+            };
+            case "started": {
+                states = getStartedStates();
+                break;
+            }
+            case "started-starting": {
+                states = getStartedOrStartingStates();
+                break;
+            }
+            case "debuggable": {
+                states = getDebuggableStates();
+                break;
+            }
+        }
+
+        let userLabel;
+        if (stateSet === "enabled") {
+            userLabel = "enabled";
+        }
+        else {
+            userLabel = MCUtil.joinList(states, "or").toLowerCase();
+        }
+
+        return {
+            states, userLabel
+        }
     }
 
     export function getAllAppStates(): AppStates[] {

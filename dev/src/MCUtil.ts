@@ -227,22 +227,27 @@ namespace MCUtil {
 
     /**
      * Joins a string array into a user-friendly list.
-     * Eg, `joinWithAnd([ "tim", "erin", "john" ])` => "tim, erin, and john"
+     * Eg, `joinList([ "tim", "erin", "john" ], "and")` => "tim, erin and john" (no oxford comma because it doesn't work with 'or')
      */
-    export function joinWithAnd(strings: string[]): string {
-        strings = strings.filter((s) => {
-            // remove undefined/empty
+    export function joinList(strings: string[], andOrOr: "and" | "or"): string {
+        // remove undefined/empty
+        strings.filter((s) => {
             if (!s) {
-                Log.w(`Refusing to joinWithAnd empty or undefined string`);
+                Log.w(`Refusing to join empty or undefined string`);
                 return false;
             }
             return true;
         });
 
-        let joined: string = strings.join(" ");
-        if (strings.length > 1) {
-            const lastItem = strings[strings.length - 1];
-            joined = joined.replace(lastItem, "and " + lastItem);
+        // separate the last string from the others since we have to prepend andOrOr to it
+        const lastString = strings.splice(strings.length - 1, 1)[0];
+
+        let joined: string = strings.join(", ");
+        if (strings.length > 0) {
+            joined = `${joined} ${andOrOr} ${lastString}`
+        }
+        else {
+            joined = lastString;
         }
         return joined;
     }
