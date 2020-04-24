@@ -121,7 +121,7 @@ export class Requester {
      * Try to connect to the given URL. Returns true if any response is returned that does not have one of the `rejectedStatusCodes`.
      */
     public static async ping(url: string | vscode.Uri, timeoutMS: number, ...rejectStatusCodes: number[]): Promise<boolean> {
-        // Log.d(`Ping ${url}`);
+        Log.d(`Pinging ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }

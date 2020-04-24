@@ -222,11 +222,16 @@ namespace CLIWrapper {
                     }
                     // Log.d("CLI object output:", outStr);
 
-                    const obj = JSON.parse(outStr);
-                    if (obj.error_description) {
-                        return reject(obj.error_description);
+                    try {
+                        const obj = JSON.parse(outStr);
+                        if (obj.error_description) {
+                            return reject(obj.error_description);
+                        }
+                        return resolve(obj);
                     }
-                    return resolve(obj);
+                    catch (err) {
+                        return reject(err);
+                    }
                 }
             });
         }).finally(() => {
