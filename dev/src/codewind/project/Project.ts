@@ -118,7 +118,7 @@ export default class Project implements vscode.QuickPickItem {
         this.language = projectInfo.language || "Unknown";
         this.localPath = vscode.Uri.file(projectInfo.locOnDisk);
         this._contextRoot = projectInfo.contextRoot || "";
-        this._usesHttps = projectInfo.isHttps === true;
+        this._usesHttps = true;
 
         if (projectInfo.extension && projectInfo.extension.config) {
             this.containerAppRoot = projectInfo.extension.config.containerAppRoot;
@@ -212,7 +212,7 @@ export default class Project implements vscode.QuickPickItem {
         this.setAutoBuild(projectInfo.autoBuild);
 
         if (projectInfo.isHttps) {
-            this._usesHttps = projectInfo.isHttps === true;
+            this._usesHttps = true;
         }
 
         if (projectInfo.contextRoot) {
@@ -794,12 +794,16 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         const scheme = this._usesHttps ? "https" : "http";                  // non-nls
+        const authority = process.env['CODEWIND_EXTERNAL_AUTHORITY'] || 'theiadocker.labs.cognitiveclass.ai';
+        const path = `/user-redirect/sn-labs-proxy/port/${this._ports.appPort}/${this._contextRoot}`;
 
         return this.connection.url.with({
             scheme,
-            authority: `${this.connection.pfeHost}:${this._ports.appPort}`,    // non-nls
-            path: this._contextRoot
+            authority,
+            path
         });
+
+
     }
 
     public get debugHost(): string {
@@ -907,8 +911,15 @@ export default class Project implements vscode.QuickPickItem {
             // Log.d(`${this.name} missing perf dashboard info`);
             return undefined;
         }
-        const perfDashboardUrl = MCUtil.appendUrl(this.connection.pfeBaseURL.toString(), this._perfDashboardPath);
+
+        const port = this.connection.pfeBaseURL.authority.split(':')[1];
+        const authority = process.env['CODEWIND_EXTERNAL_AUTHORITY'] || 'theiadocker.labs.cognitiveclass.ai';
+        const path = `/user-redirect/sn-labs-proxy/port/${port}`;
+
+        const perfDashboardUrl = `https://${authority}${path}${this._perfDashboardPath}`;
+
         return vscode.Uri.parse(perfDashboardUrl);
+
     }
 
     public get canInjectMetrics(): boolean {
