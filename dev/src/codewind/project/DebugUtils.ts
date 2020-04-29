@@ -23,39 +23,29 @@ export default class DebugUtils {
 
     private constructor() {}
 
-    /**
-     * Start a debug session for the given project.
-     * @return Success status
-     */
     public static async startDebugSession(project: Project): Promise<void> {
         Log.i("startDebugSession for project " + project.name);
         if (project.type.debugType == null) {
             // Just in case.
             throw new Error(Translator.t(STRING_NS, "noDebugTypeKnown", { type: project.type.type }));
         }
-        else if (project.ports.debugPort == null) {
+
+        if (project.connection.isRemote) {
+            await project.remoteDebugPortForward();
+        }
+
+        else if (project.exposedDebugPort == null) {
             throw new Error(Translator.t(STRING_NS, "noDebugPort", { projectName: project.name }));
         }
 
         const debugConfig: vscode.DebugConfiguration = await DebugUtils.setDebugConfig(project);
-        const projectFolder = vscode.workspace.getWorkspaceFolder(project.localPath);
-        const pfName: string = projectFolder != null ? projectFolder.name : "undefined";        // non-nls
-        Log.i("Running debug launch on project folder: " + pfName, debugConfig);
-
-        // const priorDebugSession = vscode.debug.activeDebugSession;
-        const debugSuccess = await vscode.debug.startDebugging(projectFolder, debugConfig);
+        const debugSuccess = await vscode.debug.startDebugging(project.workspaceFolder, debugConfig);
 
         if (!debugSuccess) {
             Log.w("Debugger failed to attach");
             throw new Error(this.getFailMsg(project));
         }
-        else if (vscode.debug.activeDebugSession?.name !== debugConfig.name) {
-            Log.w("A debug session is active but is not the one we just launched");
-            throw new Error(this.getFailMsg(project));
-        }
-        else {
-            Log.i("Debugger attach appeared to succeed");
-        }
+        Log.i("Debugger attach appeared to succeed");
     }
 
     private static getFailMsg(project: Project, err?: Error): string {
@@ -180,8 +170,12 @@ export default class DebugUtils {
         for (let i = 0; i < launchConfigs.length; i++) {
             const existingLaunch: vscode.DebugConfiguration = launchConfigs[i];
             if (existingLaunch != null && existingLaunch.name === debugName) {
-                // updatedLaunch might be the same as existingLaunch.
-                const updatedLaunch: vscode.DebugConfiguration = DebugUtils.updateDebugLaunchConfig(project, existingLaunch);
+                const updatedLaunch = DebugUtils.generateDebugLaunchConfig(debugName, project);
+
+                if (updatedLaunch == null) {
+                    Log.e(`Failed to generate debug launch config for ${project.name} when a config already existed`);
+                    continue;
+                }
 
                 Log.d(`Replacing existing debug launch ${debugName}`);
                 launchConfigs[i] = updatedLaunch;
@@ -220,8 +214,8 @@ export default class DebugUtils {
                     type: project.type.debugType.toString(),
                     name: debugName,
                     request: DebugUtils.RQ_ATTACH,
-                    hostName: project.connection.pfeHost,
-                    port: project.ports.debugPort,
+                    hostName: project.debugHost,
+                    port: project.exposedDebugPort,
                     // sourcePaths: project.localPath + "/src/"
                     projectName: project.name,
                 };
@@ -231,8 +225,8 @@ export default class DebugUtils {
                     type: project.type.debugType.toString(),
                     name: debugName,
                     request: DebugUtils.RQ_ATTACH,
-                    address: project.connection.pfeHost,
-                    port: project.ports.debugPort,
+                    address: project.debugHost,
+                    port: project.exposedDebugPort,
                     localRoot: project.localPath.fsPath,
                     // /app is the default containerAppRoot for node
                     remoteRoot: project.containerAppRoot || "/app",         // non-nls
@@ -242,23 +236,5 @@ export default class DebugUtils {
             default:
                 return undefined;
         }
-    }
-
-    /**
-     * Update the existingLaunch with the new values of config fields that could have changed since the last launch, then return it.
-     * As far as I can tell, only the port can change.
-     */
-    private static updateDebugLaunchConfig(project: Project, existingLaunch: vscode.DebugConfiguration): vscode.DebugConfiguration {
-        const newLaunch: vscode.DebugConfiguration = existingLaunch;
-
-        if (existingLaunch.port === project.ports.debugPort) {
-            Log.d(`Debug port for ${project.name} didn't change`);
-        }
-        else {
-            Log.d(`Debug port for ${project.name} changed from ${existingLaunch.port} to ${newLaunch.port}`);
-            newLaunch.port = project.ports.debugPort;
-        }
-
-        return newLaunch;
     }
 }

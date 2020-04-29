@@ -182,7 +182,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.fileWatcher = undefined;
         this._projects = [];
         this.onChange(this);
-        Log.d(`FInished disabling ${this}`)
+        Log.d(`Finished disabling ${this}`)
     }
 
     public async dispose(): Promise<void> {

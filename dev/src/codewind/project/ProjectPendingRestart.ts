@@ -130,7 +130,22 @@ export default class ProjectPendingRestart {
         }
         else if (ProjectCapabilities.isDebugMode(this.startMode)) {
             try {
-                await attachDebugger(this.project, true);
+                Log.d("Attach debugger runnning as part of a restart");
+                // Intermittently for restarting Microprofile projects, the debugger will try to connect too soon,
+                // so add an extra delay if it's MP and Starting.
+                // This doesn't really slow anything down because the server is still starting anyway.
+                const libertyDelayMs = 2500;
+                if (this.project.type.requiresDebugDelay && this.project.state.appState === ProjectState.AppStates.DEBUG_STARTING) {
+                    Log.d(`Waiting extra ${libertyDelayMs}ms for Starting project`);
+
+                    const delayPromise = new Promise((resolve) => setTimeout(resolve, libertyDelayMs));
+
+                    const preDebugDelayMsg = Translator.t(STRING_NS, "waitingBeforeDebugAttachStatusMsg", { projectName: this.project.name });
+                    vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${preDebugDelayMsg}`, delayPromise);
+                    await delayPromise;
+                }
+
+                await attachDebugger(this.project);
             }
             catch (err) {
                 Log.w("Debugger attach failed or was cancelled by user", err);
