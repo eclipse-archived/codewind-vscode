@@ -158,20 +158,22 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     protected async disable(): Promise<void> {
-        Log.d("Disable connection " + this);
+        Log.d(`Disable connection ${this}`);
 
-        const fwDisposeProm = new Promise((resolve) => {
-            if (this.fileWatcher) {
-                this.fileWatcher.dispose();
-            }
+        this.sourcesPage?.dispose();
+        this.registriesPage?.dispose();
+
+        const fwDisposeProm = new Promise<void>((resolve) => {
+            this.fileWatcher?.dispose();
             resolve();
         });
+
+        await Promise.all(this.projects.map(async (p) => await p.dispose()));
 
         await Promise.all([
             fwDisposeProm,
             // disposing the socket will result in onDisconnect being called
             this._socket ? this._socket.dispose() : Promise.resolve(),
-            this._projects.map((p) => p.dispose()),
         ]);
         this.hasConnected = false;
         this.hasInitialized = false;
@@ -180,6 +182,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.fileWatcher = undefined;
         this._projects = [];
         this.onChange(this);
+        Log.d(`FInished disabling ${this}`)
     }
 
     public async dispose(): Promise<void> {
