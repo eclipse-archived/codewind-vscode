@@ -17,6 +17,7 @@ import * as path from "path";
 import Log from "../Logger";
 import Project from "../codewind/project/Project";
 import ProjectState from "../codewind/project/ProjectState";
+import ProjectType from "../codewind/project/ProjectType";
 
 namespace TestUtil {
 
@@ -197,10 +198,13 @@ namespace TestUtil {
             condition: () => project.state.buildState === ProjectState.BuildStates.BUILD_FAILED,
         };
 
-        await waitForCondition(ctx, {
-            label: `Waiting for ${project.name} to be Building after a code change`,
-            condition: () => project.state.isBuilding,
-        }, buildFailedCond, 10);
+        // Node projects don't 'build', they just restart
+        if (project.type.internalType !== ProjectType.InternalTypes.NODE) {
+            await waitForCondition(ctx, {
+                label: `Waiting for ${project.name} to be Building after a code change`,
+                condition: () => project.state.isBuilding,
+            }, buildFailedCond, 10);
+        }
 
         await waitForCondition(ctx, {
             label: `Waiting for ${project.name} to have Build Succeeded after a code change`,
