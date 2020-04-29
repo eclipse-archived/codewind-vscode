@@ -7,7 +7,7 @@
     "appsodyVersion": "0.6.1",
     "publisher": "IBM",
     "engines": {
-        "vscode": "^1.38.0"
+        "vscode": "^1.39.0"
     },
     "main": "./out/extension.js",
     "license": "EPL-2.0",
@@ -63,7 +63,7 @@
         "@types/node": "^13.9.2",
         "@types/socket.io-client": "^1.4.32",
         "@types/tar": "^4.0.3",
-        "@types/vscode": "1.38.0",
+        "@types/vscode": "1.39.0",
         "chai": "^4.2.0",
         "mocha": "^7.1.1",
         "node-loader": "^0.6.0",
@@ -80,6 +80,7 @@
         "codewind-filewatcher": "https://download.eclipse.org/codewind/codewind-filewatcher-ts/v0.11.0/2/filewatcherd-node_0.11.0.tar.gz",
         "command-exists": "^1.2.8",
         "fs-extra": "^9.0.0",
+        "get-port": "^5.1.1",
         "got": "^10.6.0",
         "i18next": "^19.3.3",
         "socket.io-client": "^2.3.0",

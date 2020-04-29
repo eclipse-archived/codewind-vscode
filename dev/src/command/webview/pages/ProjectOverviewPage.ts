@@ -112,9 +112,9 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                 editable: true,
                 openable: project.appUrl != null ? "web" : undefined
             })}
-            ${buildRow(rp, "Exposed App Port", normalize(project.ports.appPort, NOT_RUNNING))}
+            ${buildRow(rp, "Exposed App Port", normalize(project.appPort, NOT_RUNNING))}
             ${buildRow(rp, "Internal App Port",
-                normalize(project.ports.internalPort, NOT_AVAILABLE),
+                normalize(project.internalPort, NOT_AVAILABLE),
                 { editable: true })
             }
 
@@ -271,10 +271,7 @@ function buildDebugSection(rp: WebviewResourceProvider, project: Project): strin
     }
 
     let noDebugMsg;
-    if (project.connection.isRemote) {
-        noDebugMsg = "Remote projects do not support debug.";
-    }
-    else if (project.capabilities && !project.capabilities.supportsDebug) {
+    if (project.capabilities && !project.capabilities.supportsDebug) {
         if (project.type.isExtensionType) {
             noDebugMsg = `This project does not support debug.`;
         }
@@ -290,10 +287,29 @@ function buildDebugSection(rp: WebviewResourceProvider, project: Project): strin
         `;
     }
 
+    // Either the port forward row or the exposed port row is shown, but not both.
+    let portForwardInfoRow = "";
+    let exposedDebugPortRow = "";
+    if (project.connection.isRemote) {
+        let portForwardStatus;
+        if (project.isPortForwarding) {
+            portForwardStatus = `Forwarding <b>${project.debugUrl}</b> to <b>${project.podName}:${project.internalDebugPort}</b>`
+        }
+        else {
+            portForwardStatus = "Inactive";
+        }
+
+        portForwardInfoRow = buildRow(rp, "Debug Port Forward", portForwardStatus);
+    }
+    else {
+        exposedDebugPortRow = buildRow(rp, "Exposed Debug Port", normalize(project.exposedDebugPort, NOT_DEBUGGING));
+    }
+
     return `
-        ${buildRow(rp, "Exposed Debug Port", normalize(project.ports.debugPort, NOT_DEBUGGING))}
+        ${exposedDebugPortRow}
         ${buildRow(rp, "Internal Debug Port",
-            normalize(project.ports.internalDebugPort, NOT_AVAILABLE), { editable: true })}
+            normalize(project.internalDebugPort, NOT_AVAILABLE), { editable: true })}
+        ${portForwardInfoRow}
         </table>
     `;
         // ${buildRow(rp, "Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}

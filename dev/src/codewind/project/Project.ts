@@ -12,6 +12,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs-extra";
+import getPort from "get-port";
 
 import MCUtil from "../../MCUtil";
 import ProjectState from "./ProjectState";
@@ -33,6 +34,7 @@ import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData } from "
 import Requester from "../Requester";
 import ProjectRequester from "./ProjectRequester";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
+import PortForwardTask from "./PortForwardTask";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -44,6 +46,10 @@ interface IProjectPorts {
     internalPort?: number;
     debugPort?: number;
     internalDebugPort?: number;
+    /**
+     * Used by remote projects instead of debugPort. pfe is not aware of this port.
+     */
+    forwardedDebugPort?: number;
 }
 
 export default class Project implements vscode.QuickPickItem {
@@ -90,6 +96,8 @@ export default class Project implements vscode.QuickPickItem {
 
     // Represents a pending restart operation. Only set if the project is currently restarting.
     private pendingRestart: ProjectPendingRestart | undefined;
+
+    private portForwardTask: PortForwardTask | undefined;
 
     // Active ProjectInfo webviewPanel. Only one per project. Undefined if no project overview page is active.
     // Track this so we can refresh it when update() is called, and prevent multiple webviews being open for one project.
@@ -171,11 +179,14 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public async dispose(): Promise<void> {
+        Log.d(`Dispose ${this.name}`);
+
         await Promise.all([
             this.clearValidationErrors(),
             this.logManager?.destroyAllLogs(),
             this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
             DebugUtils.removeDebugLaunchConfigFor(this),
+            this.portForwardTask != null ? this.portForwardTask.dispose() : Promise.resolve(),
         ]);
     }
 
@@ -354,6 +365,9 @@ export default class Project implements vscode.QuickPickItem {
 
         await this.requester.requestProjectRestart(mode);
         this.pendingRestart = new ProjectPendingRestart(this, mode);
+        if (this.isPortForwarding) {
+            this.portForwardTask?.dispose();
+        }
     }
 
     public onRestartFinish(): void {
@@ -400,11 +414,52 @@ export default class Project implements vscode.QuickPickItem {
             if (event.containerId) {
                 this.setContainerID(event.containerId);
             }
+            if (event.podName) {
+                this.setPodName(event.podName);
+            }
             this.onChange();
             success = true;
         }
 
         this.pendingRestart.onReceiveRestartEvent(success, errMsg);
+    }
+
+    public async remoteDebugPortForward(): Promise<void> {
+        if (this.isPortForwarding) {
+            Log.d(`${this.name} is already port-forwarding`);
+            return;
+        }
+
+        const kubeClient = await MCUtil.getKubeClient();
+        if (!kubeClient) {
+            Log.i(`Failed to find kubeclient for port forward`);
+            return;
+        }
+
+        const preferredPort = 5000;
+        const port = await getPort({ port: getPort.makeRange(preferredPort, preferredPort + 1000) });
+        this.setPort(port.toString(), "forwardedDebugPort");
+
+        try {
+            const pft = new PortForwardTask(this, kubeClient);
+            await pft.run();
+            this.portForwardTask = pft;
+        }
+        catch (err) {
+            this.setPort(undefined, "forwardedDebugPort");
+            throw err;
+        }
+        finally {
+            this.onChange();
+        }
+    }
+
+    public readonly onPortForwardTaskTerminate = async (exitCode: number) => {
+        Log.i(`${this.name} port forward task terminated with code ${exitCode}`);
+        // un-set the forwarded debug port
+        this.setPort(undefined, "forwardedDebugPort");
+        this.portForwardTask = undefined;
+        this.onChange();
     }
 
     private async updateCapabilities(): Promise<void> {
@@ -413,11 +468,14 @@ export default class Project implements vscode.QuickPickItem {
             // server will return a 404 in this case
             return;
         }
+
         try {
             this._capabilities = await this.requester.getCapabilities();
         }
         catch (err) {
-            Log.e("Error retrieving capabilities for " + this.name, err);
+            const errMsg = `Error retrieving capabilities for ${this.name}`;
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}. Restart actions will be disabled.`);
+            Log.e(errMsg, err);
             this._capabilities = ProjectCapabilities.NO_CAPABILITIES;
         }
         this.onChange();
@@ -438,7 +496,7 @@ export default class Project implements vscode.QuickPickItem {
         Log.i(`Request build for project ${this.name}`);
         try {
             await this.requester.requestBuild();
-            vscode.window.showInformationMessage(`Building ${this.name}`);
+            vscode.window.showInformationMessage(`Starting a build of ${this.name}`);
         }
         catch (err) {
             const errMsg = `Error initialing a build of ${this.name}`;
@@ -453,7 +511,10 @@ export default class Project implements vscode.QuickPickItem {
         const newEnablement = !this.state.isEnabled;
         try {
             vscode.window.showInformationMessage(`${newEnablement ? "Enabling" : "Disabling"} ${this.name}`);
-            return this.requester.requestToggleEnablement(newEnablement);
+            await this.requester.requestToggleEnablement(newEnablement);
+            if (this.isPortForwarding) {
+                this.portForwardTask?.dispose();
+            }
         }
         catch (err) {
             const errMsg = `Failed to ${newEnablement ? "enable" : "disable"} ${this.name}`;
@@ -523,6 +584,7 @@ export default class Project implements vscode.QuickPickItem {
             exposedPort: undefined,
             exposedDebugPort: undefined,
         });
+        this.portForwardTask?.dispose();
         await this.clearValidationErrors();
     }
 
@@ -567,6 +629,10 @@ export default class Project implements vscode.QuickPickItem {
             cancellable: false,
             title: `Removing ${this.name} from ${this.connection.label}...`
         }, async () => {
+            if (this.isPortForwarding) {
+                this.portForwardTask?.dispose();
+            }
+
             return new Promise<void>(async (resolve, reject) => {
                 this.resolvePendingDeletion = resolve;
 
@@ -679,8 +745,27 @@ export default class Project implements vscode.QuickPickItem {
         return this._contextRoot;
     }
 
-    public get ports(): IProjectPorts {
-        return this._ports;
+    public get appPort(): number | undefined {
+        return this._ports.appPort;
+    }
+
+    public get internalPort(): number | undefined {
+        return this._ports.internalPort;
+    }
+
+    public get internalDebugPort(): number | undefined {
+        return this._ports.internalDebugPort;
+    }
+
+    public get exposedDebugPort(): number | undefined {
+        if (this._ports.forwardedDebugPort) {
+            return this._ports.forwardedDebugPort;
+        }
+        return this._ports.debugPort;
+    }
+
+    public get isPortForwarding(): boolean {
+        return this.portForwardTask != null;
     }
 
     public get autoBuildEnabled(): boolean {
@@ -717,12 +802,16 @@ export default class Project implements vscode.QuickPickItem {
         });
     }
 
-    public get debugUrl(): string | undefined {
-        if (this._ports.debugPort == null || isNaN(this._ports.debugPort)) {
-            return undefined;
-        }
+    public get debugHost(): string {
+        // in the remote case, we port-forward the debug port to local. so in either case, the debug host is localhost.
+        return `127.0.0.1`;
+    }
 
-        return this.connection.pfeHost + ":" + this._ports.debugPort;            // non-nls
+    public get debugUrl(): string | undefined {
+        if (this.exposedDebugPort) {
+            return `${this.debugHost}:${this.exposedDebugPort}`
+        }
+        return undefined;
     }
 
     public get lastBuild(): Date | undefined {
@@ -835,6 +924,7 @@ export default class Project implements vscode.QuickPickItem {
     /**
      * Set one of this project's Port fields.
      * @param newPort Can be undefined if the caller wishes to "unset" the port (ie, because the app is stopping)
+     * @param callOnChange If this is true, invoke this.onChange before returning true.
      * @returns true if at least one port was changed.
      */
     private setPort(newPort: string | undefined, portType: keyof IProjectPorts): boolean {
@@ -859,7 +949,6 @@ export default class Project implements vscode.QuickPickItem {
                 Log.d(`New ${portType} for ${this.name} is ${newPortNumber}`);
                 this._ports[portType] = newPortNumber;
             }
-            // the third case is that (the new port === the old port) and neither are null - we don't log anything in this case.
             return true;
         }
         // Log.d(`${portType} port is already ${currentPort}`);

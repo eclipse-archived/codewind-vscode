@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import { ILogResponse } from "../Types";
+import { ILogResponse, PFEProjectData } from "../Types";
 
 // non-nls-file
 
@@ -18,19 +18,10 @@ namespace SocketEvents {
     export const STATUS_SUCCESS: string = "success";
 
     // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/actions.ts - "restart" function
-    export interface IProjectRestartedEvent {
+    export type IProjectRestartedEvent = PFEProjectData & {
         operationID: string;
-        projectID: string;
         status: string;
         errorMsg?: string;
-        startMode?: string;
-        ports?: {
-            exposedPort: string;
-            internalPort: string;
-            exposedDebugPort?: string;
-            internalDebugPort?: string;
-        };
-        containerId?: string;
     }
 
     // from https://github.com/eclipse/codewind/blob/master/src/pfe/file-watcher/server/src/projects/Validator.ts

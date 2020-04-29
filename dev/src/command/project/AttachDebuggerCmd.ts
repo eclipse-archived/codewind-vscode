@@ -15,7 +15,6 @@ import MCUtil from "../../MCUtil";
 
 import { getOcticon, Octicons } from "../../constants/CWImages";
 import Project from "../../codewind/project/Project";
-import ProjectState from "../../codewind/project/ProjectState";
 import Log from "../../Logger";
 import DebugUtils from "../../codewind/project/DebugUtils";
 import Translator from "../../constants/strings/Translator";
@@ -25,32 +24,15 @@ const STRING_NS = StringNamespaces.DEBUG;
 
 export default async function attachDebuggerCmd(project: Project): Promise<void> {
     try {
-        await attachDebugger(project, false);
+        await attachDebugger(project);
     }
     catch (err) {
-        Log.e(err);
+        Log.e(`Attach debugger to ${project.name} failed`, err);
         vscode.window.showErrorMessage(MCUtil.errToString(err));
     }
 }
 
-export async function attachDebugger(project: Project, isRestart: boolean = false): Promise<void> {
-    if (isRestart) {
-        Log.d("Attach debugger runnning as part of a restart");
-        // Intermittently for restarting Microprofile projects, the debugger will try to connect too soon,
-        // so add an extra delay if it's MP and Starting.
-        // This doesn't really slow anything down because the server is still starting anyway.
-        const libertyDelayMs = 2500;
-        if (project.type.requiresDebugDelay && project.state.appState === ProjectState.AppStates.DEBUG_STARTING) {
-            Log.d(`Waiting extra ${libertyDelayMs}ms for Starting Liberty project`);
-
-            const delayPromise = new Promise((resolve) => setTimeout(resolve, libertyDelayMs));
-
-            const preDebugDelayMsg = Translator.t(STRING_NS, "waitingBeforeDebugAttachStatusMsg", { projectName: project.name });
-            vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${preDebugDelayMsg}`, delayPromise);
-            await delayPromise;
-        }
-    }
-
+export async function attachDebugger(project: Project): Promise<void> {
     // This should be longer than the timeout we pass to VSCode through the debug config, or the default (whichever is longer).
     const debugConnectTimeoutS = 60;
 
@@ -61,8 +43,7 @@ export async function attachDebugger(project: Project, isRestart: boolean = fals
     );
 
     const connectingMsg = Translator.t(STRING_NS, "connectingToProject", { projectName: project.name });
-    vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${connectingMsg}`,     // non-nls
-            startDebugWithTimeout);
+    vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${connectingMsg}`, startDebugWithTimeout);
 
     // will throw error if connection fails or timeout
     await startDebugWithTimeout;
