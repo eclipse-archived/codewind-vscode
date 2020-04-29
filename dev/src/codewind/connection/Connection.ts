@@ -209,7 +209,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
-        return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath);
+        return CreateFileWatcher(this.url.toString(), cliPath, Log.getLogDir);
     }
 
     private getPFEHost(): string {

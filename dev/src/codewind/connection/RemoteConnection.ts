@@ -152,7 +152,7 @@ export default class RemoteConnection extends Connection {
     }
 
     protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {
-        return CreateFileWatcher(this.url.toString(), Log.getLogDir, undefined, cliPath, {
+        return CreateFileWatcher(this.url.toString(), cliPath, Log.getLogDir, undefined, {
             getLatestAuthToken: (): FWAuthToken | undefined => {
                 if (!this._accessToken) {
                     return undefined;
