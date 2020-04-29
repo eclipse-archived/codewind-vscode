@@ -122,15 +122,7 @@ export default class RemoteConnection extends Connection {
     }
 
     public async dispose(): Promise<void> {
-        if (this.overviewPage) {
-            this.overviewPage.dispose();
-        }
-        if (this.sourcesPage) {
-            this.sourcesPage.dispose();
-        }
-        if (this.registriesPage) {
-            this.registriesPage.dispose();
-        }
+        this.overviewPage?.dispose();
         await super.dispose();
     }
 
