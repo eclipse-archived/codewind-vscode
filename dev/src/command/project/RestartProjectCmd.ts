@@ -34,12 +34,18 @@ export default async function restartProjectCmd(project: Project, debug: boolean
         return false;
     }
 
+    if (project.state.isBuilding) {
+        Log.d(`Blocking restart because ${project.name} is building`);
+        vscode.window.showWarningMessage(`Projects cannot be restarted while they are building. Wait for ${project.name} to build and start.`);
+        return false;
+    }
+
     const restartableStates = ProjectState.getAppStateSet("started-starting");
 
     if (!restartableStates.states.includes(project.state.appState)) {
         Log.d(`Blocking restart because ${project.name} is not ${restartableStates.userLabel}`);
         vscode.window.showWarningMessage(`Projects can only be restarted if they are starting or running. ` +
-            `Wait for ${project.name} to build and start.`);
+            `Wait for ${project.name} to start.`);
         return false;
     }
 
