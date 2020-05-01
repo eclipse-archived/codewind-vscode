@@ -229,7 +229,8 @@ namespace MCUtil {
      * Joins a string array into a user-friendly list.
      * Eg, `joinList([ "tim", "erin", "john" ], "and")` => "tim, erin and john" (no oxford comma because it doesn't work with 'or')
      */
-    export function joinList(strings: string[], andOrOr: "and" | "or"): string {
+    export function joinList(strings_: readonly string[], andOrOr: "and" | "or"): string {
+        const strings = Array.from(strings_);
         // remove undefined/empty
         strings.filter((s) => {
             if (!s) {
