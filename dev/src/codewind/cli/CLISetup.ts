@@ -199,13 +199,44 @@ namespace CLISetup {
      * @returns The sha1 of the latest cwctl build for this OS according to the download site.
      */
     async function getLatestCwctlSha1(): Promise<string> {
-        // check that it is the most up-to-date binary
         const cliDownloadBaseUrl = getCwctlDirectoryUrl();
         const propertiesFileUrl = cliDownloadBaseUrl + "build_info.properties";
 
-        const latestCLIProperties = (await got.get(propertiesFileUrl, {
+        Log.d(`Downloading ${propertiesFileUrl}`);
+        const latestPropertiesResponse = got.get(propertiesFileUrl, {
             responseType: "text",
-        })).body;
+        });
+
+        const slowDlTimeout = setTimeout(() => {
+            Log.d(`Properties file download is slow`);
+            vscode.window.withProgress({
+                cancellable: false,
+                location: vscode.ProgressLocation.Notification,
+                title: `Checking the ${CWCTL_BASENAME} version is taking longer than usual, please be patient...`
+            }, async () => {
+                try {
+                    await latestPropertiesResponse;
+                }
+                catch (err) {
+                    // swallow the error, it will be thrown below too.
+                }
+            });
+        }, 2000);
+
+        let latestCLIProperties;
+        try {
+            latestCLIProperties = (await latestPropertiesResponse).body;
+        }
+        catch (err) {
+            if (err.toString().includes("HTTPError")) {
+                // too bad the url isn't always in the error message
+                err.message += ` - ${propertiesFileUrl}`;
+            }
+            throw err;
+        }
+        finally {
+            clearTimeout(slowDlTimeout);
+        }
 
         Log.d(`CLI properties from ${propertiesFileUrl}:\n`, latestCLIProperties);
 
@@ -214,7 +245,7 @@ namespace CLISetup {
         const shaProperty = `build_info.${getCwctlOS()}.SHA-1=`;
         const osLine = propertiesLines.find((line) => line.startsWith(shaProperty));
         if (osLine == null) {
-            throw new Error(`Properties file did not match expected format; ${shaProperty} was not found.`);
+            throw new Error(`Properties file did not match expected format; "${shaProperty}" was not found.`);
         }
         const sha1 = osLine.substring(shaProperty.length).trim();
         return sha1;
