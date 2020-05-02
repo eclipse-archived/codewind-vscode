@@ -11,13 +11,14 @@
 
 export enum CodewindStates {
     SETUP = "Setting up",
+    ERR_SETUP = "Error setting up",
     STOPPED = "Stopped",
     STARTED = "Started",
     STARTING = "Starting",
     STOPPING = "Stopping",
     INSTALLING = "Installing",
-    ERR_INSTALLING = "Error installing",
-    ERR_STARTING = "Error starting",
+    ERR_INSTALLING = "Error pulling images",
+    ERR_STARTING = "Error starting containers",
     ERR_CONNECTING = "Error connecting",
     ERR_GENERIC = "Error",
 }
