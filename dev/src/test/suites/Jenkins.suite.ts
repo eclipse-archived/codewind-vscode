@@ -11,6 +11,8 @@
 
 import * as LocalStart from "../local/LocalStart.test";
 LocalStart;
+import * as DocLinks from "../misc/DocLinks.test";
+DocLinks;
 import * as TemplateSources from "../connection/TemplateSources.test";
 TemplateSources;
 import * as Creation from "../project/Creation.test";
