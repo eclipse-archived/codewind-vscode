@@ -1,21 +1,68 @@
 #!groovy
 
-def emailPostBuild() {
-    def defaultRecipents = "timetchells@ibm.com";
+import java.text.SimpleDateFormat;
 
-    def recipent = env.CHANGE_AUTHOR_EMAIL != null ? env.CHANGE_AUTHOR_EMAIL : defaultRecipents;
+@NonCPS
+def getChangeDetail() {
 
-    def change = env.CHANGE_URL != null ? "<br><br>${env.CHANGE_URL} - ${env.CHANGE_TITLE}" : "";
+    def changeDetail = ""
+    def changes = currentBuild.changeSets
+    
+    for (int i = 0; i < changes.size(); i++) {
+        
+        def entries = changes[i].items
+    
+        for (int j = 0; j < entries.length; j++) {
+            def entry = entries[j]
 
-    emailext(
-        to: recipent,
-        subject: "${currentBuild.currentResult}: Build result for ${currentBuild.fullProjectName}",
-        body: """
-            ${currentBuild.currentResult}: <a href="${currentBuild.absoluteUrl}">${currentBuild.absoluteUrl}</a>
-            ${change}
-            <br>
-        """
-    );
+            Date entry_timestamp = new Date(entry.timestamp)
+            SimpleDateFormat timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            changeDetail += "${entry.commitId.take(7)} by [${entry.author}] on ${timestamp.format(entry_timestamp)}: ${entry.msg}\n\n"
+        }
+    }
+
+    if (!changeDetail) {
+        changeDetail = "No new changes"
+    }
+    return changeDetail
+}
+
+def sendEmailNotification() {    
+
+    script{ 
+        final def EXTRECIPIENTS = emailextrecipients([
+            [$class: 'CulpritsRecipientProvider'],
+            [$class: 'RequesterRecipientProvider'],
+            [$class: 'DevelopersRecipientProvider']
+        ])
+
+        def RECIPIENTS = EXTRECIPIENTS != null ? EXTRECIPIENTS : env.CHANGE_AUTHOR_EMAIL;
+        def SUBJECT = "${env.JOB_NAME} - Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}!"
+        def CHANGE = getChangeDetail();
+        
+        emailext(
+            to: RECIPIENTS,
+            subject: "${SUBJECT}",
+            body: """
+                <b>Build result:</b> 
+                <br><br>
+                ${currentBuild.currentResult}
+                <br><br>
+                <b>Project name - Build number:</b>
+                <br><br>
+                ${currentBuild.fullProjectName} - Build #${env.BUILD_NUMBER}
+                <br><br>
+                <b>Check console output for more detail:</b> 
+                <br><br>
+                <a href="${currentBuild.absoluteUrl}console">${currentBuild.absoluteUrl}console</a>
+                <br><br>
+                <b>Changes:</b> 
+                <br><br>
+                ${CHANGE}
+                <br><br>
+            """
+        );
+    }
 }
 
 def BUILD_CONTAINER = """
@@ -272,7 +319,14 @@ spec:
 
     post {
         failure {
-            emailPostBuild()
+            steps {
+                script {
+                    if (IS_MASTER_BRANCH || IS_RELEASE_BRANCH)  {
+                        echo "Calling sendEmailNotification()"
+                        sendEmailNotification()
+                    }
+                }
+            }
         }
     }
 }
