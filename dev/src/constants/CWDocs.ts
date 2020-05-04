@@ -30,7 +30,7 @@ export const CWDocs = {
     REGISTRIES:             new CWDoc("remote-setupregistries.html"),
     CHE_INSTALL:            new CWDoc("che-installinfo.html"),
     REMOTE_UI:              new CWDoc("remotedeploy-vscode.html"),
-    REMOTE_DEPLOYING:       new CWDoc("remotedeploy-combo.html"),
+    REMOTE_DEPLOYING:       new CWDoc("remote-deploying-codewind.html"),
     GETTING_STARTED:        new CWDoc("gettingstarted.html"),
     COMMANDS_OVERVIEW:      new CWDoc("project-actions.html"),
     PERF_MONITORING:        new CWDoc("performance.html"),
