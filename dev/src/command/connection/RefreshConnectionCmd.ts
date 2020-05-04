@@ -16,19 +16,29 @@ import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindM
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 
-export default async function refreshConnectionCmd(connection: Connection): Promise<void> {
-    try {
-        if (!connection.isRemote) {
-            // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
-            // In Che this has no effect
-            const localHasChanged = await LocalCodewindManager.instance.refresh();
-            if (localHasChanged) {
-                vscode.window.showInformationMessage(`Reconnected to Local Codewind`);
-                // We don't have to do the projects update in this case because the connection was recreated
-                return;
-            }
-        }
+export async function refreshLocalCWCmd(): Promise<void> {
+    // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
+    const localHasChanged: boolean = await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        cancellable: false,
+        title: `Refreshing Local Codewind...`,
+    }, () => {
+        return LocalCodewindManager.instance.refresh();
+    });
 
+    if (localHasChanged) {
+        vscode.window.showInformationMessage(`Reconnected to Local Codewind`);
+        // We don't have to do the projects update in this case because the connection was recreated
+        return;
+    }
+
+    if (LocalCodewindManager.instance.localConnection) {
+        await refreshConnectionCmd(LocalCodewindManager.instance.localConnection);
+    }
+}
+
+export async function refreshConnectionCmd(connection: Connection): Promise<void> {
+    try {
         await vscode.window.withProgress({
             cancellable: false,
             location: vscode.ProgressLocation.Notification,

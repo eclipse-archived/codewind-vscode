@@ -67,17 +67,23 @@ export default class RemoteConnection extends Connection {
     private async enableInner(): Promise<void> {
         Log.d(`${this.label} starting remote enable`);
 
+        this.cancelEnable = new vscode.CancellationTokenSource();
+
         // Make sure the ingress is reachable before trying anything else
         // https://github.com/eclipse/codewind/issues/1547
-        let canPing = false;
+        let pingResult;
         try {
-            canPing = await Requester.pingKube(this.url, 5000);
+            pingResult = await Requester.pingKube(this.url, 5000, this.cancelEnable.token);
         }
         catch (err) {
             // ping failed
         }
 
-        if (!canPing) {
+        if (pingResult === "cancelled") {
+            this.dispose();
+            return;
+        }
+        else if (pingResult === "failure") {
             this.setState(ConnectionStates.NETWORK_ERROR);
             throw new Error(`Failed to connect to ${this.url}. Make sure the Codewind instance is running, and reachable from your machine.`);
         }
@@ -168,27 +174,35 @@ export default class RemoteConnection extends Connection {
     }
 
     /**
+     * @returns if there is NOT currently an enable/disable operation in progress.
+     * If there is one, shows a warning message to wait for the current op to finish.
+     */
+    public canToggleEnablement(): boolean {
+        if (this.isTogglingEnablement()) {
+            vscode.window.showWarningMessage(`Wait for ${this.label} to finish ${this.currentToggleOperation}.`);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @returns if there IS an enable/disable operation in progress.
+     * This is the opposite of canToggleEnablement, and does not show a warning.
+     */
+    public isTogglingEnablement(): boolean {
+        return !!this.currentToggleOperation;
+    }
+
+    /**
      * @returns if the toggle operation was successfully changed.
      */
     private changeTogglingEnablement(toggleOperation: ToggleOperation): boolean {
-        if (toggleOperation != null && this.currentToggleOperation) {
-            vscode.window.showWarningMessage(`${this.label} is already ${this.currentToggleOperation}.`);
+        if (toggleOperation != null && !this.canToggleEnablement()) {
             return false;
         }
         this.currentToggleOperation = toggleOperation;
         this._activeOverviewPage?.onToggleStatusChanged();
         return true;
-    }
-
-    /**
-     * Returns true if there IS currently an enable/disable operation in progress.
-     * If there is one, shows a message, and enable/disable should be blocked by the caller.
-     */
-    public isTogglingEnablement(): boolean {
-        if (this.currentToggleOperation) {
-            return true;
-        }
-        return false;
     }
 
     protected setState(newState: ConnectionState): void {

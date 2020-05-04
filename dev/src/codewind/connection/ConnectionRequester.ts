@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 
 import Log from "../../Logger";
-import Requester, { RequesterOptions, HttpMethod } from "../Requester";
+import Requester, { RequesterOptions, HttpMethod, PingResult } from "../Requester";
 import Connection from "./Connection";
 import EndpointUtil, { CWEndpoints } from "../../constants/Endpoints";
 import { PFEProjectData, RawCWEnvData, SourceEnablement, PFELogLevels, PushRegistryResponse } from "../Types";
@@ -141,18 +141,18 @@ export default class ConnectionRequester extends Requester {
     /**
      * Repeatedly ping the given this.connection's 'ready' endpoint. The connection should not be used until that endpoint returns true.
      */
-    public async waitForReady(timeoutS: number): Promise<boolean> {
+    public async waitForReady(timeoutS: number, cancellation: vscode.CancellationToken): Promise<PingResult> {
         const READY_DELAY_S = 2;
 
         const isCWReadyInitially = await this.isCodewindReady(false, READY_DELAY_S);
         if (isCWReadyInitially) {
             Log.i(`${this.connection} was ready on first ping`);
-            return true;
+            return "success";
         }
 
         const maxTries = timeoutS / READY_DELAY_S;
         let tries = 0;
-        return new Promise<boolean>((resolve) => {
+        return new Promise<PingResult>((resolve) => {
             const interval = setInterval(async () => {
                 const logStatus = tries % 10 === 0;
                 if (logStatus) {
@@ -162,15 +162,19 @@ export default class ConnectionRequester extends Requester {
                 tries++;
                 if (ready) {
                     clearInterval(interval);
-                    resolve(true);
+                    resolve("success");
                 }
                 else if (tries > maxTries) {
                     clearInterval(interval);
-                    resolve(false);
+                    resolve("failure");
+                }
+                else if (cancellation.isCancellationRequested) {
+                    clearInterval(interval);
+                    resolve("cancelled");
                 }
             }, READY_DELAY_S * 1000);
         }).then((result) => {
-            if (result) {
+            if (result === "success") {
                 Log.i(`${this.connection.label} was ready after ${tries * READY_DELAY_S}s`);
             }
             else {

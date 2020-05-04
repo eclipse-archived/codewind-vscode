@@ -232,7 +232,10 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
         }, async () => {
             const canPing = await Requester.pingKube(ingressUrl, 5000);
 
-            if (!canPing) {
+            if (canPing === "cancelled") {
+                throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
+            }
+            else if (canPing === "failure") {
                 throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
             }
 

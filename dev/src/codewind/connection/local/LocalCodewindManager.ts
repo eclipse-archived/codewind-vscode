@@ -169,7 +169,7 @@ export default class LocalCodewindManager {
             const interval = setInterval(async () => {
                 tries++;
                 const pingResult = await Requester.ping(CHE_CW_URL, delayS * 1000);
-                if (pingResult) {
+                if (pingResult === "success") {
                     clearInterval(interval);
                     return resolve(true);
                 }

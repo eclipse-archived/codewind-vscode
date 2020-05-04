@@ -21,6 +21,9 @@ const pipeline = promisify(stream.pipeline);
 import Log from "../Logger";
 import { AccessToken, ProgressUpdate } from "./Types";
 
+
+export type PingResult = "success" | "failure" | "cancelled";
+
 /**
  * These functions wrap all our API calls to the Codewind backend.
  * Each request is performed for either a Connection or a Project - see the subclasses.
@@ -113,43 +116,54 @@ export class Requester {
      * From a kube cluster, these mean the hostname is wrong, the ingress/route does not exist,
      * the pod pointed to by an ingress is still starting up, etc.
      */
-    public static async pingKube(url: string | vscode.Uri, timeoutMS: number): Promise<boolean> {
-        return this.ping(url, timeoutMS, 502, 503);
+    public static async pingKube(url: string | vscode.Uri, timeoutMS: number, cancellation?: vscode.CancellationToken): Promise<PingResult> {
+        return this.ping(url, timeoutMS, [ 502, 503 ], cancellation);
     }
 
     /**
      * Try to connect to the given URL. Returns true if any response is returned that does not have one of the `rejectedStatusCodes`.
      */
-    public static async ping(url: string | vscode.Uri, timeoutMS: number, ...rejectStatusCodes: number[]): Promise<boolean> {
+    public static async ping(url: string | vscode.Uri, timeoutMS: number, rejectStatusCodes: number[] = [],
+        cancellation?: vscode.CancellationToken): Promise<PingResult> {
+
         Log.d(`Pinging ${url}`);
         if (url instanceof vscode.Uri) {
             url = url.toString();
         }
 
         try {
-            await got(url, {
+            const pingReq = got(url, {
                 rejectUnauthorized: false,
                 timeout: timeoutMS,
             });
+            cancellation?.onCancellationRequested((_e) => {
+                pingReq.cancel();
+            });
+            await pingReq;
+
             // It succeeded
-            return true;
+            return "success";
         }
         catch (err) {
             if (err.message === Requester.ERR_LOGIN_PAGE) {
                 Log.d(`Received login page when pinging ${url}`);
-                return true;
+                return "success";
             }
             else if (err instanceof got.HTTPError) {
                 Log.d(`Received status ${err.code} when pinging ${url}`);
                 if (rejectStatusCodes.includes(Number(err.code))) {
-                    return false;
+                    return "failure";
                 }
-                return true;
+                return "success";
+            }
+            else if (err instanceof got.CancelError) {
+                Log.d(`Ping cancelled`);
+                return "cancelled";
             }
             // likely connection refused, socket timeout, etc.
             // so it was not reachable
             Log.e(`Error pinging ${url}: ${err.message}`);
-            return false;
+            return "failure";
         }
     }
 

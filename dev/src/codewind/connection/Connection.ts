@@ -50,17 +50,22 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     private fileWatcher: FileWatcher | undefined;
 
-    private hasConnected: boolean = false;
+    /**
+     * If this Connection has successfully connected to its Codewind instance at least once since it was last disabled.
+     */
+    protected hasConnected: boolean = false;
 
     private _projects: Project[] = [];
 
     public readonly templateSourcesList: TemplateSourcesList = new TemplateSourcesList(this);
 
-    private _sourcesPage: SourcesPageWrapper  | undefined;
+    private _sourcesPage: SourcesPageWrapper | undefined;
     private _registriesPage: RegistriesPageWrapper | undefined;
 
     private hasInitialized: boolean = false;
     private _hasHadPushRegistry: boolean = false;
+
+    protected cancelEnable: vscode.CancellationTokenSource | undefined;
 
     constructor(
         /**
@@ -81,6 +86,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this._state = ConnectionStates.INITIALIZING;
         this.requester = new ConnectionRequester(this);
         this.pfeHost = this.getPFEHost();
+
         this.enable()
         .catch((err) => {
             const errMsg = `Error initializing Codewind connection:`;
@@ -110,9 +116,17 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     protected async enable(): Promise<void> {
         Log.i(`${this.label} starting base enable`);
 
+        this.cancelEnable = new vscode.CancellationTokenSource();
         const readyTimeoutS = 90;
-        const ready = await this.requester.waitForReady(readyTimeoutS);
-        if (!ready) {
+        const ready = await this.requester.waitForReady(readyTimeoutS, this.cancelEnable.token);
+
+        if (ready === "cancelled") {
+            Log.i(`${this.label} ready ping was cancelled`);
+            this.dispose();
+            return;
+        }
+
+        if (ready !== "success") {
             let troubleshootMsg: string = "To troubleshoot, you can ";
             if (global.IS_CHE) {
                 troubleshootMsg += `check the Codewind Workspace pod logs and refresh Theia.`;
@@ -159,6 +173,12 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     protected async disable(): Promise<void> {
         Log.d(`Disable connection ${this}`);
+
+        if (this.cancelEnable) {
+            this.cancelEnable.cancel();
+            this.cancelEnable.dispose();
+            this.cancelEnable = undefined;
+        }
 
         this.sourcesPage?.dispose();
         this.registriesPage?.dispose();

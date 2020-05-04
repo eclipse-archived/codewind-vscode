@@ -147,6 +147,7 @@
         "See TreeItemFactory / TreeItemContext for how the Context IDs are set"
     ],
 
+    "isLocalCodewind": "viewItem =~ /.*local.*/",
     "isStoppedLocalCodewind": "viewItem =~ /.*local\\.stopped.*/",
     "isStartedLocalCodewind": "viewItem =~ /.*local\\.started.*/",
 
