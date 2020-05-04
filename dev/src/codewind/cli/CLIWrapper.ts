@@ -20,11 +20,11 @@ import { CLILifecycleCommand } from "./CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
 import CLISetup from "./CLISetup";
 
-const cliOutputChannel = vscode.window.createOutputChannel("Codewind");
-
 let _hasInitialized = false;
 
 namespace CLIWrapper {
+
+    export const cliOutputChannel = vscode.window.createOutputChannel("Codewind");
 
     export function hasInitialized(): boolean {
         return _hasInitialized;
@@ -44,10 +44,18 @@ namespace CLIWrapper {
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Window,
             cancellable: false,
-            title: `Initializing Codewind...`,
+            title: `Setting up Codewind...`,
         }, async () => {
             if (await CLISetup.doesBinariesTargetDirExist()) {
-                [ isCwctlSetup, isAppsodySetup ] = await Promise.all([ CLISetup.isCwctlSetup(), CLISetup.isAppsodySetup() ]);
+                cliOutputChannel.appendLine(`${CLISetup.getBinariesTargetDir()} exists`);
+
+                [ isCwctlSetup, isAppsodySetup ] = await Promise.all([
+                    CLISetup.isCwctlSetup(),
+                    CLISetup.isAppsodySetup()
+                ]);
+            }
+            else {
+                cliOutputChannel.appendLine(`${CLISetup.getBinariesTargetDir()} was created`);
             }
         });
         Log.d(`Finished determining if binaries are installed, took ${Date.now() - binariesInitStartTime}ms`);

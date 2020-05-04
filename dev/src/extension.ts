@@ -118,7 +118,10 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
     })
     .catch((err) => {
         Log.e(`Uncaught error in async initialize!`, err);
-        vscode.window.showErrorMessage(`Unexpected error activating Codewind: ${MCUtil.errToString(err)}`);
+        const userErrMsg = `Error activating Codewind: ${MCUtil.errToString(err)}`;
+        CLIWrapper.showCLIError(userErrMsg);
+        CLIWrapper.cliOutputChannel.appendLine(userErrMsg);
+        LocalCodewindManager.instance.setState(CodewindStates.ERR_SETUP);
     });
 
     Log.d("Finished activating");
