@@ -512,7 +512,12 @@
                 },
                 {
                     "command": "%cmdID_refreshConnection%",
-                    "when": "%isConnection%",
+                    "when": "%isLocalCodewind%",
+                    "group": "ext.cw.conn.d@1"
+                },
+                {
+                    "command": "%cmdID_refreshConnection%",
+                    "when": "%isEnabledRemoteConnection%",
                     "group": "ext.cw.conn.d@1"
                 },
                 {

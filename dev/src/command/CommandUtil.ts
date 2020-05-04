@@ -23,7 +23,7 @@ import toggleEnablementCmd from "./project/ToggleEnablementCmd";
 import projectOverviewCmd from "./project/ProjectOverviewCmd";
 import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
 import openMetricsDashboardCmd from "./project/OpenMetricsDashboard";
-import refreshConnectionCmd from "./connection/RefreshConnectionCmd";
+import { refreshConnectionCmd, refreshLocalCWCmd } from "./connection/RefreshConnectionCmd";
 import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
 import createProjectCmd from "./connection/CreateUserProjectCmd";
 import bindProjectCmd from "./connection/BindProjectCmd";
@@ -74,7 +74,21 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, [], false, true),
         registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablementCmd, [ true ], false, true),
         registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, [ false ], false, true),
-        registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, [], false, false),
+        // registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, [], false, false),
+
+        // the refresh command is unique because it's valid for the stopped local connection, as well as regular, connected connections.
+        vscode.commands.registerCommand(Commands.REFRESH_CONNECTION, async (selection: LocalCodewindManager | Connection | undefined) => {
+            if (selection instanceof LocalCodewindManager) {
+                return refreshLocalCWCmd();
+            }
+            else if (selection == null) {
+                selection = await promptForConnection(true, false);
+                if (selection == null) {
+                    return;
+                }
+            }
+            return refreshConnectionCmd(selection);
+        }),
 
         registerConnectionCommand(Commands.CREATE_PROJECT, createProjectCmd, [], true, false),
         registerConnectionCommand(Commands.BIND_PROJECT, bindProjectCmd, [], true, false),

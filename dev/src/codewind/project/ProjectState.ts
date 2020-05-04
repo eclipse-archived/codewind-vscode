@@ -161,7 +161,7 @@ export class ProjectState {
         }
 
         this.notificationIDsShown.push(this.appDetail.notificationID);
-        Log.i(`Showing user detailed app status ${this.appDetail.message} for project ${this.projectName}`);
+        Log.i(`Showing user detailed app status "${this.appDetail.message}" for project ${this.projectName}`);
 
         // https://github.com/eclipse/codewind/issues/1812
         let helpLinkBtn: string | undefined;

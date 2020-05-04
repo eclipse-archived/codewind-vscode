@@ -17,7 +17,7 @@ import Log from "../../Logger";
 import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import MCUtil from "../../MCUtil";
 import remoteConnectionSettingsCmd from "./ConnectionOverviewCmd";
-import refreshConnectionCmd from "./RefreshConnectionCmd";
+import { refreshConnectionCmd } from "./RefreshConnectionCmd";
 
 export default async function toggleConnectionEnablementCmd(connection_: Connection, enable: boolean): Promise<void> {
     if (!connection_.isRemote) {
@@ -39,6 +39,11 @@ export default async function toggleConnectionEnablementCmd(connection_: Connect
     }
 
     Log.i(`${enable ? "Enable" : "Disable"} ${connection.label}`);
+
+    if (!connection.canToggleEnablement()) {
+        Log.t(`Blocking toggle operation for ${connection.label}`);
+        return;
+    }
 
     try {
         await vscode.window.withProgress({

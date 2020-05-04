@@ -1046,7 +1046,7 @@ export default class Project implements vscode.QuickPickItem {
 
         Log.i(`Testing ${this.name} perf dash before opening`);
         try {
-            return Requester.ping(this.metricsDashboardURL, 5000, 404);
+            return (await Requester.ping(this.metricsDashboardURL, 5000, [ 404 ]) === "success");
         }
         catch (err) {
             Log.w(`Failed to access app monitor for project ${this.name} at ${this.metricsDashboardURL}`, err);
