@@ -79,7 +79,7 @@ namespace ImageRegistryUtils {
         // Log.d(`Image push registry response`, pushRegistryRes);
 
         // tslint:disable-next-line: no-boolean-literal-compare
-        if (pushRegistryRes && pushRegistryRes.imagePushRegistry === true) {
+        if (pushRegistryRes != null && pushRegistryRes.imagePushRegistry === true) {
             const pushRegistry = registries.find((reg) => reg.address === pushRegistryRes.address);
             if (!pushRegistry) {
                 Log.e(`Push registry response was ${JSON.stringify(pushRegistryRes)} but no registry with a matching address was found`);

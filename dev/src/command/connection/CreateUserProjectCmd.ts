@@ -97,11 +97,6 @@ export default async function createProjectCmd(connection: Connection): Promise<
         }
 
         const response = await createProject(connection, template, parentDir, projectName);
-        if (!response) {
-            // user cancelled
-            return;
-        }
-
         vscode.window.showInformationMessage(`Created project ${response.projectName} at ${MCUtil.containerPathToFsPath(response.projectPath)}`);
     }
     catch (err) {

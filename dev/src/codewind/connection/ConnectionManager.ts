@@ -28,7 +28,10 @@ export default class ConnectionManager implements vscode.Disposable {
     private readonly _connections: Connection[] = [];
 
     public static get instance(): ConnectionManager {
-        return ConnectionManager._instance || (ConnectionManager._instance = new ConnectionManager());
+        if (ConnectionManager._instance == null) {
+            ConnectionManager._instance = new ConnectionManager();
+        }
+        return ConnectionManager._instance;
     }
 
     public async activate(): Promise<void> {
@@ -102,7 +105,7 @@ export default class ConnectionManager implements vscode.Disposable {
     }
 
     public async connectLocal(url: vscode.Uri): Promise<Connection> {
-        if (this.connections[0] && !this.connections[0].isRemote) {
+        if (this.connections[0] != null && !this.connections[0].isRemote) {
             return this.connections[0];
         }
         Log.i("Creating connection to " + url);
