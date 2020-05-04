@@ -279,7 +279,18 @@ export namespace CLILifecycleWrapper {
     }
 
     export async function stop(): Promise<void> {
-        return runLifecycleCmd(CLILifecycleCommands.STOP);
+        const status = await CLICommandRunner.status();
+        const isStarted = status.isDockerRunning && status.started.length > 0;
+        if (isStarted) {
+            await runLifecycleCmd(CLILifecycleCommands.STOP);
+        }
+        else {
+            const stoppedState = CLILifecycleCommands.STOP.transitionStates?.after;
+            if (stoppedState) {
+                LocalCodewindManager.instance.setState(stoppedState);
+            }
+        }
+        // else, it's already stopped so nothing to do
     }
 
     export async function removeAllImages(): Promise<void> {
