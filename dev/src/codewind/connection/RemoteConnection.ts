@@ -48,6 +48,33 @@ export default class RemoteConnection extends Connection {
         this._username = cliData.username;
     }
 
+    private getExtStateEnabledKey(): string {
+        return this.id + ".enabled";
+    }
+
+    protected shouldEnableInitially(): boolean {
+        try {
+            const extState = global.EXT_GLOBAL_STATE as vscode.Memento;
+            const enabledState = extState.get(this.getExtStateEnabledKey());
+
+            // default to true if not set
+            if (enabledState === false) {
+                Log.d(`${this.label} should not initially enable`);
+                return false;
+            }
+            return true;
+        }
+        catch (err) {
+            Log.e(`Error determining if remote connection ${this.label} should enable initially`, err);
+            return true;
+        }
+    }
+
+    private async setIsEnabledExtState(enabled: boolean | undefined): Promise<void> {
+        const extState = global.EXT_GLOBAL_STATE as vscode.Memento;
+        await extState.update(this.getExtStateEnabledKey(), enabled);
+    }
+
     public async enable(): Promise<void> {
         if (!this.changeTogglingEnablement("connecting")) {
             return;
@@ -66,6 +93,7 @@ export default class RemoteConnection extends Connection {
 
     private async enableInner(): Promise<void> {
         Log.d(`${this.label} starting remote enable`);
+        this.setIsEnabledExtState(true);
 
         this.cancelEnable = new vscode.CancellationTokenSource();
 
@@ -118,6 +146,7 @@ export default class RemoteConnection extends Connection {
             await super.disable();
             this._accessToken = undefined;
             this.setState(ConnectionStates.DISABLED);
+            this.setIsEnabledExtState(false);
         }
         catch (err) {
             throw err;
@@ -130,6 +159,10 @@ export default class RemoteConnection extends Connection {
     public async dispose(): Promise<void> {
         this.overviewPage?.dispose();
         await super.dispose();
+    }
+
+    public async onRemove(): Promise<void> {
+        await this.setIsEnabledExtState(undefined);
     }
 
     public async onConnect(): Promise<void> {
