@@ -141,6 +141,7 @@ export default class ConnectionManager implements vscode.Disposable {
             await CLICommandRunner.removeConnection(connection.id);
         }
         connection.dispose();
+        connection.onRemove();
         this.connections.splice(indexToRemove, 1);
         Log.i(`Removed connection ${connection}`);
         CodewindEventListener.onChange(undefined);

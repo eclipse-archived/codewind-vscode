@@ -87,12 +87,17 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.requester = new ConnectionRequester(this);
         this.pfeHost = this.getPFEHost();
 
-        this.enable()
-        .catch((err) => {
-            const errMsg = `Error initializing Codewind connection:`;
-            Log.e(errMsg, err);
-            vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
-        });
+        if (this.shouldEnableInitially()) {
+            this.enable()
+            .catch((err) => {
+                const errMsg = `Error initializing ${this.label}:`;
+                Log.e(errMsg, err);
+                vscode.window.showErrorMessage(`${errMsg} ${MCUtil.errToString(err)}`);
+            });
+        }
+        else {
+            this.setState(ConnectionStates.DISABLED);
+        }
     }
 
     public get enabled(): boolean {
@@ -111,6 +116,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public get isConnected(): boolean {
         return this._state.isConnected;
+    }
+
+    protected shouldEnableInitially(): boolean {
+        return true;
     }
 
     protected async enable(): Promise<void> {
@@ -207,6 +216,10 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
     public async dispose(): Promise<void> {
         return this.disable();
+    }
+
+    public async onRemove(): Promise<void> {
+        // nothing for local
     }
 
     public toString(): string {
