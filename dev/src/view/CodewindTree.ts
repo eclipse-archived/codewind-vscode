@@ -39,17 +39,24 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
         CodewindEventListener.addOnChangeListener(this.refresh);
         Log.d("Finished constructing ProjectTree");
 
-        if (MCUtil.isUserInCwWorkspaceOrProject() || global.IS_CHE) {
+        this.tryReveal()
+        .catch((err) => {
+            Log.e(`Failed to auto-reveal the Codewind view`, err);
+        });
+
+        // this.treeView.onDidChangeSelection((e) => {
+        //     Log.d("Selection is now", e.selection[0]);
+        // });
+    }
+
+    private async tryReveal(): Promise<void> {
+        if (await MCUtil.isUserInCwWorkspaceOrProject() || global.IS_CHE) {
             if (CWConfigurations.AUTO_SHOW_VIEW.get()) {
                 Log.d("Auto-expanding the Codewind view");
                 // reveal the LocalCodewindManager because it is guaranteed to exist
                 this.treeView.reveal(LocalCodewindManager.instance);
             }
         }
-
-        // this.treeView.onDidChangeSelection((e) => {
-        //     Log.d("Selection is now", e.selection[0]);
-        // });
     }
 
     /**

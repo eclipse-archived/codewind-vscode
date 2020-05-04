@@ -143,7 +143,7 @@ export class ProjectState {
     }
 
     public getAppStatusWithDetail(): string {
-        if (!this.appState || this.appState === ProjectState.AppStates.UNKNOWN) {
+        if (this.appState == null || this.appState === ProjectState.AppStates.UNKNOWN) {
             return "";
         }
 

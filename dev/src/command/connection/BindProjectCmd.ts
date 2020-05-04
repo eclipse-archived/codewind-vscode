@@ -158,7 +158,7 @@ async function promptForProjectType(connection: Connection, detected: IDetectedP
     });
     projectTypeQpis.sort((a, b) => a.label.localeCompare(b.label));
     // Add "other" option last
-    if (dockerType) {
+    if (dockerType != null) {
         projectTypeQpis.push(dockerType);
     }
 
