@@ -76,9 +76,9 @@ spec:
         timeout(time: 2, unit: "HOURS")
     }
 
-    triggers {
-        cron(CRON_STRING)
-    }
+    // triggers {
+        // cron(CRON_STRING)
+    // }
 
     stages {
         stage("Test") {
