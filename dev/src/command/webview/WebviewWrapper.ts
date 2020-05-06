@@ -158,10 +158,21 @@ export abstract class WebviewWrapper {
         }
 
         WebviewUtil.debugWriteOutWebview(newHtml, `${MCUtil.slug(this.title)}.html`);
-        // Setting the html to "" seems to clear the page state, otherwise there is some caching done
-        // which causes eg. the selected radiobutton to not be updated https://github.com/eclipse/codewind/issues/1413
-        this.webPanel.webview.html = "";
-        this.webPanel.webview.html = newHtml;
+
+        try {
+            // Setting the html to "" seems to clear the page state, otherwise there is some caching done
+            // which causes eg. the selected radiobutton to not be updated https://github.com/eclipse/codewind/issues/1413
+            this.webPanel.webview.html = "";
+            this.webPanel.webview.html = newHtml;
+        }
+        catch (err) {
+            const errMsg = `Error refreshing webview ${this.title}`;
+            Log.e(errMsg, err);
+            // don't display the 'webview is dipsosed' message to the user since it has no user impact.
+            if (err.message && !err.message.toString().toLowerCase().includes("webview is disposed")) {
+                vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+            }
+        }
     }
 
     protected async abstract generateHtml(resourceProvider: WebviewResourceProvider): Promise<string>;

@@ -383,6 +383,58 @@ namespace MCUtil {
         vscode.window.showErrorMessage(errMsg);
         return undefined;
     }
+
+    export async function updateWorkspaceFolders(operation: "add" | "remove", folder: vscode.WorkspaceFolder): Promise<void> {
+        let onDidChangeWsFoldersListener: vscode.Disposable | undefined;
+
+        const logMsg = operation === "add" ?
+            `Adding workspace folder ${folder.name} at ${folder.uri.fsPath}` :
+            `Removing workspace folder ${folder.name}`;
+
+        Log.i(logMsg);
+
+        await new Promise<void>((resolve, reject) => {
+            onDidChangeWsFoldersListener = vscode.workspace.onDidChangeWorkspaceFolders((e) => {
+                const changed = operation === "add" ? e.added : e.removed;
+
+                if (changed.some((wsFolder) => wsFolder.uri.fsPath === folder.uri.fsPath)) {
+                    resolve();
+                }
+                else {
+                    Log.d(`Received a workspaceFoldersChanged event that did not contain ${folder.uri.fsPath}`, changed);
+                }
+            });
+
+            try {
+                // See the documentation for vscode.workspace.updateWorkspaceFolders
+                // - The extension reloads if the rootPath changes.
+                const extWillReload = folder.index === 0;
+
+                let willUpdate;
+                if (operation === "add") {
+                    const wsFoldersLen = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0;
+                    willUpdate = vscode.workspace.updateWorkspaceFolders(wsFoldersLen, 0, folder);
+                }
+                else {
+                    willUpdate = vscode.workspace.updateWorkspaceFolders(folder.index, 1);
+                }
+
+                if (!willUpdate) {
+                    return reject(new Error(`Failed to ${operation} ${folder.uri.fsPath}`));
+                }
+                else if (extWillReload) {
+                    // we cannot wait for the workspace change event if the extension will reload
+                    resolve();
+                    vscode.window.showWarningMessage(`The first workspace folder is changing. All extensions will reload.`);
+                    return;
+                }
+            }
+            catch (err) {
+                return reject(err);
+            }
+        })
+        .finally(() => onDidChangeWsFoldersListener?.dispose());
+    }
 }
 
 export default MCUtil;

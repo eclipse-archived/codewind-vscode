@@ -13,7 +13,7 @@ import { expect } from "chai";
 import * as fs from "fs-extra";
 
 import TestUtil from "../TestUtil";
-import { removeProject } from "../../command/project/RemoveProjectCmd";
+import removeProjectCmd from "../../command/project/RemoveProjectCmd";
 
 import { testProjects } from "./Creation.test";
 
@@ -37,7 +37,7 @@ describe(`Project removal wrapper`, function() {
 
                     projectPath = project.localPath.fsPath;
 
-                    await removeProject(project, true);
+                    await removeProjectCmd(project, true);
 
                     await TestUtil.waitForCondition(this, {
                         label: `Waiting for ${project.name} to be removed from ${project.connection.label}`,

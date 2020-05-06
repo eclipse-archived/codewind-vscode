@@ -319,7 +319,6 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
         this.setState(ConnectionStates.NETWORK_ERROR);
 
         this._projects.forEach((p) => p.onConnectionDisconnect());
-        this._projects = [];
 
         Log.i(`${this} is now disconnected`);
 

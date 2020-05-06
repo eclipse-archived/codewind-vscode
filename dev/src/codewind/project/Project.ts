@@ -104,6 +104,7 @@ export default class Project implements vscode.QuickPickItem {
     private _overviewPage: ProjectOverviewPageWrapper | undefined;
 
     private resolvePendingDeletion: (() => void) | undefined;
+    private deleteFilesOnDeletion: boolean | undefined;
 
     constructor(
         projectInfo: PFEProjectData,
@@ -624,61 +625,92 @@ export default class Project implements vscode.QuickPickItem {
     public async deleteFromCodewind(deleteFiles: boolean): Promise<void> {
         Log.d(`Deleting ${this}`);
 
+        try {
+            this.portForwardTask?.dispose();
+        }
+        catch (err) {
+            Log.e(`Error disposing port-forward for ${this.name}`, err);
+            // continue with the rest of the removal, it will result in the port-forward being closed anyway.
+        }
+
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
             title: `Removing ${this.name} from ${this.connection.label}...`
-        }, async () => {
-            if (this.isPortForwarding) {
-                this.portForwardTask?.dispose();
-            }
-
+        }, () => {
             return new Promise<void>(async (resolve, reject) => {
-                this.resolvePendingDeletion = resolve;
-
                 try {
-                    await CLICommandRunner.removeProject(this.id, deleteFiles);
+                    await CLICommandRunner.removeProject(this.id)
+                    this.resolvePendingDeletion = resolve;
+                    this.deleteFilesOnDeletion = deleteFiles;
                 }
                 catch (err) {
                     this.resolvePendingDeletion = undefined;
-                    reject(err);
+                    this.deleteFilesOnDeletion = undefined;
+                    return reject(err);
                 }
             });
         });
-
-        if (deleteFiles && this.workspaceFolder?.isExactMatch) {
-            Log.i(`${this.name} is a workspace folder; removing it`);
-            vscode.workspace.updateWorkspaceFolders(this.workspaceFolder.index, 1);
-        }
     }
 
     public async onDeletionEvent(event: SocketEvents.DeletionResult): Promise<void> {
         if (!this.resolvePendingDeletion) {
-            Log.e(`Received deletion event for ${this} that was not pending deletion`);
-            return;
+            Log.w(`Received deletion event for ${this} that was not pending deletion`);
         }
-
-        if (event.status !== SocketEvents.STATUS_SUCCESS) {
-            Log.e(`Received bad deletion event for ${this}`, event);
-            vscode.window.showErrorMessage(`Error deleting ${this.name}`);
-            // resolve the pending deletion because they will have to try again
-            this.resolvePendingDeletion();
-            return;
-        }
-
-        Log.i(`${this} was deleted from ${this.connection.label}`);
 
         try {
-            await this.dispose();
-        }
-        catch (err) {
-            Log.e(`Error disposing ${this.name}`, err);
-        }
+            if (event.status !== SocketEvents.STATUS_SUCCESS) {
+                Log.e(`Received bad deletion event for ${this}`, event);
+                vscode.window.showErrorMessage(`Error deleting ${this.name}: ${JSON.stringify(event)}`);
+                return;
+            }
 
-        this.resolvePendingDeletion();
-        this.resolvePendingDeletion = undefined;
-        this.connection.onProjectDeletion(this.id);
-        Log.d(`Finished deleting ${this}`);
+            await this.dispose();
+
+            this.connection.onProjectDeletion(this.id);
+
+            let didDeleteFiles = false;
+            if (this.deleteFilesOnDeletion) {
+
+                Log.d(`Deleting ${this.name}`);
+
+                // the file deletion errors are handled here because the project is still 'deleted from codewind' if this step fails.
+                try {
+                    if (this.workspaceFolder?.isExactMatch) {
+                        Log.i(`${this.name} is a workspace folder; removing it`);
+                        await MCUtil.updateWorkspaceFolders("remove", this.workspaceFolder);
+                    }
+                }
+                catch (err) {
+                    Log.e(`Error removing ${this.name} from workspace`, err);
+                    vscode.window.showErrorMessage(`Failed to remove ${this.name} from the workspace`);
+                }
+
+                try {
+                    Log.i(`Deleting files from ${this.localPath.fsPath}`);
+                    await fs.remove(this.localPath.fsPath);
+                    didDeleteFiles = true;
+                }
+                catch (err) {
+                    Log.e(`Error deleting ${this.name} files from ${this.localPath.fsPath}`, err);
+                    vscode.window.showErrorMessage(`Failed to delete ${this.name}: ${MCUtil.errToString(err)}`);
+                }
+            }
+
+            let removeCompleteMsg = `Removed ${this.name} from ${this.connection.label}`;
+            if (didDeleteFiles) {
+                removeCompleteMsg += ` and deleted ${this.localPath.fsPath}`;
+            }
+            vscode.window.showInformationMessage(removeCompleteMsg);
+            Log.i(removeCompleteMsg);
+        }
+        finally {
+            if (this.resolvePendingDeletion) {
+                this.resolvePendingDeletion();
+            }
+            this.resolvePendingDeletion = undefined;
+            this.deleteFilesOnDeletion = undefined;
+        }
     }
 
     /**
