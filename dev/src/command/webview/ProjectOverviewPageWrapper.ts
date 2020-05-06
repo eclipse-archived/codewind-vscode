@@ -19,7 +19,7 @@ import Log from "../../Logger";
 import toggleAutoBuildCmd from "../project/ToggleAutoBuildCmd";
 import toggleEnablementCmd from "../project/ToggleEnablementCmd";
 import requestBuildCmd from "../project/RequestBuildCmd";
-import { removeProject } from "../project/RemoveProjectCmd";
+import removeProjectCmd from "../project/RemoveProjectCmd";
 import { getProjectOverviewHtml } from "./pages/ProjectOverviewPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import Commands from "../../constants/Commands";
@@ -77,7 +77,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 break;
             }
             case ProjectOverviewWVMessages.UNBIND: {
-                removeProject(this.project, undefined);
+                removeProjectCmd(this.project, undefined);
                 break;
             }
             case ProjectOverviewWVMessages.EDIT: {
