@@ -17,7 +17,6 @@ import ConnectionManager from "../../codewind/connection/ConnectionManager";
 import toggleEnablementCmd from "./ToggleEnablementCmd";
 import { addProjectToConnection } from "../connection/BindProjectCmd";
 import RegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
-import removeProjectCmd from "./RemoveProjectCmd";
 import MCUtil from "../../MCUtil";
 import { IDetectedProjectType } from "../../codewind/Types";
 
@@ -109,7 +108,7 @@ export default async function changeProjectConnectionCmd(project: Project): Prom
         }
 
         if (existingActionResponse === optionRemove) {
-            await removeProjectCmd(project, false);
+            await project.deleteFromConnection(false);
         }
         else if (existingActionResponse === optionDisable) {
             await toggleEnablementCmd(project);

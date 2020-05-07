@@ -118,10 +118,8 @@ export namespace CLICommandRunner {
             "--id", projectID,
         ];
 
-        // deleteFiles is not used anymore because it proved more trouble than it was worth.
-        // By deleting the files from this process, we don't have to worry about permissions errors on Windows with VS Code still reading the files
-        // - since we delete them from the same process, it's allowed.
-        // https://github.com/eclipse/codewind/issues/2456
+        // deleteFiles is not used anymore because we have to delete the files well after the removal from Codewind.
+        // see https://github.com/eclipse/codewind/issues/2456
 
         // if (deleteFiles) {
             // removeArgs.push("--delete");

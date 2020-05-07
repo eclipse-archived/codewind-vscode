@@ -390,7 +390,7 @@ export async function createProject(connection: Connection, template: CWTemplate
     const creationResult = await vscode.window.withProgress({
         cancellable: false,
         location: vscode.ProgressLocation.Notification,
-        title: `Creating ${projectName}...`
+        title: `Creating ${projectName} into ${projectPath}...`
     }, async () => {
         const creationRes = await CLICommandRunner.createProject(connection.id, projectPath, template.url);
         if (creationRes.status !== SocketEvents.STATUS_SUCCESS) {

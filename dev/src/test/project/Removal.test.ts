@@ -13,7 +13,6 @@ import { expect } from "chai";
 import * as fs from "fs-extra";
 
 import TestUtil from "../TestUtil";
-import removeProjectCmd from "../../command/project/RemoveProjectCmd";
 
 import { testProjects } from "./Creation.test";
 
@@ -37,7 +36,7 @@ describe(`Project removal wrapper`, function() {
 
                     projectPath = project.localPath.fsPath;
 
-                    await removeProjectCmd(project, true);
+                    await project.deleteFromConnection(true);
 
                     await TestUtil.waitForCondition(this, {
                         label: `Waiting for ${project.name} to be removed from ${project.connection.label}`,
@@ -56,7 +55,7 @@ describe(`Project removal wrapper`, function() {
 
                     await TestUtil.waitForCondition(this, {
                         label: `Waiting for ${project.name} to be removed from the VS Code workspace`,
-                        condition: async () => !(project.workspaceFolder == null),
+                        condition: async () => project.workspaceFolder != null,
                     });
                 });
             });

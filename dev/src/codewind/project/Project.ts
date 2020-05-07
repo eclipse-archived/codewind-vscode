@@ -182,9 +182,10 @@ export default class Project implements vscode.QuickPickItem {
     public async dispose(): Promise<void> {
         Log.d(`Dispose ${this.name}`);
 
+        this.logManager.destroyAllLogs();
+
         await Promise.all([
             this.clearValidationErrors(),
-            this.logManager?.destroyAllLogs(),
             this._overviewPage != null ? this._overviewPage.dispose() : Promise.resolve(),
             DebugUtils.removeDebugLaunchConfigFor(this),
             this.portForwardTask != null ? this.portForwardTask.dispose() : Promise.resolve(),
@@ -622,16 +623,8 @@ export default class Project implements vscode.QuickPickItem {
         await this.requester.receiveProfilingData(event.timestamp, profilingOutPath);
     }
 
-    public async deleteFromCodewind(deleteFiles: boolean): Promise<void> {
+    public async deleteFromConnection(deleteFiles: boolean): Promise<void> {
         Log.d(`Deleting ${this}`);
-
-        try {
-            this.portForwardTask?.dispose();
-        }
-        catch (err) {
-            Log.e(`Error disposing port-forward for ${this.name}`, err);
-            // continue with the rest of the removal, it will result in the port-forward being closed anyway.
-        }
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -641,6 +634,8 @@ export default class Project implements vscode.QuickPickItem {
             return new Promise<void>(async (resolve, reject) => {
                 try {
                     await CLICommandRunner.removeProject(this.id)
+                    // This is resolved when the deletion event is received
+                    // and the delete is performed locally (see below)
                     this.resolvePendingDeletion = resolve;
                     this.deleteFilesOnDeletion = deleteFiles;
                 }
@@ -658,13 +653,13 @@ export default class Project implements vscode.QuickPickItem {
             Log.w(`Received deletion event for ${this} that was not pending deletion`);
         }
 
-        try {
-            if (event.status !== SocketEvents.STATUS_SUCCESS) {
-                Log.e(`Received bad deletion event for ${this}`, event);
-                vscode.window.showErrorMessage(`Error deleting ${this.name}: ${JSON.stringify(event)}`);
-                return;
-            }
+        if (event.status !== SocketEvents.STATUS_SUCCESS) {
+            Log.e(`Received bad deletion event for ${this}`, event);
+            vscode.window.showErrorMessage(`Error deleting ${this.name}: ${JSON.stringify(event)}`);
+            return;
+        }
 
+        try {
             await this.dispose();
 
             this.connection.onProjectDeletion(this.id);
@@ -675,9 +670,16 @@ export default class Project implements vscode.QuickPickItem {
                 Log.d(`Deleting ${this.name}`);
 
                 // the file deletion errors are handled here because the project is still 'deleted from codewind' if this step fails.
+                // The workspace folder removal has to happen before the file deletion or the deletion fails on windows
+                // due to the files still being in use by other extensions
                 try {
                     if (this.workspaceFolder?.isExactMatch) {
-                        Log.i(`${this.name} is a workspace folder; removing it`);
+                        if (MCUtil.extensionWillReloadIfRemoved(this.workspaceFolder)) {
+                            // This is a messy workaround for the VS Code behaviour of reloading extensions if the rootPath changes.
+                            // See extension.activate()
+                            Log.i(`Flagging ${this.localPath.fsPath} for deletion on next activate`);
+                            (global.EXT_GLOBAL_STATE as vscode.Memento).update(Constants.DIR_TO_DELETE_KEY, this.localPath.fsPath);
+                        }
                         await MCUtil.updateWorkspaceFolders("remove", this.workspaceFolder);
                     }
                 }

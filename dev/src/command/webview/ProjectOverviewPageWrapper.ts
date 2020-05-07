@@ -77,7 +77,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 break;
             }
             case ProjectOverviewWVMessages.UNBIND: {
-                removeProjectCmd(this.project, undefined);
+                removeProjectCmd(this.project);
                 break;
             }
             case ProjectOverviewWVMessages.EDIT: {

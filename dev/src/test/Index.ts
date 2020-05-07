@@ -33,7 +33,7 @@ suites = suites.map((suite) => path.join(__dirname, "suites", suite) + ".suite.j
 
 export async function run(): Promise<void> {
 
-    if (TestConfig.isJenkins()) {
+    if (TestConfig.isJenkins() && await fs.pathExists(CLISetup.DOT_CODEWIND_DIR)) {
         // delete all the binary dirs so the tests have to test the pull each time
         const binaryDirs = (await fs.readdir(CLISetup.DOT_CODEWIND_DIR)).filter((dirname) => dirname === "latest" || /\d+\.\d+\.\d+/.test(dirname));
         await Promise.all(binaryDirs.map((dir) => {

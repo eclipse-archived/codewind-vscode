@@ -10,8 +10,9 @@
  *******************************************************************************/
 
 "use strict";
-import * as vscode from "vscode";
 import "source-map-support/register";
+import * as vscode from "vscode";
+import * as fs from "fs-extra";
 
 import { createCommands } from "./command/CommandUtil";
 import createViews from "./view/InitViews";
@@ -124,10 +125,31 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
         LocalCodewindManager.instance.setState(CodewindStates.ERR_SETUP);
     });
 
+    deletePendingDirs();
+
     Log.d("Finished activating");
 }
 
 // this method is called when your extension is deactivated
 export function deactivate(): void {
     // nothing here
+}
+
+async function deletePendingDirs(): Promise<void> {
+    const globalState = global.EXT_GLOBAL_STATE as vscode.Memento;
+    const toDelete = globalState.get<string>(Constants.DIR_TO_DELETE_KEY);
+    try {
+        if (toDelete != null) {
+            await fs.remove(toDelete);
+            Log.i(`Deleted ${toDelete} on activation`);
+            vscode.window.showInformationMessage(`Deleted ${toDelete}`);
+        }
+    }
+    catch (err) {
+        Log.e(`Failed to directory that was pending ${toDelete}`, err);
+    }
+    finally {
+        // always reset the extension state, so we only try to delete the dir once even if it fails.
+        globalState.update(Constants.DIR_TO_DELETE_KEY, undefined);
+    }
 }
