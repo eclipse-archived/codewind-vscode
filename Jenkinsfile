@@ -31,11 +31,6 @@ IS_MASTER_BRANCH = env.BRANCH_NAME == "master"
 IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
 
 def sendEmailNotification() {    
-    if (!(IS_MASTER_BRANCH || IS_RELEASE_BRANCH)) {
-        println "Skipping email step since branch condition was not met"
-        return
-    }
-
     final def EXTRECIPIENTS = emailextrecipients([
         [$class: 'CulpritsRecipientProvider'],
         [$class: 'RequesterRecipientProvider'],
