@@ -443,6 +443,16 @@ namespace MCUtil {
         })
         .finally(() => onDidChangeWsFoldersListener?.dispose());
     }
+
+    /**
+     * @returns If s looks like it could be a Codewind version (or any other semver).
+     */
+    export function couldBeCodewindVersion(s: string, includeDevVersion: boolean): boolean {
+        if (includeDevVersion && s === Constants.CODEWIND_IMAGE_VERSION_DEV) {
+            return true;
+        }
+        return /\d+\.\d+\.\d+/.test(s);
+    }
 }
 
 export default MCUtil;

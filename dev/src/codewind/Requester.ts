@@ -160,6 +160,10 @@ export class Requester {
                 Log.d(`Ping cancelled`);
                 return "cancelled";
             }
+            else if (err instanceof got.TimeoutError) {
+                Log.i(`Timed out pinging ${url} - ${err.message}`);
+                return "failure";
+            }
             // likely connection refused, socket timeout, etc.
             // so it was not reachable
             Log.e(`Error pinging ${url}: ${err.message}`);

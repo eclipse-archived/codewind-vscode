@@ -49,6 +49,12 @@ namespace CLIWrapper {
             if (await CLISetup.doesBinariesTargetDirExist()) {
                 cliOutputChannel.appendLine(`${CLISetup.getBinariesTargetDir()} exists`);
 
+                // we do not await this since it only deletes files we aren't interested in anymore.
+                CLISetup.deleteOldBinaryDirs()
+                .catch((err) => {
+                    Log.e(`Error deleting old binary dirs`, err);
+                });
+
                 [ isCwctlSetup, isAppsodySetup ] = await Promise.all([
                     CLISetup.isCwctlSetup(),
                     CLISetup.isAppsodySetup()
@@ -60,7 +66,7 @@ namespace CLIWrapper {
         });
         Log.d(`Finished determining if binaries are installed, took ${Date.now() - binariesInitStartTime}ms`);
 
-        const downloadPromises: Promise<void>[] = [];
+        const downloadPromises: Promise<boolean>[] = [];
 
         if (isCwctlSetup) {
             cliOutputChannel.appendLine(`cwctl is available at ${CLISetup.getCwctlPath()}`);
@@ -71,9 +77,11 @@ namespace CLIWrapper {
                 CLISetup.downloadCwctl()
                 .then((cwctlPath) => {
                     cliOutputChannel.appendLine(`cwctl is now available at ${cwctlPath}`);
+                    return true;
                 })
                 .catch((err) => {
                     onSetupFailed(err, CLISetup.CWCTL_DOWNLOAD_NAME, CLISetup.getCwctlArchiveDownloadUrl(), CLISetup.getCwctlPath());
+                    return false;
                 })
             );
         }
@@ -86,22 +94,27 @@ namespace CLIWrapper {
             downloadPromises.push(CLISetup.downloadAppsody()
                 .then((appsodyPath) => {
                     cliOutputChannel.appendLine(`appsody ${global.APPSODY_VERSION} is now available at ${appsodyPath}`);
+                    return true;
                 })
                 .catch((err) => {
                     onSetupFailed(err, CLISetup.APPSODY_DOWNLOAD_NAME, CLISetup.getAppsodyDownloadUrl(), CLISetup.getAppsodyPath());
+                    return false;
                 })
             );
         }
 
         // download promises don't throw
-        await Promise.all(downloadPromises);
+        const success = (await Promise.all(downloadPromises)).every((result) => result);
+        if (!success) {
+            Log.e(`At least one binary failed to download; see above`);
+        }
         _hasInitialized = true;
         Log.i(`Finished initializing the CLI binaries, took ${Date.now() - binariesInitStartTime}ms`);
         CLISetup.lsBinariesTargetDir();
     }
 
     function onSetupFailed(err: any, binaryName: string, downloadUrl: string, targetPath: string): void {
-        Log.e(`Failed to initialize ${binaryName}`, err);
+        Log.e(`Failed to initialize ${binaryName}:`, err);
         const errMsg = `Error initalizing ${binaryName}`;
 
         cliOutputChannel.appendLine(`***** ${errMsg}: ${MCUtil.errToString(err)}\n` +
