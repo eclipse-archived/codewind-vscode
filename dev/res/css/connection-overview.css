@@ -32,7 +32,7 @@ body {
 }
 
 .box h3 {
-    background: var(--vscode-sideBarSectionHeader-background);
+    background: var(--vscode-activityBar-background);
     font-size: 20px;
     width: 100%;
     margin-top: 0px;
@@ -98,7 +98,7 @@ body {
 }
 
 input[type="text"], input[type="password"] {
-    background-color: var(--vscode-sideBarSectionHeader-background);
+    background-color: var(--vscode-activityBar-background);
     color: var(--vscode-editor-foreground);
 
     width: 100%;
@@ -153,7 +153,7 @@ input[type="text"], input[type="password"] {
 
 .link-container-box .btn {
     color: var(--vscode-editor-foreground);
-    background: var(--vscode-sideBarSectionHeader-background);
+    background: var(--vscode-activityBar-background);
     border: none;
     border-radius: 0;
 

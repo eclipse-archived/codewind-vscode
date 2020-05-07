@@ -22,7 +22,7 @@ import CWDocs from "../../constants/CWDocs";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import getManageSourcesPage from "./pages/SourcesPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
-import { SourceEnablement } from "../../codewind/Types";
+import { SourceEnablement, TemplateSource } from "../../codewind/Types";
 
 export enum ManageSourcesWVMessages {
     ENABLE_DISABLE = "enableOrDisable",
@@ -70,7 +70,14 @@ export class SourcesPageWrapper extends WebviewWrapper {
             }
             case CommonWVMessages.DELETE: {
                 const sourceUrl = msg.data as string;
-                await this.removeSource(sourceUrl);
+                const sourceToDelete = (await this.connection.templateSourcesList.get()).find((source) => source.url === sourceUrl);
+                if (sourceToDelete == null) {
+                    Log.e(`Requested to delete source with url "${sourceUrl}" that was not found`);
+                    vscode.window.showErrorMessage(`Could not find source at ${sourceUrl}`);
+                    this.refresh();
+                    return;
+                }
+                await this.removeSource(sourceToDelete);
                 break;
             }
             case CommonWVMessages.HELP: {
@@ -115,23 +122,28 @@ export class SourcesPageWrapper extends WebviewWrapper {
             return;
         }
 
-        try {
-            await this.connection.templateSourcesList.add(repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
-            await this.refresh();
-        }
-        catch (err) {
-            vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`);
-            Log.e(`Error adding new template repo ${JSON.stringify(repoInfo)}`, err);
-        }
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: `Adding ${repoInfo.repoName}...`
+        }, async () => {
+            try {
+                await this.connection.templateSourcesList.add(repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
+                await this.refresh();
+            }
+            catch (err) {
+                vscode.window.showErrorMessage(`Error adding ${repoInfo.repoName}: ${MCUtil.errToString(err)}`);
+                Log.e(`Error adding new template repo ${JSON.stringify(repoInfo)}`, err);
+            }
+        });
     }
 
-    private async removeSource(sourceUrl: string): Promise<void> {
-        Log.d(`Delete source ${sourceUrl} from ${this.connection.url}`);
+    private async removeSource(sourceToRemove: TemplateSource): Promise<void> {
+        Log.d(`Delete source ${sourceToRemove.name} from ${this.connection.url}`);
 
         const yesBtn = "Yes";
-        // TODO add name?
         const res = await vscode.window.showWarningMessage(
-            `Are you sure you wish to delete this template repository?`,
+            `Are you sure you wish to remove ${sourceToRemove.name}?`,
             { modal: true }, yesBtn
         );
 
@@ -139,14 +151,20 @@ export class SourcesPageWrapper extends WebviewWrapper {
             return;
         }
 
-        try {
-            await this.connection.templateSourcesList.remove(sourceUrl);
-            await this.refresh();
-        }
-        catch (err) {
-            vscode.window.showErrorMessage(`Error deleting template source ${sourceUrl}: ${MCUtil.errToString(err)}`, err);
-            Log.e(`Error removing template repo ${sourceUrl}`, err);
-        }
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: `Removing ${sourceToRemove.name}...`
+        }, async () => {
+            try {
+                await this.connection.templateSourcesList.remove(sourceToRemove.url);
+                await this.refresh();
+            }
+            catch (err) {
+                vscode.window.showErrorMessage(`Error deleting template source ${sourceToRemove.name}: ${MCUtil.errToString(err)}`, err);
+                Log.e(`Error removing template repo ${sourceToRemove.name}`, err);
+            }
+        });
     }
 }
 

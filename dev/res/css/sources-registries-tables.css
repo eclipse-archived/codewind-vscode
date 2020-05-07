@@ -110,7 +110,7 @@ thead > tr > td {
     position: sticky;
     padding-bottom: 1em;
     color: var(--vscode-sideBarSectionHeader-foreground);
-    background: var(--vscode-sideBarSectionHeader-background);
+    background: var(--vscode-activityBar-background);
 
     font-weight: bold;
     font-size: 110%;
