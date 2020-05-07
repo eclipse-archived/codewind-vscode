@@ -27,7 +27,7 @@ def getChangeDetail() {
     return changeDetail
 }
 
-def IS_MASTER_BRANCH = env.BRANCH_NAME == "master"
+def IS_MASTER_BRANCH = env.BRANCH_NAME == "emailCulprits2"
 def IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
 
 def sendEmailNotification() {    
@@ -184,6 +184,9 @@ spec:
             }
 
             steps {
+
+                error("TEST: Fail the build ...")
+
                 script {
                     if (IS_RELEASE_BRANCH) {
                         unstash STASH_PJ
