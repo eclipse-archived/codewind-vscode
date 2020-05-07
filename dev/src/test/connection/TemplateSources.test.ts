@@ -36,7 +36,7 @@ describe(`Template sources`, function() {
         expect(projectStyles).to.contain(SourceProjectStyles.CODEWIND, SourceProjectStyles.APPSODY);
     });
 
-    const SOURCES_TIMEOUT = TestUtil.ms(10, "sec");
+    const SOURCES_TIMEOUT = TestUtil.ms(15, "sec");
     const SOURCES_SLOW = TestUtil.ms(5, "sec");
 
     it(`should disable all sources`, async function() {
@@ -140,6 +140,8 @@ describe(`Template sources`, function() {
     const TEST_SOURCE_DESCR = "It is a template source for the tests to use";
     const TEST_SOURCE_NO_TEMPLATES = 8;
 
+    let didAddSource = false;
+
     it(`should add a new template source`, async function() {
         this.timeout(SOURCES_TIMEOUT);
         this.slow(SOURCES_SLOW);
@@ -157,6 +159,7 @@ describe(`Template sources`, function() {
         expect(newSource.name).to.equal(TEST_SOURCE_NAME);
         expect(newSource.description).to.equal(TEST_SOURCE_DESCR);
         expect(newSource.protected).to.equal(false);
+        didAddSource = true;
 
         const newTemplates = await connection.enabledTemplates;
         expect(newTemplates, `Number of templates was incorrect after source addition`)
@@ -164,6 +167,10 @@ describe(`Template sources`, function() {
     });
 
     it(`should remove the new template source`, async function() {
+        if (!didAddSource) {
+            this.skip();
+        }
+
         this.timeout(SOURCES_TIMEOUT);
         this.slow(SOURCES_SLOW);
 
