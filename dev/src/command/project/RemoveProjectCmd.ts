@@ -18,9 +18,6 @@ import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
 
-/**
- * @param deleteFiles - Set this to skip prompting the user, and instead just do the remove silently.
- */
 export default async function removeProjectCmd(project: Project): Promise<void> {
     let deleteFiles: boolean;
 
@@ -62,9 +59,9 @@ export default async function removeProjectCmd(project: Project): Promise<void> 
 
         deleteFiles = deleteDirRes === deleteDirBtn;
     }
-    
+
     // We do not await the deleteFromCodewind since it modifies the workspace folders.
-    // If the workspace folder modification results in a reload, this command will get canceled 
+    // If the workspace folder modification results in a reload, this command will get canceled
     // and an error message is shown that this command was canceled.
     // so by not awaiting, this command finishes early, but we don't have to worry about the cancellation.
 
