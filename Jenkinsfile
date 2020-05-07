@@ -31,40 +31,43 @@ def IS_MASTER_BRANCH = env.BRANCH_NAME == "master"
 def IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
 
 def sendEmailNotification() {    
-    if (IS_MASTER_BRANCH || IS_RELEASE_BRANCH)  {
-        final def EXTRECIPIENTS = emailextrecipients([
-            [$class: 'CulpritsRecipientProvider'],
-            [$class: 'RequesterRecipientProvider'],
-            [$class: 'DevelopersRecipientProvider']
-        ])
-
-        def RECIPIENTS = EXTRECIPIENTS != null ? EXTRECIPIENTS : env.CHANGE_AUTHOR_EMAIL;
-        def SUBJECT = "${env.JOB_NAME} - Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}!"
-        def CHANGE = getChangeDetail();
-        
-        emailext(
-            to: RECIPIENTS,
-            subject: "${SUBJECT}",
-            body: """
-                <b>Build result:</b> 
-                <br><br>
-                ${currentBuild.currentResult}
-                <br><br>
-                <b>Project name - Build number:</b>
-                <br><br>
-                ${currentBuild.fullProjectName} - Build #${env.BUILD_NUMBER}
-                <br><br>
-                <b>Check console output for more detail:</b> 
-                <br><br>
-                <a href="${currentBuild.absoluteUrl}console">${currentBuild.absoluteUrl}console</a>
-                <br><br>
-                <b>Changes:</b> 
-                <br><br>
-                ${CHANGE}
-                <br><br>
-            """
-        );
+    if (!(IS_MASTER_BRANCH || IS_RELEASE_BRANCH)) {
+        println "Skipping email step since branch condition was not met"
+        return
     }
+
+    final def EXTRECIPIENTS = emailextrecipients([
+        [$class: 'CulpritsRecipientProvider'],
+        [$class: 'RequesterRecipientProvider'],
+        [$class: 'DevelopersRecipientProvider']
+    ])
+
+    def RECIPIENTS = EXTRECIPIENTS != null ? EXTRECIPIENTS : env.CHANGE_AUTHOR_EMAIL;
+    def SUBJECT = "${env.JOB_NAME} - Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}!"
+    def CHANGE = getChangeDetail();
+    
+    emailext(
+        to: RECIPIENTS,
+        subject: "${SUBJECT}",
+        body: """
+            <b>Build result:</b> 
+            <br><br>
+            ${currentBuild.currentResult}
+            <br><br>
+            <b>Project name - Build number:</b>
+            <br><br>
+            ${currentBuild.fullProjectName} - Build #${env.BUILD_NUMBER}
+            <br><br>
+            <b>Check console output for more detail:</b> 
+            <br><br>
+            <a href="${currentBuild.absoluteUrl}console">${currentBuild.absoluteUrl}console</a>
+            <br><br>
+            <b>Changes:</b> 
+            <br><br>
+            ${CHANGE}
+            <br><br>
+        """
+    );
 }
 
 def BUILD_CONTAINER = """
