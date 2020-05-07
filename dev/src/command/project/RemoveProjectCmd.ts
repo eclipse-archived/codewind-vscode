@@ -21,58 +21,60 @@ import ConnectionManager from "../../codewind/connection/ConnectionManager";
 /**
  * @param deleteFiles - Set this to skip prompting the user, and instead just do the remove silently.
  */
-export default async function removeProjectCmd(project: Project, deleteFiles?: boolean): Promise<void> {
-    try {
-        let doDeleteProjectDir: boolean;
+export default async function removeProjectCmd(project: Project): Promise<void> {
+    let deleteFiles: boolean;
 
-        if (deleteFiles == null) {
-            // ask the user
-            const deleteMsg = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectMsg", {
-                projectName: project.name,
-                connectionLabel: project.connection.label
-            });
-            const deleteBtn = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteBtn", { projectName: project.name });
+    // confirm deletion
+    const deleteMsg = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectMsg", {
+        projectName: project.name,
+        connectionLabel: project.connection.label
+    });
+    const deleteBtn = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteBtn", { projectName: project.name });
 
-            const deleteRes = await vscode.window.showInformationMessage(deleteMsg, { modal: true }, deleteBtn);
-            if (deleteRes !== deleteBtn) {
-                // cancelled
-                return;
-            }
-
-            const projectDirPath: string = project.localPath.fsPath;
-            const isProjectBoundElsewhere = ConnectionManager.instance.connections
-                .some((conn) => conn !== project.connection && conn.hasProjectAtPath(project.localPath));
-
-            if (isProjectBoundElsewhere) {
-                // Another connection is using this project, so we should not delete its files.
-                doDeleteProjectDir = false;
-            }
-            else {
-                // Ask user if they want to delete the files on disk too.
-                const cancelBtn = global.IS_THEIA ? "Close" : "Cancel";
-
-                const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", {
-                    projectName: project.name,
-                    connectionLabel: project.connection.label,
-                    dirPath: projectDirPath,
-                    cancelBtn,
-                });
-
-                const deleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirBtn");
-                const deleteDirRes = await vscode.window.showWarningMessage(deleteDirMsg, { modal: true }, deleteDirBtn);
-
-                doDeleteProjectDir = deleteDirRes === deleteDirBtn;
-            }
-        }
-        else {
-            doDeleteProjectDir = deleteFiles;
-        }
-
-        await project.deleteFromCodewind(doDeleteProjectDir);
+    const deleteRes = await vscode.window.showInformationMessage(deleteMsg, { modal: true }, deleteBtn);
+    if (deleteRes !== deleteBtn) {
+        // cancelled
+        return;
     }
-    catch (err) {
+
+    // determine if the project files can be deleted from disk
+    const projectDirPath: string = project.localPath.fsPath;
+    const isProjectBoundElsewhere = ConnectionManager.instance.connections
+        .some((conn) => conn !== project.connection && conn.hasProjectAtPath(project.localPath));
+
+    if (isProjectBoundElsewhere) {
+        // Another connection is using this project, so we should not delete its files.
+        deleteFiles = false;
+    }
+    else {
+        // Ask user if they want to delete the files on disk too.
+        const cancelBtn = global.IS_THEIA ? "Close" : "Cancel";
+
+        const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", {
+            projectName: project.name,
+            connectionLabel: project.connection.label,
+            dirPath: projectDirPath,
+            cancelBtn,
+        });
+
+        const deleteDirBtn = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirBtn");
+        const deleteDirRes = await vscode.window.showWarningMessage(deleteDirMsg, { modal: true }, deleteDirBtn);
+
+        deleteFiles = deleteDirRes === deleteDirBtn;
+    }
+    
+    // We do not await the deleteFromCodewind since it modifies the workspace folders.
+    // If the workspace folder modification results in a reload, this command will get canceled 
+    // and an error message is shown that this command was canceled.
+    // so by not awaiting, this command finishes early, but we don't have to worry about the cancellation.
+
+    // await project.deleteFromCodewind(deleteFiles);
+
+    project.deleteFromConnection(deleteFiles)
+    .then(() => Log.i(`Finished removeProjectCmd for ${project.name}`))
+    .catch((err) => {
         const errMsg = `Failed to remove ${project.name}`;
         Log.e(errMsg, err);
         vscode.window.showInformationMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
-    }
+    });
 }

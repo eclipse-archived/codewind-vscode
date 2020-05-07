@@ -230,9 +230,7 @@ namespace MCUtil {
      * Eg, `joinList([ "tim", "erin", "john" ], "and")` => "tim, erin and john" (no oxford comma because it doesn't work with 'or')
      */
     export function joinList(strings_: readonly string[], andOrOr: "and" | "or"): string {
-        const strings = Array.from(strings_);
-        // remove undefined/empty
-        strings.filter((s) => {
+        const strings = Array.from(strings_).filter((s) => {
             if (!s) {
                 Log.w(`Refusing to join empty or undefined string`);
                 return false;
@@ -384,43 +382,53 @@ namespace MCUtil {
         return undefined;
     }
 
-    export async function updateWorkspaceFolders(operation: "add" | "remove", folder: vscode.WorkspaceFolder): Promise<void> {
+    /**
+     * @returns If the extension will reload if the given WorkspaceFolder is removed.
+     * See the documentation for vscode.workspace.updateWorkspaceFolders
+     * The extension reloads if the rootPath changes.
+     */
+    export function extensionWillReloadIfRemoved(wsFolder: vscode.WorkspaceFolder): boolean {
+        // NOTE: There is one special case if the user goes from a single-root workspace (folder)
+        // to a multi-root, by adding a folder here. It does not appear to be possible to detect this case.
+        // If this happens, this will be wrongly false.
+        return wsFolder.index === 0;
+    }
+
+    export async function updateWorkspaceFolders(operation: "add" | "remove", wsFolder: vscode.WorkspaceFolder): Promise<void> {
         let onDidChangeWsFoldersListener: vscode.Disposable | undefined;
 
         const logMsg = operation === "add" ?
-            `Adding workspace folder ${folder.name} at ${folder.uri.fsPath}` :
-            `Removing workspace folder ${folder.name}`;
+            `Adding workspace folder ${wsFolder.name} at ${wsFolder.uri.fsPath}` :
+            `Removing workspace folder ${wsFolder.name}`;
 
         Log.i(logMsg);
 
-        await new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             onDidChangeWsFoldersListener = vscode.workspace.onDidChangeWorkspaceFolders((e) => {
                 const changed = operation === "add" ? e.added : e.removed;
 
-                if (changed.some((wsFolder) => wsFolder.uri.fsPath === folder.uri.fsPath)) {
-                    resolve();
+                if (changed.some((wsf) => wsf.uri.fsPath === wsFolder.uri.fsPath)) {
+                    return resolve();
                 }
                 else {
-                    Log.d(`Received a workspaceFoldersChanged event that did not contain ${folder.uri.fsPath}`, changed);
+                    Log.d(`Received a workspaceFoldersChanged event that did not contain ${wsFolder.uri.fsPath}`, changed);
                 }
             });
 
             try {
-                // See the documentation for vscode.workspace.updateWorkspaceFolders
-                // - The extension reloads if the rootPath changes.
-                const extWillReload = folder.index === 0;
+                const extWillReload = extensionWillReloadIfRemoved(wsFolder);
 
                 let willUpdate;
                 if (operation === "add") {
                     const wsFoldersLen = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.length : 0;
-                    willUpdate = vscode.workspace.updateWorkspaceFolders(wsFoldersLen, 0, folder);
+                    willUpdate = vscode.workspace.updateWorkspaceFolders(wsFoldersLen, 0, wsFolder);
                 }
                 else {
-                    willUpdate = vscode.workspace.updateWorkspaceFolders(folder.index, 1);
+                    willUpdate = vscode.workspace.updateWorkspaceFolders(wsFolder.index, 1);
                 }
 
                 if (!willUpdate) {
-                    return reject(new Error(`Failed to ${operation} ${folder.uri.fsPath}`));
+                    return reject(new Error(`Failed to ${operation} ${wsFolder.uri.fsPath}`));
                 }
                 else if (extWillReload) {
                     // we cannot wait for the workspace change event if the extension will reload

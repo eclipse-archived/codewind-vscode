@@ -33,6 +33,13 @@ namespace Constants {
      * Set this env var to anything to disable the appsody version check
      */
     export const ENV_APPSODY_DEVMODE = "APPSODY_DEV";
+
+    /**
+     * This is checked on activation to see if there are any projects that should have been removed, 
+     * but were not due to the extension reloading.
+     * See Project.onDeletionEvent
+     */
+    export const DIR_TO_DELETE_KEY = "project-dir-to-delete";
 }
 
 export default Constants;
