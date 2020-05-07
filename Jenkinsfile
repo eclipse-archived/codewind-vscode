@@ -27,8 +27,8 @@ def getChangeDetail() {
     return changeDetail
 }
 
-def IS_MASTER_BRANCH = env.BRANCH_NAME == "emailCulprits2"
-def IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
+IS_MASTER_BRANCH = env.BRANCH_NAME == "emailCulprits2"
+IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
 
 def sendEmailNotification() {    
     if (!(IS_MASTER_BRANCH || IS_RELEASE_BRANCH)) {
