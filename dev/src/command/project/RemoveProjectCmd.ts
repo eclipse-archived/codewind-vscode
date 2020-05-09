@@ -17,6 +17,7 @@ import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
 import Project from "../../codewind/project/Project";
 import ConnectionManager from "../../codewind/connection/ConnectionManager";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export default async function removeProjectCmd(project: Project): Promise<void> {
     let deleteFiles: boolean;
@@ -45,7 +46,7 @@ export default async function removeProjectCmd(project: Project): Promise<void> 
     }
     else {
         // Ask user if they want to delete the files on disk too.
-        const cancelBtn = global.IS_THEIA ? "Close" : "Cancel";
+        const cancelBtn = CWExtensionContext.get().isTheia ? "Close" : "Cancel";
 
         const deleteDirMsg = Translator.t(StringNamespaces.CMD_MISC, "alsoDeleteDirMsg", {
             projectName: project.name,

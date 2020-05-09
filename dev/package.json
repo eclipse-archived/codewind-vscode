@@ -3,7 +3,7 @@
     "displayName": "%displayName%",
     "description": "%description%",
     "version": "0.12.0",
-    "codewindImageVersion": "latest",
+    "codewindImageTag": "latest",
     "appsodyVersion": "0.6.1",
     "publisher": "IBM",
     "engines": {
@@ -41,7 +41,7 @@
     "scripts": {
         "vscode:prepublish": "npm run copy-license && npm run webpack-prod",
         "package": "./vsce-package.js",
-        "package-che": "./vsce-package.js che",
+        "package-che": "./vsce-package.js --buildForChe",
         "ts-compile": "tsc",
         "ts-watch": "tsc -w",
         "pretest": "npm run ts-compile",
@@ -65,6 +65,7 @@
         "@types/tar": "^4.0.3",
         "@types/vscode": "1.39.0",
         "chai": "^4.2.0",
+        "minimist": "^1.2.5",
         "mocha": "^7.1.1",
         "node-loader": "^0.6.0",
         "ts-loader": "^6.2.2",

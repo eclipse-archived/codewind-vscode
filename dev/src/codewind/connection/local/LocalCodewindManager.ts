@@ -23,6 +23,7 @@ import { getOcticon, Octicons } from "../../../constants/CWImages";
 import Commands from "../../../constants/Commands";
 import Requester from "../../Requester";
 import CWDocs from "../../../constants/CWDocs";
+import CWExtensionContext from "../../../CWExtensionContext";
 
 const CHE_CW_URL = "https://localhost:9090";
 
@@ -130,7 +131,7 @@ export default class LocalCodewindManager {
      * Check if the local Codewind URL has changed due to a command-line restart, and recreate the local connection if it has changed.
      */
     public async refresh(): Promise<boolean> {
-        if (global.IS_CHE) {
+        if (CWExtensionContext.get().isChe) {
             return false;
         }
 

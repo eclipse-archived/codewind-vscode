@@ -19,6 +19,7 @@ import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
 import { CLILifecycleCommand } from "./CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
 import CLISetup from "./CLISetup";
+import CWExtensionContext from "../../CWExtensionContext";
 
 let _hasInitialized = false;
 
@@ -87,13 +88,13 @@ namespace CLIWrapper {
         }
 
         if (isAppsodySetup) {
-            cliOutputChannel.appendLine(`appsody ${global.APPSODY_VERSION} is available at ${CLISetup.getAppsodyPath()}`);
+            cliOutputChannel.appendLine(`appsody ${CWExtensionContext.get().appsodyVersion} is available at ${CLISetup.getAppsodyPath()}`);
         }
         else {
-            cliOutputChannel.appendLine(`Downloading appsody ${global.APPSODY_VERSION} from ${CLISetup.getAppsodyDownloadUrl()}...`);
+            cliOutputChannel.appendLine(`Downloading appsody ${CWExtensionContext.get().appsodyVersion} from ${CLISetup.getAppsodyDownloadUrl()}...`);
             downloadPromises.push(CLISetup.downloadAppsody()
                 .then((appsodyPath) => {
-                    cliOutputChannel.appendLine(`appsody ${global.APPSODY_VERSION} is now available at ${appsodyPath}`);
+                    cliOutputChannel.appendLine(`appsody ${CWExtensionContext.get().appsodyVersion} is now available at ${appsodyPath}`);
                     return true;
                 })
                 .catch((err) => {

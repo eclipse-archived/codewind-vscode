@@ -21,7 +21,6 @@ import Log from "./Logger";
 import Translator from "./constants/strings/Translator";
 import StringNamespaces from "./constants/strings/StringNamespaces";
 import connectLocalCodewindCmd from "./command/StartCodewindCmd";
-import Constants from "./constants/Constants";
 import ConnectionManager from "./codewind/connection/ConnectionManager";
 import LocalCodewindManager from "./codewind/connection/local/LocalCodewindManager";
 import { CWConfigurations } from "./constants/Configurations";
@@ -29,6 +28,8 @@ import showHomePageCmd from "./command/HomePageCmd";
 import MCUtil from "./MCUtil";
 import CLIWrapper from "./codewind/cli/CLIWrapper";
 import { CodewindStates } from "./codewind/connection/local/CodewindStates";
+import CWExtensionContext from "./CWExtensionContext";
+import Constants from "./constants/Constants";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -47,25 +48,10 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
 
     Log.setLogFilePath(context);
     Log.i("Finished activating logger");
-
-    // Initialize our globals
-    global.EXTENSION_ROOT = context.extensionPath;
-    // Declared as 'any' type, but will always be assigned globalState which is a vscode.Memento
-    global.EXT_GLOBAL_STATE = context.globalState;
-    global.IS_THEIA = vscode.env.appName.toLowerCase().includes("theia");
-    global.IS_CHE = !!process.env[Constants.CHE_WORKSPACEID_ENVVAR]
-
-    const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
-    global.EXT_VERSION = thisExtension.packageJSON.version;
-    global.CODEWIND_IMAGE_TAG = thisExtension.packageJSON.codewindImageVersion;
-    global.APPSODY_VERSION = thisExtension.packageJSON.appsodyVersion;
-
     Log.i(`Node version is ${process.version}`);
-    Log.i(`Extension version is ${global.EXT_VERSION}`);
-    Log.i(`Codewind image version is ${global.CODEWIND_IMAGE_TAG}`);
-    Log.i(`Appsody version is ${global.APPSODY_VERSION}`);
-    Log.i(`Running in Theia ? ${global.IS_THEIA}`);
-    Log.i(`Running in Che ? ${global.IS_CHE}`);
+
+    const cwContext = CWExtensionContext.init(context);
+    Log.i(`Extension context is`, cwContext);
 
     try {
         await Translator.init();
@@ -99,7 +85,7 @@ async function activateInner(context: vscode.ExtensionContext): Promise<void> {
         }
     });
 
-    if (!global.IS_CHE && CWConfigurations.SHOW_HOMEPAGE.get()) {
+    if (!CWExtensionContext.get().isChe && CWConfigurations.SHOW_HOMEPAGE.get()) {
         showHomePageCmd();
     }
 
@@ -136,7 +122,7 @@ export function deactivate(): void {
 }
 
 async function deletePendingDirs(): Promise<void> {
-    const globalState = global.EXT_GLOBAL_STATE as vscode.Memento;
+    const globalState = CWExtensionContext.get().globalState;
     const toDelete = globalState.get<string>(Constants.DIR_TO_DELETE_KEY);
     try {
         if (toDelete != null) {

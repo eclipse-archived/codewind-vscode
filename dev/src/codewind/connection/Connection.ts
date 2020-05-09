@@ -29,6 +29,7 @@ import ConnectionRequester from "./ConnectionRequester";
 import { AccessToken, CWTemplateData } from "../Types";
 import CLISetup from "../cli/CLISetup";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export const LOCAL_CONNECTION_ID = "local";
 
@@ -137,7 +138,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
 
         if (ready !== "success") {
             let troubleshootMsg: string = "To troubleshoot, you can ";
-            if (global.IS_CHE) {
+            if (CWExtensionContext.get().isChe) {
                 troubleshootMsg += `check the Codewind Workspace pod logs and refresh Theia.`;
             }
             else if (this.isRemote) {
@@ -227,7 +228,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     private async initFileWatcher(): Promise<void> {
-        if (global.IS_CHE) {
+        if (CWExtensionContext.get().isChe) {
             Log.i("In Che; no filewatcher required");
             return;
         }
@@ -246,7 +247,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     private getPFEHost(): string {
-        if (global.IS_CHE) {
+        if (CWExtensionContext.get().isChe) {
             // On Che we have to use the che ingress
             // something like CHE_API_EXTERNAL=http://che-eclipse-che.9.28.239.191.nip.io/api
             const cheExternalUrlStr = process.env[Constants.CHE_API_EXTERNAL_ENVVAR];
@@ -404,7 +405,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
      * This is the case for remote connections, or the local connection in che.
      */
     public get isKubeConnection(): boolean {
-        return this.isRemote || global.IS_CHE;
+        return this.isRemote || CWExtensionContext.get().isChe;
     }
 
     public async needsPushRegistry(): Promise<boolean> {
@@ -475,7 +476,7 @@ export default class Connection implements vscode.QuickPickItem, vscode.Disposab
     }
 
     public get pfeBaseURL(): vscode.Uri {
-        if (!global.IS_CHE) {
+        if (!CWExtensionContext.get().isChe) {
             return this.url;
         }
 

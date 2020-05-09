@@ -17,6 +17,7 @@ import MCUtil from "../../../MCUtil";
 import { ProjectOverviewWVMessages } from "../ProjectOverviewPageWrapper";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { WebviewResourceProvider } from "../WebviewWrapper";
+import CWExtensionContext from "../../../CWExtensionContext";
 
 
 interface RowOptions {
@@ -63,7 +64,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             ${buildRow(rp, "Type", project.type.toString())}
             ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
             ${buildRow(rp, "Project ID", project.id)}
-            ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: global.IS_CHE ? undefined : "folder"})}
+            ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: CWExtensionContext.get().isChe ? undefined : "folder"})}
         </table>
     </div>
     <div class="section">
@@ -264,7 +265,7 @@ function buildContainerPodSection(rp: WebviewResourceProvider, project: Project)
 }
 
 function buildDebugSection(rp: WebviewResourceProvider, project: Project): string {
-    if (global.IS_CHE) {
+    if (CWExtensionContext.get().isChe) {
         return `
             </table>
         `;

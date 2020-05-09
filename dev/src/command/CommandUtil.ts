@@ -51,6 +51,7 @@ import changeProjectConnectionCmd from "./project/ChangeProjectConnectionCmd";
 import { setLogLevelCmd } from "./connection/SetLogLevelCmd";
 import showHomePageCmd from "./HomePageCmd";
 import newRemoteConnectionCmd from "./connection/NewConnectionCmd";
+import CWExtensionContext from "../CWExtensionContext";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -263,7 +264,7 @@ export async function promptForConnection(connectedOnly: boolean, remoteOnly: bo
         return choices[0];
     }
     else if (choices.length === 0) {
-        if (global.IS_CHE) {
+        if (CWExtensionContext.get().isChe) {
             vscode.window.showWarningMessage(`Codewind has not yet started. Wait for the Codewind pod to come up before running this command.`);
         }
         else {

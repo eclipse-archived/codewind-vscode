@@ -23,6 +23,7 @@ import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import getManageSourcesPage from "./pages/SourcesPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import { SourceEnablement, TemplateSource } from "../../codewind/Types";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export enum ManageSourcesWVMessages {
     ENABLE_DISABLE = "enableOrDisable",
@@ -32,7 +33,7 @@ const SOURCES_PAGE_TITLE = "Template Source Manager";
 
 function getTitle(connection: Connection): string {
     let title = SOURCES_PAGE_TITLE;
-    if (!global.IS_CHE) {
+    if (!CWExtensionContext.get().isChe) {
         title += ` (${connection.label})`;
     }
     return title;

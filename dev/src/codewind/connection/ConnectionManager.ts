@@ -21,6 +21,7 @@ import { CLICommandRunner } from "../cli/CLICommandRunner";
 import { ConnectionMemento } from "./ConnectionMemento";
 import { CLIConnectionData } from "../Types";
 import { HomePageWrapper } from "../../command/webview/HomePageWrapper";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export default class ConnectionManager implements vscode.Disposable {
     private static _instance: ConnectionManager;
@@ -110,7 +111,7 @@ export default class ConnectionManager implements vscode.Disposable {
         }
         Log.i("Creating connection to " + url);
 
-        const label = global.IS_CHE ? "Codewind in Che" : "Local Codewind";
+        const label = CWExtensionContext.get().isChe ? "Codewind in Che" : "Local Codewind";
         const newConnection = new Connection(LOCAL_CONNECTION_ID, url, label, false);
         this.onNewConnection(newConnection);
         return newConnection;

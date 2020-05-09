@@ -16,6 +16,7 @@ import LocalCodewindManager from "../codewind/connection/local/LocalCodewindMana
 import CLILifecycleWrapper from "../codewind/cli/CLILifecycleWrapper";
 import MCUtil from "../MCUtil";
 import CLIWrapper from "../codewind/cli/CLIWrapper";
+import CWExtensionContext from "../CWExtensionContext";
 
 /**
  *
@@ -29,7 +30,7 @@ export default async function connectLocalCodewindCmd(
     Log.i("Start Local Codewind Cmd");
 
     try {
-        if (global.IS_CHE) {
+        if (CWExtensionContext.get().isChe) {
             await LocalCodewindManager.instance.waitForCodewindToStartChe();
             return;
         }

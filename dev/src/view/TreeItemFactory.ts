@@ -21,6 +21,7 @@ import { CodewindTreeItem } from "./CodewindTree";
 import Commands from "../constants/Commands";
 import Project from "../codewind/project/Project";
 import { ConnectionStates } from "../codewind/connection/ConnectionState";
+import CWExtensionContext from "../CWExtensionContext";
 
 const STRING_NS = StringNamespaces.TREEVIEW;
 
@@ -34,7 +35,7 @@ namespace TreeItemFactory {
         const cwStarted = LocalCodewindManager.instance.isStarted;
 
         let label = "Local";
-        if (global.IS_CHE) {
+        if (CWExtensionContext.get().isChe) {
             // it's confusing to say "local" in Che
             label = "Projects";
         }

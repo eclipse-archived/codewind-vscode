@@ -13,6 +13,7 @@ import { Uri } from "vscode";
 import * as fs from "fs-extra";
 import * as path from "path";
 import Log from "../Logger";
+import CWExtensionContext from "../CWExtensionContext";
 
 // non-nls-file
 
@@ -27,12 +28,8 @@ interface IconPaths {
     readonly light: Uri;
 }
 
-export function getBaseResourcesPath(): string {
-    return path.join(global.EXTENSION_ROOT, RES_FOLDER_NAME);
-}
-
 function getBaseImagePath(): string {
-    return path.join(getBaseResourcesPath(), IMG_FOLDER_NAME);
+    return path.join(CWExtensionContext.get().resourcesPath, IMG_FOLDER_NAME);
 }
 
 async function checkExists(...paths: string[]): Promise<void> {

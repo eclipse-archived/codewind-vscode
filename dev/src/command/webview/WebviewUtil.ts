@@ -13,11 +13,12 @@ import * as vscode from "vscode";
 import * as fs from "fs-extra";
 import * as path from "path";
 
-import { getBaseResourcesPath, ThemelessImages } from "../../constants/CWImages";
+import { ThemelessImages } from "../../constants/CWImages";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { WebviewResourceProvider } from "./WebviewWrapper";
 import Commands from "../../constants/Commands";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export enum CommonWVMessages {
     OPEN_CONNECTION = "openConnection",
@@ -42,13 +43,13 @@ namespace WebviewUtil {
             enableScripts: true,
             retainContextWhenHidden: true,
             localResourceRoots: [
-                vscode.Uri.file(getBaseResourcesPath())
+                vscode.Uri.file(CWExtensionContext.get().resourcesPath)
             ],
         };
     }
 
     export function getCssPath(filename: string): vscode.Uri {
-        const cssPath = path.join(getBaseResourcesPath(), STYLE_FOLDER_NAME, filename);
+        const cssPath = path.join(CWExtensionContext.get().resourcesPath, STYLE_FOLDER_NAME, filename);
         return vscode.Uri.file(cssPath);
     }
 
@@ -65,7 +66,7 @@ namespace WebviewUtil {
         // These should be loaded first so they can be overridden
         stylesheets.unshift("common.css");
 
-        if (global.IS_THEIA || !!process.env[ENVVAR_WEBVIEW_DEBUG_DIR]) {
+        if (CWExtensionContext.get().isTheia || !!process.env[ENVVAR_WEBVIEW_DEBUG_DIR]) {
             stylesheets.unshift("theia.css");
         }
 
@@ -85,7 +86,7 @@ namespace WebviewUtil {
     }
 
     function getCSP(): string {
-        if (global.IS_THEIA || MCUtil.isDevEnv()) {
+        if (CWExtensionContext.get().isTheia || MCUtil.isDevEnv()) {
             return "";
         }
         return `
@@ -102,7 +103,7 @@ namespace WebviewUtil {
 
     export function buildTitleSection(rp: WebviewResourceProvider, title: string, connectionLabel: string, isRemoteConnection: boolean): string {
         // the subtitle is ommitted in Che since there is only one connection
-        const hasSubtitle = !global.IS_CHE;
+        const hasSubtitle = !CWExtensionContext.get().isChe;
 
         return `<div class="title-section ${hasSubtitle ? "title-section-subtitled" : ""}">
             <div id="logo-container">

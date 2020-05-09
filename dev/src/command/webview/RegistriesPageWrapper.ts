@@ -24,6 +24,7 @@ import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import ImageRegistry from "../../codewind/connection/registries/ImageRegistry";
 import ImageRegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
 import ImageRegistryWizard from "../../codewind/connection/registries/ImageRegistryWizard";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export enum ManageRegistriesWVMessages {
     // EDIT = "edit",
@@ -36,7 +37,7 @@ interface ManageRegistriesMsgData {
 
 function getTitle(connection: Connection): string {
     let title = "Image Registry Manager";
-    if (!global.IS_CHE) {
+    if (!CWExtensionContext.get().isChe) {
         title += ` (${connection.label})`;
     }
     return title;
