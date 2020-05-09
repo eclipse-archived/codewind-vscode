@@ -135,27 +135,7 @@ spec:
                 container(VSCODE_BUILDER) {
                     dir("dev") {
                         println "Release branch detected; updating Codewind image version"
-                        sh '''#!/usr/bin/env node
-                            const fs = require("fs");
-                            const { promisify } = require("util");
-
-                            const PJ = "package.json";
-
-                            (async function() {
-                                const packageJsonStr = await promisify(fs.readFile)(PJ);
-                                const packageJson = JSON.parse(packageJsonStr);
-                                const codewindImageVersion = packageJson.version;
-
-                                packageJson.codewindImageVersion = codewindImageVersion;
-
-                                await promisify(fs.writeFile)(PJ, JSON.stringify(packageJson, undefined, 4));
-
-                                console.log(`Updated ${PJ} to have codewindImageVersion=${codewindImageVersion}`);
-                            })().catch((err) => {
-                                console.error(err);
-                                process.exit(1);
-                            });
-                        '''
+                        sh './vsce-package.json --codewindImageTagOnly'
                         stash includes: "package.json", name: STASH_PJ
                     }
                 }

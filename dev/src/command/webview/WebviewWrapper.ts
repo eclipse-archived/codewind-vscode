@@ -15,6 +15,7 @@ import { CWImage } from "../../constants/CWImages";
 import WebviewUtil from "./WebviewUtil";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
+import CWExtensionContext from "../../CWExtensionContext";
 
 export interface WebviewResourceProvider {
     getStylesheet(path: string): string;
@@ -94,14 +95,14 @@ export abstract class WebviewWrapper {
                 }
 
                 const fsUri = useDarkThemeImage ? image.paths.dark : image.paths.light;
-                if (global.IS_THEIA) {
+                if (CWExtensionContext.get().isTheia) {
                     return VSC_RESOURCE_SCHEME + fsUri.fsPath;
                 }
                 return this.webPanel.webview.asWebviewUri(fsUri).toString();
             },
             getStylesheet: (filename: string): string => {
                 const fsUri = WebviewUtil.getCssPath(filename);
-                if (global.IS_THEIA) {
+                if (CWExtensionContext.get().isTheia) {
                     return VSC_RESOURCE_SCHEME + fsUri.fsPath;
                 }
                 return this.webPanel.webview.asWebviewUri(fsUri).toString();

@@ -22,6 +22,7 @@ import { CreateFileWatcher, FileWatcher } from "codewind-filewatcher";
 import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";
 import { AccessToken, CLIConnectionData } from "../Types";
+import CWExtensionContext from "../../CWExtensionContext";
 
 type ToggleOperation = "connecting" | "disconnecting" | undefined;
 
@@ -54,8 +55,7 @@ export default class RemoteConnection extends Connection {
 
     protected shouldEnableInitially(): boolean {
         try {
-            const extState = global.EXT_GLOBAL_STATE as vscode.Memento;
-            const enabledState = extState.get(this.getExtStateEnabledKey());
+            const enabledState = CWExtensionContext.get().globalState.get(this.getExtStateEnabledKey());
 
             // default to true if not set
             if (enabledState === false) {
@@ -71,8 +71,7 @@ export default class RemoteConnection extends Connection {
     }
 
     private async setIsEnabledExtState(enabled: boolean | undefined): Promise<void> {
-        const extState = global.EXT_GLOBAL_STATE as vscode.Memento;
-        await extState.update(this.getExtStateEnabledKey(), enabled);
+        await CWExtensionContext.get().globalState.update(this.getExtStateEnabledKey(), enabled);
     }
 
     public async enable(): Promise<void> {
@@ -82,9 +81,6 @@ export default class RemoteConnection extends Connection {
 
         try {
             await this.enableInner();
-        }
-        catch (err) {
-            throw err;
         }
         finally {
             this.changeTogglingEnablement(undefined);
@@ -147,9 +143,6 @@ export default class RemoteConnection extends Connection {
             this._accessToken = undefined;
             this.setState(ConnectionStates.DISABLED);
             this.setIsEnabledExtState(false);
-        }
-        catch (err) {
-            throw err;
         }
         finally {
             this.changeTogglingEnablement(undefined);

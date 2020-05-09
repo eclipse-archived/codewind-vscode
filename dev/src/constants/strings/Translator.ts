@@ -15,6 +15,7 @@ import * as fs from "fs-extra";
 
 import Log from "../../Logger";
 import StringNamespaces from "./StringNamespaces";
+import CWExtensionContext from "../../CWExtensionContext";
 
 namespace Translator {
 
@@ -41,7 +42,7 @@ namespace Translator {
      * Must call this before calling t
      */
     export async function init(): Promise<TFunction> {
-        const defaultStringsFile = path.resolve(global.EXTENSION_ROOT, "translations", "en.json");
+        const defaultStringsFile = path.resolve(CWExtensionContext.get().extensionPath, "translations", "en.json");
         const defaultStringsFileContents = await fs.readFile(defaultStringsFile);
         const defaultStrings: {
             [key: string]: string;

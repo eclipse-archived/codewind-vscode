@@ -5,11 +5,11 @@ node_modules/
 *.vsix
 package.json.backup
 
+.awcache/
+*.tsbuildinfo
+
 .DS_Store
 .nyc_output
 
-todo.txt
-unused.txt
-last_build.txt
 dev/LICENSE
 dev/README.md

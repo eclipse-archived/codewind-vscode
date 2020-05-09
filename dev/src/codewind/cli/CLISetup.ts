@@ -27,6 +27,7 @@ import Log from "../../Logger";
 import Constants from "../../constants/Constants";
 import MCUtil from "../../MCUtil";
 import Requester from "../Requester";
+import CWExtensionContext from "../../CWExtensionContext";
 
 namespace CLISetup {
 
@@ -44,7 +45,7 @@ namespace CLISetup {
      */
     export function getBinariesTargetDir(): string {
         if (!binariesTargetDir) {
-            binariesTargetDir = path.join(DOT_CODEWIND_DIR, global.CODEWIND_IMAGE_TAG)
+            binariesTargetDir = path.join(DOT_CODEWIND_DIR, CWExtensionContext.get().codewindImageTag)
         }
         return binariesTargetDir;
     }
@@ -174,13 +175,13 @@ namespace CLISetup {
 
         // The output is eg "appsody 0.5.9"
         const currentVersion = versionOutput.stdout.trim().split(" ")[1];
-        const isCorrectVersion = currentVersion === global.APPSODY_VERSION;
+        const isCorrectVersion = currentVersion === CWExtensionContext.get().appsodyVersion;
 
         if (isCorrectVersion) {
             Log.i(`Appsody binary is the correct version ${currentVersion}`);
         }
         else {
-            Log.i(`Appsody version "${currentVersion}" doesn't match expected "${global.APPSODY_VERSION}"`);
+            Log.i(`Appsody version "${currentVersion}" doesn't match expected "${CWExtensionContext.get().appsodyVersion}"`);
             // Delete the invalid executable
             await fs.unlink(getAppsodyPath());
         }
@@ -191,7 +192,7 @@ namespace CLISetup {
      * @returns The download site directory that contains the cwctl builds that this version of the extension should use.
      */
     function getCwctlDirectoryUrl(): string {
-        let cliBranch = global.CODEWIND_IMAGE_TAG;
+        let cliBranch = CWExtensionContext.get().codewindImageTag;
         if (cliBranch === Constants.CODEWIND_IMAGE_VERSION_DEV) {
             cliBranch = "master";
         }
@@ -369,7 +370,7 @@ namespace CLISetup {
 
         // eg https://github.com/appsody/appsody/releases/download/0.5.9/appsody-0.5.9-darwin-amd64.tar.gz
         return `https://github.com/appsody/appsody/releases/download/` +
-            `${global.APPSODY_VERSION}/${APPSODY_DOWNLOAD_NAME}-${global.APPSODY_VERSION}-${appsodyOS}.tar.gz`;
+            `${CWExtensionContext.get().appsodyVersion}/${APPSODY_DOWNLOAD_NAME}-${CWExtensionContext.get().appsodyVersion}-${appsodyOS}.tar.gz`;
     }
 
     /**

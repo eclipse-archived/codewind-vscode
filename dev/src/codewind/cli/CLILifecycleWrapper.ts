@@ -27,6 +27,7 @@ import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommand
 import { CLICommandRunner } from "./CLICommandRunner";
 import CWDocs from "../../constants/CWDocs";
 import { CLIStatus, ProgressUpdate } from "../Types";
+import CWExtensionContext from "../../CWExtensionContext";
 
 const STRING_NS = StringNamespaces.STARTUP;
 
@@ -371,7 +372,7 @@ export namespace CLILifecycleWrapper {
     }
 
     function getTag(): string {
-        let tag = global.CODEWIND_IMAGE_TAG;
+        let tag = CWExtensionContext.get().codewindImageTag;
         const versionVarValue = process.env[Constants.CW_ENV_TAG_VAR];
         if (versionVarValue) {
             tag = versionVarValue;

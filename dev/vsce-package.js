@@ -15,11 +15,12 @@
 /*****
  * This file should be used to build the plugin instead of running vsce package directly.
  * First it does some preprocessing, then runs vsce package, then undoes the preprocessing to reset the development environment.
- * It should be called with argv[1] as "che" to build for Che, otherwise it will build for VS Code.
+ * See main() function for command-line args.
  *****/
 
 const path = require("path");
 const fs = require("fs-extra");
+const minimist = require("minimist");
 const { spawn } = require("child_process");
 
 const che_cmdsToDelete = [
@@ -55,6 +56,18 @@ const PACKAGE_JSON_BACKUP = `${PACKAGE_JSON_PATH}.backup`;
 const VIEW_CONTAINER_ID = "cw-viewcontainer";
 const VIEW_ID = "ext.cw.explorer";
 
+const IMAGE_TAG_KEY = "codewindImageTag";
+
+async function replaceCodewindImageTag(pj, newTag) {
+    if (typeof newTag !== "string") {
+        newTag = pj.version;
+        console.log(`No image tag was given; falling back to extension version ${pj.version}`);
+    }
+    const oldCodewindImageTag = pj[IMAGE_TAG_KEY];
+    pj[IMAGE_TAG_KEY] = newTag;
+    console.log(`Replaced ${PACKAGE_JSON} ${IMAGE_TAG_KEY} "${oldCodewindImageTag}" with "${newTag}"`);
+}
+
 /**
  *
  * @param {object} commandsSection
@@ -70,10 +83,6 @@ function removeCommands(commandsSection, cmdsToDelete) {
         // If the command's 'command' field matches one of the cmdsToDelete, do not add it to the filtered list
         const matchingCmd = cmdsToDelete.find((s) => cmd.command.includes(s));
         if (matchingCmd) {
-            // if (matchingCmd === cmdsToDelete[1] || matchingCmd === cmdsToDelete[3]) {
-                // Special case - start2/stop2 are removed from menus only - so that the indicator shows up
-                // return true;
-            // }
             console.log("Deleting command" + cmd.command);
             return false;
         }
@@ -161,10 +170,13 @@ async function preparePackageJSON(pj, isForChe) {
     console.log(`Changing extension entrypoint from ${newPJ.main} to ${prodEntrypoint}`);
     newPJ.main = prodEntrypoint;
 
+    await writePackageJSON(newPJ);
+}
+
+async function writePackageJSON(newPJ) {
     const toWrite = JSON.stringify(newPJ, undefined, 4) + '\n';
     await fs.writeFile(PACKAGE_JSON_PATH, toWrite);
     console.log(`Wrote out new ${PACKAGE_JSON}`);
-    return newPJ;
 }
 
 /**
@@ -193,17 +205,31 @@ async function spawnWithOutput(cmd, args) {
     });
 }
 
+/**
+ * Command-line args:
+ * --codewindImageTagOnly - Replace the codewindImageTag with the value of this argument and then exit.
+ *  If given with no argument, sets the tag to the package's `version`.
+ * --buildForChe - Build for Che. If not set, build for VS Code.
+ */
 async function main() {
-    const prebuildType = process.argv[2] || process.env["CW_PREBUILD_TYPE"] || "VS Code";
-    const isForChe = prebuildType === "che";
+    const args = minimist(process.argv.slice(2));
+    const buildForChe = !!args.buildForChe;
+    const prebuildType = buildForChe ? "Che" : "VS Code";
     console.log("Building for " + prebuildType);
 
     await fs.copyFile(PACKAGE_JSON_PATH, PACKAGE_JSON_BACKUP);
 
-    const originalPJ = JSON.parse(await fs.readFile(PACKAGE_JSON_PATH));
+    const pj = JSON.parse(await fs.readFile(PACKAGE_JSON_PATH));
+
+    if (args.codewindImageTagOnly) {
+        await replaceCodewindImageTag(pj, args.codewindImageTagOnly);
+        await writePackageJSON(pj);
+        await fs.remove(PACKAGE_JSON_BACKUP);
+        return;
+    }
 
     try {
-        await preparePackageJSON(originalPJ, isForChe);
+        await preparePackageJSON(pj, buildForChe);
         await spawnWithOutput("vsce", [ "package" ]);
     }
     finally {

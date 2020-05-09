@@ -35,6 +35,7 @@ import Requester from "../Requester";
 import ProjectRequester from "./ProjectRequester";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
 import PortForwardTask from "./PortForwardTask";
+import CWExtensionContext from "../../CWExtensionContext";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -168,7 +169,7 @@ export default class Project implements vscode.QuickPickItem {
         this.initPromise = Promise.all([
             this.updateCapabilities(),
             // skip the debug config step in Che
-            global.IS_CHE ? Promise.resolve() : this.updateDebugConfig(),
+            CWExtensionContext.get().isChe ? Promise.resolve() : this.updateDebugConfig(),
         ])
         .then(() => Promise.resolve());
 
@@ -678,7 +679,7 @@ export default class Project implements vscode.QuickPickItem {
                             // This is a messy workaround for the VS Code behaviour of reloading extensions if the rootPath changes.
                             // See extension.activate()
                             Log.i(`Flagging ${this.localPath.fsPath} for deletion on next activate`);
-                            (global.EXT_GLOBAL_STATE as vscode.Memento).update(Constants.DIR_TO_DELETE_KEY, this.localPath.fsPath);
+                            CWExtensionContext.get().globalState.update(Constants.DIR_TO_DELETE_KEY, this.localPath.fsPath);
                         }
                         await MCUtil.updateWorkspaceFolders("remove", this.workspaceFolder);
                     }
@@ -861,7 +862,7 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public get canContainerShell(): boolean {
-        return !global.IS_CHE; // && !!this.containerID;
+        return !CWExtensionContext.get().isChe; // && !!this.containerID;
     }
 
     /**

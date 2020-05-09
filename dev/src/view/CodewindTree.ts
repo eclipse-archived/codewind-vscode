@@ -22,6 +22,7 @@ import CodewindEventListener from "../codewind/connection/CodewindEventListener"
 import TreeItemFactory from "./TreeItemFactory";
 import ConnectionManager from "../codewind/connection/ConnectionManager";
 import { ThemedImages } from "../constants/CWImages";
+import CWExtensionContext from "../CWExtensionContext";
 
 export type CodewindTreeItem = LocalCodewindManager | Connection | Project | vscode.TreeItem;
 
@@ -50,7 +51,7 @@ export default class CodewindTreeDataProvider implements vscode.TreeDataProvider
     }
 
     private async tryReveal(): Promise<void> {
-        if (await MCUtil.isUserInCwWorkspaceOrProject() || global.IS_CHE) {
+        if (await MCUtil.isUserInCwWorkspaceOrProject() || CWExtensionContext.get().isChe) {
             if (CWConfigurations.AUTO_SHOW_VIEW.get()) {
                 Log.d("Auto-expanding the Codewind view");
                 // reveal the LocalCodewindManager because it is guaranteed to exist
