@@ -99,6 +99,7 @@ export default class MCSocket implements vscode.Disposable {
             .on(SocketEvents.Types.LOG_UPDATE,              this.onLogUpdate)
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
             .on(SocketEvents.Types.REGISTRY_STATUS,         this.onPushRegistryStatus)
+            .on(SocketEvents.Types.MISSING_LOCAL_DIR,       this.onMissingLocalDir)
             ;
     }
 
@@ -274,6 +275,18 @@ export default class MCSocket implements vscode.Disposable {
             else {
                 vscode.window.showErrorMessage(payload.msg);
             }
+        }
+    }
+
+    private readonly onMissingLocalDir = async (payload: { projectID: string }): Promise<void> => {
+        Log.d(`Received missing local dir for ${payload.projectID}`);
+        const project = await this.getProject(payload);
+
+        try {
+            await project?.deleteFromConnection(false);
+        }
+        catch (err) {
+            Log.e(`Error deleting project after local dir removed`, err);
         }
     }
 

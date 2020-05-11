@@ -15,6 +15,7 @@ import * as fs from "fs-extra";
 import TestUtil from "../TestUtil";
 
 import { testProjects } from "./Creation.test";
+import Log from "../../Logger";
 
 describe(`Project removal wrapper`, function() {
 
@@ -26,7 +27,29 @@ describe(`Project removal wrapper`, function() {
     // https://stackoverflow.com/a/54681623
     before(async function() {
         describe(`Project removal`, function() {
-            testProjects.forEach((project) => {
+
+            // Test for missingLocalDir functionality - Delete the local dir first, then make sure the extension removes it from Codewind.
+            // Do this with one random project.
+            const indexToDeleteFromFs = Math.floor(Math.random() * testProjects.length);
+
+            testProjects.forEach((project, index) => {
+
+                if (index === indexToDeleteFromFs) {
+                    it(`should delete ${project.name} from Codewind when the project directory is deleted from the filesystem`, async function() {
+                        this.timeout(TestUtil.ms(30, "sec"));
+                        this.slow(TestUtil.ms(20, "sec"));
+                        await fs.remove(project.localPath.fsPath);
+                        Log.t(`Deleted ${project.localPath.fsPath}`);
+
+                        await TestUtil.waitForCondition(this, {
+                            label: `Waiting for ${project.name} to be removed from ${project.connection.label}`,
+                            condition: async () => (await project.connection.getProjectByID(project.id)) == null
+                        });
+                    });
+
+                    // skip the regular removal tests for this project
+                    return;
+                }
 
                 let projectPath: string;
 
