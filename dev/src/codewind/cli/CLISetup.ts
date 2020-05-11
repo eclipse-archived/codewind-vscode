@@ -425,7 +425,7 @@ namespace CLISetup {
             if (!entry.isDirectory()) {
                 return false;
             }
-            else if (!deleteCurrent && entry.name === global.EXT_VERSION) {
+            else if (!deleteCurrent && entry.name === CWExtensionContext.get().extensionVersion) {
                 // Don't delete the current version, or latest
                 return false;
             }
