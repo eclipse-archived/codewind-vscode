@@ -10,7 +10,7 @@
 2. In VS Code, open either [`codewind.code-workspace`](https://github.com/eclipse/codewind-vscode/blob/master/codewind.code-workspace) or the `dev/` directory.
 3. Create or identify a workspace for Codewind extension use. You can use an empty directory or a `.code-workspace` file. Add the path to the `args` array under the `Extension` launch in `dev/.vscode/launch.json`. When VS Code launches in extension development mode, it uses this workspace.
     - When you edit `launch.json`, do not modify the `--extensionDevelopmentPath`.
-4. Start the `Extension` launch in `launch.json` by pressing F5. For more information, ee [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
+4. Start the `Extension` launch in `launch.json` by pressing F5. For more information, see [Developing Extensions](https://code.visualstudio.com/docs/extensions/developing-extensions) for more information.
     - This launches a terminal to incrementally compile the code in the background.
 
 ### Notes
