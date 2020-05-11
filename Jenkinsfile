@@ -7,11 +7,11 @@ def getChangeDetail() {
 
     def changeDetail = ""
     def changes = currentBuild.changeSets
-    
+
     for (int i = 0; i < changes.size(); i++) {
-        
+
         def entries = changes[i].items
-    
+
         for (int j = 0; j < entries.length; j++) {
             def entry = entries[j]
 
@@ -30,7 +30,7 @@ def getChangeDetail() {
 IS_MASTER_BRANCH = env.BRANCH_NAME == "master"
 IS_RELEASE_BRANCH = (env.BRANCH_NAME ==~ /\d+\.\d+\.\d+/)
 
-def sendEmailNotification() {    
+def sendEmailNotification() {
     final def EXTRECIPIENTS = emailextrecipients([
         [$class: 'CulpritsRecipientProvider'],
         [$class: 'RequesterRecipientProvider'],
@@ -40,12 +40,12 @@ def sendEmailNotification() {
     def RECIPIENTS = EXTRECIPIENTS != null ? EXTRECIPIENTS : env.CHANGE_AUTHOR_EMAIL;
     def SUBJECT = "${env.JOB_NAME} - Build #${env.BUILD_NUMBER} - ${currentBuild.currentResult}!"
     def CHANGE = getChangeDetail();
-    
+
     emailext(
         to: RECIPIENTS,
         subject: "${SUBJECT}",
         body: """
-            <b>Build result:</b> 
+            <b>Build result:</b>
             <br><br>
             ${currentBuild.currentResult}
             <br><br>
@@ -53,11 +53,11 @@ def sendEmailNotification() {
             <br><br>
             ${currentBuild.fullProjectName} - Build #${env.BUILD_NUMBER}
             <br><br>
-            <b>Check console output for more detail:</b> 
+            <b>Check console output for more detail:</b>
             <br><br>
             <a href="${currentBuild.absoluteUrl}console">${currentBuild.absoluteUrl}console</a>
             <br><br>
-            <b>Changes:</b> 
+            <b>Changes:</b>
             <br><br>
             ${CHANGE}
             <br><br>
@@ -86,7 +86,7 @@ echo "Is release branch build ? ${IS_RELEASE_BRANCH}"
 // https://stackoverflow.com/a/44902622
 def CRON_STRING = ""
 // https://jenkins.io/doc/book/pipeline/syntax/#cron-syntax
-if (IS_MASTER_BRANCH || IS_RELEASE_BRANCH) {
+if (IS_MASTER_BRANCH) {
     // Build daily between 0600-0659
     CRON_STRING = "H 6 * * *"
 }
