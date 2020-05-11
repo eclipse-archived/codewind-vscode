@@ -4,7 +4,7 @@ body {
 
     --horizontal-section-padding: 4em;
     --vertical-section-padding: 2.5em;
-    --section-separator-border: 3px solid var(--vscode-sideBarSectionHeader-background);
+    --section-separator-border: 3px solid var(--vscode-activityBar-background);
 }
 
 #content {
@@ -75,7 +75,7 @@ h2 {
 
 #welcome-section {
     display: inline-flex;
-    border-bottom: 3px solid var(--vscode-sideBarSectionHeader-background);
+    border-bottom: 3px solid var(--vscode-activityBar-background);
     padding-bottom: 1.5rem;
     padding-right: var(--left-section-subpadding);
 }
@@ -106,7 +106,7 @@ h2 {
     margin-right: 0.25em;
     padding-left: 0.5em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid var(--vscode-sideBarSectionHeader-background);
+    border-bottom: 2px solid var(--vscode-activityBar-background);
 }
 
 .quick-start-tab:focus {

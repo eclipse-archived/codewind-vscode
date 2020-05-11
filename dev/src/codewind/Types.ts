@@ -87,7 +87,7 @@ export interface CLIConnectionData {
  */
 export interface TemplateSource {
     readonly url: string;
-    readonly name?: string;
+    readonly name: string;
     readonly description?: string;
     readonly enabled: boolean;
     readonly projectStyles: string[];
