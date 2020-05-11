@@ -42,7 +42,7 @@ echo "Is release branch build ? ${IS_RELEASE_BRANCH}"
 // https://stackoverflow.com/a/44902622
 def CRON_STRING = ""
 // https://jenkins.io/doc/book/pipeline/syntax/#cron-syntax
-if (IS_MASTER_BRANCH || IS_RELEASE_BRANCH) {
+if (IS_MASTER_BRANCH) {
     // Build daily between 0600-0659
     CRON_STRING = "H 6 * * *"
 }
