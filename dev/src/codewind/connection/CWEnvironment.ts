@@ -62,8 +62,6 @@ namespace CWEnvironment {
         };
     }
 
-    // const INTERNAL_BUILD_RX: RegExp = /^\d{4}_M\d+_[EI]/;
-
     /**
      * Parses a version number out of the given env data. If it's a development build, returns Number.MAX_SAFE_INTEGER.
      *

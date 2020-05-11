@@ -12,6 +12,9 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as os from "os";
+// we use fs here because it supports withFileTypes for readdir
+import * as nodefs from "fs";
+// we use fs-extra for everything else
 import * as fs from "fs-extra";
 import * as crypto from "crypto";
 import got from "got";
@@ -409,6 +412,46 @@ namespace CLISetup {
     export async function lsBinariesTargetDir(): Promise<void> {
         const files = await fs.readdir(getBinariesTargetDir());
         Log.d(`Contents of ${getBinariesTargetDir()}: ${files.join(" ")}`);
+    }
+
+    /**
+     * Delete all dirs for older releases.
+     * @param deleteCurrent - Delete the current version (matches the image version, or 'latest') of the binaries too. For test usage only!!
+     */
+    export async function deleteOldBinaryDirs(deleteCurrent: boolean = false): Promise<void> {
+        const binaryDirs = (await promisify(nodefs.readdir)(DOT_CODEWIND_DIR, { withFileTypes: true }))
+        .filter((entry) => {
+            if (!entry.isDirectory()) {
+                return false;
+            }
+            else if (!deleteCurrent && entry.name === global.EXT_VERSION) {
+                // Don't delete the current version, or latest
+                return false;
+            }
+            return MCUtil.couldBeCodewindVersion(entry.name, deleteCurrent);
+        })
+        .map((entry) => entry.name);
+
+        let deletedCount = 0;
+
+        await Promise.all(binaryDirs.map(async (binaryDir) => {
+            const pathToDelete = path.join(DOT_CODEWIND_DIR, binaryDir);
+            try {
+                await fs.remove(pathToDelete);
+                Log.d(`Deleted ${pathToDelete}`);
+                deletedCount++;
+            }
+            catch (err) {
+                Log.e(`Failed to delete ${pathToDelete}`, err);
+            }
+        }));
+
+        if (binaryDirs.length === 0) {
+            Log.d(`No old binary dirs to delete`);
+        }
+        else {
+            Log.i(`Deleted ${deletedCount} old binary dirs`);
+        }
     }
 }
 

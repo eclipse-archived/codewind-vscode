@@ -35,12 +35,8 @@ export async function run(): Promise<void> {
 
     if (TestConfig.isJenkins() && await fs.pathExists(CLISetup.DOT_CODEWIND_DIR)) {
         // delete all the binary dirs so the tests have to test the pull each time
-        const binaryDirs = (await fs.readdir(CLISetup.DOT_CODEWIND_DIR)).filter((dirname) => dirname === "latest" || /\d+\.\d+\.\d+/.test(dirname));
-        await Promise.all(binaryDirs.map((dir) => {
-            const fullPath = path.join(CLISetup.DOT_CODEWIND_DIR, dir);
-            Log.t(`Deleting ${fullPath} before starting tests`)
-            return fs.remove(fullPath);
-        }));
+        Log.t(`Deleting binary dirs before starting tests`)
+        await CLISetup.deleteOldBinaryDirs(true);
     }
 
     const options: Mocha.MochaOptions = {
