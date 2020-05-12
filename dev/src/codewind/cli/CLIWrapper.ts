@@ -36,6 +36,8 @@ namespace CLIWrapper {
      * Should not throw, but if this fails the extension will malfunction, so it shows obvious errors.
      */
     export async function initialize(): Promise<void> {
+        cliOutputChannel.appendLine(`Full Codewind log is at "${Log.getLogFilePath}"\n`);
+
         const binariesInitStartTime = Date.now();
         Log.i(`Initializing CLI binaries`);
 
