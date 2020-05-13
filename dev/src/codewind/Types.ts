@@ -62,6 +62,26 @@ interface TektonStatus {
     readonly url: string;           // empty if status is false
 }
 
+export enum LoadRunningStatus {
+    STARTED = "started",
+    RUNNING = "running",
+    CANCELLING = "cancelling",
+    PREPARING = "preparing",
+    COLLECTING = "collecting",
+}
+
+export enum LoadRunDownloadableStatus {
+    PROFILING_READY = "profilingReady",
+    HCD_READY = "hcdReady",
+}
+
+export enum LoadRunFinishedStatus {
+    CANCELLED = "cancelled",
+    COMPLETED = "completed",
+}
+
+export type LoadRunnerStatus = LoadRunningStatus | LoadRunFinishedStatus | LoadRunDownloadableStatus;
+
 // From https://github.com/eclipse/codewind/blob/master/src/pfe/portal/modules/utils/Logger.js#L38
 export interface PFELogLevels {
     readonly currentLevel: string;

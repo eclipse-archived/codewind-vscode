@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import { ILogResponse, PFEProjectData } from "../Types";
+import { ILogResponse, PFEProjectData, LoadRunnerStatus } from "../Types";
 
 // non-nls-file
 
@@ -80,8 +80,8 @@ namespace SocketEvents {
 
     export interface LoadRunnerStatusEvent {
         readonly projectID: string;
-        readonly status: string;
-        readonly timestamp: string;
+        readonly status: LoadRunnerStatus;
+        readonly timestamp?: string;
     }
 
     /**
