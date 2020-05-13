@@ -261,8 +261,8 @@ export default class MCSocket implements vscode.Disposable {
             await project.onLoadRunnerUpdate(payload);
         }
         catch (err) {
-            Log.e("Error retrieving profiling data from pfe", err);
-            vscode.window.showErrorMessage(`Error retrieving profiling data for ${project.name}: ${MCUtil.errToString(err)}`);
+            Log.e("Uncaught error receiving load runner update", err);
+            vscode.window.showErrorMessage(`Error processing load runner status for ${project.name}: ${MCUtil.errToString(err)}`);
         }
     }
 
@@ -319,8 +319,7 @@ export default class MCSocket implements vscode.Disposable {
         this.refreshingProjectsProm = undefined;
 
         if (!newProject) {
-            Log.e(`Still did not find project with ID ${projectID} after refreshing projects list, `
-            + `${this.connection.projects.length} projects were found`);
+            Log.e(`Still did not find project with ID ${projectID} after refreshing projects list; socket event cannot be processed:`, payload);
             return undefined;
         }
 

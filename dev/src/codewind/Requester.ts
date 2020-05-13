@@ -150,8 +150,9 @@ export class Requester {
                 return "success";
             }
             else if (err instanceof got.HTTPError) {
-                Log.d(`Received status ${err.code} when pinging ${url}`);
-                if (rejectStatusCodes.includes(Number(err.code))) {
+                const statusCode = err.response.statusCode;
+                Log.i(`Received status ${statusCode} when pinging ${url}`);
+                if (rejectStatusCodes.includes(statusCode)) {
                     return "failure";
                 }
                 return "success";

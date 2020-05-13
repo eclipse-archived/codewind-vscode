@@ -36,6 +36,7 @@ import ProjectRequester from "./ProjectRequester";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
 import PortForwardTask from "./PortForwardTask";
 import CWExtensionContext from "../../CWExtensionContext";
+import LoadRunnerTracker from "./LoadRunnerTracker";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -84,6 +85,7 @@ export default class Project implements vscode.QuickPickItem {
 
     private readonly requester: ProjectRequester;
     public readonly logManager: MCLogManager;
+    private readonly loadRunnerTracker: LoadRunnerTracker;
 
     private _metricsDashboardStatus: MetricsDashboardStatus;
     private _perfDashboardPath: string | null;
@@ -156,6 +158,7 @@ export default class Project implements vscode.QuickPickItem {
         this._metricsInjectStatus = projectInfo.injection           || { injectable: false, injected: false };
 
         this.requester = new ProjectRequester(this);
+        this.loadRunnerTracker = new LoadRunnerTracker(this, this.requester);
 
         this._state = new ProjectState(this.name);
         this._state = this.update(projectInfo);
@@ -184,6 +187,7 @@ export default class Project implements vscode.QuickPickItem {
         Log.d(`Dispose ${this.name}`);
 
         this.logManager.destroyAllLogs();
+        this.loadRunnerTracker.dispose();
 
         await Promise.all([
             this.clearValidationErrors(),
@@ -592,36 +596,7 @@ export default class Project implements vscode.QuickPickItem {
     }
 
     public async onLoadRunnerUpdate(event: SocketEvents.LoadRunnerStatusEvent): Promise<void> {
-        Log.d(`${this.name} load runner status changed to "${event.status}" at ${event.timestamp}`);
-        if (![ "hcdReady", "profilingReady"].includes(event.status)) {
-            return;
-        }
-        Log.d("Profiling data is ready to be saved to workspace");
-
-        const timestampPath = path.join(this.localPath.fsPath, "load-test", event.timestamp);
-
-        let fileName = "";
-        if (this.language.toLowerCase() === ProjectType.Languages.JAVA) {
-            fileName = "profiling.hcd";
-        } else if (this.language.toLowerCase() === ProjectType.Languages.NODE) {
-            fileName = "profiling.json";
-        } else {
-            // should not be possible because the load test should not have run in the first place
-            Log.e(`Project language ${this.language} not supported for profiling`);
-            return;
-        }
-
-        const profilingOutPath = path.join(timestampPath, fileName);
-        try {
-            await fs.ensureDir(timestampPath);
-        }
-        catch (err) {
-            Log.e(`Error creating directory ${timestampPath}`, err);
-            vscode.window.showErrorMessage(`Could not create directory at ${timestampPath}: ${MCUtil.errToString(err)}`);
-            return;
-        }
-
-        await this.requester.receiveProfilingData(event.timestamp, profilingOutPath);
+        this.loadRunnerTracker.onLoadRunnerStatusEvent(event);
     }
 
     public async deleteFromConnection(deleteFiles: boolean): Promise<void> {

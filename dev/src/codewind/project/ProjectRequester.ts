@@ -10,6 +10,9 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
+import got from "got";
+
 import Requester, { HttpMethod, RequesterOptions } from "../Requester";
 import Project from "./Project";
 import EndpointUtil, { ProjectEndpoints } from "../../constants/Endpoints";
@@ -33,7 +36,7 @@ export default class ProjectRequester extends Requester {
     private async doProjectRequest<T>(
         endpoint: ProjectEndpoints, method: HttpMethod, json: boolean, options?: RequesterOptions): Promise<T> {
 
-        const url = EndpointUtil.resolveProjectEndpoint(this.project.connection, this.project.id, endpoint as ProjectEndpoints);
+        const url = EndpointUtil.resolveProjectEndpoint(this.project.connection, this.project.id, endpoint);
 
         const accessToken = await this.project.connection.getAccessToken();
         if (json) {
@@ -81,7 +84,16 @@ export default class ProjectRequester extends Requester {
 
     public async requestToggleEnablement(newEnablement: boolean): Promise<void> {
         const endpoint = EndpointUtil.getEnablementAction(newEnablement);
-        await this.doProjectRequest(endpoint, "PUT", false);
+        try {
+            await this.doProjectRequest(endpoint, "PUT", false);
+        }
+        catch (err) {
+            if (err instanceof got.HTTPError && err.response.statusCode === 409) {
+                vscode.window.showWarningMessage(`${this.project.name} is already being ${newEnablement ? "enabled" : "disabled"}.`);
+                return;
+            }
+            throw err;
+        }
     }
 
     /*
