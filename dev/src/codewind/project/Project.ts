@@ -283,9 +283,7 @@ export default class Project implements vscode.QuickPickItem {
             this._metricsInjectStatus = projectInfo.injection;
         }
 
-        if (this.pendingRestart != null) {
-            this.pendingRestart.onStateChange(this.state.appState);
-        }
+        this.pendingRestart?.onStateChange(this.state.appState);
         this.onChange();
 
         return this._state;
@@ -443,7 +441,7 @@ export default class Project implements vscode.QuickPickItem {
             return;
         }
 
-        const preferredPort = 5000;
+        const preferredPort = 4000;
         const port = await getPort({ port: getPort.makeRange(preferredPort, preferredPort + 1000) });
         this.setPort(port.toString(), "forwardedDebugPort");
 
@@ -503,10 +501,10 @@ export default class Project implements vscode.QuickPickItem {
         Log.i(`Request build for project ${this.name}`);
         try {
             await this.requester.requestBuild();
-            vscode.window.showInformationMessage(`Starting a build of ${this.name}`);
+            vscode.window.showInformationMessage(`Starting to build ${this.name}`);
         }
         catch (err) {
-            const errMsg = `Error initialing a build of ${this.name}`;
+            const errMsg = `Error starting a build of ${this.name}`;
             Log.e(errMsg, err);
             vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
         }

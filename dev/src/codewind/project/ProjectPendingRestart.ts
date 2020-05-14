@@ -18,7 +18,7 @@ import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/Translator";
 import { attachDebugger } from "../../command/project/AttachDebuggerCmd";
 import ProjectCapabilities, { StartModes } from "./ProjectCapabilities";
-import { getOcticon, Octicons } from "../../constants/CWImages";
+import { ProgressUpdate } from "../Types";
 
 const STRING_NS = StringNamespaces.PROJECT;
 
@@ -42,12 +42,16 @@ const RESTART_STATES_DEBUG = [
  */
 export default class ProjectPendingRestart {
 
-    // This is set in the constructor, but the compiler doesn't see that. Will never be undefined.
+    // These are set in the constructor, but the compiler doesn't see that. Will never be undefined.
+    // Resolves this pending restart, when it completes or fails.
     private resolve: (() => void) | undefined;
+    // Shows progress of this pending restart. The progress is resolved when this.resolve() is called.
+    private progress: vscode.Progress<ProgressUpdate> | undefined;
 
     // Restart timeout, length specified by timeoutMs constructor parameter
     private readonly timeoutID: NodeJS.Timeout;
 
+    private readonly isDebugRestart: boolean;
     // Expect the project to go through this set of states in this order.
     // Will be set to one of the RESTART_STATES arrays above.
     private readonly expectedStates: ProjectState.AppStates[];
@@ -67,12 +71,8 @@ export default class ProjectPendingRestart {
     ) {
         Log.d(`${project.name}: New pendingRestart into ${startMode} mode`);
 
-        this.expectedStates = ProjectCapabilities.isDebugMode(startMode) ? RESTART_STATES_DEBUG : RESTART_STATES_RUN;
-
-        // Resolved when the restart completes or times out. Displayed in the status bar.
-        const restartPromise = new Promise<void>((resolve_) => {
-            this.resolve = resolve_;
-        });
+        this.isDebugRestart = ProjectCapabilities.isDebugMode(startMode);
+        this.expectedStates = this.isDebugRestart ? RESTART_STATES_DEBUG : RESTART_STATES_RUN;
 
         this.restartEventPromise = new Promise<void>((resolve_) => {
             this.resolveRestartEvent = resolve_;
@@ -80,7 +80,7 @@ export default class ProjectPendingRestart {
 
         // Fails the restart when the timeout expires
         this.timeoutID = setTimeout(() => {
-            const failReason = Translator.t(STRING_NS, "restartFailedReasonTimeout", { timeoutS: timeoutMs / 1000 });
+            const failReason = Translator.t(STRING_NS, "restartFailedReasonTimeout", { timeoutS: Math.round(timeoutMs / 1000) });
             Log.i("Rejecting restart: " + failReason);
             this.fulfill(false, failReason);
         }, timeoutMs);
@@ -89,9 +89,20 @@ export default class ProjectPendingRestart {
             projectName: project.name,
             startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode)
         });
-        const restartStatusItem = `${getOcticon(Octicons.sync, true)} ${restartMsg}`;
 
-        vscode.window.setStatusBarMessage(restartStatusItem, restartPromise);
+        vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            cancellable: false,
+            title: restartMsg,
+        }, (progress) => {
+            this.progress = progress;
+            this.progress.report({ message: `Waiting for project to stop...`})
+
+            // Resolved when the restart completes or times out.
+            return new Promise<void>((resolve_) => {
+                this.resolve = resolve_;
+            });
+        });
     }
 
     /**
@@ -100,6 +111,7 @@ export default class ProjectPendingRestart {
     public async onStateChange(currentState: ProjectState.AppStates): Promise<void> {
         if (currentState === this.expectedStates[this.nextStateIndex]) {
             this.nextStateIndex++;
+
             if (this.nextStateIndex === this.expectedStates.length) {
                 Log.d("Reached restart terminal state");
 
@@ -112,7 +124,11 @@ export default class ProjectPendingRestart {
                 this.fulfill(true);
             }
             else {
-                Log.d("Restart expecting next state: " + this.expectedStates[this.nextStateIndex]);
+                const nextState = this.expectedStates[this.nextStateIndex];
+                Log.d("Restart expecting next state: " + nextState);
+                if (ProjectState.getStartedOrStartingStates().includes(nextState)) {
+                    this.progress?.report({ message: `Waiting for project to start...` });
+                }
             }
         }
     }
@@ -128,7 +144,7 @@ export default class ProjectPendingRestart {
             // The restart failed
             this.fulfill(success, error);
         }
-        else if (ProjectCapabilities.isDebugMode(this.startMode)) {
+        else if (this.isDebugRestart) {
             try {
                 Log.d("Attach debugger runnning as part of a restart");
                 // Intermittently for restarting Microprofile projects, the debugger will try to connect too soon,
@@ -140,12 +156,16 @@ export default class ProjectPendingRestart {
 
                     const delayPromise = new Promise((resolve) => setTimeout(resolve, libertyDelayMs));
 
-                    const preDebugDelayMsg = Translator.t(STRING_NS, "waitingBeforeDebugAttachStatusMsg", { projectName: this.project.name });
-                    vscode.window.setStatusBarMessage(`${getOcticon(Octicons.bug, true)} ${preDebugDelayMsg}`, delayPromise);
+                    const preDebugDelayMsg = Translator.t(StringNamespaces.DEBUG, "waitingBeforeDebugAttachStatusMsg",
+                        { projectName: this.project.name }
+                    );
+
+                    this.progress?.report({ message: preDebugDelayMsg });
                     await delayPromise;
                 }
 
-                await attachDebugger(this.project);
+                await attachDebugger(this.project, this.progress);
+                this.progress?.report({ message: `Waiting for project to be ${this.expectedStates[this.expectedStates.length - 1]}...`});
             }
             catch (err) {
                 Log.w("Debugger attach failed or was cancelled by user", err);
