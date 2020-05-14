@@ -77,6 +77,7 @@ export default class PortForwardTask implements vscode.Task, vscode.Disposable {
         this.label = this.name;
 
         // VS Code treats tasks with the same definition as the same task, so the definition must correspond one-to-one to a project.
+        // IE if the definition was just "codewind port-forward", a second project's port-forward would not run because the task is already running.
         this.definition = { type: this.name + ` ${project.id}` };
         this.source = `Codewind`;
 
@@ -84,7 +85,7 @@ export default class PortForwardTask implements vscode.Task, vscode.Disposable {
         this.args = [
             "port-forward",
             "-n", project.namespace,
-            project.podName,
+            `pod/${project.podName}`,
             portForward,
         ];
 
@@ -104,7 +105,7 @@ export default class PortForwardTask implements vscode.Task, vscode.Disposable {
             }
         });
 
-        // Wait briefly for the task to exit. If it exits quickly, it failed and we cannot proceed.
+        // Wait briefly for the task to exit. If it exits in this time, it failed and we cannot proceed.
         await new Promise((resolve, reject) => {
             setTimeout(() => {
                 if (this.exitCode) {
@@ -115,7 +116,7 @@ export default class PortForwardTask implements vscode.Task, vscode.Disposable {
                     // No exit code implies the task did not exit and should have succeeded.
                     resolve();
                 }
-            }, 2000);
+            }, 3000);
         })
     }
 

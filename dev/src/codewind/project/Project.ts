@@ -442,7 +442,11 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         const preferredPort = 4000;
-        const port = await getPort({ port: getPort.makeRange(preferredPort, preferredPort + 1000) });
+        const port = await getPort({
+            port: getPort.makeRange(preferredPort, preferredPort + 100),
+            // https://github.com/sindresorhus/get-port/issues/31#issuecomment-508363156
+            host: "0.0.0.0"
+        });
         this.setPort(port.toString(), "forwardedDebugPort");
 
         try {
