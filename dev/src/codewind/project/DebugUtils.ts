@@ -16,6 +16,7 @@ import Log from "../../Logger";
 import ProjectType from "./ProjectType";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import Translator from "../../constants/strings/Translator";
+import { ProgressUpdate } from "../Types";
 
 const STRING_NS = StringNamespaces.DEBUG;
 
@@ -23,7 +24,7 @@ export default class DebugUtils {
 
     private constructor() {}
 
-    public static async startDebugSession(project: Project): Promise<void> {
+    public static async startDebugSession(project: Project, progress: vscode.Progress<ProgressUpdate>): Promise<void> {
         Log.i("startDebugSession for project " + project.name);
         if (project.type.debugType == null) {
             // Just in case.
@@ -31,20 +32,23 @@ export default class DebugUtils {
         }
 
         if (project.connection.isRemote) {
+            progress.report({ message: `Running port forward...` });
             await project.remoteDebugPortForward();
         }
-
         else if (project.exposedDebugPort == null) {
             throw new Error(Translator.t(STRING_NS, "noDebugPort", { projectName: project.name }));
         }
 
+        progress.report({ message: `Writing debug launch configuration...` });
         const debugConfig: vscode.DebugConfiguration = await DebugUtils.setDebugConfig(project);
+        progress.report({ message: `Launching debug session...` });
         const debugSuccess = await vscode.debug.startDebugging(project.workspaceFolder, debugConfig);
 
         if (!debugSuccess) {
             Log.w("Debugger failed to attach");
             throw new Error(this.getFailMsg(project));
         }
+        progress.report({ message: `Debugger attached` });
         Log.i("Debugger attach appeared to succeed");
     }
 

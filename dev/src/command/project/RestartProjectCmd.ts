@@ -55,7 +55,6 @@ export default async function restartProjectCmd(project: Project, debug: boolean
 
     try {
         await project.doRestart(startMode);
-        vscode.window.showInformationMessage(`Restarting ${project.name} in ${ufStartMode} mode`);
         return true;
     }
     catch (err) {
