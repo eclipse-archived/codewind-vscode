@@ -22,6 +22,8 @@ import { CWConfigurations } from "../../constants/Configurations";
 import { PFEProjectData } from "../Types";
 import addProjectToWorkspaceCmd from "../../command/project/AddToWorkspaceCmd";
 import MCUtil from "../../MCUtil";
+import CWExtensionContext from "../../CWExtensionContext";
+import { manageLogs } from "../../command/project/ManageLogsCmd";
 
 /**
  * Receives and reacts to socket events from Portal
@@ -213,7 +215,12 @@ export default class MCSocket implements vscode.Disposable {
             return;
         }
 
-        project.logManager.onLogsListChanged(payload);
+        try {
+            await project.logManager.onLogsListChanged(payload);
+        }
+        catch (err) {
+            Log.e(`Error processing logs list changed event`, payload, err);
+        }
     }
 
     private readonly onLogUpdate = async (payload: SocketEvents.ILogUpdateEvent): Promise<void> => {
@@ -323,10 +330,43 @@ export default class MCSocket implements vscode.Disposable {
             return undefined;
         }
 
+        try {
+            await this.onNewProject(newProject);
+        }
+        catch (err) {
+            Log.e(`Error processing new project ${newProject.name}`, err);
+            vscode.window.showErrorMessage(`${MCUtil.errToString(err)}`);
+        }
+
+        return newProject;
+    }
+
+    private readonly HIDE_NEW_LOGS_MSG_KEY: string = "show-new-logs-msg";
+
+    private async onNewProject(newProject: Project): Promise<void> {
         Log.i(`Project ${newProject.name} has been created`);
 
         if (CWConfigurations.OVERVIEW_ON_CREATION.get()) {
             projectOverviewCmd(newProject);
+        }
+
+        if (CWConfigurations.LOGS_ON_CREATION.get()) {
+            if (!CWExtensionContext.get().globalState.get<boolean>(this.HIDE_NEW_LOGS_MSG_KEY)) {
+                const configureBtn = "Configure";
+                const dontShowAgainBtn = "Don't show again";
+
+                vscode.window.showInformationMessage(`Build and application logs for the new project will be shown as they become available.`,
+                    configureBtn, dontShowAgainBtn,
+                ).then((res) => {
+                    if (res === configureBtn) {
+                        CWConfigurations.LOGS_ON_CREATION.openUI();
+                    }
+                    else if (res === dontShowAgainBtn) {
+                        CWExtensionContext.get().globalState.update(this.HIDE_NEW_LOGS_MSG_KEY, true);
+                    }
+                });
+            }
+            manageLogs(newProject, "show-from-creation");
         }
 
         if (!newProject.isInVSCodeWorkspace) {
@@ -338,7 +378,6 @@ export default class MCSocket implements vscode.Disposable {
                     `Right click the project in the Codewind view and run the Add Project to Workspace command to add it.`);
             }
         }
-        return newProject;
     }
 
     public toString(): string {

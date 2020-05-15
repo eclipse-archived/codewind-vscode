@@ -78,6 +78,7 @@ enum Commands {
     VSC_REVEAL_EXPLORER = "revealInExplorer",
     VSC_FOCUS_PROBLEMS = "workbench.action.problems.focus",
     VSC_CMD_PALETTE = "workbench.action.showCommands",
+    VSC_OPEN_SETTINGS = "workbench.action.openSettings",
 }
 
 export default Commands;

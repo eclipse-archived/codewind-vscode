@@ -291,9 +291,9 @@ export default class Project implements vscode.QuickPickItem {
 
     /**
      * Call when this project's mutable fields change
-     * to update the tree view and project info pages.
+     * to update the tree view and project info page.
      */
-    private onChange(): void {
+    public onChange(): void {
         this.connection.onChange(this);
         this._overviewPage?.refresh();
     }

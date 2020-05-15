@@ -12,6 +12,8 @@
 import * as vscode from "vscode";
 
 import Log from "../Logger";
+import Commands from "./Commands";
+import MCUtil from "../MCUtil";
 
 const CONFIG_SECTION = "codewind";
 
@@ -22,8 +24,6 @@ class CWConfiguration<T> {
     /**
      *
      * @param subsection Must match `contributes.configuration.properties` in package.json
-     * @param defaultValue
-     * @param scope
      */
     constructor(
         private readonly subsection: string,
@@ -48,12 +48,28 @@ class CWConfiguration<T> {
 
         Log.d(`Set ${this.subsection} to ${newValue}`);
     }
+
+    /**
+     * Open the Preferences UI to this configuration's section.
+     */
+    public async openUI(): Promise<void> {
+        try {
+            Log.d(`Open settings to ${this.fullSection}`)
+            await vscode.commands.executeCommand(Commands.VSC_OPEN_SETTINGS, this.fullSection);
+        }
+        catch (err) {
+            const errMsg = `Error opening VS Code settings to ${this.fullSection}`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`)
+        }
+    }
 }
 
 export const CWConfigurations = {
     SHOW_HOMEPAGE:                  new CWConfiguration("showHomePage", true, vscode.ConfigurationTarget.Global),
     AUTO_SHOW_VIEW:                 new CWConfiguration("autoShowView", true, vscode.ConfigurationTarget.Global),
     OVERVIEW_ON_CREATION:           new CWConfiguration("openOverviewOnCreation", true, vscode.ConfigurationTarget.Global),
+    LOGS_ON_CREATION:               new CWConfiguration("automaticallyShowLogsAfterCreation", true, vscode.ConfigurationTarget.Global),
 
     ALWAYS_CREATE_IN_WORKSPACE:     new CWConfiguration("alwaysCreateProjectsInWorkspace", true, vscode.ConfigurationTarget.Workspace),
     ADD_NEW_PROJECTS_TO_WORKSPACE:  new CWConfiguration("addNewProjectsToWorkspace", true, vscode.ConfigurationTarget.Workspace),

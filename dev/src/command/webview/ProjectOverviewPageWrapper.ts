@@ -23,6 +23,7 @@ import removeProjectCmd from "../project/RemoveProjectCmd";
 import { getProjectOverviewHtml } from "./pages/ProjectOverviewPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import Commands from "../../constants/Commands";
+import { manageLogs } from "../project/ManageLogsCmd";
 
 export enum ProjectOverviewWVMessages {
     BUILD = "build",
@@ -32,6 +33,8 @@ export enum ProjectOverviewWVMessages {
     TOGGLE_ENABLEMENT = "toggleEnablement",
     EDIT = "edit",
     TOGGLE_INJECT_METRICS = "toggleInjectMetrics",
+    MANAGE_LOGS = "manageLogs",
+    OPEN_LOG = "openLog",
 }
 
 export default class ProjectOverviewPageWrapper extends WebviewWrapper {
@@ -86,6 +89,28 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
             }
             case ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS: {
                 toggleInjectMetricsCmd(this.project);
+                break;
+            }
+            case ProjectOverviewWVMessages.MANAGE_LOGS: {
+                manageLogs(this.project);
+                break;
+            }
+            case ProjectOverviewWVMessages.OPEN_LOG: {
+                const logName = msg.data as string;
+                const matchingLog = this.project.logManager.logs.find((log) => log.logName === logName);
+                if (!matchingLog) {
+                    const errMsg = `Error: Could not find log ${logName} for project ${this.project.name}`;
+                    Log.e(errMsg);
+                    vscode.window.showErrorMessage(errMsg);
+                    return;
+                }
+                if (matchingLog.isOpen) {
+                    matchingLog.show();
+                }
+                else {
+                    // this also starts the streaming of the log
+                    await this.project.logManager.showSome([ matchingLog ], false);
+                }
                 break;
             }
             case CommonWVMessages.OPEN_CONNECTION:

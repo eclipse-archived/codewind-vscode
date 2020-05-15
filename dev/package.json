@@ -113,6 +113,12 @@
                         "default": true,
                         "scope": "application"
                     },
+                    "codewind.automaticallyShowLogsAfterCreation": {
+                        "description": "%configDescr_automaticallyShowLogsAfterCreation%",
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "application"
+                    },
                     "codewind.alwaysCreateProjectsInWorkspace": {
                         "description": "%configDescr_alwaysCreateProjectsInWorkspace%",
                         "type": "boolean",

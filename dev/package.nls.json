@@ -7,6 +7,7 @@
     "configTitle": "Codewind",
     "configDescr_autoShowView": "Automatically expand the Codewind view after opening a Codewind project.",
     "configDescr_overviewOnCreation": "Open the Project Overview page after creating or adding a new Codewind project.",
+    "configDescr_automaticallyShowLogsAfterCreation": "Automatically open a new project's build and application logs as they become available.",
     "configDescr_alwaysCreateProjectsInWorkspace": "Create new Codewind projects under the VS Code workspace. If the workspace has multiple root folders, the workspace folder must be selected.",
     "configDescr_addNewProjectsToWorkspace": "When a new Codewind project is created outside of the VS Code workspace, add the project to the workspace.",
     "configDescr_showHomepage": "Show the Codewind Homepage when the extension is started.",

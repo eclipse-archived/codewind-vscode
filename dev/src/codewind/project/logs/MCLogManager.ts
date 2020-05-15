@@ -23,6 +23,13 @@ export enum LogTypes {
     APP = "app", BUILD = "build"
 }
 
+/**
+ * If this is set to 'background', new logs are added to the Output view but not revealed as they become available.
+ * If 'foreground', they are added brought to the front of the Output view.
+ * If not set, new logs are not revealed until the user uses one of the log showing actions.
+ */
+type ShowingAllState = "background" | "foreground" | undefined;
+
 export default class MCLogManager {
 
     private _logs: MCLog[] = [];
@@ -30,7 +37,7 @@ export default class MCLogManager {
 
     private readonly managerName: string;
 
-    private isShowingAll: boolean = false;
+    private isShowingAll: ShowingAllState;
 
     constructor(
         private readonly project: Project,
@@ -56,7 +63,7 @@ export default class MCLogManager {
         }
         catch (err) {
             Log.e(`Failed to get logs for ${this.project.name}`, err);
-            vscode.window.showErrorMessage(`Failed to initialize logs list for ${this.project.name}: ${MCUtil.errToString(err)}`);
+            vscode.window.showErrorMessage(`Failed to fetch logs for ${this.project.name}: ${MCUtil.errToString(err)}`);
         }
     }
 
@@ -76,6 +83,7 @@ export default class MCLogManager {
         if (didOpenNewLog) {
             await this.toggleLogStreaming(true);
         }
+        this.project.onChange();
     }
 
     /**
@@ -91,8 +99,8 @@ export default class MCLogManager {
 
         const existingIndex = this.logs.findIndex((l) => l.logName === logData.logName);
         const existed = existingIndex !== -1;
-        // open the log on creation if we're showing all, or if
-        let openOnCreate = this.isShowingAll;
+        // open the log on creation if we're showing all, or if replacing an existing log
+        let openOnCreate = this.isShowingAll != null;
         if (existed) {
             // destroy the old log and replace it with this one
             const existingLog = this.logs.splice(existingIndex, 1)[0];
@@ -103,45 +111,56 @@ export default class MCLogManager {
         const newLog = new MCLog(this.project.name, logData.logName, logType, logData.workspaceLogPath);
         this.logs.push(newLog);
         if (openOnCreate) {
-            Log.d(`Revealing ${newLog.displayName}`);
-            newLog.createOutput(false);
+            Log.d(`Revealing ${newLog.outputName}`);
+            newLog.createOutput(this.isShowingAll === "foreground");
         }
         return openOnCreate;
     }
 
-    public async showAll(): Promise<void> {
+    public async showAll(type: "background" | "foreground"): Promise<void> {
         Log.d("Showing all logs for " + this.project.name);
-        this.isShowingAll = true;
+        this.isShowingAll = type;
         this.logs.forEach((log) => log.createOutput(true));
         await this.toggleLogStreaming(true);
     }
 
     /**
-     * Shows the given logs and hides all other logs for this project.
+     * Shows the given logs. If hideOthers === true, hides any logs that are not in toShow.
      */
-    public async showSome(toShow: MCLog[]): Promise<void> {
+    public async showSome(toShow: MCLog[], hideOthers: boolean): Promise<void> {
         if (toShow.length === 0) {
             await this.hideAll();
             return;
         }
-        Log.d(`Showing ${toShow.length} logs for ${this.project.name}`);
 
-        this.isShowingAll = false;
+        this.isShowingAll = undefined;
+
+        // if at least one new log is being shown, we restart streaming for this project
+        let restartStreaming = false;
         this.logs.forEach((log) => {
             if (toShow.includes(log)) {
-                log.createOutput(true);
+                if (log.isOpen) {
+                    log.show();
+                }
+                else {
+                    restartStreaming = true;
+                    log.createOutput(true);
+                }
             }
-            else {
+            else if (hideOthers) {
                 log.removeOutput();
             }
+            // else, ignore it.
         });
-        // Refresh all the logs in case one of the ones just enabled is new.
-        await this.toggleLogStreaming(true);
+
+        if (restartStreaming) {
+            await this.toggleLogStreaming(true);
+        }
     }
 
     public async hideAll(): Promise<void> {
         Log.d("Hiding all logs for " + this.project.name);
-        this.isShowingAll = false;
+        this.isShowingAll = undefined;
         this.logs.forEach((log) => log.removeOutput());
         await this.toggleLogStreaming(false);
     }
@@ -190,7 +209,7 @@ export default class MCLogManager {
     }
 
     public destroyAllLogs(): void {
-        this.isShowingAll = false;
+        this.isShowingAll = undefined;
         this.logs.forEach((log) => log.removeOutput());
         this._logs = [];
     }

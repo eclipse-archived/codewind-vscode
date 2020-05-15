@@ -13,22 +13,39 @@ import * as vscode from "vscode";
 
 import Project from "../../codewind/project/Project";
 import MCLog from "../../codewind/project/logs/MCLog";
+import Log from "../../Logger";
+import MCUtil from "../../MCUtil";
+import CWExtensionContext from "../../CWExtensionContext";
 
 // const STRING_NS = StringNamespaces.LOGS;
 
-export async function showAllLogs(project: Project): Promise<void> {
-    return manageLogsInner(project, "show");
+/**
+ *
+ * @param manageAll - Set this to show or hide all logs. Leave unset to prompt the user with the list of logs and let them manage logs from there.
+ */
+export async function manageLogs(project: Project, manageAll?: "show" | "show-from-creation"| "hide"): Promise<void> {
+    try {
+        await manageLogsInner(project, manageAll);
+    }
+    catch (err) {
+        let action;
+        if (manageAll == null) {
+            action = "managing";
+        }
+        else if (manageAll === "hide") {
+            action = "hiding"
+        }
+        else {
+            action = "showing";
+        }
+
+        const errMsg = `Error ${action} logs for ${project.name}`;
+        Log.e(errMsg, err);
+        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+    }
 }
 
-export async function hideAllLogs(project: Project): Promise<void> {
-    return manageLogsInner(project, "hide");
-}
-
-export async function manageLogs(project: Project): Promise<void> {
-    return manageLogsInner(project);
-}
-
-async function manageLogsInner(project: Project, all?: "show" | "hide"): Promise<void> {
+async function manageLogsInner(project: Project, all?: "show" | "show-from-creation"| "hide"): Promise<void> {
     // Wait for the logmanager to initialize, just in case it hasn't finished yet
     await project.logManager.initPromise;
 
@@ -39,26 +56,40 @@ async function manageLogsInner(project: Project, all?: "show" | "hide"): Promise
         return;
     }
 
+    if (all === "show" || all === "show-from-creation") {
+        if (all === "show" && logs.length === 0) {
+            vscode.window.showInformationMessage(`${project.name} does not have any logs available at this time. ` +
+                `Logs will be shown as they become available`);
+        }
+        const showAllType = all === "show" ? "background" : "foreground";
+        await project.logManager.showAll(showAllType);
+        return;
+    }
+
     if (logs.length === 0) {
         vscode.window.showWarningMessage(`${project.name} does not have any logs available at this time. ` +
-           `Wait for the project to build, and try again.`);
+            `Wait for the project to build, and try again.`);
         return;
     }
 
-    if (all === "show") {
-        await project.logManager.showAll();
-        return;
-    }
+    // https://github.com/eclipse-theia/theia/issues/5673
+    // In theia, the strings are a little different because we can only manage one log at a time due to no canPickMany support.
+    // Note that the MCLog's 'detail' field is only set in Theia.
+    const placeHolder = CWExtensionContext.get().isTheia ?
+        `Select a log to show or hide in the Output view` :
+        `Select the logs you wish to see in the Output view`;
 
-    const options: vscode.QuickPickOptions = {
+    const logsToShow = await vscode.window.showQuickPick<MCLog>(logs, {
         canPickMany: true,
-        placeHolder: "Select the logs you wish to see in the Output view."
-    };
-
+        matchOnDescription: true,
+        placeHolder,
+    });
     // https://github.com/Microsoft/vscode/issues/64014
-    const logsToShow = await vscode.window.showQuickPick<MCLog>(logs, options) as (MCLog[] | undefined);
+    // }) as (MCLog[] | undefined);
+
     if (logsToShow == null) {
         return;
     }
-    await project.logManager.showSome(logsToShow);
+
+    await project.logManager.showSome(logsToShow, true);
 }

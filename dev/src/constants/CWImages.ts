@@ -105,6 +105,7 @@ export const ThemedImages = {
     Copy:   new CWImage(true, "copy"),
     Error:  new CWImage(true, "error"),
     Edit:   new CWImage(true, "edit"),
+    Filter: new CWImage(true, "filter"),
     Help:   new CWImage(true, "help"),
     Info:   new CWImage(true, "info"),
     New:    new CWImage(true, "new"),
