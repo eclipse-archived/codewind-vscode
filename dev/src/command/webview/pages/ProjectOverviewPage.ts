@@ -19,7 +19,6 @@ import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import CWExtensionContext from "../../../CWExtensionContext";
 
-
 interface RowOptions {
     openable?: "web" | "folder";
     editable?: boolean;
@@ -61,7 +60,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     <div class="section">
         <h3>Project Information</h3>
         <table>
-            ${buildRow(rp, "Type", project.type.toString())}
+            ${buildRow(rp, "Build Type", project.type.toString())}
             ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
             ${buildRow(rp, "Project ID", project.id)}
             ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: CWExtensionContext.get().isChe ? undefined : "folder"})}
@@ -96,6 +95,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             ${project.type.isAppsody ? "" : buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
             ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
             ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
+            ${buildLogsRow(rp, project)}
         </table>
     </div>
     <div class="section">
@@ -194,7 +194,7 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
         fourthColTd = `
             <td class="btn-cell">
                 <a title="${data}" onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${data}')">
-                    <input type="image" title="Open" src="${rp.getImage(ThemedImages.Launch)}"/>
+                    <input type="image" title="Open" alt="Open" src="${rp.getImage(ThemedImages.Launch)}"/>
                 </a>
             </td>
         `;
@@ -220,7 +220,7 @@ function normalize(item: vscode.Uri | number | string | undefined, fallback: str
     if (item == null || item === "" || (typeof item === typeof 0 && isNaN(Number(item)))) {
         result = fallback;
     }
-    else if (item instanceof vscode.Uri && (item as vscode.Uri).scheme.includes("file")) {
+    else if (item instanceof vscode.Uri && item.scheme.includes("file")) {
         result = item.fsPath;
     }
     else {
@@ -246,6 +246,41 @@ function normalizeDate(d: Date | undefined, fallback: string): string {
     else {
         return fallback;
     }
+}
+
+function buildLogsRow(rp: WebviewResourceProvider, project: Project): string {
+    const logs = project.logManager.logs;
+    let logsText;
+    if (logs.length > 0) {
+        logsText = project.logManager.logs.map((log) => {
+            return `<a onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_LOG}', '${log.logName}')" title="Click to reveal">${log.logName}</a>`;
+        }).join(", ");
+    }
+    else {
+        logsText = "No logs available";
+        if (project.state.isEnabled) {
+            logsText += " - Wait for the project to build and start";
+        }
+    }
+
+    const manageLogsBtnClass = project.state.isEnabled ? "" : "not-allowed";
+    const manageLogsBtnOnClick = project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.MANAGE_LOGS}')` : "";
+    const manageLogsBtnTitle = project.state.isEnabled ? "Manage Logs" : "The project is Disabled";
+
+    return `
+        <tr class="info-row">
+            <td class="info-label">Project Logs:</td>
+            <td>${logsText}</td>
+            <td></td>
+            <td class="btn-cell">
+                <a title="Manage Logs" onclick="${manageLogsBtnOnClick}">
+                    <input type="image"
+                        class="${manageLogsBtnClass}" title="${manageLogsBtnTitle}" alt="Manage Logs" src="${rp.getImage(ThemedImages.Filter)}"
+                    />
+                </a>
+            </td>
+        </tr>
+    `;
 }
 
 function buildContainerPodSection(rp: WebviewResourceProvider, project: Project): string {

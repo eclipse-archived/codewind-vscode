@@ -13,12 +13,14 @@ import * as vscode from "vscode";
 import Translator from "../../../constants/strings/Translator";
 import StringNamespaces from "../../../constants/strings/StringNamespaces";
 import { LogTypes } from "./MCLogManager";
+import CWExtensionContext from "../../../CWExtensionContext";
+import Log from "../../../Logger";
 
 const STRING_NS = StringNamespaces.LOGS;
 
 export default class MCLog implements vscode.QuickPickItem {
 
-    public readonly displayName: string;
+    public readonly outputName: string;
     private output: vscode.OutputChannel | undefined;
 
     constructor(
@@ -28,7 +30,7 @@ export default class MCLog implements vscode.QuickPickItem {
         public readonly type: LogTypes,
         public readonly logPath?: string,
     ) {
-        this.displayName = `${projectName} - ${this.logName}`;
+        this.outputName = `${projectName} - ${this.logName}`;
         // this.detail = logPath;
         // this.description = `(${this.logType} log)`;
 
@@ -52,11 +54,6 @@ export default class MCLog implements vscode.QuickPickItem {
         return this.output != null;
     }
 
-    // quickPickItem
-    public get picked(): boolean {
-        return this.isOpen;
-    }
-
     public removeOutput(): void {
         // Log.d("Hide log " + this.displayName);
         if (this.output) {
@@ -67,15 +64,22 @@ export default class MCLog implements vscode.QuickPickItem {
     }
 
     public createOutput(show: boolean): void {
-        // Log.d("Show log " + this.displayName);
         if (!this.output) {
-            // Log.d("Creating output for log " + this.displayName);
-            this.output = vscode.window.createOutputChannel(this.displayName);
+            Log.d(`Creating output ${this.outputName}`);
+            this.output = vscode.window.createOutputChannel(this.outputName);
             this.output.appendLine(Translator.t(STRING_NS, "waitingForLogs"));
         }
         if (show) {
-            this.output.show();
+            this.output.show(true);
         }
+    }
+
+    public show(): void {
+        if (!this.output) {
+            Log.e(`Cannot show ${this.outputName} - Output does not exist`);
+            return;
+        }
+        this.output.show(true);
     }
 
     public onDisconnect(): void {
@@ -86,8 +90,10 @@ export default class MCLog implements vscode.QuickPickItem {
         }
     }
 
+    // QuickPickItem
+
     public get label(): string {
-        return this.displayName;
+        return this.outputName;
     }
 
     public get description(): string | undefined {
@@ -100,5 +106,17 @@ export default class MCLog implements vscode.QuickPickItem {
         else {
             return undefined;
         }
+    }
+
+    public get detail(): string | undefined {
+        if (CWExtensionContext.get().isTheia) {
+            return `Select to ${this.isOpen ? "hide" : "show"}`;
+        }
+        // in vs code, the tickbox (see picked()) clearly indicates if this is a hide or a show, so we don't have to spell it out.
+        return undefined;
+    }
+
+    public get picked(): boolean {
+        return this.isOpen;
     }
 }

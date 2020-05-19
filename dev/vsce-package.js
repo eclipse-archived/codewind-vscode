@@ -37,7 +37,6 @@ const che_cmdsToDelete = [
     "attachDebugger",
     "restartRun",
     "restartDebug",
-    "manageLogs",
     "containerShell",
     "separator",
     "addProjectToWorkspace",

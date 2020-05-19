@@ -24,7 +24,7 @@ import projectOverviewCmd from "./project/ProjectOverviewCmd";
 import toggleAutoBuildCmd from "./project/ToggleAutoBuildCmd";
 import openMetricsDashboardCmd from "./project/OpenMetricsDashboard";
 import { refreshConnectionCmd, refreshLocalCWCmd } from "./connection/RefreshConnectionCmd";
-import { manageLogs, showAllLogs, hideAllLogs } from "./project/ManageLogsCmd";
+import { manageLogs } from "./project/ManageLogsCmd";
 import createProjectCmd from "./connection/CreateUserProjectCmd";
 import bindProjectCmd from "./connection/BindProjectCmd";
 import openPerformanceDashboard from "./project/OpenPerfDashboard";
@@ -116,9 +116,9 @@ export function createCommands(): vscode.Disposable[] {
         registerProjectCommand(Commands.RESTART_RUN, restartProjectCmd, [ false ], ProjectState.getAppStateSet("started-starting")),
         registerProjectCommand(Commands.RESTART_DEBUG, restartProjectCmd, [ true ], ProjectState.getAppStateSet("started-starting")),
 
-        registerProjectCommand(Commands.MANAGE_LOGS, manageLogs, [], ProjectState.getAppStateSet("enabled")),
-        registerProjectCommand(Commands.SHOW_ALL_LOGS, showAllLogs, [], ProjectState.getAppStateSet("enabled")),
-        registerProjectCommand(Commands.HIDE_ALL_LOGS, hideAllLogs, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.MANAGE_LOGS,    manageLogs, [], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.SHOW_ALL_LOGS,  manageLogs, [ "show" ], ProjectState.getAppStateSet("enabled")),
+        registerProjectCommand(Commands.HIDE_ALL_LOGS,  manageLogs, [ "hide" ], ProjectState.getAppStateSet("enabled")),
 
         registerProjectCommand(Commands.ENABLE_PROJECT, toggleEnablementCmd, [], ProjectState.getAppStateSet("disabled")),
         registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, [], ProjectState.getAppStateSet("enabled")),
