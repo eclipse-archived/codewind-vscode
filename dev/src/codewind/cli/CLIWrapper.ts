@@ -210,7 +210,8 @@ namespace CLIWrapper {
                     if (errStr) {
                         Log.e(`Stderr:`, errStr);
                     }
-                    resolve(outStr);
+                    cliOutputChannel.appendLine("Cancelled");
+                    reject(CLI_CMD_CANCELLED);
                 }
                 else if (code !== 0) {
                     Log.e(`Error running ${cmdStr}`);
