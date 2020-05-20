@@ -12,14 +12,16 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as child_process from "child_process";
+import { Readable } from "stream";
+import * as readline from "readline";
 
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
-import { CLILifecycleWrapper } from "./CLILifecycleWrapper";
-import { CLILifecycleCommand } from "./CLILifecycleCommands";
+import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
 import { CLICommand } from "./CLICommands";
 import CLISetup from "./CLISetup";
 import CWExtensionContext from "../../CWExtensionContext";
+import { ProgressUpdate } from "../Types";
 
 let _hasInitialized = false;
 
@@ -132,6 +134,14 @@ namespace CLIWrapper {
 
     const PASSWORD_ARG = "--password";
 
+    /**
+     * Run the given CLICommand with the given arguments.
+     * @returns
+     *  In the success case, if cmd.hasJSONOutput, a parsed JS object. This should be cast to the expected return type.
+     *  If !cmd.hasJSONOutput, returns the entire stdout as a string.
+     *
+     *  In the failure case (cwctl exits with non-zero code), throws an error.
+     */
     export async function cwctlExec(cmd: CLICommand, args: string[] = [], progressPrefix?: string): Promise<any> {
         if (!hasInitialized()) {
             Log.d(`Trying to run CLI command before initialization finished`);
@@ -262,16 +272,16 @@ namespace CLIWrapper {
             cliOutputChannel.appendLine(`==> End ${cmdStr}`);
         });
 
-        const hasProgress = cmd instanceof CLILifecycleCommand || progressPrefix;
+        const hasProgress = cmd.updateProgress || progressPrefix;
         if (hasProgress) {
             return vscode.window.withProgress({
                 cancellable: cmd.cancellable,
                 location: vscode.ProgressLocation.Notification,
                 title: progressPrefix,
             }, (progress, token) => {
-                // only lifecycle commands show updating progress, for now
-                if (cmd instanceof CLILifecycleCommand) {
-                    CLILifecycleWrapper.updateProgress(cmd, cwctlProcess.stdout, progress);
+                // If updateProgress is not set, just leave the progress as the 'progressPrefix'
+                if (cmd.updateProgress) {
+                    updateProgress(cmd, cwctlProcess.stdout, progress);
                 }
 
                 token.onCancellationRequested((_e) => {
@@ -284,6 +294,45 @@ namespace CLIWrapper {
         else {
             return cwctlExecPromise;
         }
+    }
+
+    function updateProgress(cmd: CLICommand, stdout: Readable, progress: vscode.Progress<ProgressUpdate>): void {
+
+        const isInstallCmd = cmd === CLILifecycleCommands.INSTALL;
+        const reader = readline.createInterface(stdout);
+        reader.on("line", (line) => {
+            if (!line) {
+                return;
+            }
+            if (!isInstallCmd) {
+                // simple case for non-install, just update with the output, removing (some) terminal escapes
+                const message = line.replace(/\u001b\[\d+./g, "").trim();
+                progress.report({ message });
+                return;
+            }
+            if (line === "Image Tagging Successful") {
+                return;
+            }
+
+            // With JSON flag, `install` output is JSON we can parse to give good output
+            let lineObj: { status: string; id: string; };
+            try {
+                lineObj = JSON.parse(line);
+            }
+            catch (err) {
+                Log.e(`Error parsing JSON from CLI output, line was "${line}"`);
+                return;
+            }
+
+            // we're interested in lines like:
+            // {"status":"Pulling from codewind-pfe-amd64","id":"latest"}
+            const pullingFrom = "Pulling from";
+            if (line.includes(pullingFrom)) {
+                const imageTag = lineObj.id;
+                const message = lineObj.status + ":" + imageTag;
+                progress.report({ message });
+            }
+        });
     }
 
     function isProbablyJSON(str: string): boolean {

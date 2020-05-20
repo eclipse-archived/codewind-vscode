@@ -52,6 +52,7 @@ import { setLogLevelCmd } from "./connection/SetLogLevelCmd";
 import showHomePageCmd from "./HomePageCmd";
 import newRemoteConnectionCmd from "./connection/NewConnectionCmd";
 import CWExtensionContext from "../CWExtensionContext";
+import diagnosticsCmd from "./DiagnosticsCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -62,6 +63,7 @@ export function createCommands(): vscode.Disposable[] {
     // - or the user's selected TreeView object (if run from the context menu) -> Either LocalCodewindManager, Connection, or Project
     return [
         vscode.commands.registerCommand(Commands.HOMEPAGE,          showHomePageCmd),
+        vscode.commands.registerCommand(Commands.DIAGNOSTICS,       diagnosticsCmd),
         vscode.commands.registerCommand(Commands.NEW_CONNECTION,    newRemoteConnectionCmd),
 
         vscode.commands.registerCommand(Commands.START_LOCAL_CODEWIND,  connectLocalCodewindCmd),
@@ -75,7 +77,6 @@ export function createCommands(): vscode.Disposable[] {
         registerConnectionCommand(Commands.REMOVE_CONNECTION, removeConnectionCmd, [], false, true),
         registerConnectionCommand(Commands.ENABLE_CONNECTION, toggleConnectionEnablementCmd, [ true ], false, true),
         registerConnectionCommand(Commands.DISABLE_CONNECTION, toggleConnectionEnablementCmd, [ false ], false, true),
-        // registerConnectionCommand(Commands.REFRESH_CONNECTION, refreshConnectionCmd, [], false, false),
 
         // the refresh command is unique because it's valid for the stopped local connection, as well as regular, connected connections.
         vscode.commands.registerCommand(Commands.REFRESH_CONNECTION, async (selection: LocalCodewindManager | Connection | undefined) => {

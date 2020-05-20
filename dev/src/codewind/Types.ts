@@ -89,6 +89,15 @@ export interface PFELogLevels {
     readonly allLevels: string[];
 }
 
+export interface DiagnosticsResult {
+    success: boolean,
+    outputdir: string,
+    warnings_encountered: [{
+        warning: string;
+        warning_description: string;
+    }],
+}
+
 ///// Connection /////
 
 export interface CLIConnectionData {
