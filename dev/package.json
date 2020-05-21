@@ -183,6 +183,11 @@
                 "category": "%commandCategory%"
             },
             {
+                "command": "%cmdID_diagnostics%",
+                "title": "%cmdTitle_diagnostics%",
+                "category": "%commandCategory%"
+            },
+            {
                 "command": "%cmdID_refreshConnection%",
                 "title": "%cmdTitle_refreshConnection%",
                 "category": "%commandCategory%",

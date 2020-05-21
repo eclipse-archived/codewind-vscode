@@ -22,8 +22,8 @@ import requestBuildCmd from "../project/RequestBuildCmd";
 import removeProjectCmd from "../project/RemoveProjectCmd";
 import { getProjectOverviewHtml } from "./pages/ProjectOverviewPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
-import Commands from "../../constants/Commands";
 import { manageLogs } from "../project/ManageLogsCmd";
+import MCUtil from "../../MCUtil";
 
 export enum ProjectOverviewWVMessages {
     BUILD = "build",
@@ -63,8 +63,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
             }
             case ProjectOverviewWVMessages.OPEN_FOLDER: {
                 const targetPath: string = msg.data;
-                const uri = vscode.Uri.file(targetPath);
-                vscode.commands.executeCommand(Commands.VSC_REVEAL_IN_OS, uri);
+                await MCUtil.revealDirInOS(targetPath);
                 break;
             }
             case ProjectOverviewWVMessages.TOGGLE_AUTOBUILD: {

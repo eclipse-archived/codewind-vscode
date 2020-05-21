@@ -14,6 +14,7 @@
 // all of these MUST MATCH package.nls.json command IDs
 enum Commands {
     HOMEPAGE = "ext.cw.homepage",
+    DIAGNOSTICS = "ext.cw.diagnostics",
 
     NEW_CONNECTION = "ext.cw.newConnection",
     REMOVE_CONNECTION = "ext.cw.removeConnection",

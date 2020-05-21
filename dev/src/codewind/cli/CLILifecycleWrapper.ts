@@ -10,8 +10,6 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import { Readable } from "stream";
-import * as readline from "readline";
 import * as fs from "fs-extra";
 
 import Log from "../../Logger";
@@ -26,7 +24,7 @@ import LocalCodewindManager from "../connection/local/LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
 import { CLICommandRunner } from "./CLICommandRunner";
 import CWDocs from "../../constants/CWDocs";
-import { CLIStatus, ProgressUpdate } from "../Types";
+import { CLIStatus } from "../Types";
 import CWExtensionContext from "../../CWExtensionContext";
 
 const STRING_NS = StringNamespaces.STARTUP;
@@ -329,46 +327,6 @@ export namespace CLILifecycleWrapper {
     function onMoreInfo(): void {
         const moreInfoUrl = CWDocs.INSTALL_INFO;
         vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
-    }
-
-    export function updateProgress(
-        cmd: CLILifecycleCommand, stdout: Readable, progress: vscode.Progress<ProgressUpdate>): void {
-
-        const isInstallCmd = cmd === CLILifecycleCommands.INSTALL;
-        const reader = readline.createInterface(stdout);
-        reader.on("line", (line) => {
-            if (!line) {
-                return;
-            }
-            if (!isInstallCmd) {
-                // simple case for non-install, just update with the output, removing (some) terminal escapes
-                const message = line.replace(/\u001b\[\d+./g, "").trim();
-                progress.report({ message });
-                return;
-            }
-            if (line === "Image Tagging Successful") {
-                return;
-            }
-
-            // With JSON flag, `install` output is JSON we can parse to give good output
-            let lineObj: { status: string; id: string; };
-            try {
-                lineObj = JSON.parse(line);
-            }
-            catch (err) {
-                Log.e(`Error parsing JSON from CLI output, line was "${line}"`);
-                return;
-            }
-
-            // we're interested in lines like:
-            // {"status":"Pulling from codewind-pfe-amd64","id":"latest"}
-            const pullingFrom = "Pulling from";
-            if (line.includes(pullingFrom)) {
-                const imageTag = lineObj.id;
-                const message = lineObj.status + ":" + imageTag;
-                progress.report({ message });
-            }
-        });
     }
 
     function getTag(): string {

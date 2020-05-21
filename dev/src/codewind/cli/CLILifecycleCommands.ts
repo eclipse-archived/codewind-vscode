@@ -30,7 +30,7 @@ export class CLILifecycleCommand extends CLICommand {
         cancellable: boolean = true,
         censorOutput: boolean = false,
     ) {
-        super(command, { cancellable, censorOutput, hasJSONOutput: false });
+        super(command, { cancellable, censorOutput, hasJSONOutput: false, updateProgress: true });
     }
 
     public getUserActionName(tag: string): string {

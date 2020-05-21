@@ -15,7 +15,7 @@ import MCUtil from "../../MCUtil";
 import { CLICommands } from "./CLICommands";
 import {
     CLIStatus, IInitializationResponse, IDetectedProjectType, CLIConnectionData,
-    TemplateSource, AccessToken, RegistrySecret, CWTemplateData } from "../Types";
+    TemplateSource, AccessToken, RegistrySecret, CWTemplateData, DiagnosticsResult } from "../Types";
 
 export namespace CLICommandRunner {
 
@@ -278,5 +278,35 @@ export namespace CLICommandRunner {
             "--conid", connectionID,
             "--address", registryAddress
         ]);
+    }
+
+
+    export async function diagnostics(collectProjects: boolean, connectionID?: string): Promise<DiagnosticsResult> {
+        const args: string[] = [];
+
+        if (collectProjects) {
+            args.push("--projects");
+        }
+
+        if (connectionID) {
+            args.push("conid", connectionID);
+        }
+        else {
+            args.push("--all");
+        }
+
+        const result: DiagnosticsResult = await CLIWrapper.cwctlExec(
+            CLICommands.DIAGNOSTICS,
+            args,
+            "Collecting diagnostics (this may take a few minutes)..."
+        );
+
+        // tslint:disable-next-line: no-boolean-literal-compare
+        if (result.success !== true) {
+            throw new Error(`Failed to collect Codewind diagnostics`);
+        }
+
+        Log.i(`Captured diagnostics to ${result.outputdir}`);
+        return result;
     }
 }

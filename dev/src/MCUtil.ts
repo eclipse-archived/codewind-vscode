@@ -18,6 +18,7 @@ import commandExists from "command-exists";
 
 import Log from "./Logger";
 import Constants from "./constants/Constants";
+import Commands from "./constants/Commands";
 
 namespace MCUtil {
 
@@ -452,6 +453,41 @@ namespace MCUtil {
             return true;
         }
         return /\d+\.\d+\.\d+/.test(s);
+    }
+
+    /**
+     * The VS Code 'reveal in OS' command seems to reveal directories one level too high,
+     * so we dive into it to find a file which we can then reveal instead.
+     */
+    export async function revealDirInOS(dir: string | vscode.Uri): Promise<void> {
+        if (dir instanceof vscode.Uri) {
+            dir = dir.fsPath;
+        }
+
+        try {
+            if (!await fs.pathExists(dir)) {
+                vscode.window.showErrorMessage(`Can't reveal "${dir}" - Path does not exist`);
+                return;
+            }
+
+            const firstFile = (await fs.readdir(dir))[0];
+
+            let asUri;
+            if (firstFile != null) {
+                asUri = vscode.Uri.file(path.join(dir, firstFile));
+            }
+            else {
+                asUri = vscode.Uri.file(dir);
+            }
+
+            Log.d(`Opening ${asUri.fsPath}`);
+            vscode.commands.executeCommand(Commands.VSC_REVEAL_IN_OS, asUri);
+        }
+        catch (err) {
+            const errMsg = `Error revealing "${dir}"`;
+            Log.e(errMsg, err);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+        }
     }
 }
 

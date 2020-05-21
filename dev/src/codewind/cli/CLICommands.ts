@@ -13,6 +13,7 @@ interface CLICommandOptions {
     cancellable?: boolean;
     hasJSONOutput?: boolean;
     censorOutput?: boolean;
+    updateProgress?: boolean;
 }
 
 export class CLICommand {
@@ -20,6 +21,7 @@ export class CLICommand {
     public readonly cancellable: boolean = false;
     public readonly hasJSONOutput: boolean = true;
     public readonly censorOutput: boolean = false;
+    public readonly updateProgress: boolean = false;
 
     constructor(
         public readonly command: string[],
@@ -35,6 +37,9 @@ export class CLICommand {
             if (options.censorOutput != null) {
                 this.censorOutput = options.censorOutput;
             }
+            if (options.updateProgress != null) {
+                this.updateProgress = options.updateProgress;
+            }
         }
     }
 }
@@ -42,6 +47,7 @@ export class CLICommand {
 export namespace CLICommands {
     export const STATUS = new CLICommand([ "status" ]);
     export const UPGRADE = new CLICommand([ "upgrade" ]);
+    export const DIAGNOSTICS = new CLICommand([ "diagnostics" ], { cancellable: true });
 
     // command 'families'
     const PROJECT_CMD = "project";

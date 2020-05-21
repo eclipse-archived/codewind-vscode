@@ -34,6 +34,9 @@
     "cmdID_removeImages": "ext.cw.removeImages",
     "cmdTitle_removeImages": "Remove Local Codewind Images",
 
+    "cmdID_diagnostics": "ext.cw.diagnostics",
+    "cmdTitle_diagnostics": "Capture Diagnostics",
+
     "cmdID_refreshConnection": "ext.cw.refreshConnection",
     "cmdTitle_refreshConnection": "Refresh",
 
