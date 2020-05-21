@@ -27,7 +27,11 @@
         "removedConnection": "Removed Codewind connection at {{- uri }}.",
 
         "canOnlyOpenStartedProjects": "{{ projectName }} is not running - wait until the project is Starting or Started and try again.",
-        "failedDetermineAppUrl": "Could not determine application URL for {{ projectName }}."
+        "failedDetermineAppUrl": "Could not determine application URL for {{ projectName }}.",
+
+        "dirAlreadyBoundToTargetConnection": "{{- dir }} is already added to {{ connection }}",
+        "dirAlreadyBoundPrompt": "{{- dir }} is already added to {{ connectionsList }}.\nDo you still want to add this project to {{ targetConnection }}?",
+        "dirAlreadyBoundContinueBtn": "Add Anyway"
     },
 
     "cmdResourcePrompt": {

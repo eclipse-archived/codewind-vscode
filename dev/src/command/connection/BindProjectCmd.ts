@@ -20,12 +20,38 @@ import ProjectType, { IProjectSubtypesDescriptor } from "../../codewind/project/
 import RegistryUtils from "../../codewind/connection/registries/ImageRegistryUtils";
 import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import { IDetectedProjectType, IInitializationResponse } from "../../codewind/Types";
+import ConnectionManager from "../../codewind/connection/ConnectionManager";
+import Translator from "../../constants/strings/Translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function bindProjectCmd(connection: Connection): Promise<void> {
     try {
         const dirToBindUri = await MCUtil.promptForProjectDir(`Add to ${connection.label}`);
         if (dirToBindUri == null) {
             return;
+        }
+
+        const connsWithThisProject = ConnectionManager.instance.connections.filter((conn) => conn.hasProjectAtPath(dirToBindUri));
+        if (connsWithThisProject.length > 0) {
+            if (connsWithThisProject.includes(connection)) {
+                vscode.window.showInformationMessage(Translator.t(StringNamespaces.CMD_MISC, "dirAlreadyBoundToTargetConnection", {
+                    dir: dirToBindUri.fsPath,
+                    connection: connection.label,
+                }));
+                return;
+            }
+
+            const promptMsg = Translator.t(StringNamespaces.CMD_MISC, "dirAlreadyBoundPrompt", {
+                dir: dirToBindUri.fsPath,
+                connectionsList: MCUtil.joinList(connsWithThisProject.map((conn) => conn.label), "and"),
+                targetConnection: connection.label
+            });
+            const continueBtn = Translator.t(StringNamespaces.CMD_MISC, "dirAlreadyBoundContinueBtn");
+
+            const res = await vscode.window.showWarningMessage(promptMsg, { modal: true }, continueBtn);
+            if (res !== continueBtn) {
+                return;
+            }
         }
 
         const response = await detectAndBind(connection, dirToBindUri);

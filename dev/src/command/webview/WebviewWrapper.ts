@@ -57,6 +57,8 @@ export abstract class WebviewWrapper {
             retainContextWhenHidden
         });
 
+        CWExtensionContext.get().subscriptions.push(this.webPanel);
+
         this.webPanel.reveal();
         this.webPanel.onDidDispose(() => {
             this.onDidDispose();
