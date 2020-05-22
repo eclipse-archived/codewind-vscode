@@ -18,6 +18,8 @@ import RemoteConnection from "../../codewind/connection/RemoteConnection";
 import MCUtil from "../../MCUtil";
 import remoteConnectionSettingsCmd from "./ConnectionOverviewCmd";
 import { refreshConnectionCmd } from "./RefreshConnectionCmd";
+import Translator from "../../constants/strings/Translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export default async function toggleConnectionEnablementCmd(connection_: Connection, enable: boolean): Promise<void> {
     if (!connection_.isRemote) {
@@ -55,11 +57,19 @@ export default async function toggleConnectionEnablementCmd(connection_: Connect
         });
     }
     catch (err) {
-        const errMsg = `Failed to ${enable ? "connect to" : "disconnect from"} ${connection.label}: ${MCUtil.errToString(err)}`;
+        const errMsg = `Failed to ${enable ? "connect to" : "disconnect from"} ${connection.label}`;
         Log.e(errMsg, err);
-        const openConnSettingsBtn = "Open Connection Settings";
-        const refreshBtn = "Refresh";
-        vscode.window.showErrorMessage(errMsg, openConnSettingsBtn, refreshBtn)
+
+        const openConnSettingsBtn = Translator.t(StringNamespaces.ACTIONS, "openConnectionSettings");
+        const refreshBtn = Translator.t(StringNamespaces.ACTIONS, "refresh");
+        const disableBtn = Translator.t(StringNamespaces.ACTIONS, "disable");
+
+        const btns = [ openConnSettingsBtn, refreshBtn ];
+        if (enable) {
+            btns.push(disableBtn);
+        }
+
+        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, ...btns)
         .then((res) => {
             if (res === openConnSettingsBtn) {
                 remoteConnectionSettingsCmd(connection);
@@ -67,7 +77,9 @@ export default async function toggleConnectionEnablementCmd(connection_: Connect
             else if (res === refreshBtn) {
                 refreshConnectionCmd(connection);
             }
+            else if (res === disableBtn) {
+                toggleConnectionEnablementCmd(connection, false);
+            }
         });
     }
-
 }

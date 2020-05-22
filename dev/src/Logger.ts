@@ -94,7 +94,7 @@ export class Log {
                 try {
                     // Can fail eg on objects with circular references
                     // arg = JSON.stringify(arg, undefined, 2);
-                    arg = CircularJson.stringify(arg, replacer, 2);
+                    arg = CircularJson.stringify(arg, Log.replacer, 2);
                 }
                 catch (err) {
                     if (err.message && err.message.includes("circular")) {
@@ -118,7 +118,7 @@ export class Log {
             console.error(err);
         }
 
-        const label: string = `[${level}: ${getDateTime()}${caller}]:`;
+        const label: string = `[${level}: ${Log.getFriendlyTime()}${caller}]:`;
 
         // Send the message to both the 'console' and the logfile.
         const consoleFn = level === this.Levels.ERROR ? console.error : console.log;
@@ -181,45 +181,48 @@ export class Log {
 
         return `${filename}:${lineNo}${functionName}`;
     }
-}
 
-function replacer(name: string, val: any): any {
-    // Don't log the Connection fields on the Projects because they recur infinitely
-    if (name === "connection" && val instanceof Project) {
-        return undefined;
-    }
-    else if (val instanceof Uri || val.$mid != null) {
-        return val.toString();
-    }
-    else if (val.managerName) {
-        // MCLogManager
-        return val.managerName;
-    }
-    return val;
-}
+    public static getFriendlyTime(): string {
+        const now = new Date();
+        // date no longer used
+        // Note add 1 to month because months are 0-indexed
+        // return `${leftPad(now.getDate())}/${leftPad(now.getMonth() + 1)}/${now.getFullYear()} ` +
 
-function getDateTime(): string {
-    const now = new Date();
-    // formats to eg. 22/10/2018 9:40:15.832
-    // Note add 1 to month because months are 0-indexed
-    // return `${leftPad(now.getDate())}/${leftPad(now.getMonth() + 1)}/${now.getFullYear()} ` +
-    return `${leftPad(now.getHours(), 2)}:${leftPad(now.getMinutes(), 2)}:${leftPad(now.getSeconds(), 2)}.${leftPad(now.getMilliseconds(), 3)}`;
-}
-
-/**
- * Convert the given number to a string of at least the given length.
- * Eg:
- * leftPad(3, 2) -> "03"
- * leftPad(20, 2) -> "20"
- * leftpad(400, 2) -> "400"     (just converts to string)
- */
-function leftPad(n: number, desiredLen: number): string {
-    const nStr = n.toString();
-    const diff = desiredLen - nStr.length;
-    if (diff <= 0) {
-        return nStr;
+        // formats to eg. 9:40:15.832
+        return `${Log.leftPad(now.getHours(), 2)}:${Log.leftPad(now.getMinutes(), 2)}:${Log.leftPad(now.getSeconds(), 2)}` +
+            `.${Log.leftPad(now.getMilliseconds(), 3)}`;
     }
-    return "0".repeat(diff) + nStr;
+
+    /**
+     * Convert the given number to a string of at least the given length.
+     * Eg:
+     * leftPad(3, 2) -> "03"
+     * leftPad(20, 2) -> "20"
+     * leftpad(400, 2) -> "400"     (just converts to string)
+     */
+    private static leftPad(n: number, desiredLen: number): string {
+        const nStr = n.toString();
+        const diff = desiredLen - nStr.length;
+        if (diff <= 0) {
+            return nStr;
+        }
+        return "0".repeat(diff) + nStr;
+    }
+
+    private static replacer(name: string, val: any): any {
+        // Don't log the Connection fields on the Projects because they recur infinitely
+        if (name === "connection" && val instanceof Project) {
+            return undefined;
+        }
+        else if (val instanceof Uri || val.$mid != null) {
+            return val.toString();
+        }
+        else if (val.managerName) {
+            // MCLogManager
+            return val.managerName;
+        }
+        return val;
+    }
 }
 
 export namespace Log {

@@ -151,7 +151,8 @@ export const ProjectTypeImages = {
 // https://octicons.github.com/
 export enum Octicons {
     sync = "sync",
-    bug = "bug"
+    bug = "bug",
+    cloud_upload = "cloud-upload",
 }
 
 /**

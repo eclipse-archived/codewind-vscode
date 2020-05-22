@@ -141,7 +141,7 @@ export default class ConnectionRequester extends Requester {
     /**
      * Repeatedly ping the given this.connection's 'ready' endpoint. The connection should not be used until that endpoint returns true.
      */
-    public async waitForReady(timeoutS: number, cancellation: vscode.CancellationToken): Promise<PingResult> {
+    public async waitForReady(timeoutS: number, cancellation: vscode.CancellationToken): Promise<PingResult | "failure"> {
         const READY_DELAY_S = 2;
 
         const isCWReadyInitially = await this.isCodewindReady(false, READY_DELAY_S);
@@ -152,7 +152,7 @@ export default class ConnectionRequester extends Requester {
 
         const maxTries = timeoutS / READY_DELAY_S;
         let tries = 0;
-        return new Promise<PingResult>((resolve) => {
+        return new Promise<PingResult | "failure">((resolve) => {
             const interval = setInterval(async () => {
                 const logStatus = tries % 10 === 0;
                 if (logStatus) {
