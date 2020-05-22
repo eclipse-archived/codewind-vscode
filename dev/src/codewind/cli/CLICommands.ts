@@ -45,6 +45,8 @@ export class CLICommand {
 }
 
 export namespace CLICommands {
+    export const PASSWORD_ARG = "--password";
+
     export const STATUS = new CLICommand([ "status" ]);
     export const UPGRADE = new CLICommand([ "upgrade" ]);
     export const DIAGNOSTICS = new CLICommand([ "diagnostics" ], { cancellable: true });

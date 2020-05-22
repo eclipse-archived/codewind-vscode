@@ -18,7 +18,7 @@ import * as readline from "readline";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
-import { CLICommand } from "./CLICommands";
+import { CLICommand, CLICommands } from "./CLICommands";
 import CLISetup from "./CLISetup";
 import CWExtensionContext from "../../CWExtensionContext";
 import { ProgressUpdate } from "../Types";
@@ -129,10 +129,10 @@ namespace CLIWrapper {
         showCLIError(errMsg);
     }
 
-    // check error against this to see if it's a real error or just a user cancellation
+    /**
+     * Throw an error with this as the message to indicate an action was cancelled.
+     */
     export const CLI_CMD_CANCELLED = "Cancelled";
-
-    const PASSWORD_ARG = "--password";
 
     /**
      * Run the given CLICommand with the given arguments.
@@ -157,20 +157,21 @@ namespace CLIWrapper {
         }
         args.unshift("--json");
 
-        // cmdStr will be the full command, eg `cwctl --insecure project create <path> --url <url>`
-        // is generally only used for debugging
-        let cmdStr = [ path.basename(cwctlPath), ...args ].join(" ");
-        if (cmdStr.includes(PASSWORD_ARG)) {
-            const words = cmdStr.split(" ");
-            const pwIndex = words.findIndex((word) => word === PASSWORD_ARG) + 1;
-            words[pwIndex] = "*********";
-            cmdStr = words.join(" ");
+        // Build the 'cmdStr' which is the full command printed for debugging.
+        // If the command contains a user password we have to censor it.
+        const argsCopy = Array.from(args);
+        const pwIndex = args.findIndex((arg) => arg === CLICommands.PASSWORD_ARG);
+        if (pwIndex >= 0) {
+            argsCopy[pwIndex + 1] = "********";
         }
+        const cmdStr = [ path.basename(cwctlPath), ...argsCopy ].join(" ");
+
         Log.i(`Running CLI command: ${cmdStr}`);
 
         // CLI output and err are echoed to a user-visible outputchannel.
         // We hide install output because it's thousands of lines of a progress bar, and sectoken because the token should not be exposed.
-        cliOutputChannel.appendLine(`==> Run ${cmdStr}`);
+        const startTime = Date.now();
+        cliOutputChannel.appendLine(`==> Run ${cmdStr}  |  ${Log.getFriendlyTime()}`);
         const echoOutput = !cmd.censorOutput;
         if (!echoOutput) {
             cliOutputChannel.appendLine(`<Output hidden>`);
@@ -270,7 +271,7 @@ namespace CLIWrapper {
                 }
             });
         }).finally(() => {
-            cliOutputChannel.appendLine(`==> End ${cmdStr}`);
+            cliOutputChannel.appendLine(`==> End ${cmdStr}  |  ${Log.getFriendlyTime()} (Took ${Date.now() - startTime}ms)`);
         });
 
         const hasProgress = cmd.updateProgress || progressPrefix;

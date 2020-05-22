@@ -233,7 +233,7 @@ export namespace CLICommandRunner {
         await CLIWrapper.cwctlExec(CLICommands.AUTHENTICATION.KEYRING_UPDATE, [
             "--conid", connectionID,
             "--username", username,
-            "--password", password
+            CLICommands.PASSWORD_ARG, password,
         ]);
     }
 
@@ -263,7 +263,7 @@ export namespace CLICommandRunner {
             "--conid", connectionID,
             "--address", registryAddress,
             "--username", username,
-            "--password", password,
+            CLICommands.PASSWORD_ARG, password,
         ]);
     }
 
