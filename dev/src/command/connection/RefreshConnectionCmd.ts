@@ -15,6 +15,9 @@ import Connection from "../../codewind/connection/Connection";
 import LocalCodewindManager from "../../codewind/connection/local/LocalCodewindManager";
 import MCUtil from "../../MCUtil";
 import Log from "../../Logger";
+import toggleConnectionEnablementCmd from "./ToggleConnectionEnablement";
+import Translator from "../../constants/strings/Translator";
+import StringNamespaces from "../../constants/strings/StringNamespaces";
 
 export async function refreshLocalCWCmd(): Promise<void> {
     // If local was restarted outside of the IDE, the IDE will not pick up the new URL until a manual refresh.
@@ -49,7 +52,18 @@ export async function refreshConnectionCmd(connection: Connection): Promise<void
     }
     catch (err) {
         const errMsg = `Error refreshing ${connection.label}`;
-        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
         Log.e(errMsg, err);
+
+        const refreshBtn = Translator.t(StringNamespaces.ACTIONS, "tryAgain");
+        const disableBtn = Translator.t(StringNamespaces.ACTIONS, "disable");
+        vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`, refreshBtn, disableBtn)
+        .then((res) => {
+            if (res === refreshBtn) {
+                refreshConnectionCmd(connection);
+            }
+            else if (res === disableBtn) {
+                toggleConnectionEnablementCmd(connection, false);
+            }
+        });
     }
 }

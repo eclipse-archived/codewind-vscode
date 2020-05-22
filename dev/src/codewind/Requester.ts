@@ -12,7 +12,7 @@
 import * as vscode from "vscode";
 import * as fs from "fs-extra";
 import * as path from "path";
-import got, { NormalizedOptions, Response, Progress } from "got";
+import got, { NormalizedOptions, Response, Progress, GotError } from "got";
 import * as stream from "stream";
 import { promisify } from "util";
 
@@ -21,8 +21,7 @@ const pipeline = promisify(stream.pipeline);
 import Log from "../Logger";
 import { AccessToken, ProgressUpdate } from "./Types";
 
-
-export type PingResult = "success" | "failure" | "cancelled";
+export type PingResult = "success" | "cancelled" | GotError;
 
 /**
  * These functions wrap all our API calls to the Codewind backend.
@@ -112,12 +111,18 @@ export class Requester {
     }
 
     /**
-     * Ping the given url but treat 502 and 503 responses as failures.
+     * Ping the given url but treat certain responses as failures.
      * From a kube cluster, these mean the hostname is wrong, the ingress/route does not exist,
      * the pod pointed to by an ingress is still starting up, etc.
      */
     public static async pingKube(url: string | vscode.Uri, timeoutMS: number, cancellation?: vscode.CancellationToken): Promise<PingResult> {
-        return this.ping(url, timeoutMS, [ 502, 503 ], cancellation);
+        const badCodes = [
+            404,    // used by minikube
+            502,    // used by most platforms for an ingress that points to a deleted pod/service
+            503     // used by most platforms if the target is still pending/starting
+        ];
+
+        return this.ping(url, timeoutMS, badCodes, cancellation);
     }
 
     /**
@@ -134,6 +139,9 @@ export class Requester {
         try {
             const pingReq = got(url, {
                 rejectUnauthorized: false,
+                retry: {
+                    limit: 0,
+                },
                 timeout: timeoutMS,
             });
             cancellation?.onCancellationRequested((_e) => {
@@ -153,7 +161,7 @@ export class Requester {
                 const statusCode = err.response.statusCode;
                 Log.i(`Received status ${statusCode} when pinging ${url}`);
                 if (rejectStatusCodes.includes(statusCode)) {
-                    return "failure";
+                    return err;
                 }
                 return "success";
             }
@@ -161,14 +169,17 @@ export class Requester {
                 Log.d(`Ping cancelled`);
                 return "cancelled";
             }
-            else if (err instanceof got.TimeoutError) {
-                Log.i(`Timed out pinging ${url} - ${err.message}`);
-                return "failure";
-            }
-            // likely connection refused, socket timeout, etc.
+            // likely connection refused, timeout, etc.
             // so it was not reachable
-            Log.e(`Error pinging ${url}: ${err.message}`);
-            return "failure";
+            if (/Timeout awaiting '\w+' for \d+ms/i.test(err.message)) {
+                // improve the timeout message since it's so common
+                err.message = `Timed out trying to connect to ${url}`;
+            }
+            else {
+                err.message = `Could not connect to ${url} - ${err.message}`;
+            }
+            Log.w(err.message);
+            return err;
         }
     }
 

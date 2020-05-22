@@ -17,11 +17,12 @@ enum StringNamespaces {
     CMD_MISC = "command",
     CMD_RES_PROMPT = "cmdResourcePrompt",
 
+    ACTIONS = "actions",
+    CONNECTION = "connection",
     DEBUG = "debug",
-    STARTUP = "startup",
     LOGS = "logs",
     PROJECT = "project",
-    REQUESTS = "requests",
+    STARTUP = "startup",
     TREEVIEW = "treeView",
 }
 

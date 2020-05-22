@@ -23,6 +23,7 @@ import { FWAuthToken } from "codewind-filewatcher/lib/FWAuthToken";
 import { ConnectionMemento } from "./ConnectionMemento";
 import { AccessToken, CLIConnectionData } from "../Types";
 import CWExtensionContext from "../../CWExtensionContext";
+import RemoteConnectionReconnector from "./RemoteConnectionReconnector";
 
 type ToggleOperation = "connecting" | "disconnecting" | undefined;
 
@@ -35,6 +36,8 @@ export default class RemoteConnection extends Connection {
     private _accessToken: AccessToken | undefined;
 
     private _activeOverviewPage: ConnectionOverviewWrapper | undefined;
+
+    private readonly reconnector: RemoteConnectionReconnector = new RemoteConnectionReconnector(this);
 
     /**
      * Do not allow toggling (enabling or disabling) the connection when a toggle is already in progress
@@ -95,21 +98,15 @@ export default class RemoteConnection extends Connection {
 
         // Make sure the ingress is reachable before trying anything else
         // https://github.com/eclipse/codewind/issues/1547
-        let pingResult;
-        try {
-            pingResult = await Requester.pingKube(this.url, 5000, this.cancelEnable.token);
-        }
-        catch (err) {
-            // ping failed
-        }
+        const pingResult = await Requester.pingKube(this.url, 5000, this.cancelEnable.token);
 
         if (pingResult === "cancelled") {
             this.dispose();
             return;
         }
-        else if (pingResult === "failure") {
+        else if (pingResult !== "success") {
             this.setState(ConnectionStates.NETWORK_ERROR);
-            throw new Error(`Failed to connect to ${this.url}. Make sure the Codewind instance is running, and reachable from your machine.`);
+            throw new Error(`${pingResult.message}. Make sure the Codewind instance is running, and reachable from your machine.`);
         }
 
         if ((await this.getAccessToken()) == null) {
@@ -129,6 +126,7 @@ export default class RemoteConnection extends Connection {
             throw err;
         }
 
+        this.reconnector.reset();
         this.setState(ConnectionStates.READY);
         Log.d(`${this} finished remote enable`);
     }
@@ -137,6 +135,8 @@ export default class RemoteConnection extends Connection {
         if (!this.changeTogglingEnablement("disconnecting")) {
             return;
         }
+
+        this.reconnector.reset();
 
         try {
             await super.disable();
@@ -151,6 +151,7 @@ export default class RemoteConnection extends Connection {
 
     public async dispose(): Promise<void> {
         this.overviewPage?.dispose();
+        this.reconnector.reset();
         await super.dispose();
     }
 
@@ -170,17 +171,21 @@ export default class RemoteConnection extends Connection {
             await this._socket.authenticate(token);
         }
         catch (err) {
-            this.setState(ConnectionStates.AUTH_ERROR);
+            Log.e(`${this.label} error performing socket authentication`, err)
             vscode.window.showErrorMessage(`Error connecting to ${this.label}: ${MCUtil.errToString(err)}`);
+            this.setState(ConnectionStates.AUTH_ERROR);
+            return;
         }
-        finally {
-            await super.onConnect();
-        }
+        await super.onConnect();
     }
 
     public async onDisconnect(): Promise<void> {
         this._accessToken = undefined;
         await super.onDisconnect();
+
+        if (this.currentToggleOperation == null) {
+            this.reconnector.startReconnectAttempts();
+        }
     }
 
     protected async createFileWatcher(cliPath: string): Promise<FileWatcher> {

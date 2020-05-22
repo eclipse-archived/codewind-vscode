@@ -230,17 +230,17 @@ export default class ConnectionOverviewWrapper extends WebviewWrapper {
             location: vscode.ProgressLocation.Notification,
             title: `Creating ${label}...`,
         }, async () => {
-            const canPing = await Requester.pingKube(ingressUrl, 5000);
+            const pingResult = await Requester.pingKube(ingressUrl, 5000);
 
-            if (canPing === "cancelled") {
+            if (pingResult === "success") {
+                const newConnection = await ConnectionManager.instance.createRemoteConnection(ingressUrl, this.label, username, password);
+                return newConnection;
+            }
+            else if (pingResult === "cancelled") {
                 throw new Error(CLIWrapper.CLI_CMD_CANCELLED);
             }
-            else if (canPing === "failure") {
-                throw new Error(`Failed to contact ${ingressUrl}. Make sure this URL is reachable.`);
-            }
-
-            const newConnection = await ConnectionManager.instance.createRemoteConnection(ingressUrl, this.label, username, password);
-            return newConnection;
+            // ping error
+            throw pingResult;
         });
     }
 

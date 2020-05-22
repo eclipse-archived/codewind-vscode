@@ -4,12 +4,17 @@
     "versionChanged": "Codewind at {{- uri }} was previously version {{ oldVersion }}, but is now {{ newVersion }}.",
     "errorSavingConnections": "Error saving connections: {{- err }}.",
 
-    "statesSeparator": " or ",
-
     "focusOnProblems": "Go to Problems",
 
     "invalidPortNumber": "Invalid port \"{{ port }}\". Port must be a positive integer less than 65536.",
     "connectFailed": "Connecting to Codewind at {{- uri }} failed.",
+
+    "actions": {
+        "disable": "Disable",
+        "openConnectionSettings": "Open Connection Settings",
+        "refresh": "Refresh",
+        "tryAgain": "Try Again"
+    },
 
     "command": {
         "noContainerForShell": "{{ projectName }} does not have an application {{ podOrContainer }} running. Wait until the project is Running.",
@@ -41,6 +46,12 @@
             "There is no {{ states }} Codewind project to run this command on.",
         "noConnToRunOn":
             "You are not currently connected to a Codewind instance. Start Local Codewind, or create a New Remote Connection."
+    },
+
+    "connection": {
+        "autoReconnectingStatusMsg": "Trying to reconnect to {{- connectionLabel }}...",
+        "autoReconnectSuccessStatusMsg": "Successfully reconnected to {{- connectionLabel }}",
+        "autoReconnectFailedAttempsMsg": "Codewind has not been able to re-establish a connection to {{- connectionLabel }}. You can disable the connection to save resources, and then reconnect later."
     },
 
     "debug": {
