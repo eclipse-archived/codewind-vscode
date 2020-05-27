@@ -135,6 +135,7 @@ spec:
                 container(VSCODE_BUILDER) {
                     dir("dev") {
                         println "Release branch detected; updating Codewind image version"
+                        sh 'npm install'
                         sh './vsce-package.js --codewindImageTagOnly'
                         stash includes: "package.json", name: STASH_PJ
                     }
