@@ -77,7 +77,7 @@ export default class Project implements vscode.QuickPickItem {
     private _namespace: string | undefined;
     private _contextRoot: string;
     private readonly _ports: IProjectPorts;
-    private kubeAppBaseURL: vscode.Uri | undefined;
+    private _kubeAppBaseURL: vscode.Uri | undefined;
     private _autoBuildEnabled: boolean;
     private _usesHttps: boolean;
     private _lastBuild: Date | undefined;
@@ -227,11 +227,7 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         if (projectInfo.appBaseURL) {
-            const asUri = vscode.Uri.parse(projectInfo.appBaseURL);
-            if (!asUri.scheme || !asUri.authority) {
-                Log.e(`Bad appBaseURL "${projectInfo.appBaseURL}" provided; missing scheme or authority`);
-            }
-            this.kubeAppBaseURL = asUri;
+            this.setAppBaseUrl(projectInfo.appBaseURL);
         }
 
         const wasEnabled = this.state.isEnabled;
@@ -422,6 +418,9 @@ export default class Project implements vscode.QuickPickItem {
             if (event.podName) {
                 this.setPodName(event.podName);
             }
+            if (event.appBaseURL) {
+                this.setAppBaseUrl(event.appBaseURL);
+            }
             this.onChange();
             success = true;
         }
@@ -588,7 +587,7 @@ export default class Project implements vscode.QuickPickItem {
         // Clear now-invalid application info
         this._containerID = undefined;
         this._podName = undefined;
-        this.kubeAppBaseURL = undefined;
+        this._kubeAppBaseURL = undefined;
         this.updatePorts({
             exposedPort: undefined,
             exposedDebugPort: undefined,
@@ -794,8 +793,8 @@ export default class Project implements vscode.QuickPickItem {
 
     public get appUrl(): vscode.Uri | undefined {
         // If the backend has provided us with a baseUrl already, use that
-        if (this.kubeAppBaseURL) {
-            return this.kubeAppBaseURL.with({
+        if (this._kubeAppBaseURL) {
+            return this._kubeAppBaseURL.with({
                 path: this._contextRoot,
             });
         }
@@ -981,7 +980,7 @@ export default class Project implements vscode.QuickPickItem {
         }
     }
 
-    private setPodName(newPodName: string | undefined): void {
+    private setPodName(newPodName: string | undefined): boolean {
         if (newPodName === "") {
             newPodName = undefined;
         }
@@ -992,6 +991,30 @@ export default class Project implements vscode.QuickPickItem {
         if (changed) {
             Log.i(`New podName for ${this.name} is ${this.podName}`);
         }
+        return changed;
+    }
+
+    private setAppBaseUrl(newAppBaseUrl: string | undefined): boolean {
+        if (newAppBaseUrl === "") {
+            newAppBaseUrl = undefined;
+        }
+
+        const oldAppBaseUrl = this._kubeAppBaseURL;
+
+        let newAppBaseUrlAsUri;
+        if (newAppBaseUrl != null) {
+            newAppBaseUrlAsUri = vscode.Uri.parse(newAppBaseUrl);
+            if (!newAppBaseUrlAsUri.scheme || !newAppBaseUrlAsUri.authority) {
+                Log.e(`Bad appBaseURL "${newAppBaseUrl}" provided; missing scheme or authority`);
+            }
+        }
+
+        this._kubeAppBaseURL = newAppBaseUrlAsUri;
+        const changed = oldAppBaseUrl !== newAppBaseUrlAsUri;
+        if (changed) {
+            Log.i(`New appBaseURL for ${this.name} is ${this._kubeAppBaseURL}`);
+        }
+        return changed;
     }
 
     public setAutoBuild(newAutoBuild: boolean | undefined): boolean {
