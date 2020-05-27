@@ -4,7 +4,7 @@
     "description": "%description%",
     "version": "0.13.0",
     "codewindImageTag": "latest",
-    "appsodyVersion": "0.6.1",
+    "appsodyVersion": "0.6.2",
     "publisher": "IBM",
     "engines": {
         "vscode": "^1.39.0"
