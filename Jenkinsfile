@@ -131,6 +131,11 @@ spec:
                 equals expected: true, actual: IS_RELEASE_BRANCH
             }
 
+            // In the build containers, HOME gets set to / which causes permissions issues.
+            environment {
+                HOME="${env.WORKSPACE}"
+            }
+
             steps {
                 container(VSCODE_BUILDER) {
                     dir("dev") {
