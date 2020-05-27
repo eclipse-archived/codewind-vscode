@@ -425,7 +425,9 @@ namespace CLISetup {
             if (!entry.isDirectory()) {
                 return false;
             }
-            else if (!deleteCurrent && entry.name === CWExtensionContext.get().extensionVersion) {
+            else if (!deleteCurrent &&
+                (entry.name === CWExtensionContext.get().extensionVersion || entry.name === Constants.CODEWIND_IMAGE_VERSION_DEV)) {
+
                 // Don't delete the current version, or latest
                 return false;
             }
