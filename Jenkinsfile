@@ -131,10 +131,16 @@ spec:
                 equals expected: true, actual: IS_RELEASE_BRANCH
             }
 
+            // In the build containers, HOME gets set to / which causes permissions issues.
+            environment {
+                HOME="${env.WORKSPACE}"
+            }
+
             steps {
                 container(VSCODE_BUILDER) {
                     dir("dev") {
                         println "Release branch detected; updating Codewind image version"
+                        sh 'npm install'
                         sh './vsce-package.js --codewindImageTagOnly'
                         stash includes: "package.json", name: STASH_PJ
                     }
