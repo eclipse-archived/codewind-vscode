@@ -40,12 +40,16 @@ export class Requester {
 
         Log.d(`Doing JSON ${method} request to ${url}`); // with options:`, options);
 
-        const response = await got<T>(url, {
-            ...this.getGotOptions(method, url, options),
-            responseType: "json",
-        });
-
-        return response.body;
+        try {
+            const response = await got<T>(url, {
+                ...this.getGotOptions(method, url, options),
+                responseType: "json",
+            });
+            return response.body;
+        }
+        catch (err) {
+            throw this.processGotErr(method, url, err);
+        }
     }
 
     // Some of our APIs still returns text instead of JSON - https://github.com/eclipse/codewind/issues/2435
@@ -54,13 +58,41 @@ export class Requester {
 
         Log.d(`Doing text ${method} request to ${url}`); // with options:`, options);
 
-        // https://github.com/sindresorhus/got#api
-        const response = await got(url, {
-            ...this.getGotOptions(method, url, options),
-            responseType: "text",
-        });
+        try {
+            // https://github.com/sindresorhus/got#api
+            const response = await got(url, {
+                ...this.getGotOptions(method, url, options),
+                responseType: "text",
+            });
 
-        return response.body;
+            return response.body;
+        }
+        catch (err) {
+            throw this.processGotErr(method, url, err);
+        }
+    }
+
+    private static processGotErr(method: HttpMethod, url: string, err: GotError): GotError {
+        // if (err.response.body) {
+        //     Log.w(`Response body:`, err.response.body);
+        // }
+
+        const oldMsg = err.message;
+        if (err instanceof got.HTTPError) {
+            if (typeof err.response.body === "string") {
+                err.message = err.response.body;
+            }
+            else if (err != null && typeof err.response.body === "object") {
+                err.message = JSON.stringify(err.response.body);
+            }
+        }
+        else if (/Timeout awaiting '\w+' for \d+ms/i.test(err.message)) {
+            // improve the timeout message since it's so common
+            err.message = `Timed out trying to connect to ${url}`;
+        }
+
+        Log.w(`Request error ${method} ${url}\n    ${oldMsg} - ${err.message}`);
+        return err;
     }
 
     // tslint:disable-next-line: typedef - The typedef for the options accepted by Got is a total mess :)
@@ -159,8 +191,10 @@ export class Requester {
             }
             else if (err instanceof got.HTTPError) {
                 const statusCode = err.response.statusCode;
-                Log.i(`Received status ${statusCode} when pinging ${url}`);
+                const errMsg = `Received status ${statusCode} from ${url}`
+                Log.i(errMsg);
                 if (rejectStatusCodes.includes(statusCode)) {
+                    err.message = errMsg;
                     return err;
                 }
                 return "success";
@@ -169,16 +203,9 @@ export class Requester {
                 Log.d(`Ping cancelled`);
                 return "cancelled";
             }
-            // likely connection refused, timeout, etc.
-            // so it was not reachable
-            if (/Timeout awaiting '\w+' for \d+ms/i.test(err.message)) {
-                // improve the timeout message since it's so common
-                err.message = `Timed out trying to connect to ${url}`;
+            else if (err instanceof got.GotError) {
+                err = this.processGotErr("GET", url, err);
             }
-            else {
-                err.message = `Could not connect to ${url} - ${err.message}`;
-            }
-            Log.w(err.message);
             return err;
         }
     }
