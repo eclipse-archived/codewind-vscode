@@ -282,7 +282,7 @@ export namespace CLICommandRunner {
 
 
     export async function diagnostics(collectProjects: boolean, connectionID?: string): Promise<DiagnosticsResult> {
-        const args: string[] = [];
+        const args: string[] = [ "collect" ];
 
         if (collectProjects) {
             args.push("--projects");
