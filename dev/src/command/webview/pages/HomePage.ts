@@ -82,11 +82,11 @@ export default function getHomePage(
                             <a href="${CWDocs.REMOTE_DEPLOYING.uri}">remotely</a>.
                         </p>
                     </div>
-                    <div id="local-remote-tabgroup">
-                        <div id="local-tab" class="clickable quick-start-tab selected" onclick="toggleQuickStart(this)" tabindex="0">
+                    <div class="tab-group">
+                        <div id="local-tab" class="clickable tab-btn selected" onclick="toggleQuickStart(this)" tabindex="0">
                             <img src="${rp.getImage(ThemedImages.Local_Connected)}" alt="Local" title="Local"/>Local
                         </div>
-                        <div id="remote-tab" class="clickable quick-start-tab" onclick="toggleQuickStart(this)" tabindex="0">
+                        <div id="remote-tab" class="clickable tab-btn" onclick="toggleQuickStart(this)" tabindex="0">
                             <img src="${rp.getImage(ThemedImages.Connection_Connected, "dark")}" alt="Remote" title="Remote"/>Remote
                         </div>
                     </div>

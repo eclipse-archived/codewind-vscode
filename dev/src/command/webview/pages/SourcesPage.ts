@@ -62,6 +62,8 @@ export default function getManageSourcesPage(
     <script>
         const vscode = acquireVsCodeApi();
 
+        ${WebviewUtil.getCopyScript()}
+
         function onToggle(toggleBtn) {
             // update the enable attr, and switch the toggle image
             const newEnablement = toggleBtn.getAttribute("${WebviewUtil.ATTR_ENABLED}") != "true";
@@ -147,10 +149,17 @@ function buildRow(rp: WebviewResourceProvider, source: TemplateSource): string {
 
     return `
     <tr>
-        <td class="name-cell"><a title="${source.url}" onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${source.url}')">${name}</a></td>
+        <td class="name-cell">
+            <a title="${source.url}"
+                onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${source.url}')"
+                oncontextmenu="copy(event, '${source.url}', 'source URL')"
+            >
+                ${name}
+            </a>
+        </td>
         <td class="style-cell">${source.projectStyles.join(", ")}</td-->
         <td class="descr-cell">${descr}</td>
-        ${WebviewUtil.buildToggleTD(rp, source.enabled, toggleTitle, source.url)}
+        <td class="btn-cell">${WebviewUtil.getToggleInput(rp, source.enabled, toggleTitle, source.url)}</td>
         ${getDeleteBtnTD(rp, source)}
     </tr>
     `;

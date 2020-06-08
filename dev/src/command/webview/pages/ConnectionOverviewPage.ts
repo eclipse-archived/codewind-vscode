@@ -54,10 +54,10 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
                 <div>
                     <label class="info-label" for="input-url">Codewind Gatekeeper URL</label>
                     ${connectionExists ? `
-                        <input type="image" id="copy-url-btn" onclick="copyURL(event)" title="Copy URL" alt="Copy URL"
+                        <input type="image" id="copy-url-btn" onclick="copy(event, '${connection?.url.toString()}', 'URL')"
+                        title="Copy URL" alt="Copy URL"
                             src="${rp.getImage(ThemedImages.Copy)}"
-                        />
-                        <div id="copy-url-btn-tooltip" style="display: none">Copied!</div>`
+                        />`
                         : ""
                     }
                 </div>
@@ -183,6 +183,8 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
 
         const vscode = acquireVsCodeApi();
 
+        ${WebviewUtil.getCopyScript()}
+
         const submitOnEnter = (ev) => {
             if (ev.key === "Enter") {
                 submitConnection();
@@ -196,26 +198,6 @@ export default function getConnectionInfoHtml(rp: WebviewResourceProvider, label
         ingressInput.addEventListener("keyup", submitOnEnter);
         usernameInput.addEventListener("keyup", submitOnEnter);
         passwordInput.addEventListener("keyup", submitOnEnter);
-
-        function copyURL(e) {
-            const url = document.querySelector("#input-url")
-            const tempTextArea = document.createElement("textarea");
-            tempTextArea.value = url.value;
-
-            let copiedURLToolTip = document.getElementById('copy-url-btn-tooltip');
-            copiedURLToolTip.style.display = "inline";
-            copiedURLToolTip.style.position = "absolute";
-            copiedURLToolTip.style.left = e.pageX + 25 + 'px';
-            copiedURLToolTip.style.top = e.pageY - 10 +'px';
-
-            setTimeout(() => { copiedURLToolTip.style.display = "none"; }, 1000);
-
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-
-            document.body.removeChild(tempTextArea);
-        }
 
         function submitConnection() {
             const ingressInput = document.querySelector("#input-url").value;

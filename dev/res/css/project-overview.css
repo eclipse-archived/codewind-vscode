@@ -4,12 +4,12 @@ body {
     padding-left: 1%;
     padding-right: 1%;
     padding-top: 1%;
+    --section-side-margin: 1em;
 }
 
 #btns-section {
     width: 100%;
     display: inline-flex;
-    border-bottom: 2px solid #aaa;
     padding-bottom: 0.75em;
 }
 
@@ -26,34 +26,66 @@ body {
     margin-left: 1em;
 }
 
-#auto-build-toggle, #auto-inject-metrics-toggle {
-    margin: 0;
-    padding: 0;
+.tab-btn {
+    min-width: 15ch;
+    margin-right: 0.25em;
+    padding-left: 0.5em;
+    padding-bottom: 0.5em;
 }
 
 .section {
-    border-bottom: 1px solid #aaa;
-    padding-top: .5em;
+    width: calc(100% - 0.5em);
+    border-bottom: var(--section-separator);
+    padding-left: var(--section-side-margin);
     padding-bottom: .5em;
-    padding-left: 1em;
 }
 
-.section h3 {
-    padding: 0;
-    padding-bottom: .25em;
-    margin: 0;
-}
-
-#app-info-header-section {
+.section-header {
     width: 100%;
-    display: inline-flex;
+    display: flex;
+    background-color: var(--vscode-activityBar-background);
+    /* background-color: var(--welcomePage-tileBackground); */
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-top: 0.6em;
+    padding-bottom: 0.6em;
+}
+
+.section-header h3 {
+    padding: 0;
+    margin: 0;
+    margin-left: var(--section-side-margin);
+
+    display: flex;
+    align-items: center;
+}
+
+.section-header-right {
+    margin-left: auto;
+    margin-right: var(--section-side-margin);
+    display: flex;
+}
+
+.section-header-toggle {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    margin-left: 2em;
+}
+
+.section-header-toggle input[type="image"] {
+    padding: 0;
+    margin-left: 1em;
+    min-height: 1.25em;
 }
 
 #about-project-settings {
     margin-left: auto;
+    margin-right: 1em;
 }
 
 table {
+    table-layout: auto;
     width: 100%;
     border-spacing: 0 0.5em;
 }
@@ -61,6 +93,8 @@ table {
 td {
     padding: 0;
     text-align: left;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .info-label {
@@ -85,6 +119,16 @@ td {
     margin: 0;
     padding: 0;
     margin-left: 1em;
+}
+
+#manage-logs-btn {
+    font-size: 100%;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+#manage-logs-btn > input[type="image"] {
+    height: 1.5em;
 }
 
 #bottom-section {

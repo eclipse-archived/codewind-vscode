@@ -95,36 +95,6 @@ h2 {
     padding-right: var(--left-section-subpadding);
 }
 
-#local-remote-tabgroup {
-    display: inline-flex;
-    margin-top: 1em;
-    margin-bottom: 1.5em;
-}
-
-.quick-start-tab {
-    min-width: 15ch;
-    margin-right: 0.25em;
-    padding-left: 0.5em;
-    padding-bottom: 0.5em;
-    border-bottom: 2px solid var(--vscode-activityBar-background);
-}
-
-.quick-start-tab:focus {
-    /* Override from .btn */
-    outline: none;
-}
-
-.quick-start-tab.selected {
-    font-weight: bold;
-    border-bottom: 2px solid var(--vscode-button-background)
-}
-
-.quick-start-tab img {
-    margin-right: .5em;
-    height: 1.5em;
-    vertical-align: text-top;
-}
-
 .quickstart-steps {
     width: 100%;
     display: inline-flex;
