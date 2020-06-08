@@ -131,11 +131,10 @@ namespace WebviewUtil {
     export const ATTR_ENABLED = "data-enabled";
     export const TOGGLE_BTN_CLASS = "toggle-btn";
 
-    export function buildToggleTD(rp: WebviewResourceProvider, enabled: boolean, title: string, idAttrValue: string): string {
-        return `<td class="btn-cell">
-            <input type="image" title="${title}" alt="${title}" ${ATTR_ID}="${idAttrValue}" ${ATTR_ENABLED}="${enabled}"
-                class="${TOGGLE_BTN_CLASS} btn" src="${getStatusToggleIconSrc(rp, enabled)}" onclick="onToggle(this)"/>
-        </td>`;
+    export function getToggleInput(rp: WebviewResourceProvider, enabled: boolean, title: string, idAttrValue: string): string {
+        return `<input type="image" title="${title}" alt="${title}" ${ATTR_ID}="${idAttrValue}" ${ATTR_ENABLED}="${enabled}"
+            class="${TOGGLE_BTN_CLASS} btn" src="${getStatusToggleIconSrc(rp, enabled)}" onclick="onToggle(this)"
+        />`;
     }
 
     export function getStatusToggleIconSrc(rp: WebviewResourceProvider, enabled: boolean, escapeBackslash: boolean = false): string {
@@ -173,6 +172,42 @@ namespace WebviewUtil {
             return;
         }
         vscode.commands.executeCommand(Commands.VSC_OPEN, asUri);
+    }
+
+    export function getCopyScript(): string {
+        return `
+        function copy(e, stringToCopy, toCopyLabel) {
+            e.preventDefault();
+
+            const copiedToolTipID = "copy-btn-tooltip";         // styled in common.css
+            const copyTargetID = "copy-target";               // not displayed
+
+            let copiedToolTip = document.querySelector("#" + copiedToolTipID);
+            if (copiedToolTip == null) {
+                copiedToolTip = document.createElement("div");
+                copiedToolTip.id = copiedToolTipID;
+                document.body.appendChild(copiedToolTip);
+            }
+
+            copiedToolTip.innerHTML = "Copied " + toCopyLabel;
+            copiedToolTip.style.position = "absolute";
+            copiedToolTip.style.left = e.pageX + 25 + 'px';
+            copiedToolTip.style.top = e.pageY - 10 +'px';
+            copiedToolTip.style.display = "inline";
+
+            setTimeout(() => {
+                copiedToolTip.style.display = "none";
+            }, 1000);
+
+            const tempTextArea = document.createElement("textarea");
+            tempTextArea.value = stringToCopy;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            return false;
+        }`;
     }
 
     /**

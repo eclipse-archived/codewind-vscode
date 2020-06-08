@@ -161,7 +161,9 @@ function buildRow(rp: WebviewResourceProvider, registry: ImageRegistry, needsPus
             </td>
         `;
 
-        pushRegistryTD = WebviewUtil.buildToggleTD(rp, registry.isPushRegistry, "Set as Image Push Registry", registry.fullAddress);
+        pushRegistryTD = `<td class="btn-cell">
+            ${WebviewUtil.getToggleInput(rp, registry.isPushRegistry, "Set as Image Push Registry", registry.fullAddress)}
+        </td>`
     }
 
     return `

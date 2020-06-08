@@ -356,8 +356,8 @@
                 "title": "%cmdTitle_projectOverview%",
                 "category": "%commandCategory%",
                 "icon": {
-                    "light": "res/img/light/info.svg",
-                    "dark": "res/img/dark/info.svg"
+                    "light": "res/img/light/settings.svg",
+                    "dark": "res/img/dark/settings.svg"
                 }
             },
             {

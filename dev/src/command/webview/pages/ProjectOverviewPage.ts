@@ -29,6 +29,10 @@ const NOT_AVAILABLE = "Not available";
 const NOT_RUNNING = "Not running";
 const NOT_DEBUGGING = "Not debugging";
 
+const ATTR_AUTOBUILD_TOGGLE = "autoBuild";
+const ATTR_INJECTION_TOGGLE = "inject-metrics";
+const DATA_TABINDEX = "tabindex";
+
 export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Project): string {
     return `
     <!DOCTYPE html>
@@ -57,80 +61,156 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             />
         </div>
     </div>
-    <div class="section">
-        <h3>Project Information</h3>
-        <table>
-            ${buildRow(rp, "Build Type", project.type.toString())}
-            ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
-            ${buildRow(rp, "Project ID", project.id)}
-            ${buildRow(rp, "Local Path", getUserFriendlyPath(project), { openable: CWExtensionContext.get().isChe ? undefined : "folder"})}
-        </table>
-    </div>
-    <div class="section">
-        <h3>Project Status</h3>
-        <table>
-            <tr>
-                <td class="info-label">Auto build:</td>
-                <td>
-                    <input id="auto-build-toggle" type="checkbox" class="btn"
-                        onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}')"
-                        title="Toggle Auto Build"
-                        ${project.autoBuildEnabled ? "checked" : ""}
-                        ${project.state.isEnabled ? " " : " disabled"}
-                    />
-                </td>
-            </tr>
-            <tr>
-                <td class="info-label">Inject Appmetrics:</td>
-                <td>
-                    <input id="auto-inject-metrics-toggle" type="checkbox" class="btn"
-                        onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}')"
-                        title="${project.canInjectMetrics ? "Toggle Inject Appmetrics" : "Not supported for this project type"}"
-                        ${project.isInjectingMetrics ? "checked" : ""}
-                        ${project.canInjectMetrics && project.state.isEnabled ? " " : " disabled"}
-                    />
-                </td>
-            </tr>
-            ${buildRow(rp, "Application Status", normalize(project.state.getAppStatusWithDetail(), NOT_AVAILABLE))}
-            ${project.type.isAppsody ? "" : buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
-            ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
-            ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
-            ${buildLogsRow(rp, project)}
-        </table>
-    </div>
-    <div class="section">
-        <div id="app-info-header-section">
+
+    <!--div class="tab-group">
+        <div class="tab-btn clickable" data-${DATA_TABINDEX}="1" onclick="onTabClick(this)">
+            Summary
+        </div>
+        <div class="tab-btn clickable" data-${DATA_TABINDEX}="2" onclick="onTabClick(this)">
+            Links
+        </div>
+    </div-->
+
+    <div class="tab-body" data-${DATA_TABINDEX}="1">
+        <div class="section-header">
+            <h3>Project Information</h3>
+        </div>
+        <div class="section">
+            <table>
+                ${buildRow(rp, "Build Type", project.type.toString())}
+                ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
+                ${buildRow(rp, "Project ID", project.id, { copyable: true })}
+                ${buildRow(rp, "Local Path", getUserFriendlyPath(project), {
+                    copyable: true,
+                    openable: CWExtensionContext.get().isChe ? undefined : "folder"
+                })}
+            </table>
+        </div>
+        <div class="section-header">
+            <h3>Project Status</h3>
+            <div class="section-header-right">
+                <div class="section-header-toggle">
+                    Auto Build
+                    ${WebviewUtil.getToggleInput(rp, project.autoBuildEnabled, "Toggle Auto Build", ATTR_AUTOBUILD_TOGGLE)}
+                </div>
+                <div class="section-header-toggle">
+                    Inject Appmetrics
+                    ${WebviewUtil.getToggleInput(rp, project.isInjectingMetrics, "Toggle Inject Appmetrics", ATTR_INJECTION_TOGGLE)}
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <table>
+                ${buildRow(rp, "Application Status", normalize(project.state.getAppStatusWithDetail(), NOT_AVAILABLE))}
+                ${project.type.isAppsody ? "" : buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
+                ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
+                ${buildRow(rp, "Last Build", normalizeDate(project.lastBuild, NOT_AVAILABLE))}
+                ${buildLogsRow(rp, project)}
+            </table>
+        </div>
+        <div class="section-header">
             <h3>Application Information</h3>
             <div id="about-project-settings">
                 <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
             </div>
         </div>
+        <div class="section">
+            ${buildContainerPodSection(rp, project)}
 
-        ${buildContainerPodSection(rp, project)}
+            <table>
+                ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
+                    editable: true,
+                    openable: project.appUrl != null ? "web" : undefined,
+                    copyable: project.appUrl != null
+                })}
+                ${buildRow(rp, "Exposed App Port", normalize(project.appPort, NOT_RUNNING), {
+                    copyable: project.appPort != null
+                })}
+                ${buildRow(rp, "Internal App Port", normalize(project.internalPort, NOT_AVAILABLE), {
+                    editable: true,
+                    copyable: project.internalPort != null
+                })}
 
-        <table>
-            ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
-                editable: true,
-                openable: project.appUrl != null ? "web" : undefined
-            })}
-            ${buildRow(rp, "Exposed App Port", normalize(project.appPort, NOT_RUNNING))}
-            ${buildRow(rp, "Internal App Port",
-                normalize(project.internalPort, NOT_AVAILABLE),
-                { editable: true })
-            }
-
-            <!-- buildDebugSection must also close the <table> -->
-            ${buildDebugSection(rp, project)}
-        <!-- /table -->
+                <!-- buildDebugSection must also close the <table> -->
+                ${buildDebugSection(rp, project)}
+            <!-- /table -->
+        </div>
     </div>
+    <!--div class="tab-body" data-${DATA_TABINDEX}="2">
+        <div class="section-header">
+            <h3>Project Links</h3>
+        </div>
+        <div class="section">
+            <div class="link-table-header">
+                Projects that are targets for ${project.name}
+            </div>
+            <table class="link-table">
+
+            </table>
+        </div>
+    </div-->
 
     <script type="text/javascript">
         const vscode = acquireVsCodeApi();
+
+        ${WebviewUtil.getCopyScript()}
+
+        function onToggle(toggle) {
+            const btnID = toggle.getAttribute("${WebviewUtil.ATTR_ID}");
+            if (btnID === "${ATTR_AUTOBUILD_TOGGLE}") {
+                sendMsg("${ProjectOverviewWVMessages.TOGGLE_AUTOBUILD}");
+            }
+            else if (btnID === "${ATTR_INJECTION_TOGGLE}") {
+                sendMsg("${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}");
+            }
+            else {
+                console.error("Unrecognized button ID was toggled: " + btnID);
+            }
+        }
 
         function sendMsg(type, data = undefined) {
             // See IWebViewMsg in ProjectOverviewCmd
             vscode.postMessage({ type: type, data: data });
         }
+
+        function onTabClick(tabBtn) {
+            tabSwitch(tabBtn.dataset.${DATA_TABINDEX});
+        }
+
+        function tabSwitch(tabIndex) {
+            if (typeof tabIndex === "string") {
+                tabIndex = Number(tabIndex);
+            }
+
+            Array.from(document.querySelectorAll(".tab-body"))
+            .forEach((tabBody) => {
+                const newDisplay = tabBody.dataset.${DATA_TABINDEX} == tabIndex ? "block" : "none";
+                tabBody.style.display = newDisplay;
+            });
+
+            Array.from(document.querySelectorAll(".tab-btn"))
+            .forEach((tabBtn) => {
+                if (tabBtn.dataset.${DATA_TABINDEX} == tabIndex) {
+                    tabBtn.classList.add("selected");
+                }
+                else {
+                    tabBtn.classList.remove("selected");
+                }
+            });
+
+            vscode.setState({ selectedTabIndex: tabIndex });
+        }
+
+        (function() {
+            const state = vscode.getState();
+            let selectedTabIndex = 1;
+            if (state && state.selectedTabIndex) {
+                selectedTabIndex = state.selectedTabIndex;
+                console.log("Loaded selected tab state " + selectedTabIndex);
+            }
+            tabSwitch(selectedTabIndex);
+        })();
+
     </script>
 
     </body>
@@ -155,8 +235,14 @@ const DEFAULT_ROW_OPTIONS: RowOptions = {
 
 function buildRow(rp: WebviewResourceProvider, label: string, data: string, options: RowOptions = DEFAULT_ROW_OPTIONS): string {
     let secondColTdContents: string = "";
-    let thirdColTd: string = "";
-    let fourthColTd: string = "";
+
+    let onContextMenu = "";
+    let titleValue = label;
+    if (options.copyable) {
+        // right-clicking the element copies its value
+        onContextMenu = `oncontextmenu="copy(event, '${data}', '${label}')"`;
+        titleValue += " (Right click to copy)";
+    }
 
     if (options.openable) {
         let classAttr: string  = "";
@@ -172,42 +258,50 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
             const folderPath: string = WebviewUtil.getEscapedPath(data);
             onclick = `onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_FOLDER}', '${folderPath}')"`;
         }
-        secondColTdContents += `<a title="${data}" ${classAttr} ${onclick}>${data}</a>`;
+        secondColTdContents += `<a title="${titleValue}" ${classAttr} ${onclick} ${onContextMenu}>${data}</a>`;
     }
     else {
-        secondColTdContents = `${data}`;
+        secondColTdContents = `<span title="${titleValue}" ${onContextMenu}>${data}</span>`;
     }
+
+    const noPossibleActionBtns = 2;
+    let actionBtns = [];
 
     if (options.editable) {
         const tooltip = `title="Edit Project Settings"`;
         const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}')"`;
 
-        thirdColTd = `
-            <td class="btn-cell">
-                <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick} src="${rp.getImage(ThemedImages.Edit)}"/>
-            </td>
-        `;
+        actionBtns.push(`
+            <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick} src="${rp.getImage(ThemedImages.Edit)}"/>
+        `);
     }
 
     if (options.openable === "web") {
         // add an 'open' button if this row's data is a web link
-        fourthColTd = `
-            <td class="btn-cell">
-                <a title="${data}" onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${data}')">
-                    <input type="image" title="Open" alt="Open" src="${rp.getImage(ThemedImages.Launch)}"/>
-                </a>
-            </td>
-        `;
+        actionBtns.push(`
+            <a title="${data}" onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${data}')">
+                <input type="image" title="Open ${data}" alt="Open" src="${rp.getImage(ThemedImages.Launch)}"/>
+            </a>
+        `);
     }
 
-    const secondTd = `<td title="${label}">${secondColTdContents}</td>`;
+    while (actionBtns.length < noPossibleActionBtns) {
+        actionBtns.unshift("");
+    }
+
+    actionBtns = actionBtns.map((btn) => {
+        return `<td class="btn-cell">
+            ${btn}
+        </td>`;
+    });
+
+    const secondTd = `<td>${secondColTdContents}</td>`;
 
     return `
         <tr class="info-row">
             <td class="info-label">${label}:</td>
             ${secondTd}
-            ${thirdColTd}
-            ${fourthColTd}
+            ${actionBtns.join("\n")}
         </tr>
     `;
 }
@@ -271,13 +365,13 @@ function buildLogsRow(rp: WebviewResourceProvider, project: Project): string {
         <tr class="info-row">
             <td class="info-label">Project Logs:</td>
             <td>${logsText}</td>
-            <td></td>
-            <td class="btn-cell">
-                <a title="Manage Logs" onclick="${manageLogsBtnOnClick}">
+            <td>
+                <div id="manage-logs-btn" onclick="${manageLogsBtnOnClick}" class="btn btn-background">
+                    Manage Logs
                     <input type="image"
                         class="${manageLogsBtnClass}" title="${manageLogsBtnTitle}" alt="Manage Logs" src="${rp.getImage(ThemedImages.Filter)}"
                     />
-                </a>
+                </div>
             </td>
         </tr>
     `;
@@ -287,14 +381,14 @@ function buildContainerPodSection(rp: WebviewResourceProvider, project: Project)
     if (project.connection.isKubeConnection) {
         return `
         <table>
-            ${buildRow(rp, "Namespace", normalize(project.namespace, NOT_AVAILABLE))}
-            ${buildRow(rp, "Pod Name", normalize(project.podName, NOT_AVAILABLE))}
+            ${buildRow(rp, "Namespace", normalize(project.namespace, NOT_AVAILABLE), { copyable: project.namespace != null })}
+            ${buildRow(rp, "Pod Name", normalize(project.podName, NOT_AVAILABLE), { copyable: project.podName != null })}
         </table>`;
     }
     else {
         return `
         <table>
-            ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32))}
+            ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32), { copyable: project.containerID != null })}
         </table>`;
     }
 }
@@ -338,13 +432,17 @@ function buildDebugSection(rp: WebviewResourceProvider, project: Project): strin
         portForwardInfoRow = buildRow(rp, "Debug Port Forward", portForwardStatus);
     }
     else {
-        exposedDebugPortRow = buildRow(rp, "Exposed Debug Port", normalize(project.exposedDebugPort, NOT_DEBUGGING));
+        exposedDebugPortRow = buildRow(rp, "Exposed Debug Port", normalize(project.exposedDebugPort, NOT_DEBUGGING), {
+            copyable: project.exposedDebugPort != null
+        });
     }
 
     return `
         ${exposedDebugPortRow}
-        ${buildRow(rp, "Internal Debug Port",
-            normalize(project.internalDebugPort, NOT_AVAILABLE), { editable: true })}
+        ${buildRow(rp, "Internal Debug Port", normalize(project.internalDebugPort, NOT_AVAILABLE), {
+            editable: true,
+            copyable: project.internalDebugPort != null
+        })}
         ${portForwardInfoRow}
         </table>
     `;

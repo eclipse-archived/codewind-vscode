@@ -82,13 +82,14 @@ input[type="checkbox"]:disabled {
     justify-content: center;
 }
 
-.btn > img {
+.btn > img, .btn > input[type="image"] {
     height: 1.5em;
-    padding-left: 1.5em;
+    padding-left: 1em;
     margin-left: auto;
 }
 
 .btn-prominent {
+    min-width: 15ch;
     color: var(--vscode-button-foreground);
     background-color: var(--vscode-button-background);
     border: 1px solid var(--vscode-button-background);
@@ -145,4 +146,43 @@ img {
 
 input[type="checkbox"] {
     zoom: 1.25;
+}
+
+.tab-group {
+    display: inline-flex;
+    margin-top: 1em;
+    margin-bottom: 1.5em;
+}
+
+.tab-btn {
+    min-width: 15ch;
+    margin-right: 0.25em;
+    padding-left: 0.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--vscode-activityBar-background);
+}
+
+.tab-btn:focus {
+    /* Override from .btn */
+    outline: none;
+}
+
+.tab-btn.selected {
+    font-weight: bold;
+    border-bottom: 2px solid var(--vscode-button-background)
+}
+
+.tab-btn img {
+    margin-right: .5em;
+    height: 1.5em;
+    vertical-align: text-top;
+}
+
+#copy-btn-tooltip {
+    color: #000;
+    background-color: #ddd;
+    border: 1px solid #444;
+    padding: 0.2em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
