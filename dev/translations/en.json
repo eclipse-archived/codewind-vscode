@@ -100,7 +100,7 @@
         "restartSuccess": "Finished restarting {{ projectName }} in {{ startMode }} mode.",
         "genericErrorProjectRestart": "{{ projectName }} failed to restart.",
         "restartFailure": "Failed to restart {{ projectName }} in {{ startMode }} mode.",
-        "restartFailureWithReason": "Failed to restart {{ projectName }} in {{ startMode }} mode: {{ reason }}.",
+        "restartFailureWithReason": "Failed to restart {{ projectName }} in {{ startMode }} mode: {{- reason }}.",
         "restartFailedReasonDebugFailure": "attaching the debugger failed. Try attaching the debugger again",
         "restartFailedReasonTimeout": "failed to restart within {{ timeoutS }} seconds",
         "restartFailedReasonDisconnect": "Codewind disconnected",
