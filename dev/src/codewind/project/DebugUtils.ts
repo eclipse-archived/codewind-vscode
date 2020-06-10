@@ -174,16 +174,12 @@ export default class DebugUtils {
         for (let i = 0; i < launchConfigs.length; i++) {
             const existingLaunch: vscode.DebugConfiguration = launchConfigs[i];
             if (existingLaunch != null && existingLaunch.name === debugName) {
-                const updatedLaunch = DebugUtils.generateDebugLaunchConfig(debugName, project);
+                const newLaunch = DebugUtils.generateDebugLaunchConfig(debugName, project);
+                const mergedLaunch = Object.assign(existingLaunch, newLaunch);
 
-                if (updatedLaunch == null) {
-                    Log.e(`Failed to generate debug launch config for ${project.name} when a config already existed`);
-                    continue;
-                }
-
-                Log.d(`Replacing existing debug launch ${debugName}`);
-                launchConfigs[i] = updatedLaunch;
-                launchToWrite = updatedLaunch;
+                Log.d(`Updating existing debug launch ${debugName}`);
+                launchConfigs[i] = mergedLaunch;
+                launchToWrite = mergedLaunch;
                 break;
             }
         }
@@ -210,10 +206,15 @@ export default class DebugUtils {
 
     private static readonly RQ_ATTACH: string = "attach";       // non-nls
 
-    private static generateDebugLaunchConfig(debugName: string, project: Project): vscode.DebugConfiguration | undefined {
+    private static generateDebugLaunchConfig(debugName: string, project: Project): vscode.DebugConfiguration {
 
         switch (project.type.debugType) {
             case ProjectType.DebugTypes.JAVA: {
+                let timeout = 30 * 1000;
+                if (project.type.isAppsody) {
+                    timeout = 180 * 1000;
+                }
+
                 return {
                     type: project.type.debugType.toString(),
                     name: debugName,
@@ -222,6 +223,7 @@ export default class DebugUtils {
                     port: project.exposedDebugPort,
                     // sourcePaths: project.localPath + "/src/"
                     projectName: project.name,
+                    timeout,
                 };
             }
             case ProjectType.DebugTypes.NODE: {
@@ -238,7 +240,7 @@ export default class DebugUtils {
                 };
             }
             default:
-                return undefined;
+                throw new Error("No debug type set for " + project.name);
         }
     }
 }
