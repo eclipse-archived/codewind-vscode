@@ -42,27 +42,6 @@ body {
 }
 */
 
-#warning-banner {
-    background-color: #fc0b;
-    color: #222;
-
-    padding: 0.5em;
-    padding-left: 2em;
-    padding-right: 2em;
-    margin-bottom: 1em;
-
-    /* fill banner container horizontally */
-    flex: 1;
-
-    display: flex;
-    align-items: center;
-}
-
-#warning-banner img {
-    padding-right: 1em;
-    height: 2.5em;
-}
-
 table {
     width: 100%;
     border-spacing: 0;

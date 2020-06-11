@@ -54,7 +54,7 @@ export default async function restartProjectCmd(project: Project, debug: boolean
     Log.i(`RestartProject on project ${project.name} into ${startMode} mode`);
 
     try {
-        await project.doRestart(startMode);
+        await project.doRestart(startMode, false);
         return true;
     }
     catch (err) {

@@ -51,7 +51,7 @@ export default function getManageSourcesPage(
 
     <!-- If there are no sources enabled, show a warning that you can't create projects -->
     <!--div id="info-banner-container"-->
-        <div id="warning-banner" ${sources.some((source) => source.enabled) ? `style="display: none;"` : ""}>
+        <div class="warning-banner" ${sources.some((source) => source.enabled) ? `style="display: none;"` : ""}>
             <img src="${rp.getImage(ThemelessImages.Warning)}" alt="Warning"/>
             No template sources are enabled. You must enable at least one template source before creating projects.
         </div>

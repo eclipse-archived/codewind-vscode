@@ -47,6 +47,7 @@
 			"allow-null-union",
 			"allow-undefined-union",
 			"allow-string",
+			"allow-enum",
 			"allow-number",
 			"allow-mix",
 			"ignore-rhs"

@@ -18,7 +18,6 @@ import Log from "../../Logger";
 import getManageRegistriesHtml from "./pages/RegistriesPage";
 import MCUtil from "../../MCUtil";
 import CWDocs from "../../constants/CWDocs";
-import Commands from "../../constants/Commands";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import ImageRegistry from "../../codewind/connection/registries/ImageRegistry";
@@ -166,7 +165,7 @@ export class RegistriesPageWrapper extends WebviewWrapper {
                 break;
             }
             case CommonWVMessages.HELP: {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.REGISTRIES.uri);
+                CWDocs.REGISTRIES.open();
                 break;
             }
             case CommonWVMessages.REFRESH: {

@@ -17,7 +17,6 @@ import { ThemelessImages } from "../../constants/CWImages";
 import WebviewUtil, { CommonWVMessages } from "./WebviewUtil";
 import Log from "../../Logger";
 import MCUtil from "../../MCUtil";
-import Commands from "../../constants/Commands";
 import CWDocs from "../../constants/CWDocs";
 import { WebviewWrapper, WebviewResourceProvider } from "./WebviewWrapper";
 import getManageSourcesPage from "./pages/SourcesPage";
@@ -82,7 +81,7 @@ export class SourcesPageWrapper extends WebviewWrapper {
                 break;
             }
             case CommonWVMessages.HELP: {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.TEMPLATE_MANAGEMENT.uri);
+                CWDocs.TEMPLATE_MANAGEMENT.open();
                 break;
             }
             case CommonWVMessages.REFRESH: {

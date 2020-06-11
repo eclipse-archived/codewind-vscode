@@ -18,6 +18,7 @@ import { ProjectOverviewWVMessages } from "../ProjectOverviewPageWrapper";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import CWExtensionContext from "../../../CWExtensionContext";
+import { ProjectLink } from "../../../codewind/Types";
 
 interface RowOptions {
     openable?: "web" | "folder";
@@ -33,7 +34,7 @@ const ATTR_AUTOBUILD_TOGGLE = "autoBuild";
 const ATTR_INJECTION_TOGGLE = "inject-metrics";
 const DATA_TABINDEX = "tabindex";
 
-export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Project): string {
+export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Project, startAtLinkTab: boolean): string {
     return `
     <!DOCTYPE html>
 
@@ -48,7 +49,8 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     <div id="btns-section">
         <input type="button" value="Build"
             class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"
-            onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"/>
+            onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"
+        />
 
         <div id="top-right-btns">
             <input id="enablement-btn" class="btn btn-prominent" type="button"
@@ -62,21 +64,21 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
         </div>
     </div>
 
-    <!--div class="tab-group">
-        <div class="tab-btn clickable" data-${DATA_TABINDEX}="1" onclick="onTabClick(this)">
+    <div class="tab-group">
+        <div class="tab-btn clickable" data-${DATA_TABINDEX}="0" onclick="onTabClick(this)">
             Summary
         </div>
-        <div class="tab-btn clickable" data-${DATA_TABINDEX}="2" onclick="onTabClick(this)">
+        <div class="tab-btn clickable" data-${DATA_TABINDEX}="1" onclick="onTabClick(this)">
             Links
         </div>
-    </div-->
+    </div>
 
-    <div class="tab-body" data-${DATA_TABINDEX}="1">
+    <div class="tab-body" data-${DATA_TABINDEX}="0">
         <div class="section-header">
             <h3>Project Information</h3>
         </div>
         <div class="section">
-            <table>
+            <table class="info-table">
                 ${buildRow(rp, "Build Type", project.type.toString())}
                 ${buildRow(rp, "Language", MCUtil.uppercaseFirstChar(project.language))}
                 ${buildRow(rp, "Project ID", project.id, { copyable: true })}
@@ -93,14 +95,17 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
                     Auto Build
                     ${WebviewUtil.getToggleInput(rp, project.autoBuildEnabled, "Toggle Auto Build", ATTR_AUTOBUILD_TOGGLE)}
                 </div>
-                <div class="section-header-toggle">
-                    Inject Appmetrics
-                    ${WebviewUtil.getToggleInput(rp, project.isInjectingMetrics, "Toggle Inject Appmetrics", ATTR_INJECTION_TOGGLE)}
-                </div>
+                ${project.canInjectMetrics ?
+                    `<div class="section-header-toggle">
+                        Inject Appmetrics
+                        ${WebviewUtil.getToggleInput(rp, project.isInjectingMetrics, "Toggle Inject Appmetrics", ATTR_INJECTION_TOGGLE)}
+                    </div>`
+                    : ""
+                }
             </div>
         </div>
         <div class="section">
-            <table>
+            <table class="info-table">
                 ${buildRow(rp, "Application Status", normalize(project.state.getAppStatusWithDetail(), NOT_AVAILABLE))}
                 ${project.type.isAppsody ? "" : buildRow(rp, "Build Status", normalize(project.state.getBuildString(), NOT_AVAILABLE))}
                 ${buildRow(rp, "Last Image Build", normalizeDate(project.lastImgBuild, NOT_AVAILABLE))}
@@ -110,14 +115,14 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
         </div>
         <div class="section-header">
             <h3>Application Information</h3>
-            <div id="about-project-settings">
-                <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More Info">More Info</a>
+            <div class="header-more-info">
+                <a href="${CWDocs.PROJECT_SETTINGS.uri}" title="More info about project settings">More Info</a>
             </div>
         </div>
         <div class="section">
             ${buildContainerPodSection(rp, project)}
 
-            <table>
+            <table class="info-table">
                 ${buildRow(rp, "Application Endpoint", normalize(project.appUrl, NOT_RUNNING), {
                     editable: true,
                     openable: project.appUrl != null ? "web" : undefined,
@@ -136,19 +141,18 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             <!-- /table -->
         </div>
     </div>
-    <!--div class="tab-body" data-${DATA_TABINDEX}="2">
+    <div class="tab-body" data-${DATA_TABINDEX}="1">
         <div class="section-header">
             <h3>Project Links</h3>
+            <div class="header-more-info">
+                <!-- TODO link -->
+                <a href="${CWDocs.HOME.uri}" title="More info about links">More Info</a>
+            </div>
         </div>
         <div class="section">
-            <div class="link-table-header">
-                Projects that are targets for ${project.name}
-            </div>
-            <table class="link-table">
-
-            </table>
+            ${buildLinkSection(rp, project)}
         </div>
-    </div-->
+    </div>
 
     <script type="text/javascript">
         const vscode = acquireVsCodeApi();
@@ -203,7 +207,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
 
         (function() {
             const state = vscode.getState();
-            let selectedTabIndex = 1;
+            let selectedTabIndex = ${startAtLinkTab ? 1 : 0};
             if (state && state.selectedTabIndex) {
                 selectedTabIndex = state.selectedTabIndex;
                 console.log("Loaded selected tab state " + selectedTabIndex);
@@ -272,7 +276,7 @@ function buildRow(rp: WebviewResourceProvider, label: string, data: string, opti
         const onClick = `onclick="sendMsg('${ProjectOverviewWVMessages.EDIT}')"`;
 
         actionBtns.push(`
-            <input type="image" id="edit-${MCUtil.slug(label)}" class="edit-btn" ${tooltip} ${onClick} src="${rp.getImage(ThemedImages.Edit)}"/>
+            <input type="image" ${tooltip} ${onClick} src="${rp.getImage(ThemedImages.Edit)}"/>
         `);
     }
 
@@ -380,14 +384,14 @@ function buildLogsRow(rp: WebviewResourceProvider, project: Project): string {
 function buildContainerPodSection(rp: WebviewResourceProvider, project: Project): string {
     if (project.connection.isKubeConnection) {
         return `
-        <table>
+        <table class="info-table">
             ${buildRow(rp, "Namespace", normalize(project.namespace, NOT_AVAILABLE), { copyable: project.namespace != null })}
             ${buildRow(rp, "Pod Name", normalize(project.podName, NOT_AVAILABLE), { copyable: project.podName != null })}
         </table>`;
     }
     else {
         return `
-        <table>
+        <table class="info-table">
             ${buildRow(rp, "Container ID", normalize(project.containerID, NOT_AVAILABLE, 32), { copyable: project.containerID != null })}
         </table>`;
     }
@@ -447,4 +451,83 @@ function buildDebugSection(rp: WebviewResourceProvider, project: Project): strin
         </table>
     `;
         // ${buildRow(rp, "Debug URL", normalize(project.debugUrl, NOT_DEBUGGING))}
+}
+
+function buildLinkSection(rp: WebviewResourceProvider, project: Project): string {
+    return `
+        <div class="link-table-header">
+            <div class="link-table-header-text">
+                The environment variables below are available to ${project.name}, and contain the hostnames of the linked projects.
+            </div>
+            <input type="button" value="Create Link"
+                id="create-link-btn"
+                class="btn btn-prominent"
+                onclick="sendMsg('${ProjectOverviewWVMessages.CREATE_LINK}')"
+            />
+        </div>
+        ${buildLinkTable(rp, project, "to")}
+    `;
+}
+
+function buildLinkTable(rp: WebviewResourceProvider, project: Project, _toOrFrom: "to" /* | "from" */): string {
+    const links = project.linksTo;
+
+    let tbody;
+    if (links.length === 0) {
+        tbody = `<tr>
+            <td class="transparent">No project links created yet. Click Create Link.</td>
+            <td></td>
+            <td></td>        <!-- Edit buttons column -->
+            <td></td>        <!-- Delete buttons column -->
+        </tr>`;
+    }
+    else {
+        tbody = links.map((link) => buildLinkRow(rp, link)).join("\n");
+    }
+
+    return `
+        <table class="link-table">
+            <colgroup>
+                <col id="name-col"/>
+                <col id="env-var-col"/>
+                <col class="btn-col"/>
+                <col class="btn-col"/>
+            </colgroup>
+            <thead>
+                <tr>
+                    <td>Project</td>
+                    <td>Environment Variable</td>
+                    <td></td>        <!-- Edit buttons column -->
+                    <td></td>        <!-- Delete buttons column -->
+                </tr>
+            </thead>
+            <tbody>
+                ${tbody}
+            </tbody>
+        </table>
+    `
+}
+
+function buildLinkRow(rp: WebviewResourceProvider, link: ProjectLink): string {
+    return `<tr>
+        <td>
+            <a onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_PROJECT}', '${link.projectID}')">
+                ${link.projectName}
+            </a>
+        </td>
+        <td title="Environment variable name (Right-click to copy)"
+            oncontextmenu="copy(event, '${link.envName}', 'env variable name')">
+            ${link.envName}
+        </td>
+        <td class="btn-cell">
+            <input type="image" title="Edit Link" src="${rp.getImage(ThemedImages.Edit)}"
+                onclick="sendMsg('${ProjectOverviewWVMessages.EDIT_LINK}', { envName: '${link.envName}', targetProjectName: '${link.projectName}' })"
+            />
+        </td>
+        <td class="btn-cell">
+            <input type="image" title="Remove Link" src="${rp.getImage(ThemedImages.Trash)}"
+                onclick="sendMsg('${ProjectOverviewWVMessages.REMOVE_LINK}', { envName: '${link.envName}' })"
+            />
+        </td>
+    </tr>`
 }

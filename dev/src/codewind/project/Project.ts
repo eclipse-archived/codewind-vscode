@@ -30,7 +30,7 @@ import Validator from "./Validator";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
-import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData } from "../Types";
+import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData, ProjectLink } from "../Types";
 import Requester from "../Requester";
 import ProjectRequester from "./ProjectRequester";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
@@ -82,6 +82,7 @@ export default class Project implements vscode.QuickPickItem {
     private _usesHttps: boolean;
     private _lastBuild: Date | undefined;
     private _lastImageBuild: Date | undefined;
+    private _startMode: StartModes;
 
     private readonly requester: ProjectRequester;
     public readonly logManager: MCLogManager;
@@ -90,6 +91,8 @@ export default class Project implements vscode.QuickPickItem {
     private _metricsDashboardStatus: MetricsDashboardStatus;
     private _perfDashboardPath: string | null;
     private _metricsInjectStatus: MetricsInjectionStatus;
+
+    private _linksTo: (ProjectLink /* & { broken: boolean } */)[] = [];
 
     // can we query filewatcher for this project's capabilities
     private _capabilitiesReady: boolean;
@@ -159,6 +162,8 @@ export default class Project implements vscode.QuickPickItem {
 
         this.requester = new ProjectRequester(this);
         this.loadRunnerTracker = new LoadRunnerTracker(this, this.requester);
+        this.setLinks(projectInfo.links?._links || []);
+        this._startMode = projectInfo.startMode || StartModes.RUN;
 
         this._state = new ProjectState(this.name);
         this._state = this.update(projectInfo);
@@ -230,14 +235,21 @@ export default class Project implements vscode.QuickPickItem {
             this.setAppBaseUrl(projectInfo.appBaseURL);
         }
 
+        if (projectInfo.links?._links) {
+            this.setLinks(projectInfo.links._links);
+        }
+
+        if (projectInfo.startMode) {
+            this._startMode = projectInfo.startMode;
+        }
+
         const wasEnabled = this.state.isEnabled;
         const oldStateStr = this.state.toString();
         const stateChanged = this.state.update(projectInfo);
 
         let wasDisabled = false;
         if (stateChanged) {
-            const startModeMsg = projectInfo.startMode == null ? "" : `, startMode=${projectInfo.startMode}`;
-            Log.d(`${this.name} went from ${oldStateStr} to ${this._state}${startModeMsg}`);
+            Log.d(`${this.name} went from ${oldStateStr} to ${this._state}`);
 
             // Check if the project was just enabled or disabled
             if (wasEnabled && !this.state.isEnabled) {
@@ -357,18 +369,18 @@ export default class Project implements vscode.QuickPickItem {
         }
     }
 
-    public async doRestart(mode: StartModes): Promise<void> {
+    public async doRestart(mode: StartModes, isLinkRestart: boolean): Promise<void> {
         if (this.pendingRestart != null) {
             // should be prevented by the RestartProjectCommand
             Log.e(this.name + ": doRestart called when already restarting");
             return;
         }
 
-        await this.requester.requestProjectRestart(mode);
-        this.pendingRestart = new ProjectPendingRestart(this, mode);
-        if (this.isPortForwarding) {
-            this.portForwardTask?.dispose();
+        if (!isLinkRestart) {
+            await this.requester.requestProjectRestart(mode);
         }
+        this.pendingRestart = new ProjectPendingRestart(this, mode, isLinkRestart);
+        this.portForwardTask?.dispose();
     }
 
     public onRestartFinish(): void {
@@ -385,8 +397,7 @@ export default class Project implements vscode.QuickPickItem {
         let errMsg: string | undefined;
 
         if (this.pendingRestart == null) {
-            Log.e(this.name + ": received restart event without a pending restart", event);
-            return;
+            Log.i(this.name + ": received restart event without a pending restart", event);
         }
 
         if (SocketEvents.STATUS_SUCCESS !== event.status) {
@@ -425,7 +436,7 @@ export default class Project implements vscode.QuickPickItem {
             success = true;
         }
 
-        this.pendingRestart.onReceiveRestartEvent(success, errMsg);
+        this.pendingRestart?.onReceiveRestartEvent(success, errMsg);
     }
 
     public async remoteDebugPortForward(): Promise<void> {
@@ -787,6 +798,10 @@ export default class Project implements vscode.QuickPickItem {
         return this._state;
     }
 
+    public get startMode(): StartModes {
+        return this._startMode;
+    }
+
     public get capabilities(): ProjectCapabilities | undefined {
         return this._capabilities;
     }
@@ -930,6 +945,10 @@ export default class Project implements vscode.QuickPickItem {
         return this._metricsInjectStatus.injected;
     }
 
+    public get linksTo(): ProjectLink[] {
+        return this._linksTo;
+    }
+
     ///// Setters
 
     /**
@@ -1047,6 +1066,18 @@ export default class Project implements vscode.QuickPickItem {
             this.onChange();
         }
         return changed;
+    }
+
+    private setLinks(links: ProjectLink[]): void {
+        // const linksWithBroken = links.map((link) => {
+        //     const broken = !this.connection.projects.some((project) => link.projectID === project.id);
+        //     return {
+        //         ...link,
+        //         broken,
+        //     }
+        // });
+
+        this._linksTo = links;
     }
 
     public async tryOpenSettingsFile(): Promise<void> {

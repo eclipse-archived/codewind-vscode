@@ -70,7 +70,7 @@
         "node-loader": "^0.6.0",
         "ts-loader": "^6.2.2",
         "tslint": "^6.1.0",
-        "typescript": "^3.8.3",
+        "typescript": "^3.9.5",
         "vsce": "^1.74.0",
         "vscode-test": "^1.3.0",
         "webpack": "^4.42.1",
@@ -409,6 +409,11 @@
                 "command": "%cmdID_changeProjectConnection%",
                 "title": "%cmdTitle_changeProjectConnection%",
                 "category": "%commandCategory%"
+            },
+            {
+                "command": "%cmdID_linkProject%",
+                "title": "%cmdTitle_linkProject%",
+                "category": "%commandCategory%"
             }
         ],
         "menus": {
@@ -668,19 +673,24 @@
                     "group": "ext.cw.f@2"
                 },
                 {
+                    "command": "%cmdID_linkProject%",
+                    "when": "%isEnabledProject%",
+                    "group": "ext.cw.z@0"
+                },
+                {
                     "command": "%cmdID_changeProjectConnection%",
                     "when": "%isProject%",
-                    "group": "ext.cw.z@0"
+                    "group": "ext.cw.z@1"
                 },
                 {
                     "command": "%cmdID_disable%",
                     "when": "%isEnabledProject%",
-                    "group": "ext.cw.z@1"
+                    "group": "ext.cw.z@2"
                 },
                 {
                     "command": "%cmdID_enable%",
                     "when": "%isDisabledProject%",
-                    "group": "ext.cw.z@1"
+                    "group": "ext.cw.z@2"
                 },
                 {
                     "command": "%cmdID_enable%",
@@ -690,7 +700,7 @@
                 {
                     "command": "%cmdID_removeProject%",
                     "when": "%isProject%",
-                    "group": "ext.cw.z@2"
+                    "group": "ext.cw.z@3"
                 }
             ]
         }

@@ -12,8 +12,10 @@
     "actions": {
         "disable": "Disable",
         "openConnectionSettings": "Open Connection Settings",
+        "openProjectOverview": "Open Project Overview",
         "refresh": "Refresh",
-        "tryAgain": "Try Again"
+        "tryAgain": "Try Again",
+        "moreInfo": "More Info"
     },
 
     "command": {
@@ -96,8 +98,10 @@
 
         "alreadyRestarting": "{{ projectName }} is already restarting.",
         "restartingStatusMsg": "Restarting {{ projectName }} into {{ startMode }} mode",
+        "restartingStatusLinkMsg": "Restarting {{ projectName }} after modifying links",
 
         "restartSuccess": "Finished restarting {{ projectName }} in {{ startMode }} mode.",
+        "restartLinkSuccess": "Finished restarting {{ projectName }}.",
         "genericErrorProjectRestart": "{{ projectName }} failed to restart.",
         "restartFailure": "Failed to restart {{ projectName }} in {{ startMode }} mode.",
         "restartFailureWithReason": "Failed to restart {{ projectName }} in {{ startMode }} mode: {{- reason }}.",

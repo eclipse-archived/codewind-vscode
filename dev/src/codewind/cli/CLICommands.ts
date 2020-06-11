@@ -66,6 +66,7 @@ export namespace CLICommands {
         BIND:   new CLICommand([ PROJECT_CMD, "bind" ]),
         MANAGE_CONN: new CLICommand([ PROJECT_CMD, "connection" ]),
         REMOVE: new CLICommand([ PROJECT_CMD, "remove" ], { hasJSONOutput: false }),
+        LINK:   new CLICommand([ PROJECT_CMD, "link" ]),
     };
 
     export const CONNECTIONS = {

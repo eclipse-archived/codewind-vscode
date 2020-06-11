@@ -146,6 +146,9 @@
     "cmdID_changeProjectConnection": "ext.cw.changeProjectConnection",
     "cmdTitle_changeProjectConnection": "Move Project",
 
+    "cmdID_linkProject": "ext.cw.linkProject",
+    "cmdTitle_linkProject": "Link Project",
+
     "// None of items below are exposed to user": [
         "These regexes match Context IDs for Projects and Connections to determine command enablement",
         "See TreeItemFactory / TreeItemContext for how the Context IDs are set"

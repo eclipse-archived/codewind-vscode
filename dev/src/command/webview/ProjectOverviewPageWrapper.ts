@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v2.0
  * which accompanies this distribution, and is available at
@@ -24,6 +24,8 @@ import { getProjectOverviewHtml } from "./pages/ProjectOverviewPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import { manageLogs } from "../project/ManageLogsCmd";
 import MCUtil from "../../MCUtil";
+import projectOverviewCmd from "../project/ProjectOverviewCmd";
+import linkProjectCmd, { renameProjectLink, removeProjectLink } from "../project/LinkProjectCmd";
 
 export enum ProjectOverviewWVMessages {
     BUILD = "build",
@@ -35,12 +37,17 @@ export enum ProjectOverviewWVMessages {
     TOGGLE_INJECT_METRICS = "toggleInjectMetrics",
     MANAGE_LOGS = "manageLogs",
     OPEN_LOG = "openLog",
+    OPEN_PROJECT = "openProject",
+    CREATE_LINK = "createLink",
+    EDIT_LINK = "editLink",
+    REMOVE_LINK = "removeLink",
 }
 
 export default class ProjectOverviewPageWrapper extends WebviewWrapper {
 
     constructor(
         private readonly project: Project,
+        private readonly startAtLinkTab: boolean,
     ) {
         super(project.name, project.type.icon);
         project.onDidOpenOverviewPage(this);
@@ -48,7 +55,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
     }
 
     protected async generateHtml(resourceProvider: WebviewResourceProvider): Promise<string> {
-        return getProjectOverviewHtml(resourceProvider, this.project);
+        return getProjectOverviewHtml(resourceProvider, this.project, this.startAtLinkTab);
     }
 
     protected onDidDispose(): void {
@@ -112,9 +119,50 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 }
                 break;
             }
-            case CommonWVMessages.OPEN_CONNECTION:
+            case ProjectOverviewWVMessages.OPEN_PROJECT: {
+                const projectID = msg.data as string;
+                const project = await this.project.connection.getProjectByID(projectID);
+                if (project == null) {
+                    const errMsg = `Error: Could not find project with ID ${projectID}`;
+                    Log.e(errMsg);
+                    vscode.window.showErrorMessage(errMsg);
+                    return;
+                }
+                await projectOverviewCmd(project);
+                break;
+            }
+            case ProjectOverviewWVMessages.CREATE_LINK: {
+                await linkProjectCmd(this.project, true);
+                break;
+            }
+            case ProjectOverviewWVMessages.EDIT_LINK: {
+                const renameLinkData = msg.data as { envName: string, targetProjectName: string };
+                try {
+                    await renameProjectLink(this.project, renameLinkData.targetProjectName, renameLinkData.envName);
+                }
+                catch (err) {
+                    const errMsg = `Error renaming ${renameLinkData.envName}`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+                }
+                break;
+            }
+            case ProjectOverviewWVMessages.REMOVE_LINK: {
+                const removeLinkData = msg.data as { envName: string };
+                try {
+                    removeProjectLink(this.project, removeLinkData.envName);
+                }
+                catch (err) {
+                    const errMsg = `Error removing ${removeLinkData.envName}`;
+                    Log.e(errMsg, err);
+                    vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(err)}`);
+                }
+                break;
+            }
+            case CommonWVMessages.OPEN_CONNECTION: {
                 remoteConnectionOverviewCmd(this.project.connection);
                 break;
+            }
             default: {
                 Log.e("Received unknown event from project info webview:", msg);
             }

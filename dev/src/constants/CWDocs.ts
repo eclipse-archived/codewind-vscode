@@ -9,15 +9,20 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-import { Uri } from "vscode";
+import * as vscode from "vscode";
+import Commands from "./Commands";
 
 class CWDoc {
-    public readonly uri: Uri;
+    public readonly uri: vscode.Uri;
 
     constructor(
         path: string,
     ) {
-        this.uri = Uri.parse(`https://codewind.dev/${path}`);
+        this.uri = vscode.Uri.parse(`https://codewind.dev/${path}`);
+    }
+
+    public open(): void {
+        vscode.commands.executeCommand(Commands.VSC_OPEN, this.uri);
     }
 }
 
@@ -31,7 +36,7 @@ export const CWDocs = {
     CHE_INSTALL:            new CWDoc("che-installinfo.html"),
     REMOTE_UI:              new CWDoc("remotedeploy-vscode.html"),
     REMOTE_DEPLOYING:       new CWDoc("remote-deploying-codewind.html"),
-    GETTING_STARTED:        new CWDoc("gettingstarted.html"),
+    // GETTING_STARTED:        new CWDoc("gettingstarted.html"),
     COMMANDS_OVERVIEW:      new CWDoc("project-actions.html"),
     PERF_MONITORING:        new CWDoc("performance.html"),
     FIRST_PROJECT_LOCAL:    new CWDoc("vsc-firstproject.html"),
