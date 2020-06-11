@@ -53,6 +53,7 @@ import showHomePageCmd from "./HomePageCmd";
 import newRemoteConnectionCmd from "./connection/NewConnectionCmd";
 import CWExtensionContext from "../CWExtensionContext";
 import diagnosticsCmd from "./DiagnosticsCmd";
+import linkProjectCmd from "./project/LinkProjectCmd";
 
 export function createCommands(): vscode.Disposable[] {
 
@@ -125,6 +126,7 @@ export function createCommands(): vscode.Disposable[] {
         registerProjectCommand(Commands.DISABLE_PROJECT, toggleEnablementCmd, [], ProjectState.getAppStateSet("enabled")),
         registerProjectCommand(Commands.REMOVE_PROJECT, removeProjectCmd, []),
         registerProjectCommand(Commands.CHANGE_PROJECT_CONNECTION, changeProjectConnectionCmd, []),
+        registerProjectCommand(Commands.LINK_PROJECT, linkProjectCmd, [], ProjectState.getAppStateSet("enabled")),
 
         registerProjectCommand(Commands.OPEN_APP_MONITOR, openMetricsDashboardCmd, [], ProjectState.getAppStateSet("started-starting")),
         registerProjectCommand(Commands.OPEN_PERF_DASHBOARD, openPerformanceDashboard, [], ProjectState.getAppStateSet("started-starting")),

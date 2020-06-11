@@ -19,7 +19,6 @@ import { CodewindStates } from "../connection/local/CodewindStates";
 import MCUtil from "../../MCUtil";
 import Constants from "../../constants/Constants";
 import CLIWrapper from "./CLIWrapper";
-import Commands from "../../constants/Commands";
 import LocalCodewindManager from "../connection/local/LocalCodewindManager";
 import { CLILifecycleCommand, CLILifecycleCommands } from "./CLILifecycleCommands";
 import { CLICommandRunner } from "./CLICommandRunner";
@@ -233,7 +232,7 @@ export namespace CLILifecycleWrapper {
         Log.i("Installing Codewind");
 
         const installAffirmBtn = Translator.t(STRING_NS, "installAffirmBtn");
-        const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
+        const moreInfoBtn = Translator.t(StringNamespaces.ACTIONS, "moreInfoBtn");
 
         let response;
         if (!promptForInstall || MCUtil.isTestEnv()) {
@@ -325,8 +324,7 @@ export namespace CLILifecycleWrapper {
     }
 
     function onMoreInfo(): void {
-        const moreInfoUrl = CWDocs.INSTALL_INFO;
-        vscode.commands.executeCommand(Commands.VSC_OPEN, moreInfoUrl);
+        CWDocs.INSTALL_INFO.open();
     }
 
     function getTag(): string {
@@ -373,7 +371,7 @@ export namespace CLILifecycleWrapper {
             vscode.window.showInformationMessage(`Performing codewind-workspace migration...`, learnMoreBtn)
             .then((res) => {
                 if (res === learnMoreBtn) {
-                    vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.WORKSPACE_NEWS.uri);
+                    CWDocs.WORKSPACE_NEWS.open();
                 }
             });
 

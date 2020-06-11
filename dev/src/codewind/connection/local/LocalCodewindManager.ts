@@ -20,7 +20,6 @@ import { CLILifecycleWrapper } from "../../cli/CLILifecycleWrapper";
 import CodewindEventListener from "../CodewindEventListener";
 import ConnectionManager from "../ConnectionManager";
 import { getOcticon, Octicons } from "../../../constants/CWImages";
-import Commands from "../../../constants/Commands";
 import Requester from "../../Requester";
 import CWDocs from "../../../constants/CWDocs";
 import CWExtensionContext from "../../../CWExtensionContext";
@@ -220,7 +219,7 @@ export default class LocalCodewindManager {
         showMsgFunc(msg, helpBtn)
         .then((res) => {
             if (res === helpBtn) {
-                vscode.commands.executeCommand(Commands.VSC_OPEN, CWDocs.CHE_INSTALL.uri);
+                CWDocs.CHE_INSTALL.open();
             }
         });
     }

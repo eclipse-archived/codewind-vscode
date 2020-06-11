@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import { StartModes } from "./project/ProjectCapabilities";
+
 ///// This file declares types for request/response bodies when communicating with the Codewind server, or with cwctl.
 
 /**
@@ -158,6 +160,14 @@ export interface PushRegistryResponse {
 
 ///// Project /////
 
+export interface ProjectLink {
+    // This is the other project's data; that is, projectName's projectURL is exposed in this project's environment in envName
+    readonly projectID: string;
+    readonly projectName: string;
+    readonly envName: string;
+    // projectURL: string;
+}
+
 /**
  * Project data as
  * - returned by /api/v1/projects
@@ -195,7 +205,7 @@ export interface PFEProjectData {
     readonly containerId?: string;
     readonly podName?: string;
     readonly namespace?: string;
-    readonly startMode?: string;
+    readonly startMode?: StartModes;
     readonly appBaseURL?: string;
     readonly logs?: object;                  // only checked for existence
     readonly containerAppRoot?: string;
@@ -207,6 +217,9 @@ export interface PFEProjectData {
     readonly metricsDashboard?: MetricsDashboardStatus;
     readonly perfDashboardPath?: string | null;
     readonly injection?: MetricsInjectionStatus;
+    readonly links?: {
+        readonly _links: ProjectLink[]
+    }
 }
 
 export interface MetricsDashboardStatus {

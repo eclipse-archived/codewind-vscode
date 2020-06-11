@@ -103,6 +103,7 @@ namespace SocketEvents {
         PROJECT_BOUND = "projectBind",
         REGISTRY_STATUS = "imagePushRegistryStatus",
         MISSING_LOCAL_DIR = "missingLocalDir",
+        PROJECT_LINK = "projectLink"
     }
 }
 

@@ -102,6 +102,7 @@ export default class MCSocket implements vscode.Disposable {
             .on(SocketEvents.Types.LOGS_LIST_CHANGED,       this.onLogsListChanged)
             .on(SocketEvents.Types.REGISTRY_STATUS,         this.onPushRegistryStatus)
             .on(SocketEvents.Types.MISSING_LOCAL_DIR,       this.onMissingLocalDir)
+            .on(SocketEvents.Types.PROJECT_LINK,            this.onProjectLink)
             ;
     }
 
@@ -294,6 +295,15 @@ export default class MCSocket implements vscode.Disposable {
         }
         catch (err) {
             Log.e(`Error deleting project after local dir removed`, err);
+        }
+    }
+
+    private readonly onProjectLink = async (payload: { projectID: string, name: string, status: string, error: string | null }): Promise<void> => {
+        Log.d(`Link event for ${payload.name}`, payload);
+        if (payload.error != null) {
+            const errMsg = `Error linking ${payload.name}`;
+            Log.e(errMsg, payload.error);
+            vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(payload.error)}`);
         }
     }
 

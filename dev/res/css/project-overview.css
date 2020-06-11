@@ -1,10 +1,8 @@
 body {
-    max-width: 800px;
-    min-width: 600px;
-    padding-left: 1%;
-    padding-right: 1%;
-    padding-top: 1%;
-    --section-side-margin: 1em;
+    /* max-width: 800px; */
+    /* min-width: 600px; */
+    width: 800px;
+    --section-spacing: 1em;
 }
 
 #btns-section {
@@ -26,18 +24,11 @@ body {
     margin-left: 1em;
 }
 
-.tab-btn {
-    min-width: 15ch;
-    margin-right: 0.25em;
-    padding-left: 0.5em;
-    padding-bottom: 0.5em;
-}
-
 .section {
-    width: calc(100% - 0.5em);
+    width: calc(100% - var(--section-spacing));
     border-bottom: var(--section-separator);
-    padding-left: var(--section-side-margin);
-    padding-bottom: .5em;
+    padding-left: var(--section-spacing);
+    padding-bottom: var(--section-spacing);
 }
 
 .section-header {
@@ -45,8 +36,8 @@ body {
     display: flex;
     background-color: var(--vscode-activityBar-background);
     /* background-color: var(--welcomePage-tileBackground); */
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+    margin-top: var(--section-spacing);
+    margin-bottom: var(--section-spacing);
     padding-top: 0.6em;
     padding-bottom: 0.6em;
 }
@@ -54,7 +45,7 @@ body {
 .section-header h3 {
     padding: 0;
     margin: 0;
-    margin-left: var(--section-side-margin);
+    margin-left: var(--section-spacing);
 
     display: flex;
     align-items: center;
@@ -62,7 +53,7 @@ body {
 
 .section-header-right {
     margin-left: auto;
-    margin-right: var(--section-side-margin);
+    margin-right: var(--section-spacing);
     display: flex;
 }
 
@@ -79,25 +70,27 @@ body {
     min-height: 1.25em;
 }
 
-#about-project-settings {
+.header-more-info {
     margin-left: auto;
     margin-right: 1em;
+    display: flex;
+    align-items: center;
 }
 
-table {
+.info-table {
     table-layout: auto;
     width: 100%;
-    border-spacing: 0 0.5em;
+    border-spacing: 0 var(--section-spacing);
 }
 
-td {
+.info-table td {
     padding: 0;
     text-align: left;
     white-space: nowrap;
     width: 100%;
 }
 
-.info-label {
+.info-table .info-label {
     font-weight: bold;
     padding-right: 1em;
 
@@ -112,6 +105,8 @@ td {
 
 .btn-cell {
     width: 1%;
+    /* display: inline-flex; */
+    /* align-items: center; */
 }
 
 .btn-cell input[type="image"] {
@@ -119,6 +114,7 @@ td {
     margin: 0;
     padding: 0;
     margin-left: 1em;
+    vertical-align: middle;
 }
 
 #manage-logs-btn {
@@ -131,10 +127,52 @@ td {
     height: 1.5em;
 }
 
-#bottom-section {
-    margin-top: 2em;
+/* Links page */
+
+.link-table {
+    width: 100%;
 }
 
-#bottom-section > .btn {
-    margin-right: 1.5em;
+.link-table-header {
+    margin-bottom: 1em;
+    display: flex;
+    align-items: center;
+}
+
+.link-table-header-text {
+    padding-right: 2em;
+}
+
+#create-link-btn {
+    margin-left: auto;
+}
+
+.link-table {
+    border-collapse: collapse;
+}
+
+.link-table tr {
+    border-bottom: 1px solid #444;
+}
+
+.link-table td {
+    text-align: center;
+    padding-top: 1em;
+    padding-bottom: 1em;
+}
+
+#name-col {
+    width: 64ch;
+}
+
+#env-var-col {
+    width: 64ch;
+}
+
+.btn-col {
+    width: 3em;
+}
+
+thead td {
+    font-weight: bold;
 }

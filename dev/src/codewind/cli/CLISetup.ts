@@ -225,7 +225,7 @@ namespace CLISetup {
                     // swallow the error, it will be thrown below too.
                 }
             });
-        }, 2000);
+        }, 5000);
 
         let latestCLIProperties;
         try {

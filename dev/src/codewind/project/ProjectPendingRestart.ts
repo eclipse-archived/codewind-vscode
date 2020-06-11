@@ -67,7 +67,7 @@ export default class ProjectPendingRestart {
     constructor(
         private readonly project: Project,
         private readonly startMode: StartModes,
-        timeoutMs: number = 180 * 1000,
+        private readonly isLinkRestart: boolean,
     ) {
         Log.d(`${project.name}: New pendingRestart into ${startMode} mode`);
 
@@ -78,6 +78,7 @@ export default class ProjectPendingRestart {
             this.resolveRestartEvent = resolve_;
         });
 
+        const timeoutMs = 180 * 1000;
         // Fails the restart when the timeout expires
         this.timeoutID = setTimeout(() => {
             const failReason = Translator.t(STRING_NS, "restartFailedReasonTimeout", { timeoutS: Math.round(timeoutMs / 1000) });
@@ -85,10 +86,18 @@ export default class ProjectPendingRestart {
             this.fulfill(false, failReason);
         }, timeoutMs);
 
-        const restartMsg = Translator.t(STRING_NS, "restartingStatusMsg", {
-            projectName: project.name,
-            startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode)
-        });
+        let restartMsg;
+        if (isLinkRestart) {
+            restartMsg = Translator.t(STRING_NS, "restartingStatusLinkMsg", {
+                projectName: project.name,
+            });
+        }
+        else {
+            restartMsg = Translator.t(STRING_NS, "restartingStatusMsg", {
+                projectName: project.name,
+                startMode: ProjectCapabilities.getUserFriendlyStartMode(startMode)
+            });
+        }
 
         vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -144,7 +153,7 @@ export default class ProjectPendingRestart {
             // The restart failed
             this.fulfill(success, error);
         }
-        else if (this.isDebugRestart) {
+        else if (this.isDebugRestart && !this.isLinkRestart) {
             try {
                 Log.d("Attach debugger runnning as part of a restart");
                 // Intermittently for restarting Microprofile projects, the debugger will try to connect too soon,
@@ -212,9 +221,17 @@ export default class ProjectPendingRestart {
         this.resolve();
         clearTimeout(this.timeoutID);
         if (success) {
-            const successMsg = Translator.t(STRING_NS, "restartSuccess",
-                { projectName: this.project.name, startMode: ProjectCapabilities.getUserFriendlyStartMode(this.startMode) }
-            );
+            let successMsg;
+            if (this.isLinkRestart) {
+                successMsg = Translator.t(STRING_NS, "restartLinkSuccess", {
+                    projectName: this.project.name
+                });
+            }
+            else {
+                successMsg = Translator.t(STRING_NS, "restartSuccess", {
+                    projectName: this.project.name, startMode: ProjectCapabilities.getUserFriendlyStartMode(this.startMode)
+                });
+            }
 
             Log.i(successMsg);
             vscode.window.showInformationMessage(successMsg);

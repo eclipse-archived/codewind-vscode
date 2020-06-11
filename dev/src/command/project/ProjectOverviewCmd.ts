@@ -17,7 +17,7 @@ import Log from "../../Logger";
 import ProjectOverviewPageWrapper from "../webview/ProjectOverviewPageWrapper";
 import MCUtil from "../../MCUtil";
 
-export default async function projectOverviewCmd(project: Project): Promise<void> {
+export default async function projectOverviewCmd(project: Project, startAtLinkTab: boolean = false): Promise<void> {
     try {
         if (project.overviewPage) {
             project.overviewPage.reveal();
@@ -25,7 +25,7 @@ export default async function projectOverviewCmd(project: Project): Promise<void
         }
 
         // tslint:disable-next-line: no-unused-expression
-        new ProjectOverviewPageWrapper(project);
+        new ProjectOverviewPageWrapper(project, startAtLinkTab);
     }
     catch (err) {
         const errMsg = `Error opening Project Info page for ${project.name}:`;

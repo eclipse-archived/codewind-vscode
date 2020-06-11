@@ -289,7 +289,7 @@ export namespace CLICommandRunner {
         }
 
         if (connectionID) {
-            args.push("conid", connectionID);
+            args.push("--conid", connectionID);
         }
         else {
             args.push("--all");
@@ -308,5 +308,31 @@ export namespace CLICommandRunner {
 
         Log.i(`Captured diagnostics to ${result.outputdir}`);
         return result;
+    }
+
+    export async function addLink(projectID: string, targetProjectID: string, envName: string): Promise<void> {
+        await CLIWrapper.cwctlExec(CLICommands.PROJECT.LINK, [
+            "create",
+            "--id", projectID,
+            "--targetID", targetProjectID,
+            "--env", envName
+        ]);
+    }
+
+    export async function renameLink(projectID: string, oldEnvName: string, newEnvName: string): Promise<void> {
+        await CLIWrapper.cwctlExec(CLICommands.PROJECT.LINK, [
+            "rename",
+            "--id", projectID,
+            "--env", oldEnvName,
+            "--newEnv", newEnvName
+        ]);
+    }
+
+    export async function removeLink(projectID: string, envName: string): Promise<void> {
+        await CLIWrapper.cwctlExec(CLICommands.PROJECT.LINK, [
+            "remove",
+            "--id", projectID,
+            "--env", envName
+        ]);
     }
 }
