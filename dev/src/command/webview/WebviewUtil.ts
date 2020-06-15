@@ -130,10 +130,13 @@ namespace WebviewUtil {
     export const ATTR_ID = "data-id";
     export const ATTR_ENABLED = "data-enabled";
     export const TOGGLE_BTN_CLASS = "toggle-btn";
+    export const ATTR_TOGGLE_NO_OP = "no-op";
 
-    export function getToggleInput(rp: WebviewResourceProvider, enabled: boolean, title: string, idAttrValue: string): string {
-        return `<input type="image" title="${title}" alt="${title}" ${ATTR_ID}="${idAttrValue}" ${ATTR_ENABLED}="${enabled}"
-            class="${TOGGLE_BTN_CLASS} btn" src="${getStatusToggleIconSrc(rp, enabled)}" onclick="onToggle(this)"
+    export function getToggleInput(rp: WebviewResourceProvider, toggledOn: boolean, title: string, idAttrValue: string,
+        blocked: boolean = false): string {
+
+        return `<input type="image" title="${title}" alt="${title}" ${ATTR_ID}="${idAttrValue}" ${ATTR_ENABLED}="${toggledOn}"
+            class="${TOGGLE_BTN_CLASS} btn ${blocked ? "not-allowed" : ""}" src="${getStatusToggleIconSrc(rp, toggledOn)}" onclick="onToggle(this)"
         />`;
     }
 

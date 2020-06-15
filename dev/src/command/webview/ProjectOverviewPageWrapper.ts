@@ -43,6 +43,11 @@ export enum ProjectOverviewWVMessages {
     REMOVE_LINK = "removeLink",
 }
 
+interface EditLinkMsgData {
+    envName: string;
+    targetProjectName: string;
+}
+
 export default class ProjectOverviewPageWrapper extends WebviewWrapper {
 
     constructor(
@@ -136,7 +141,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 break;
             }
             case ProjectOverviewWVMessages.EDIT_LINK: {
-                const renameLinkData = msg.data as { envName: string, targetProjectName: string };
+                const renameLinkData = msg.data as EditLinkMsgData;
                 try {
                     await renameProjectLink(this.project, renameLinkData.targetProjectName, renameLinkData.envName);
                 }
@@ -148,7 +153,19 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 break;
             }
             case ProjectOverviewWVMessages.REMOVE_LINK: {
-                const removeLinkData = msg.data as { envName: string };
+                const removeLinkData = msg.data as EditLinkMsgData;
+
+                const yesBtn = "Remove Link";
+                const res = await vscode.window.showWarningMessage(
+                    `Are you sure you want to remove ${removeLinkData.envName} from ${this.project.name}?`,
+                    { modal: true },
+                    yesBtn
+                );
+
+                if (res !== yesBtn) {
+                    return;
+                }
+
                 try {
                     removeProjectLink(this.project, removeLinkData.envName);
                 }

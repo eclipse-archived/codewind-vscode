@@ -49,6 +49,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
     <div id="btns-section">
         <input type="button" value="Build"
             class="btn btn-prominent ${project.state.isEnabled ? "" : "btn-disabled"}"
+            title="${project.state.isEnabled ? "Build" : "Enable the project to build it"}"
             onclick="${project.state.isEnabled ? `sendMsg('${ProjectOverviewWVMessages.BUILD}')` : ""}"
         />
 
@@ -56,10 +57,12 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             <input id="enablement-btn" class="btn btn-prominent" type="button"
                 onclick="sendMsg('${ProjectOverviewWVMessages.TOGGLE_ENABLEMENT}')"
                 value="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"
+                title="${(project.state.isEnabled ? "Disable" : "Enable") + " project"}"
             />
             <input class="btn btn-red" type="button"
                 onclick="sendMsg('${ProjectOverviewWVMessages.UNBIND}')"
                 value="Remove project"
+                title="Remove project"
             />
         </div>
     </div>
@@ -93,7 +96,10 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             <div class="section-header-right">
                 <div class="section-header-toggle">
                     Auto Build
-                    ${WebviewUtil.getToggleInput(rp, project.autoBuildEnabled, "Toggle Auto Build", ATTR_AUTOBUILD_TOGGLE)}
+                    ${WebviewUtil.getToggleInput(rp, project.autoBuildEnabled,
+                        project.state.isEnabled ? "Toggle auto build" : "Enable the project before toggling auto build",
+                        project.state.isEnabled ? ATTR_AUTOBUILD_TOGGLE : WebviewUtil.ATTR_TOGGLE_NO_OP, !project.state.isEnabled
+                    )}
                 </div>
                 ${project.canInjectMetrics ?
                     `<div class="section-header-toggle">
@@ -167,7 +173,7 @@ export function getProjectOverviewHtml(rp: WebviewResourceProvider, project: Pro
             else if (btnID === "${ATTR_INJECTION_TOGGLE}") {
                 sendMsg("${ProjectOverviewWVMessages.TOGGLE_INJECT_METRICS}");
             }
-            else {
+            else if (btnID !== "${WebviewUtil.ATTR_TOGGLE_NO_OP}") {
                 console.error("Unrecognized button ID was toggled: " + btnID);
             }
         }
@@ -482,7 +488,7 @@ function buildLinkTable(rp: WebviewResourceProvider, project: Project, _toOrFrom
         </tr>`;
     }
     else {
-        tbody = links.map((link) => buildLinkRow(rp, link)).join("\n");
+        tbody = links.map((link) => buildLinkRow(rp, project, link)).join("\n");
     }
 
     return `
@@ -508,7 +514,20 @@ function buildLinkTable(rp: WebviewResourceProvider, project: Project, _toOrFrom
     `
 }
 
-function buildLinkRow(rp: WebviewResourceProvider, link: ProjectLink): string {
+function buildLinkRow(rp: WebviewResourceProvider, project: Project, link: ProjectLink): string {
+    const areBtnsEnabled = !project.isRestarting;
+    const btnClass = areBtnsEnabled ? "" : "not-allowed";
+
+    const titleSuffix = areBtnsEnabled ? "" : " - Wait for the project to finish restarting before modifying links.";
+    const onClickMsgData = `{ envName: '${link.envName}', targetProjectName: '${link.projectName}' }`;
+    const editOnClick = areBtnsEnabled ?
+        `sendMsg('${ProjectOverviewWVMessages.EDIT_LINK}', ${onClickMsgData})`
+        : "";
+
+    const removeOnClick = areBtnsEnabled ?
+        `sendMsg('${ProjectOverviewWVMessages.REMOVE_LINK}', ${onClickMsgData})`
+        : "";
+
     return `<tr>
         <td>
             <a onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_PROJECT}', '${link.projectID}')">
@@ -520,13 +539,13 @@ function buildLinkRow(rp: WebviewResourceProvider, link: ProjectLink): string {
             ${link.envName}
         </td>
         <td class="btn-cell">
-            <input type="image" title="Edit Link" src="${rp.getImage(ThemedImages.Edit)}"
-                onclick="sendMsg('${ProjectOverviewWVMessages.EDIT_LINK}', { envName: '${link.envName}', targetProjectName: '${link.projectName}' })"
+            <input type="image" title="Edit Link${titleSuffix}" src="${rp.getImage(ThemedImages.Edit)}" class="${btnClass}"
+                onclick="${editOnClick}"
             />
         </td>
         <td class="btn-cell">
-            <input type="image" title="Remove Link" src="${rp.getImage(ThemedImages.Trash)}"
-                onclick="sendMsg('${ProjectOverviewWVMessages.REMOVE_LINK}', { envName: '${link.envName}' })"
+            <input type="image" title="Remove Link${titleSuffix}" src="${rp.getImage(ThemedImages.Trash)}" class="${btnClass}"
+                onclick="${removeOnClick}"
             />
         </td>
     </tr>`

@@ -92,6 +92,14 @@ export class CWImage {
         }
         return this._paths;
     }
+
+    public get dark(): Uri {
+        return this.paths.dark;
+    }
+
+    public get light(): Uri {
+        return this.paths.light;
+    }
 }
 
 export const ThemedImages = {

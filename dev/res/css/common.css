@@ -60,10 +60,6 @@ tr {
     padding-bottom: 0.5em;
 }
 
-input[type="checkbox"]:disabled {
-    cursor: not-allowed;
-}
-
 .btn, button {
     font-weight: 400;
 }
@@ -110,7 +106,7 @@ a {
     cursor: pointer;
 }
 
-.btn:focus, a:focus, input[type="checkbox"]:focus, input[type="image"]:focus, .clickable:focus {
+.btn:focus, a:focus, input[type="checkbox"]:focus:not(.not-allowed), input[type="image"]:focus:not(.not-allowed), .clickable:focus {
     text-decoration: underline;
     cursor: pointer;
     outline: var(--vscode-button-background) solid 1px;
