@@ -16,7 +16,7 @@ body {
     margin-bottom: 1em;
 }
 
-#toolbar > * > .btn {
+#toolbar .btn {
     margin-left: 1.5em;
 }
 

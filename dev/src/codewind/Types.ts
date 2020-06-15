@@ -9,6 +9,8 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
+import * as vscode from "vscode";
+
 import { StartModes } from "./project/ProjectCapabilities";
 
 ///// This file declares types for request/response bodies when communicating with the Codewind server, or with cwctl.
@@ -138,9 +140,11 @@ export interface SourceEnablement {
 /**
  * Represents a template/stack.
  */
-export interface CWTemplateData {
+export interface CWTemplateData extends vscode.QuickPickItem {
     label: string;
     description: string;
+    detail: string;
+
     url: string;
     language: string;
     projectType: string;

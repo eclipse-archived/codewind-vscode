@@ -64,6 +64,11 @@ export default class ProjectPendingRestart {
     // Like resolve above, also set in the constructor. Will never be undefined.
     private resolveRestartEvent: (() => void) | undefined;
 
+    /**
+     * Projects that shouldn't be restartable can still be restarted as part of a link operation. In that case, this will be false.
+     */
+    private readonly projectCanRestart: boolean;
+
     constructor(
         private readonly project: Project,
         private readonly startMode: StartModes,
@@ -73,6 +78,12 @@ export default class ProjectPendingRestart {
 
         this.isDebugRestart = ProjectCapabilities.isDebugMode(startMode);
         this.expectedStates = this.isDebugRestart ? RESTART_STATES_DEBUG : RESTART_STATES_RUN;
+
+        this.projectCanRestart = !isLinkRestart && project.capabilities != null && project.capabilities.supportsRestart;
+        if (!this.projectCanRestart && this.expectedStates[0] === ProjectState.AppStates.STOPPED) {
+            // projects that cannot normally restart will not go into the stopped state.
+            this.expectedStates.splice(0, 1);
+        }
 
         this.restartEventPromise = new Promise<void>((resolve_) => {
             this.resolveRestartEvent = resolve_;
@@ -124,10 +135,12 @@ export default class ProjectPendingRestart {
             if (this.nextStateIndex === this.expectedStates.length) {
                 Log.d("Reached restart terminal state");
 
-                Log.d(`Now waiting for restart event`);
-                // Might already be resolved depending on timing
-                await this.restartEventPromise;
-                Log.d("Done waiting for restart event");
+                if (this.projectCanRestart) {
+                    Log.d(`Now waiting for restart event`);
+                    // Might already be resolved depending on timing
+                    await this.restartEventPromise;
+                    Log.d("Done waiting for restart event");
+                }
 
                 // The restart was successful
                 this.fulfill(true);

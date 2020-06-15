@@ -20,14 +20,18 @@ import { CLICommandRunner } from "../../codewind/cli/CLICommandRunner";
 import Translator from "../../constants/strings/Translator";
 import StringNamespaces from "../../constants/strings/StringNamespaces";
 import projectOverviewCmd from "./ProjectOverviewCmd";
+import InputUtil from "../../InputUtil";
 
 const LINK_WIZARD_TITLE = "Link Project";
 const LINK_WIZARD_TOTAL_STEPS = 2;
-const MORE_INFO_BTN = {
-    iconPath: ThemedImages.Info,
-    tooltip: `More Info`
-};
-const BACK_BTN_MSG = "Back button";
+
+function getMoreInfoBtn(): InputUtil.InputUtilButton {
+    return {
+        iconPath: ThemedImages.Info,
+        tooltip: `More Info`,
+        onClick: onDidClickMoreInfo,
+    };
+}
 
 export default async function linkProjectCmd(project: Project, launchedThroughOverview: boolean = false): Promise<void> {
 
@@ -52,7 +56,7 @@ export default async function linkProjectCmd(project: Project, launchedThroughOv
             }
         }
         catch (err) {
-            if (err !== BACK_BTN_MSG) {
+            if (err !== InputUtil.BTN_BACK) {
                 throw err;
             }
         }
@@ -124,6 +128,10 @@ function beforeModifyingLink(project: Project): boolean {
 }
 
 async function afterModifyingLink(project: Project): Promise<void> {
+    if (!project.state.isEnabled) {
+        return;
+    }
+
     try {
         await project.doRestart(project.startMode, true);
     }
@@ -139,87 +147,44 @@ async function getLinkTargetProject(firstProject: Project): Promise<Project | un
         return undefined;
     }
 
-    const otherProjectQP = vscode.window.createQuickPick<Project>();
-    otherProjectQP.ignoreFocusOut = true;
-    otherProjectQP.buttons = [ MORE_INFO_BTN ];
-    otherProjectQP.items = thisConnectionOtherProjects;
-    otherProjectQP.placeholder = `Select the project you want ${firstProject.name} to link to.`;
+    const otherProjectQPOptions: InputUtil.QuickPickOptions<Project> = {
+        items: thisConnectionOtherProjects,
+        buttons: [ getMoreInfoBtn() ],
+        placeholder: `Select the project you want ${firstProject.name} to link to.`,
+        stepNum: {
+            step: 1,
+            totalSteps: LINK_WIZARD_TOTAL_STEPS,
+        },
+        title: LINK_WIZARD_TITLE
+    };
 
-    otherProjectQP.step = 1;
-    otherProjectQP.totalSteps = LINK_WIZARD_TOTAL_STEPS;
-    otherProjectQP.title = LINK_WIZARD_TITLE;
-
-    otherProjectQP.onDidTriggerButton((_btn) => {
-        // only button
-        onDidClickMoreInfo();
-    });
-
-    return new Promise<Project | undefined>((resolve) => {
-        otherProjectQP.onDidChangeSelection((selected) => {
-            resolve(selected[0]);
-        });
-        otherProjectQP.onDidHide(() => {
-            resolve(undefined);
-        });
-
-        otherProjectQP.show();
-    })
-    .finally(() => {
-        otherProjectQP.dispose();
-    });
+    return InputUtil.showQuickPick(otherProjectQPOptions);
 }
 
 async function getLinkEnvVar(firstProject: Project, linkProjectName: string, isInWizard: boolean): Promise<string | undefined> {
-    const envVarIB = vscode.window.createInputBox();
-    envVarIB.ignoreFocusOut = true;
+    const envVarInputOptions: InputUtil.InputBoxOptions = {
+        buttons: [ getMoreInfoBtn() ],
+        placeholder: (MCUtil.slug(linkProjectName) + "_HOST")
+            .replace(/-/g, "_")
+            .toUpperCase(),
+        prompt: `Enter a name for the environment variable that you want to expose in ${firstProject}. ` +
+            `This variable contains the domain (hostname) of ${linkProjectName}.`,
+        validator: validateEnvVar
+    };
 
-    const btns: vscode.QuickInputButton[] = [ MORE_INFO_BTN ];
     if (isInWizard) {
-        btns.push(vscode.QuickInputButtons.Back);
-        envVarIB.step = 2;
-        envVarIB.totalSteps = LINK_WIZARD_TOTAL_STEPS;
-        envVarIB.title = LINK_WIZARD_TITLE;
+        envVarInputOptions.stepNum = {
+            step: 2,
+            totalSteps: LINK_WIZARD_TOTAL_STEPS
+        };
+        envVarInputOptions.title = LINK_WIZARD_TITLE;
+        envVarInputOptions.showBackBtn = true;
     }
     else {
-        envVarIB.title = "Rename Environment Variable";
+        envVarInputOptions.title = "Rename Environment Variable";
     }
-    envVarIB.buttons = btns;
 
-    envVarIB.placeholder = (MCUtil.slug(linkProjectName) + "_HOST")
-        .replace(/-/g, "_")
-        .toUpperCase();
-
-    envVarIB.prompt = `Enter a name for the environment variable that you want to expose in ${firstProject}. ` +
-        `This variable contains the domain (hostname) of ${linkProjectName}.`;
-
-    return new Promise<string | undefined>((resolve, reject) => {
-        envVarIB.onDidTriggerButton((btn) => {
-            if (btn.iconPath === MORE_INFO_BTN.iconPath) {
-                onDidClickMoreInfo();
-            }
-            else if (btn.iconPath === vscode.QuickInputButtons.Back.iconPath) {
-                return reject(BACK_BTN_MSG);
-            }
-        });
-
-        envVarIB.onDidChangeValue((value) => {
-            const errMsg = validateEnvVar(value);
-            envVarIB.validationMessage = errMsg;
-        });
-
-        envVarIB.onDidAccept(() => {
-            if (envVarIB.validationMessage) {
-                return;
-            }
-            resolve(envVarIB.value)
-        });
-        envVarIB.onDidHide(() => {
-            resolve(undefined);
-        });
-
-        envVarIB.show();
-    })
-    .finally(() => envVarIB.dispose());
+    return InputUtil.showInputBox(envVarInputOptions);
 }
 
 function onDidClickMoreInfo(): void {

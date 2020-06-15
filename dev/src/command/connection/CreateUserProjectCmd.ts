@@ -23,9 +23,9 @@ import SocketEvents from "../../codewind/connection/SocketEvents";
 import { ThemedImages } from "../../constants/CWImages";
 import { CWTemplateData } from "../../codewind/Types";
 import CWExtensionContext from "../../CWExtensionContext";
+import InputUtil from "../../InputUtil";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
-const BACK_BTN_MSG = "Back button";
 
 const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
@@ -83,7 +83,7 @@ export default async function createProjectCmd(connection: Connection): Promise<
                 }
             }
             catch (err) {
-                if (err !== BACK_BTN_MSG) {
+                if (err !== InputUtil.BTN_BACK) {
                     // unexpected error
                     throw err;
                 }
@@ -182,99 +182,34 @@ const MANAGE_SOURCES_QP_BTN = "Template Source Manager";
 
 async function promptForTemplate(connection: Connection): Promise<CWTemplateData | undefined> {
 
-    const qp = vscode.window.createQuickPick();
-    // busy and enabled have no effect in theia https://github.com/eclipse-theia/theia/issues/5059
-    qp.busy = true;
-    qp.enabled = false;
-    qp.placeholder = "Fetching available project templates...";
-    qp.buttons = [{
-        iconPath: ThemedImages.Edit.paths,
-        tooltip: MANAGE_SOURCES_QP_BTN,
-    }];
-
-    qp.matchOnDetail = true;
-    qp.canSelectMany = false;
-    qp.step = 1;
-    qp.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
-    qp.title = getWizardTitle(connection);
-    qp.ignoreFocusOut = true;
-
-    if (!CWExtensionContext.get().isTheia) {
-        // Theia quickpicks misbehave if the quickpick is shown before populating the items
-        // https://github.com/eclipse-theia/theia/issues/6221#issuecomment-533268856
-        // In VS Code, the items are populated after showing, so we can show the quickpick sooner, which looks better.
-        qp.show();
-    }
-
-    let templateQpis;
-    try {
-        templateQpis = await getTemplateQpis(connection);
-    }
-    catch (err) {
-        qp.dispose();
-        throw err;
-    }
-
-    if (templateQpis == null) {
-        // getTemplateQpis will have shown the error message
-        qp.dispose();
-        return undefined;
-    }
-
-    qp.items = templateQpis;
-    qp.placeholder = "Select the project type to create";
-    qp.busy = false;
-    qp.enabled = true;
-
-    if (CWExtensionContext.get().isTheia) {
-        // it wasn't shown above, so show it now
-        qp.show();
-    }
-
-    const qpiSelection = await new Promise<readonly vscode.QuickPickItem[] | undefined>((resolve) => {
-        qp.onDidTriggerButton((btn) => {
-            if (btn.tooltip === MANAGE_SOURCES_QP_BTN) {
-                manageSourcesCmd(connection);
-                resolve(undefined);
-            }
-        });
-
-        qp.onDidHide((_e) => {
-            resolve(undefined);
-        });
-
-        // it looks funny to use onDidChangeSelection instead of onDidAccept,
-        // but it behaves the same when there's just one item since we can only make one selection.
-        // this is a workaround for https://github.com/eclipse-theia/theia/issues/6221
-
-        // qp.onDidAccept(() => {
-        //     Log.d("onDidAccept, qp.selectedItems are", qp.selectedItems);
-        //     resolve(qp.selectedItems);
-        // });
-        qp.onDidChangeSelection((selection) => {
-            // Log.d("onDidChangeSelection, qp.selectedItems are", qp.selectedItems);
-            // Log.d("onDidChangeSelection, selection is ", selection);
-            resolve(selection);
-        });
-    })
-    .finally(() => qp.dispose());
-
-    // there are either 1 or 0 items selected because canSelectMany is false
-    if (qpiSelection == null || qpiSelection.length === 0 || qpiSelection[0] == null) {
-        return undefined;
-    }
-    const selected = qpiSelection[0];
-
-    // map the selected QPI back to the template it represents
-    const selectedProjectType = templateQpis.find((type) => selected.label === type.label);
-    if (selectedProjectType == null) {
-        // should never happen
-        throw new Error(`Could not find template ${selected.label}`);
-    }
-    return selectedProjectType;
+    return InputUtil.showQuickPick<CWTemplateData>({
+        items: {
+            fetchItems: async () => {
+                const templates = await getTemplateQpis(connection);
+                if (templates == null) {
+                    return [];
+                }
+                return templates;
+            },
+            fetchMsg: `Fetching project templates for ${connection.label}...`,
+        },
+        buttons: [{
+            iconPath: ThemedImages.Edit,
+            tooltip: MANAGE_SOURCES_QP_BTN,
+            closeOnClick: true,
+            onClick: () => manageSourcesCmd(connection)
+        }],
+        matchOnDetail: true,
+        placeholder: "Select the project type to create",
+        stepNum: {
+            step: 1,
+            totalSteps: CREATE_PROJECT_WIZARD_NO_STEPS,
+        },
+        title: getWizardTitle(connection),
+    });
 }
 
-async function getTemplateQpis(connection: Connection): Promise<(vscode.QuickPickItem & CWTemplateData)[] | undefined>  {
+async function getTemplateQpis(connection: Connection): Promise<CWTemplateData[] | undefined>  {
     const templates = await connection.enabledTemplates;
     // if there are multiple sources enabled, we append the source name to the template label to clarify where the template is from
     const areMultipleSourcesEnabled = new Set(templates.map((template) => template.source)).size > 1;
@@ -313,38 +248,17 @@ async function getTemplateQpis(connection: Connection): Promise<(vscode.QuickPic
 }
 
 async function promptForProjectName(connection: Connection, template: CWTemplateData): Promise<string | undefined> {
-    const projNamePlaceholder = `my-${template.language}-project`;
-    const projNamePrompt = `Enter a name for your new ${template.language} project`;
-
-    const ib = vscode.window.createInputBox();
-    ib.title = getWizardTitle(connection);
-    ib.step = 2;
-    ib.totalSteps = CREATE_PROJECT_WIZARD_NO_STEPS;
-    ib.buttons = [ vscode.QuickInputButtons.Back ];
-    ib.placeholder = projNamePlaceholder;
-    ib.prompt = projNamePrompt;
-    ib.ignoreFocusOut = true;
-
-    ib.onDidChangeValue((projName) => {
-        ib.validationMessage = validateProjectName(projName);
+    return InputUtil.showInputBox({
+        title: getWizardTitle(connection),
+        stepNum: {
+            step: 2,
+            totalSteps: CREATE_PROJECT_WIZARD_NO_STEPS,
+        },
+        showBackBtn: true,
+        placeholder: `my-${template.language}-project`,
+        prompt: `Enter a name for your new ${template.language} project`,
+        validator: validateProjectName,
     });
-
-    return new Promise<string | undefined>((resolve, reject) => {
-        ib.show();
-        ib.onDidHide((_e) => {
-            resolve(undefined);
-        });
-        ib.onDidAccept((_e) => {
-            if (!ib.validationMessage) {
-                resolve(ib.value);
-            }
-        });
-        ib.onDidTriggerButton((_btn) => {
-            // back button is the only button
-            reject(BACK_BTN_MSG);
-        });
-    })
-    .finally(() => ib.dispose());
 }
 
 /**

@@ -20,21 +20,17 @@ import MCUtil from "../../../MCUtil";
 
 namespace ImageRegistryWizard {
 
-    const newRegistryWizardSteps: InputUtil.InputStep[] = [
-        {
-            promptGenerator: () => `Enter the registry's base address (domain). Do not specify a namespace.`,
-            placeholder: `docker.io`,
-            // validator: RegistryUtils.validateAddress,
-        },
-        {
-            promptGenerator: (address) => `Enter the username for ${address}.`,
-        },
-        {
-            promptGenerator: (address, username) => `Enter the password or an API key for ${username} @ ${address}.`,
-            password: true,
-            allowEmpty: true,
-        },
-    ];
+    const newRegistryWizardSteps: InputUtil.InputBoxOptions[] = [{
+        promptGenerator: () => `Enter the registry's base address (domain). Do not specify a namespace.`,
+        placeholder: `docker.io`,
+        // validator: RegistryUtils.validateAddress,
+    }, {
+        promptGenerator: (address) => `Enter the username for ${address}.`,
+    }, {
+        promptGenerator: (address, username) => `Enter the password or an API key for ${username} @ ${address}.`,
+        password: true,
+        allowEmpty: true,
+    }];
 
     /**
      * Run the Add New Image Registry wizard.
