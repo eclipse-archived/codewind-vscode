@@ -77,17 +77,15 @@ namespace InputUtil {
             qp.placeholder = qpOptions.items.fetchMsg;
 
             try {
-                qpOptions.items.fetchItems()
-                .then((items) => {
-                    if (items.length === 0 || items == null) {
-                        Log.e(`No items to show in QuickPick with title ${qpOptions.title}`)
-                        qp.dispose();
-                    }
-                    qp.items = items;
-                    qp.busy = false;
-                    qp.enabled = true;
-                    qp.placeholder = qpOptions.placeholder;
-                });
+                const items = await qpOptions.items.fetchItems();
+                if (items.length === 0 || items == null) {
+                    Log.e(`No items to show in QuickPick with title ${qpOptions.title}`)
+                    qp.dispose();
+                }
+                qp.items = items;
+                qp.busy = false;
+                qp.enabled = true;
+                qp.placeholder = qpOptions.placeholder;
             }
             catch (err) {
                 qp.dispose();
