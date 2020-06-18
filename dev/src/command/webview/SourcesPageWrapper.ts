@@ -23,6 +23,7 @@ import getManageSourcesPage from "./pages/SourcesPage";
 import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import { SourceEnablement, TemplateSource } from "../../codewind/Types";
 import CWExtensionContext from "../../CWExtensionContext";
+import { HAS_SELECTED_SOURCE_KEY } from "../connection/CreateUserProjectCmd";
 
 export enum ManageSourcesWVMessages {
     ENABLE_DISABLE = "enableOrDisable",
@@ -45,6 +46,13 @@ export class SourcesPageWrapper extends WebviewWrapper {
     ) {
         super(getTitle(connection), ThemelessImages.Logo);
         connection.onDidOpenSourcesPage(this);
+
+        const extState = CWExtensionContext.get().globalState;
+        const hasSelectedSource = extState.get(HAS_SELECTED_SOURCE_KEY) as boolean;
+        if (!hasSelectedSource) {
+            extState.update(HAS_SELECTED_SOURCE_KEY, true);
+        }
+
         this.refresh();
     }
 
