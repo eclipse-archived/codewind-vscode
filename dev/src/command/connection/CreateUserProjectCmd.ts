@@ -27,7 +27,7 @@ import InputUtil from "../../InputUtil";
 
 const CREATE_PROJECT_WIZARD_NO_STEPS = 2;
 
-const HAS_SELECTED_SOURCE_KEY = "first-create-done";
+export const HAS_SELECTED_SOURCE_KEY = "first-create-done";
 
 export default async function createProjectCmd(connection: Connection): Promise<void> {
     if (!connection.isRemote) {
