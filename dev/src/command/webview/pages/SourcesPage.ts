@@ -44,7 +44,7 @@ export default function getManageSourcesPage(
                 Refresh<img alt="Refresh" src="${rp.getImage(ThemedImages.Refresh)}"/>
             </div>
             <div tabindex="0" id="add-btn" class="btn btn-prominent" onclick="sendMsg('${CommonWVMessages.ADD_NEW}')">
-                Add New<img alt="Add New" src="${rp.getImage(ThemedImages.New, "dark")}"/>
+                Add New Source<img alt="Add New Source" src="${rp.getImage(ThemedImages.New, "dark")}"/>
             </div>
         </div>
     </div>
@@ -96,7 +96,7 @@ export default function getManageSourcesPage(
             };
         }
 
-        function deleteRepo(repoDeleteBtn) {
+        function deleteSource(repoDeleteBtn) {
             const repoID = repoDeleteBtn.getAttribute("${WebviewUtil.ATTR_ID}");
             sendMsg("${CommonWVMessages.DELETE}", repoID);
         }
@@ -120,19 +120,23 @@ function buildTemplateTable(rp: WebviewResourceProvider, sources: TemplateSource
     return `
     <table>
         <colgroup>
+            <col class="btn-col"/>      <!-- Secured icon column -->
             <col id="name-col"/>
             <col id="style-col"/>
             <col id="descr-col"/>
-            <col id="status-col"/>
-            <col class="btn-col"/>
+            <col id="enabled-col"/>
+            <!--col class="btn-col"/-->      <!-- Edit buttons column -->
+            <col class="btn-col"/>      <!-- Delete buttons column -->
         </colgroup>
         <thead>
             <tr>
+                <td></td>
                 <td>Name</td>
                 <td>Style</td>
                 <td>Description</td>
-                <td>Enabled</td>
-                <td></td>        <!-- Delete buttons column -->
+                <td id="enabled-thead">Enabled</td>
+                <!--td></td-->
+                <td></td>
             </tr>
         </thead>
         <tbody>
@@ -149,15 +153,16 @@ function buildRow(rp: WebviewResourceProvider, source: TemplateSource): string {
 
     return `
     <tr>
+        ${getSecuredTD(rp, source.authentication)}
         <td class="name-cell">
-            <a title="${source.url}"
+            <a title="${source.url} (Right click to copy)"
                 onclick="sendMsg('${CommonWVMessages.OPEN_WEBLINK}', '${source.url}')"
                 oncontextmenu="copy(event, '${source.url}', 'source URL')"
             >
                 ${name}
             </a>
         </td>
-        <td class="style-cell">${source.projectStyles.join(", ")}</td-->
+        <td class="style-cell">${source.projectStyles.join(", ")}</td>
         <td class="descr-cell">${descr}</td>
         <td class="btn-cell">${WebviewUtil.getToggleInput(rp, source.enabled, toggleTitle, source.url)}</td>
         ${getDeleteBtnTD(rp, source)}
@@ -169,19 +174,55 @@ function getStatusToggleAlt(enabled: boolean): string {
     return enabled ? `Disable source` : `Enable source`;
 }
 
-
-function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): string {
-    let title = "Delete";
-    let deleteBtnClass = "btn";
-    let onClick = "deleteRepo(this)";
-    if (source.protected) {
-        deleteBtnClass += " not-allowed";
-        title = "This source cannot be deleted.";
-        onClick = "";
+function getSecuredTD(rp: WebviewResourceProvider, auth: { username?: string } | undefined): string {
+    let securedImg: string;
+    if (auth == null) {
+        securedImg = "";
+    }
+    else {
+        let title: string;
+        if (auth.username) {
+            title = `Authenticated as ${auth.username}`
+        }
+        else {
+            title = `Authenticated with Access Token`;
+        }
+        securedImg = `<img alt="Private Source" title="${title}" src="${rp.getImage(ThemedImages.Locked)}"/>`;
     }
 
-    const deleteBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Delete" title="${title}"
-        onclick="${onClick}" class="${deleteBtnClass}" src="${rp.getImage(ThemedImages.Trash)}"/>`;
+    return `
+    <td class="btn-cell">
+        ${securedImg}
+    </td>
+    `;
+}
+
+/*
+function getEditBtnTD(rp: WebviewResourceProvider, source: TemplateSource): string {
+    let editBtn: string;
+    if (source.protected) {
+        editBtn = "";
+    }
+    else {
+        editBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Edit" title="Edit"
+            onclick="editSource(this)" class="btn" src="${rp.getImage(ThemedImages.Edit)}"/>`;
+    }
+
+    return `
+    <td class="btn-cell">
+        ${editBtn}
+    </td>`;
+}*/
+
+function getDeleteBtnTD(rp: WebviewResourceProvider, source: TemplateSource): string {
+    let deleteBtn: string;
+    if (source.protected) {
+        deleteBtn = "";
+    }
+    else {
+        deleteBtn = `<input type="image" ${WebviewUtil.ATTR_ID}="${source.url}" alt="Delete" title="Delete"
+            onclick="deleteSource(this)" class="btn" src="${rp.getImage(ThemedImages.Trash)}"/>`;
+    }
 
     return `
     <td class="btn-cell">

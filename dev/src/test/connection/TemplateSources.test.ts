@@ -150,7 +150,9 @@ describe(`Template sources`, function() {
         const oldTemplates = await connection.enabledTemplates;
         Log.t(`Before adding a new template source, there are ${oldSources.length} sources and ${oldTemplates.length} templates`);
 
-        await connection.templateSourcesList.add(TEST_SOURCE_URL, TEST_SOURCE_NAME, TEST_SOURCE_DESCR);
+        await connection.templateSourcesList.add({
+            url: TEST_SOURCE_URL, name: TEST_SOURCE_NAME, description: TEST_SOURCE_DESCR
+        });
         const newSources = await connection.templateSourcesList.get();
         expect(newSources).to.have.length(oldSources.length + 1);
 

@@ -15,7 +15,7 @@ import MCUtil from "../../MCUtil";
 import { CLICommands } from "./CLICommands";
 import {
     CLIStatus, IInitializationResponse, IDetectedProjectType, CLIConnectionData,
-    TemplateSource, AccessToken, RegistrySecret, CWTemplateData, DiagnosticsResult } from "../Types";
+    TemplateSource, AccessToken, RegistrySecret, CWTemplateData, DiagnosticsResult, NewTemplateSource } from "../Types";
 
 export namespace CLICommandRunner {
 
@@ -197,15 +197,32 @@ export namespace CLICommandRunner {
 
     ///// Template source management commands - These should only be used by the TemplateSourceList
 
-    export async function addTemplateSource(connectionID: string, url: string, name: string, descr?: string): Promise<TemplateSource[]> {
+    export async function addTemplateSource(connectionID: string, newSource: NewTemplateSource): Promise<TemplateSource[]> {
+
         const args = [
             "--conid", connectionID,
-            "--url", url,
-            "--name", name,
+            "--url", newSource.url,
+            "--name", newSource.name,
         ];
 
-        if (descr) {
-            args.push("--description", descr);
+        if (newSource.description) {
+            args.push("--description", newSource.description);
+        }
+
+        if (newSource.auth) {
+            if (newSource.auth.type === "credentials") {
+                args.push("--username", newSource.auth.username);
+                if (newSource.auth.password == null) {
+                    Log.e(`No password provided for template source ${newSource.url}`);
+                }
+                args.push(CLICommands.PASSWORD_ARG, newSource.auth.password || "");
+            }
+            else if (newSource.auth.personalAccessToken) {
+                args.push(CLICommands.PAT_ARG, newSource.auth.personalAccessToken);
+            }
+            else {
+                Log.e(`Empty auth object passed for template source "${newSource.url}"`);
+            }
         }
 
         return CLIWrapper.cwctlExec(CLICommands.TEMPLATE_SOURCES.ADD, args);
@@ -309,6 +326,8 @@ export namespace CLICommandRunner {
         Log.i(`Captured diagnostics to ${result.outputdir}`);
         return result;
     }
+
+    ///// Project links
 
     export async function addLink(projectID: string, targetProjectID: string, envName: string): Promise<void> {
         await CLIWrapper.cwctlExec(CLICommands.PROJECT.LINK, [

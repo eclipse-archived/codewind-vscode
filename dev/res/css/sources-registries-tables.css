@@ -1,6 +1,7 @@
 
 body {
     min-width: 700px;
+    max-width: 1200px;
 }
 
 #toolbar {
@@ -53,8 +54,13 @@ table {
     width: 20%;
 }
 
-#status-col {
-    width: 75px;
+#enabled-col {
+    width: 8ch;
+}
+
+#enabled-thead {
+    text-align: center;
+    padding: 0;
 }
 
 #style-col {
@@ -66,7 +72,7 @@ table {
 }
 
 .btn-col {
-    width: 70px;
+    width: 50px;
 }
 
 #no-registries-msg {
@@ -74,9 +80,10 @@ table {
 }
 
 td {
-    padding: 1em;
-    padding-top: 1.25em;
-    padding-bottom: 1.25em;
+    vertical-align: text-top;
+    padding: 0.5em;
+    padding-top: 1em;
+    padding-bottom: 1em;
     border-bottom: 1px solid #444;
 }
 
@@ -104,15 +111,15 @@ thead > tr > td {
     text-align: center;
 }
 
-.btn-cell > .btn {
-    height: 1.75em;
+.btn-cell .btn, .btn-cell img {
+    height: 1.2rem;
+    padding: 0;
+    vertical-align: top;
 }
 
-.btn-cell > .toggle-btn {
-    min-height: 1.25em;
-    height: 125%;
-    margin-left: auto;
-    margin-right: auto;
+.btn-cell .toggle-btn {
+    min-height: 1.2rem;
+    height: 120%;
 }
 
 .namespace-disabled {
@@ -121,9 +128,4 @@ thead > tr > td {
 
 #push-registry-header {
     text-align: center;
-}
-
-.push-registry-radiobtn {
-    zoom: 175%;
-    margin: 0;
 }

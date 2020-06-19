@@ -232,7 +232,7 @@ export namespace CLILifecycleWrapper {
         Log.i("Installing Codewind");
 
         const installAffirmBtn = Translator.t(STRING_NS, "installAffirmBtn");
-        const moreInfoBtn = Translator.t(StringNamespaces.ACTIONS, "moreInfoBtn");
+        const moreInfoBtn = Translator.t(StringNamespaces.ACTIONS, "moreInfo");
 
         let response;
         if (!promptForInstall || MCUtil.isTestEnv()) {
@@ -307,7 +307,7 @@ export namespace CLILifecycleWrapper {
         else {
             msg = Translator.t(STRING_NS, "installFailed");
         }
-        const moreInfoBtn = Translator.t(STRING_NS, "moreInfoBtn");
+        const moreInfoBtn = Translator.t(STRING_NS, "moreInfo");
         const tryAgainBtn = Translator.t(StringNamespaces.STARTUP, "tryAgainBtn");
 
         return vscode.window.showWarningMessage(msg, moreInfoBtn, tryAgainBtn, Translator.t(STRING_NS, "okBtn"))

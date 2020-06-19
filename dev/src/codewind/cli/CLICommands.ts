@@ -46,6 +46,7 @@ export class CLICommand {
 
 export namespace CLICommands {
     export const PASSWORD_ARG = "--password";
+    export const PAT_ARG = "--personalAccessToken";
 
     export const STATUS = new CLICommand([ "status" ]);
     export const UPGRADE = new CLICommand([ "upgrade" ]);

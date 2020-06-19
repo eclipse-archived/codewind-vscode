@@ -98,6 +98,7 @@ export class Requester {
     // tslint:disable-next-line: typedef - The typedef for the options accepted by Got is a total mess :)
     private static getGotOptions(verb: HttpMethod, url: string, options: RequesterOptions) {
         return {
+            followRedirect: true,
             method: verb,
             rejectUnauthorized: false,
             json: options.body,

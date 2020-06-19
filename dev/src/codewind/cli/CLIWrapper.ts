@@ -160,7 +160,7 @@ namespace CLIWrapper {
         // Build the 'cmdStr' which is the full command printed for debugging.
         // If the command contains a user password we have to censor it.
         const argsCopy = Array.from(args);
-        const pwIndex = args.findIndex((arg) => arg === CLICommands.PASSWORD_ARG);
+        const pwIndex = args.findIndex((arg) => arg === CLICommands.PASSWORD_ARG || arg === CLICommands.PAT_ARG);
         if (pwIndex >= 0) {
             argsCopy[pwIndex + 1] = "********";
         }
