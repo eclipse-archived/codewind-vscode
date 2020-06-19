@@ -1,6 +1,6 @@
 import Connection from "./Connection";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
-import { TemplateSource, SourceEnablement } from "../Types";
+import { TemplateSource, SourceEnablement, NewTemplateSource } from "../Types";
 
 export enum SourceProjectStyles {
     CODEWIND = "Codewind",
@@ -55,8 +55,8 @@ export default class TemplateSourcesList {
         }, []);
     }
 
-    public async add(url: string, name: string, description: string | undefined): Promise<TemplateSource[]> {
-        this.templateSources = await CLICommandRunner.addTemplateSource(this.connection.id, url, name, description);
+    public async add(newSource: NewTemplateSource): Promise<TemplateSource[]> {
+        this.templateSources = await CLICommandRunner.addTemplateSource(this.connection.id, newSource);
         return this.templateSources;
     }
 

@@ -124,6 +124,9 @@ export const ThemedImages = {
     Play:       new CWImage(true, "play"),
     Refresh:    new CWImage(true, "refresh"),
 
+    Locked:     new CWImage(true, "locked"),
+    Unlocked:   new CWImage(true, "unlocked"),
+
     Server_Error:       new CWImage(true, "server_error"),
     Split_Horizontal:   new CWImage(true, "split_horizontal"),
 

@@ -10,7 +10,6 @@
  *******************************************************************************/
 
 import * as vscode from "vscode";
-import { URL } from "url";
 
 import Connection from "../../codewind/connection/Connection";
 import { ThemelessImages } from "../../constants/CWImages";
@@ -24,9 +23,11 @@ import remoteConnectionOverviewCmd from "../connection/ConnectionOverviewCmd";
 import { SourceEnablement, TemplateSource } from "../../codewind/Types";
 import CWExtensionContext from "../../CWExtensionContext";
 import { HAS_SELECTED_SOURCE_KEY } from "../connection/CreateUserProjectCmd";
+import TemplateSourceWizard from "../../codewind/connection/TemplateSourceWizard";
 
 export enum ManageSourcesWVMessages {
     ENABLE_DISABLE = "enableOrDisable",
+    // EDIT = "edit",
 }
 
 const SOURCES_PAGE_TITLE = "Template Source Manager";
@@ -123,9 +124,9 @@ export class SourcesPageWrapper extends WebviewWrapper {
     }
 
     private async addNew(): Promise<void> {
-        Log.d("Adding new repo to " + this.connection.url);
-        const repoInfo = await promptForNewRepo();
-        if (!repoInfo) {
+        Log.d("Adding new source to " + this.connection);
+        const newSource = await TemplateSourceWizard.startWizard();
+        if (!newSource) {
             // cancelled
             return;
         }
@@ -133,15 +134,15 @@ export class SourcesPageWrapper extends WebviewWrapper {
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
-            title: `Adding ${repoInfo.repoName}...`
+            title: `Adding ${newSource.name}...`
         }, async () => {
             try {
-                await this.connection.templateSourcesList.add(repoInfo.repoUrl, repoInfo.repoName, repoInfo.repoDescr);
+                await this.connection.templateSourcesList.add(newSource);
                 await this.refresh();
             }
             catch (err) {
-                vscode.window.showErrorMessage(`Error adding ${repoInfo.repoName}: ${MCUtil.errToString(err)}`);
-                Log.e(`Error adding new template repo ${JSON.stringify(repoInfo)}`, err);
+                vscode.window.showErrorMessage(`Error adding ${newSource.name}: ${MCUtil.errToString(err)}`);
+                Log.e(`Error adding new template repo ${newSource.url}`, err);
             }
         });
     }
@@ -174,57 +175,4 @@ export class SourcesPageWrapper extends WebviewWrapper {
             }
         });
     }
-}
-
-async function promptForNewRepo(): Promise<{ repoUrl: string, repoName: string, repoDescr?: string } | undefined> {
-    const repoUrl = await vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        placeHolder: `https://raw.githubusercontent.com/codewind-resources/codewind-templates/master/devfiles/index.json`,
-        prompt: "Enter the URL to your template source's index file.",
-        validateInput: validateRepoInput,
-    });
-
-    if (!repoUrl) {
-        return undefined;
-    }
-
-    let repoName = await vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        placeHolder: "My Templates",
-        prompt: `Enter a name for ${repoUrl}`,
-    });
-    if (!repoName) {
-        return undefined;
-    }
-    repoName = repoName.trim();
-
-    let repoDescr = await vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        placeHolder: "Description of My Templates",
-        prompt: `(Optional) Enter a description for ${repoName}`,
-    });
-    if (repoDescr) {
-        repoDescr = repoDescr.trim();
-    }
-
-    return { repoUrl, repoName, repoDescr };
-}
-
-function validateRepoInput(input: string): string | undefined {
-    let asUrl: URL | undefined;
-    try {
-        // We use URL instead of vscode.Uri because the latter appears to throw errors irregularly.
-        asUrl = new URL(input);
-    }
-    catch (err) {
-        // not a url
-    }
-
-    if (!asUrl) {
-        return "The repository URL must be a valid URL.";
-    }
-    else if (!asUrl.protocol.startsWith("http")) {
-        return "The repository URL must be a valid http(s) URL.";
-    }
-    return undefined;
 }

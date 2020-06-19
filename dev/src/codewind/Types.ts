@@ -125,6 +125,32 @@ export interface TemplateSource {
     readonly enabled: boolean;
     readonly projectStyles: string[];
     readonly protected: boolean;
+    /**
+     * If auth object is not present, the source is public.
+     * If it's present and there is a username, then username/pw were used. Else, PAT was used.
+     * https://github.com/eclipse/codewind/issues/3101
+     */
+    readonly authentication?: {
+        username?: string;
+    }
+}
+
+export type TemplateSourceAuthType = "credentials" | "pat";
+
+export type TemplateSourceAuth = {
+    type: "credentials",
+    username: string,
+    password?: string
+} | {
+    type: "pat",
+    personalAccessToken: string
+}
+
+export interface NewTemplateSource {
+    readonly url: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly auth?: TemplateSourceAuth;
 }
 
 /**
