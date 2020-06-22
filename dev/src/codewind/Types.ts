@@ -198,6 +198,11 @@ export interface ProjectLink {
     // projectURL: string;
 }
 
+export interface ProjectOutgoingLink extends ProjectLink {
+    otherProjectID: string;
+    otherProjectName: string;
+}
+
 /**
  * Project data as
  * - returned by /api/v1/projects

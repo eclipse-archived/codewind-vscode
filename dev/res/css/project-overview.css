@@ -3,6 +3,7 @@ body {
     /* min-width: 600px; */
     width: 800px;
     --section-spacing: 1em;
+    --create-link-btn-width: 20ch;
 }
 
 #btns-section {
@@ -104,16 +105,14 @@ body {
 }
 
 .btn-cell {
-    width: 1%;
-    /* display: inline-flex; */
-    /* align-items: center; */
+    width: 3em;
 }
 
 .btn-cell input[type="image"] {
     height: 1.75em;
     margin: 0;
     padding: 0;
-    margin-left: 1em;
+    /* margin-left: 1em; */
     vertical-align: middle;
 }
 
@@ -145,10 +144,12 @@ body {
 
 #create-link-btn {
     margin-left: auto;
+    width: var(--create-link-btn-width);
 }
 
 .link-table {
     border-collapse: collapse;
+    margin-bottom: 3em;
 }
 
 .link-table tr {
@@ -169,8 +170,8 @@ body {
     width: 64ch;
 }
 
-.btn-col {
-    width: 3em;
+#spacer-col {
+    width: var(--create-link-btn-width);
 }
 
 thead td {

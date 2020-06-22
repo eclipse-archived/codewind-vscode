@@ -22,14 +22,25 @@ import CWExtensionContext from "../../CWExtensionContext";
 export default async function removeProjectCmd(project: Project): Promise<void> {
     let deleteFiles: boolean;
 
-    // confirm deletion
-    const deleteMsg = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectMsg", {
-        projectName: project.name,
-        connectionLabel: project.connection.label
-    });
+    let confirmDeletePrompt;
+    if (project.outgoingLinks.length > 0) {
+        const outgoingLinksList = MCUtil.joinList(project.outgoingLinks.map((link) => link.otherProjectName), "and");
+        confirmDeletePrompt = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectWithLinksMsg", {
+            projectName: project.name,
+            connectionLabel: project.connection.label,
+            outgoingLinksList,
+        });
+    }
+    else {
+        confirmDeletePrompt = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteProjectMsg", {
+            projectName: project.name,
+            connectionLabel: project.connection.label
+        });
+    }
+
     const deleteBtn = Translator.t(StringNamespaces.CMD_MISC, "confirmDeleteBtn", { projectName: project.name });
 
-    const deleteRes = await vscode.window.showInformationMessage(deleteMsg, { modal: true }, deleteBtn);
+    const deleteRes = await vscode.window.showInformationMessage(confirmDeletePrompt, { modal: true }, deleteBtn);
     if (deleteRes !== deleteBtn) {
         // cancelled
         return;

@@ -22,6 +22,7 @@
         "noContainerForShell": "{{ projectName }} does not have an application {{ podOrContainer }} running. Wait until the project is Running.",
         "alreadyInCodewindWorkspace": "The Codewind workspace is already your workspace root.",
         "confirmDeleteProjectMsg": "Are you sure you want to remove {{ projectName }} from {{ connectionLabel }}?",
+        "confirmDeleteProjectWithLinksMsg": "Are you sure you want to remove {{ projectName }} from {{ connectionLabel }}?\n\n{{ projectName }} has a link to {{ outgoingLinksList }}. Any environment variables which reference {{ projectName }} will have to be removed.",
         "confirmDeleteBtn": "Remove Project",
         "alsoDeleteDirMsg": "{{ projectName }} will be removed from {{ connectionLabel }}.\nDo you also want to delete {{- dirPath }} from your disk?\nClick {{ cancelBtn }} to keep the directory.",
         "alsoDeleteDirBtn": "Delete Directory",

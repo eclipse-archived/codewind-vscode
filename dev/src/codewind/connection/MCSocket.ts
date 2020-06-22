@@ -19,7 +19,7 @@ import SocketEvents from "./SocketEvents";
 import Validator from "../project/Validator";
 import projectOverviewCmd from "../../command/project/ProjectOverviewCmd";
 import { CWConfigurations } from "../../constants/Configurations";
-import { PFEProjectData } from "../Types";
+import { PFEProjectData, ProjectLink } from "../Types";
 import addProjectToWorkspaceCmd from "../../command/project/AddToWorkspaceCmd";
 import MCUtil from "../../MCUtil";
 import CWExtensionContext from "../../CWExtensionContext";
@@ -298,13 +298,29 @@ export default class MCSocket implements vscode.Disposable {
         }
     }
 
-    private readonly onProjectLink = async (payload: { projectID: string, name: string, status: string, error: string | null }): Promise<void> => {
+    private readonly onProjectLink = async (payload: {
+        projectID: string,
+        name: string,
+        status: string,
+        error: string | null,
+        link?: ProjectLink
+    }): Promise<void> => {
+
         Log.d(`Link event for ${payload.name}`, payload);
-        if (payload.error != null) {
+        if (payload.error != null || payload.link == null) {
             const errMsg = `Error linking ${payload.name}`;
-            Log.e(errMsg, payload.error);
+            Log.e(errMsg, payload);
             vscode.window.showErrorMessage(`${errMsg}: ${MCUtil.errToString(payload.error)}`);
+            return;
         }
+
+        const linkTarget = await this.getProject(payload.link);
+        if (linkTarget == null) {
+            Log.e(`New link created to project ${payload.projectID} ${payload.name} but the project was not found`);
+            return;
+        }
+
+        linkTarget.setOutgoingLinkUpdateRequired();
     }
 
     // prevents multiple events from simultaneously requesting a projects refresh
