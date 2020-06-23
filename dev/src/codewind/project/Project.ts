@@ -30,7 +30,7 @@ import Validator from "./Validator";
 import Constants from "../../constants/Constants";
 import Commands from "../../constants/Commands";
 import ProjectOverviewPageWrapper from "../../command/webview/ProjectOverviewPageWrapper";
-import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData, ProjectLink } from "../Types";
+import { MetricsDashboardStatus, MetricsInjectionStatus, PFEProjectData, ProjectLink, ProjectOutgoingLink } from "../Types";
 import Requester from "../Requester";
 import ProjectRequester from "./ProjectRequester";
 import { CLICommandRunner } from "../cli/CLICommandRunner";
@@ -92,7 +92,9 @@ export default class Project implements vscode.QuickPickItem {
     private _perfDashboardPath: string | null;
     private _metricsInjectStatus: MetricsInjectionStatus;
 
-    private _linksTo: (ProjectLink /* & { broken: boolean } */)[] = [];
+    private _outgoingLinks: ProjectOutgoingLink[] = [];
+    private _outgoingLinksUpdateRequired: boolean = true;
+    private _incomingLinks: ProjectLink[] = [];
 
     // can we query filewatcher for this project's capabilities
     private _capabilitiesReady: boolean;
@@ -162,7 +164,7 @@ export default class Project implements vscode.QuickPickItem {
 
         this.requester = new ProjectRequester(this);
         this.loadRunnerTracker = new LoadRunnerTracker(this, this.requester);
-        this.setLinks(projectInfo.links?._links || []);
+        this._incomingLinks = projectInfo.links?._links || [];
         this._startMode = projectInfo.startMode || StartModes.RUN;
 
         this._state = new ProjectState(this.name);
@@ -236,7 +238,7 @@ export default class Project implements vscode.QuickPickItem {
         }
 
         if (projectInfo.links?._links) {
-            this.setLinks(projectInfo.links._links);
+            this._incomingLinks = projectInfo.links._links;
         }
 
         if (projectInfo.startMode) {
@@ -945,8 +947,42 @@ export default class Project implements vscode.QuickPickItem {
         return this._metricsInjectStatus.injected;
     }
 
-    public get linksTo(): ProjectLink[] {
-        return this._linksTo;
+    /**
+     * @returns A list of project link that have this project as the target. That is, this project's URL is exposed to the other project.
+     * This project does not own these links, but they refer to this project.
+     */
+    public get outgoingLinks(): ProjectOutgoingLink[] {
+        if (this._outgoingLinksUpdateRequired) {
+            Log.d(`${this.name} is refreshing outgoing links`);
+
+            this._outgoingLinks = this.connection.projects.reduce((otherProjectLinks, otherProject): ProjectOutgoingLink[] => {
+                const linksToThisProject = otherProject.incomingLinks.filter((link) => {
+                    return link.projectID === this.id;
+                });
+
+                const linksTo: ProjectOutgoingLink[] = linksToThisProject.map((link) => {
+                    return {
+                        ...link,
+                        otherProjectID: otherProject.id,
+                        otherProjectName: otherProject.name,
+                    }
+                });
+
+                return otherProjectLinks.concat(linksTo);
+            }, new Array<ProjectOutgoingLink>())
+
+            this._outgoingLinksUpdateRequired = false;
+        }
+
+        return this._outgoingLinks;
+    }
+
+    /**
+     * @returns A list of project links that this project keeps. That is, these links expose the other project's URL to this project.
+     * This project does own these links.
+     */
+    public get incomingLinks(): ProjectLink[] {
+        return this._incomingLinks;
     }
 
     ///// Setters
@@ -1068,18 +1104,6 @@ export default class Project implements vscode.QuickPickItem {
         return changed;
     }
 
-    private setLinks(links: ProjectLink[]): void {
-        // const linksWithBroken = links.map((link) => {
-        //     const broken = !this.connection.projects.some((project) => link.projectID === project.id);
-        //     return {
-        //         ...link,
-        //         broken,
-        //     }
-        // });
-
-        this._linksTo = links;
-    }
-
     public async tryOpenSettingsFile(): Promise<void> {
         const settingsFilePath = path.join(this.localPath.fsPath, Constants.PROJ_SETTINGS_FILE_NAME);
         const settingsFileExists = await fs.pathExists(settingsFilePath);
@@ -1118,5 +1142,10 @@ export default class Project implements vscode.QuickPickItem {
             Log.w(`Failed to access app monitor for project ${this.name} at ${this.metricsDashboardURL}`, err);
             return false;
         }
+    }
+
+    public setOutgoingLinkUpdateRequired(): void {
+        this._outgoingLinksUpdateRequired = true;
+        this.overviewPage?.refresh();
     }
 }

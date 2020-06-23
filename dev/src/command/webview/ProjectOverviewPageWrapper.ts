@@ -37,7 +37,7 @@ export enum ProjectOverviewWVMessages {
     TOGGLE_INJECT_METRICS = "toggleInjectMetrics",
     MANAGE_LOGS = "manageLogs",
     OPEN_LOG = "openLog",
-    OPEN_PROJECT = "openProject",
+    OPEN_PROJECT_LINKS = "openProject",
     CREATE_LINK = "createLink",
     EDIT_LINK = "editLink",
     REMOVE_LINK = "removeLink",
@@ -124,7 +124,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                 }
                 break;
             }
-            case ProjectOverviewWVMessages.OPEN_PROJECT: {
+            case ProjectOverviewWVMessages.OPEN_PROJECT_LINKS: {
                 const projectID = msg.data as string;
                 const project = await this.project.connection.getProjectByID(projectID);
                 if (project == null) {
@@ -133,7 +133,7 @@ export default class ProjectOverviewPageWrapper extends WebviewWrapper {
                     vscode.window.showErrorMessage(errMsg);
                     return;
                 }
-                await projectOverviewCmd(project);
+                await projectOverviewCmd(project, true);
                 break;
             }
             case ProjectOverviewWVMessages.CREATE_LINK: {

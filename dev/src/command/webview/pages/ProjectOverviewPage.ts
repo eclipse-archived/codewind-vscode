@@ -18,7 +18,7 @@ import { ProjectOverviewWVMessages } from "../ProjectOverviewPageWrapper";
 import WebviewUtil, { CommonWVMessages } from "../WebviewUtil";
 import { WebviewResourceProvider } from "../WebviewWrapper";
 import CWExtensionContext from "../../../CWExtensionContext";
-import { ProjectLink } from "../../../codewind/Types";
+import { ProjectLink, ProjectOutgoingLink } from "../../../codewind/Types";
 
 interface RowOptions {
     openable?: "web" | "folder";
@@ -463,7 +463,8 @@ function buildLinkSection(rp: WebviewResourceProvider, project: Project): string
     return `
         <div class="link-table-header">
             <div class="link-table-header-text">
-                The environment variables below are available to ${project.name}, and contain the hostnames of the linked projects.
+                <b>Incoming links:</b> The environment variables below are available to ${project.name},
+                and contain the hostnames of the linked projects.
             </div>
             <input type="button" value="Create Link"
                 id="create-link-btn"
@@ -471,24 +472,42 @@ function buildLinkSection(rp: WebviewResourceProvider, project: Project): string
                 onclick="sendMsg('${ProjectOverviewWVMessages.CREATE_LINK}')"
             />
         </div>
-        ${buildLinkTable(rp, project, "to")}
+        ${buildLinkTable(rp, project, "incoming")}
+        <div class="link-table-header">
+            <div class="link-table-header-text">
+                <b>Outgoing links:</b> The environment variables below are available to the other projects, and
+                contain the hostname of ${project.name}.
+            </div>
+        </div>
+        ${buildLinkTable(rp, project, "outgoing")}
     `;
 }
 
-function buildLinkTable(rp: WebviewResourceProvider, project: Project, _toOrFrom: "to" /* | "from" */): string {
-    const links = project.linksTo;
+function buildLinkTable(rp: WebviewResourceProvider, project: Project, incomingOrOutgoing: "incoming" | "outgoing"): string {
+    const links = incomingOrOutgoing === "incoming" ? project.incomingLinks : project.outgoingLinks;
+    const areLinksEditable = incomingOrOutgoing === "incoming";
+
+    let noLinksMsg = `No ${incomingOrOutgoing} project links yet.`;
+    if (incomingOrOutgoing === "incoming") {
+        noLinksMsg += ` Click Create Link.`;
+    }
+    else {
+        noLinksMsg += ` Create a link to this project from another project.`;
+    }
 
     let tbody;
     if (links.length === 0) {
-        tbody = `<tr>
-            <td class="transparent">No project links created yet. Click Create Link.</td>
+        tbody = `
+        <tr>
+            <td class="transparent" style="text-align: left">${noLinksMsg}</td>
             <td></td>
             <td></td>        <!-- Edit buttons column -->
             <td></td>        <!-- Delete buttons column -->
+            <td></td>
         </tr>`;
     }
     else {
-        tbody = links.map((link) => buildLinkRow(rp, project, link)).join("\n");
+        tbody = links.map((link) => buildLinkRow(rp, project, link, areLinksEditable)).join("\n");
     }
 
     return `
@@ -496,15 +515,17 @@ function buildLinkTable(rp: WebviewResourceProvider, project: Project, _toOrFrom
             <colgroup>
                 <col id="name-col"/>
                 <col id="env-var-col"/>
-                <col class="btn-col"/>
-                <col class="btn-col"/>
+                <col class="btn-col"/>     <!-- Edit buttons column -->
+                <col class="btn-col"/>     <!-- Delete buttons column -->
+                <col id="spacer-col"/>     <!-- Spacer column -->
             </colgroup>
             <thead>
                 <tr>
                     <td>Project</td>
                     <td>Environment Variable</td>
-                    <td></td>        <!-- Edit buttons column -->
-                    <td></td>        <!-- Delete buttons column -->
+                    <td></td>
+                    <td></td>
+                    <td></td>
                 </tr>
             </thead>
             <tbody>
@@ -514,9 +535,17 @@ function buildLinkTable(rp: WebviewResourceProvider, project: Project, _toOrFrom
     `
 }
 
-function buildLinkRow(rp: WebviewResourceProvider, project: Project, link: ProjectLink): string {
+function isOutgoingLink(link: ProjectLink | ProjectOutgoingLink): link is ProjectOutgoingLink {
+    return (link as any).otherProjectID != null;
+}
+
+function buildLinkRow(rp: WebviewResourceProvider, project: Project, link: ProjectLink | ProjectOutgoingLink, areLinksEditable: boolean): string {
+
     const areBtnsEnabled = !project.isRestarting;
     const btnClass = areBtnsEnabled ? "" : "not-allowed";
+
+    const linkProjectID = (isOutgoingLink(link)) ? link.otherProjectID : link.projectID;
+    const linkProjectName = (isOutgoingLink(link)) ? link.otherProjectName : link.projectName;
 
     const titleSuffix = areBtnsEnabled ? "" : " - Wait for the project to finish restarting before modifying links.";
     const onClickMsgData = `{ envName: '${link.envName}', targetProjectName: '${link.projectName}' }`;
@@ -530,23 +559,31 @@ function buildLinkRow(rp: WebviewResourceProvider, project: Project, link: Proje
 
     return `<tr>
         <td>
-            <a onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_PROJECT}', '${link.projectID}')">
-                ${link.projectName}
+            <a title="Open ${linkProjectName}" onclick="sendMsg('${ProjectOverviewWVMessages.OPEN_PROJECT_LINKS}', '${linkProjectID}')">
+                ${linkProjectName}
             </a>
         </td>
         <td title="Environment variable name (Right-click to copy)"
             oncontextmenu="copy(event, '${link.envName}', 'env variable name')">
             ${link.envName}
         </td>
+
         <td class="btn-cell">
-            <input type="image" title="Edit Link${titleSuffix}" src="${rp.getImage(ThemedImages.Edit)}" class="${btnClass}"
-                onclick="${editOnClick}"
-            />
+            ${areLinksEditable ?
+                `<input type="image" title="Edit Link${titleSuffix}" src="${rp.getImage(ThemedImages.Edit)}" class="${btnClass}"
+                    onclick="${editOnClick}"
+                />` : ""
+            }
         </td>
+
         <td class="btn-cell">
-            <input type="image" title="Remove Link${titleSuffix}" src="${rp.getImage(ThemedImages.Trash)}" class="${btnClass}"
-                onclick="${removeOnClick}"
-            />
+            ${areLinksEditable ?
+                `<input type="image" title="Remove Link${titleSuffix}" src="${rp.getImage(ThemedImages.Trash)}" class="${btnClass}"
+                    onclick="${removeOnClick}"
+                />` : ""
+            }
         </td>
+
+        <td></td>
     </tr>`
 }
