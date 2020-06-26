@@ -29,7 +29,6 @@ body {
     width: calc(100% - var(--section-spacing));
     border-bottom: var(--section-separator);
     padding-left: var(--section-spacing);
-    padding-bottom: var(--section-spacing);
 }
 
 .section-header {
@@ -37,8 +36,6 @@ body {
     display: flex;
     background-color: var(--vscode-activityBar-background);
     /* background-color: var(--welcomePage-tileBackground); */
-    margin-top: var(--section-spacing);
-    margin-bottom: var(--section-spacing);
     padding-top: 0.6em;
     padding-bottom: 0.6em;
 }
@@ -112,7 +109,7 @@ body {
     height: 1.75em;
     margin: 0;
     padding: 0;
-    /* margin-left: 1em; */
+    margin-left: 1em;
     vertical-align: middle;
 }
 
@@ -133,7 +130,8 @@ body {
 }
 
 .link-table-header {
-    margin-bottom: 1em;
+    margin-top: var(--section-spacing);
+    margin-bottom: var(--section-spacing);
     display: flex;
     align-items: center;
 }
@@ -149,7 +147,7 @@ body {
 
 .link-table {
     border-collapse: collapse;
-    margin-bottom: 3em;
+    margin-bottom: calc(2 * var(--section-spacing));
 }
 
 .link-table tr {
