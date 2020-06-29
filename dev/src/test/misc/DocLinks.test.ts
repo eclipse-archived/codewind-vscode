@@ -18,6 +18,11 @@ import TestUtil from "../TestUtil";
 
 describe("Doc links test", function() {
 
+    // skip pages that aren't published yet
+    const docsToSkip = [
+        CWDocs.PROJECT_LINKS,
+    ];
+
     it(`should not have any broken links to the Codewind docs`, async function() {
         this.timeout(TestUtil.ms(10, "sec"));
         this.slow(TestUtil.ms(5, "sec"));
@@ -25,6 +30,10 @@ describe("Doc links test", function() {
         const errors: string[] = [];
 
         await Promise.all(Object.values(CWDocs).map(async (doc) => {
+            if (docsToSkip.includes(doc)) {
+                Log.t(`Skipping testing ${doc}`);
+                return;
+            }
             Log.t(`GET doclink ${doc.uri.toString()}`);
 
             try {

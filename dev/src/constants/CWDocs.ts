@@ -40,6 +40,7 @@ export const CWDocs = {
     COMMANDS_OVERVIEW:      new CWDoc("project-actions.html"),
     PERF_MONITORING:        new CWDoc("performance.html"),
     FIRST_PROJECT_LOCAL:    new CWDoc("vsc-firstproject.html"),
+    PROJECT_LINKS:          new CWDoc("linking-your-projects.html"),
 };
 
 export default CWDocs;

@@ -188,8 +188,7 @@ async function getLinkEnvVar(firstProject: Project, linkProjectName: string, isI
 }
 
 function onDidClickMoreInfo(): void {
-    // TODO link
-    CWDocs.HOME.open();
+    CWDocs.PROJECT_LINKS.open();
 }
 
 function validateEnvVar(input: string): string | undefined {
