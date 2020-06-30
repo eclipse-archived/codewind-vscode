@@ -69,12 +69,10 @@ export default async function createProjectCmd(connection: Connection): Promise<
                 return;
             }
             else if (await RegistryUtils.doesNeedPushRegistry(template.projectType, connection)) {
+                Log.d(`Blocking projecct creation due to no push registry`);
                 // The user needs to configure a push registry before they can create this type of project
                 return;
             }
-
-            // Add a brief delay while the template picker disposes https://github.com/eclipse/codewind/issues/2330
-            await MCUtil.delay(10);
 
             try {
                 projectName = await promptForProjectName(connection, template);

@@ -185,6 +185,8 @@ namespace TemplateSourceWizard {
             }
         }
 
+        Log.d(`Testing new template source...`);
+
         return vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             cancellable: false,
@@ -208,6 +210,7 @@ namespace TemplateSourceWizard {
     }
 
     async function getRepoAuthInfo(sourceUrl: string): Promise<TemplateSourceAuth | undefined> {
+        Log.d(`Prompting for auth info for new template source`);
         const sourceUrlAsUri = vscode.Uri.parse(sourceUrl);
 
         const authType = await InputUtil.showQuickPick<vscode.QuickPickItem & { type: TemplateSourceAuthType }>({

@@ -215,6 +215,9 @@ async function main() {
     const buildForChe = !!args.buildForChe;
     const prebuildType = buildForChe ? "Che" : "VS Code";
     console.log("Building for " + prebuildType);
+    if (!buildForChe) {
+        console.log(`Use --buildForChe to build for Che`);
+    }
 
     await fs.copyFile(PACKAGE_JSON_PATH, PACKAGE_JSON_BACKUP);
 
