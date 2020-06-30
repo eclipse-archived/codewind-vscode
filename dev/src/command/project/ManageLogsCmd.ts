@@ -75,20 +75,38 @@ async function manageLogsInner(project: Project, all?: "show" | "show-from-creat
     // https://github.com/eclipse-theia/theia/issues/5673
     // In theia, the strings are a little different because we can only manage one log at a time due to no canPickMany support.
     // Note that the MCLog's 'detail' field is only set in Theia.
-    const placeHolder = CWExtensionContext.get().isTheia ?
+    const isTheiaManageLogs = CWExtensionContext.get().isTheia;
+
+    const placeHolder = isTheiaManageLogs ?
         `Select a log to show or hide in the Output view` :
         `Select the logs you wish to see in the Output view`;
 
-    const logsToShow = await vscode.window.showQuickPick<MCLog>(logs, {
+    const logsSelected = await vscode.window.showQuickPick<MCLog>(logs, {
         canPickMany: true,
         matchOnDescription: true,
         placeHolder,
     });
-    // https://github.com/Microsoft/vscode/issues/64014
-    // }) as (MCLog[] | undefined);
 
-    if (logsToShow == null) {
+    if (logsSelected == null) {
+        // cancelled
         return;
+    }
+
+    let logsToShow;
+    if (!isTheiaManageLogs) {
+        logsToShow = logsSelected;
+    }
+    else {
+        logsToShow = logs.filter((log) => {
+            if (logsSelected.includes(log)) {
+                // inside theia, we just toggle the one log that was selected
+                Log.d(`Log ${log.logName} is the selected one; toggling`);
+                return !log.isOpen;
+            }
+            // maintain the state for all the logs that are not the selected one
+            Log.d(`Log ${log.logName} is not selected; maintaining state`);
+            return log.isOpen;
+        });
     }
 
     await project.logManager.showSome(logsToShow, true);
