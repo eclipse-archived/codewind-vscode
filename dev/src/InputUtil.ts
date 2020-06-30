@@ -60,17 +60,18 @@ namespace InputUtil {
         qp.matchOnDescription = qpOptions.matchOnDescription || false;
         qp.matchOnDetail = qpOptions.matchOnDetail || false;
 
+        if (!CWExtensionContext.get().isTheia) {
+            // Theia quickpicks misbehave if the quickpick is shown before populating the items
+            // https://github.com/eclipse-theia/theia/issues/6221#issuecomment-533268856
+            // In VS Code, the items are populated after showing, so we can show the quickpick sooner, which looks better.
+            qp.show();
+        }
+        // if we are in theia, it is shown in the promise callback below
+
         if (Array.isArray(qpOptions.items)) {
             qp.items = qpOptions.items;
         }
         else {
-            if (!CWExtensionContext.get().isTheia) {
-                // Theia quickpicks misbehave if the quickpick is shown before populating the items
-                // https://github.com/eclipse-theia/theia/issues/6221#issuecomment-533268856
-                // In VS Code, the items are populated after showing, so we can show the quickpick sooner, which looks better.
-                qp.show();
-            }
-
             // busy and enabled have no effect in theia https://github.com/eclipse-theia/theia/issues/5059
             qp.busy = true;
             qp.enabled = false;
@@ -113,7 +114,10 @@ namespace InputUtil {
                 })
             );
 
-            qp.show();
+            if (CWExtensionContext.get().isTheia) {
+                // it wasn't shown above, so show it now
+                qp.show();
+            }
         })
         .finally(() => {
             qp.dispose();

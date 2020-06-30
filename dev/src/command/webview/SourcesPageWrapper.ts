@@ -74,7 +74,13 @@ export class SourcesPageWrapper extends WebviewWrapper {
                 break;
             }
             case CommonWVMessages.ADD_NEW: {
-                await this.addNew();
+                try {
+                    await this.addNew();
+                }
+                catch (err) {
+                    Log.e(`Uncaught error adding new template source`, err);
+                    vscode.window.showErrorMessage(`Error adding new template source: ${MCUtil.errToString(err)}`);
+                }
                 break;
             }
             case CommonWVMessages.DELETE: {
