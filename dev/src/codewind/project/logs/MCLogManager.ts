@@ -118,10 +118,12 @@ export default class MCLogManager {
     }
 
     public async showAll(type: "background" | "foreground"): Promise<void> {
-        Log.d("Showing all logs for " + this.project.name);
+        Log.d(`Showing all logs for ${this.project.name} in the ${type}`);
         this.isShowingAll = type;
         this.logs.forEach((log) => log.createOutput(true));
-        await this.toggleLogStreaming(true);
+        if (this.logs.length > 0) {
+            await this.toggleLogStreaming(true);
+        }
     }
 
     /**

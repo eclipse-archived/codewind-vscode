@@ -50,8 +50,8 @@ class CWExtensionContext implements vscode.ExtensionContext {
         private readonly vscContext: vscode.ExtensionContext,
     ) {
         this.resourcesPath = path.join(vscContext.extensionPath, "res");
-        this.isTheia = vscode.env.appName.toLowerCase().includes("theia");
         this.isChe = !!process.env[Constants.CHE_WORKSPACEID_ENVVAR];
+        this.isTheia = this.isChe || vscode.env.appName.toLowerCase().includes("theia");
 
         const thisExtension = vscode.extensions.getExtension("IBM.codewind")!;
         this.extensionVersion = thisExtension.packageJSON.version;
