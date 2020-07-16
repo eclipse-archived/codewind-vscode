@@ -2,7 +2,7 @@
     "name": "codewind",
     "displayName": "%displayName%",
     "description": "%description%",
-    "version": "0.14.0",
+    "version": "0.14.1",
     "codewindImageTag": "latest",
     "appsodyVersion": "0.6.4",
     "publisher": "IBM",
