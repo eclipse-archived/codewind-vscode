@@ -86,7 +86,7 @@
         "i18next": "^19.3.3",
         "socket.io-client": "^2.3.0",
         "source-map-support": "^0.5.16",
-        "tar": "^6.0.1"
+        "tar": "^6.1.9"
     },
     "contributes": {
         "views": {
